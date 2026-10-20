@@ -27,11 +27,14 @@ module.exports = async (req, res) => {
   }
   content.push({ type: 'text', text: prompt + (body.json ? '\n\nRespondé únicamente con JSON válido, sin texto antes ni después.' : '') });
 
+  // Páginas de catálogo y enderezado de fotos: modelo con mejor vista. Productos sueltos: el más económico.
+  const dificil = images.length > 0 && (body.tier === 'complex' || /cat[aá]logo/i.test(prompt));
+  const model = dificil ? (process.env.IA_MODEL_VISION || 'claude-sonnet-5-5') : (process.env.IA_MODEL || 'claude-haiku-5-5');
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model: process.env.IA_MODEL || 'claude-haiku-4-5', max_tokens: 3000, messages: [{ role: 'user', content }] })
+      body: JSON.stringify({ model, max_tokens: 8000, messages: [{ role: 'user', content }] })
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) {
