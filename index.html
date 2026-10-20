@@ -4,8 +4,284 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Tienda online con vitrinas 360°">
-<style>*,*::before,*::after{box-sizing:border-box}html,body{margin:0;padding:0}</style>
-<script>window.VITRINA_PUBLIC = true;</script>
+<style>*,*::before,*::after{box-sizing:border-box}html,body{margin:0;padding:0}[hidden]{display:none!important}</style>
+<script>window.VITRINA_CFG = {"url": "https://oqsbjxezzqiyvvqxhkja.supabase.co", "key": "sb_publishable_S6yT1n9xzCn4Agmqc6Tbfw_hn0tTElq"};</script>
+<script>
+/* Vitrina 360 · puente web: tienda pública (/t/nombre), panel del dueño (/panel) y la tienda vieja (/ con tienda.json). */
+(function(){
+  const CFG = window.VITRINA_CFG || {};
+  const path = location.pathname.replace(/\/+$/, '') || '/';
+  const slugM = path.match(/^\/t\/([a-z0-9-]{3,40})$/);
+  const isPanel = path === '/panel';
+  const SKEY = 'v360-sesion';
+  const T = (es, en, pt) => { try{ const l = localStorage.getItem('vitrina360-lang'); return l === 'en' ? en : l === 'pt' ? pt : es; }catch(e){ return es; } };
+
+  async function api(method, p, o = {}){
+    const headers = Object.assign({apikey: CFG.key}, o.tok ? {Authorization: 'Bearer ' + o.tok} : {}, o.body !== undefined && !o.raw ? {'Content-Type': 'application/json'} : {}, o.headers || {});
+    const r = await fetch(CFG.url + p, {method, headers, body: o.raw ? o.body : o.body !== undefined ? JSON.stringify(o.body) : undefined});
+    const txt = await r.text(); let j = null; try{ j = txt ? JSON.parse(txt) : null; }catch(e){}
+    if(!r.ok){ const e = new Error((j && (j.msg || j.message || j.error_description || j.error)) || ('HTTP ' + r.status)); e.status = r.status; e.body = j; throw e; }
+    return j;
+  }
+  const onReady = fn => document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', fn) : fn();
+
+  // ---------- Pantallas propias del puente ----------
+  const CSS = `.v3o{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px 16px;background:var(--bg,#edf0ec);color:var(--ink,#1c2420);font:400 15px/1.5 var(--body,system-ui,sans-serif);overflow:auto}
+  .v3o .card{width:min(440px,100%);background:var(--surface,#fbfcfa);border:1px solid var(--line,#d3dad5);border-radius:18px;padding:22px;display:grid;gap:14px;box-shadow:0 20px 40px -24px rgba(0,0,0,.35)}
+  .v3o h2{font:800 26px/1.1 var(--display,system-ui,sans-serif);margin:0}
+  .v3o p{margin:0;color:var(--muted,#5d6a64)}
+  .v3o input{width:100%;border:1px solid var(--line,#d3dad5);background:var(--bg,#fff);color:inherit;border-radius:12px;padding:11px 13px;font:inherit}
+  .v3o button{border:1px solid var(--line,#d3dad5);background:var(--surface,#fff);color:inherit;border-radius:999px;padding:10px 16px;font:600 15px/1.2 var(--body,system-ui,sans-serif);cursor:pointer}
+  .v3o button.pri{background:var(--accent,#0e6a5b);color:var(--accent-ink,#fff);border-color:var(--accent,#0e6a5b)}
+  .v3o button:disabled{opacity:.55;cursor:default}
+  .v3o .msg{min-height:1.2em;font-size:14px}
+  .v3o .msg.err{color:var(--danger,#a8392c)}
+  .v3o .opt{display:grid;gap:8px}
+  .v3o .link{font-family:var(--mono,monospace);font-size:13px;background:var(--bg,#eee);border-radius:8px;padding:6px 9px;word-break:break-all}
+  .v3bar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;background:var(--surface,#fff);border:1px solid var(--line,#ddd);border-radius:14px;padding:8px 12px;font:500 14px/1.4 var(--body,system-ui,sans-serif);color:var(--ink,#222);max-width:1160px;margin:12px auto 0}
+  .v3bar a{color:var(--accent,#0e6a5b);font-weight:600;word-break:break-all}
+  .v3bar .st{font-size:12.5px;color:var(--muted,#666)}
+  .v3bar .st.err{color:var(--danger,#a8392c)}
+  .v3bar button{border:1px solid var(--line,#ddd);background:var(--bg,#fff);color:inherit;border-radius:999px;padding:5px 11px;font:600 13px/1.2 var(--body,system-ui,sans-serif);cursor:pointer}
+  .v3bar .grp{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;min-width:0}`;
+  onReady(() => { const st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st); });
+  function overlay(html){
+    const d = document.createElement('div'); d.className = 'v3o'; d.innerHTML = `<div class="card">${html}</div>`;
+    document.body.appendChild(d); return d;
+  }
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  if(!CFG.url || !CFG.key){
+    // Sin base de datos configurada: se comporta como la tienda pública de siempre.
+    if(!isPanel) window.VITRINA_PUBLIC = true;
+    return;
+  }
+
+  // ---------- Tienda pública ----------
+  if(slugM || !isPanel){
+    window.VITRINA_PUBLIC = true;
+    if(slugM){
+      window.VITRINA_LOAD = async () => {
+        let t = null;
+        try{ const rows = await api('GET', `/rest/v1/tiendas?slug=eq.${slugM[1]}&select=nombre,data,activa`); t = rows && rows[0]; }catch(e){}
+        if(!t || t.activa === false || !(t.data && Array.isArray(t.data.stores) && t.data.stores.length)){
+          onReady(() => overlay(`<h2>${t ? T('Tienda en pausa', 'Store paused', 'Loja pausada') : T('No encontramos esta tienda', "We couldn't find this store", 'Não encontramos esta loja')}</h2>
+            <p>${t ? T('Esta tienda todavía no tiene productos publicados, o está pausada. Volvé a intentar más tarde.', 'This store has no products yet or is paused. Try again later.', 'Esta loja ainda não tem produtos ou está pausada. Tente mais tarde.') : T('Revisá que el link esté bien escrito.', 'Check that the link is spelled right.', 'Confira se o link está correto.')}</p>`));
+          return null;
+        }
+        if(t.nombre) document.title = t.nombre;
+        return t.data;
+      };
+    }
+    return;
+  }
+
+  // ---------- Panel del dueño ----------
+  let ses = null;
+  try{ ses = JSON.parse(localStorage.getItem(SKEY) || 'null'); }catch(e){}
+  const keep = s => { ses = s; try{ s ? localStorage.setItem(SKEY, JSON.stringify(s)) : localStorage.removeItem(SKEY); }catch(e){} };
+  let hashErr = '';
+  if(location.hash.length > 1){
+    const h = new URLSearchParams(location.hash.slice(1));
+    if(h.get('access_token')){
+      keep({access_token: h.get('access_token'), refresh_token: h.get('refresh_token'), expires_at: Math.floor(Date.now() / 1000) + (+h.get('expires_in') || 3600)});
+    } else if(h.get('error')) hashErr = h.get('error_description') || h.get('error');
+    history.replaceState(null, '', location.pathname);
+  }
+  let refreshing = null;
+  async function token(){
+    if(!ses) throw Object.assign(new Error('Sin sesión'), {code: 'not_granted'});
+    if(ses.expires_at - 60 > Date.now() / 1000) return ses.access_token;
+    if(!refreshing) refreshing = api('POST', '/auth/v1/token?grant_type=refresh_token', {body: {refresh_token: ses.refresh_token}})
+      .then(j => { keep({...ses, access_token: j.access_token, refresh_token: j.refresh_token, expires_at: Math.floor(Date.now() / 1000) + (j.expires_in || 3600)}); })
+      .finally(() => { refreshing = null; });
+    await refreshing; return ses.access_token;
+  }
+
+  let uid = null, slug = null;
+  const ready = new Promise(resolve => { window.__v3ok = resolve; });
+  window.VITRINA_READY = ready;
+
+  function showLogin(msg){
+    const o = overlay(`<h2>${T('Entrar a mi tienda', 'Sign in to my store', 'Entrar na minha loja')}</h2>
+      <p>${T('Poné tu mail y te mandamos un link para entrar. No hace falta contraseña.', "Enter your email and we'll send you a sign-in link. No password needed.", 'Coloque seu e-mail e enviaremos um link para entrar. Sem senha.')}</p>
+      <input type="email" id="v3mail" placeholder="tu@mail.com" autocomplete="email" aria-label="Mail">
+      <button class="pri" type="button" id="v3send">${T('Mandarme el link', 'Send me the link', 'Enviar o link')}</button>
+      <div class="msg${msg ? ' err' : ''}" id="v3msg" aria-live="polite">${esc(msg || '')}</div>`);
+    const go = async () => {
+      const email = o.querySelector('#v3mail').value.trim(), m = o.querySelector('#v3msg'), b = o.querySelector('#v3send');
+      if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ m.className = 'msg err'; m.textContent = T('Revisá el mail, parece incompleto.', 'Check the email, it looks incomplete.', 'Confira o e-mail, parece incompleto.'); return; }
+      b.disabled = true; m.className = 'msg'; m.textContent = T('Enviando…', 'Sending…', 'Enviando…');
+      try{
+        await api('POST', '/auth/v1/otp?redirect_to=' + encodeURIComponent(location.origin + '/panel'), {body: {email, create_user: true}});
+        m.textContent = T(`Listo. Te mandamos un mail a ${email}. Abrilo en este mismo aparato y tocá el link para entrar. Si no llega en unos minutos, mirá en Spam.`, `Done. We sent an email to ${email}. Open it on this same device and tap the link. If it doesn't arrive, check Spam.`, `Pronto. Enviamos um e-mail para ${email}. Abra neste mesmo aparelho e toque no link. Se não chegar, veja o Spam.`);
+      }catch(e){
+        b.disabled = false; m.className = 'msg err';
+        m.textContent = e.status === 429 ? T('Se pidieron muchos links seguidos. Esperá unos minutos y probá de nuevo.', 'Too many links requested. Wait a few minutes and try again.', 'Muitos links pedidos. Espere alguns minutos e tente de novo.') : T('No se pudo mandar el mail: ', "Couldn't send the email: ", 'Não foi possível enviar: ') + e.message;
+      }
+    };
+    o.querySelector('#v3send').onclick = go;
+    o.querySelector('#v3mail').onkeydown = e => { if(e.key === 'Enter') go(); };
+    setTimeout(() => o.querySelector('#v3mail').focus(), 50);
+  }
+
+  const toSlug = t => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+  async function showSetup(tok){
+    let old = null;
+    try{ const r = await fetch('/tienda.json', {cache: 'no-store'}); if(r.ok){ const d = await r.json(); if(d && Array.isArray(d.stores) && d.stores.length) old = d; } }catch(e){}
+    const oldName = old && old.stores[old.active || 0]?.brand?.name || '';
+    const o = overlay(`<h2>${T('Tu tienda online', 'Your online store', 'Sua loja online')}</h2>
+      <p>${T('Elegí el nombre. Va a formar el link que les pasás a tus clientes.', 'Pick a name. It becomes the link you share with customers.', 'Escolha o nome. Ele vira o link para seus clientes.')}</p>
+      <input id="v3name" maxlength="40" placeholder="${T('Ej: Kiosco Pepe', 'E.g. Corner Shop', 'Ex: Loja da Ana')}" value="${esc(oldName)}" aria-label="Nombre de la tienda">
+      <div class="link" id="v3prev"></div>
+      <div class="opt">
+        ${old ? `<button class="pri" type="button" data-src="old">${T('Usar los productos que ya publiqué', 'Use the products I already published', 'Usar os produtos que já publiquei')}</button>` : ''}
+        <button type="button" data-src="file"${old ? '' : ' class="pri"'}>${T('Subir mi archivo tienda.json', 'Upload my tienda.json file', 'Enviar meu arquivo tienda.json')}</button>
+        <button type="button" data-src="new">${T('Empezar de cero', 'Start from scratch', 'Começar do zero')}</button>
+      </div>
+      <input type="file" id="v3file" accept=".json,application/json" hidden>
+      <div class="msg" id="v3msg" aria-live="polite"></div>`);
+    const nameI = o.querySelector('#v3name'), prev = o.querySelector('#v3prev'), msg = o.querySelector('#v3msg');
+    const upd = () => { prev.textContent = location.host + '/t/' + (toSlug(nameI.value) || '…'); };
+    nameI.oninput = upd; upd();
+    const create = async data => {
+      const nombre = nameI.value.trim(), s0 = toSlug(nombre);
+      if(s0.length < 3){ msg.className = 'msg err'; msg.textContent = T('Poné un nombre de al menos 3 letras.', 'Use at least 3 letters.', 'Use pelo menos 3 letras.'); nameI.focus(); return; }
+      o.querySelectorAll('button').forEach(b => b.disabled = true); msg.className = 'msg'; msg.textContent = T('Creando tu tienda…', 'Creating your store…', 'Criando sua loja…');
+      for(let i = 0; i < 6; i++){
+        const s = i ? `${s0.slice(0, 36)}-${i + 1}` : s0;
+        try{
+          await api('POST', '/rest/v1/tiendas', {tok: await token(), body: {slug: s, nombre}, headers: {Prefer: 'return=minimal'}});
+          slug = s;
+          if(data){ data.stores.forEach((st, k) => { if(k === (data.active || 0) && st.brand && !st.brand.name) st.brand.name = nombre; }); window.VITRINA_REMOTE_DATA = data; firstPush = true; }
+          else firstPush = true;
+          o.remove(); window.__v3ok(); return;
+        }catch(e){
+          if(e.status === 409){ continue; }
+          msg.className = 'msg err'; msg.textContent = T('No se pudo crear: ', "Couldn't create it: ", 'Não foi possível criar: ') + e.message;
+          o.querySelectorAll('button').forEach(b => b.disabled = false); return;
+        }
+      }
+      msg.className = 'msg err'; msg.textContent = T('Ese nombre ya está usado. Probá con otro.', 'That name is taken. Try another.', 'Esse nome já existe. Tente outro.');
+      o.querySelectorAll('button').forEach(b => b.disabled = false);
+    };
+    o.querySelector('[data-src="new"]').onclick = () => create(null);
+    if(old) o.querySelector('[data-src="old"]').onclick = () => create(old);
+    o.querySelector('[data-src="file"]').onclick = () => o.querySelector('#v3file').click();
+    o.querySelector('#v3file').onchange = async e => {
+      const f = e.target.files[0]; e.target.value = ''; if(!f) return;
+      try{ const d = JSON.parse(await f.text()); if(!(d && Array.isArray(d.stores) && d.stores.length)) throw 0; create(d); }
+      catch(err){ msg.className = 'msg err'; msg.textContent = T('Ese archivo no es una tienda de Vitrina 360.', "That file isn't a Vitrina 360 store.", 'Esse arquivo não é uma loja Vitrina 360.'); }
+    };
+  }
+
+  async function start(){
+    if(!ses){ onReady(() => showLogin(hashErr)); return; }
+    let tok;
+    try{ tok = await token(); const u = await api('GET', '/auth/v1/user', {tok}); uid = u.id; }
+    catch(e){ keep(null); onReady(() => showLogin(T('Tu sesión venció. Pedí un link nuevo.', 'Your session expired. Request a new link.', 'Sua sessão expirou. Peça um novo link.'))); return; }
+    let row = null;
+    try{ const rows = await api('GET', `/rest/v1/tiendas?owner=eq.${uid}&select=slug,nombre,data`, {tok}); row = rows && rows[0]; }
+    catch(e){ onReady(() => overlay(`<h2>${T('No pudimos abrir tu tienda', "We couldn't open your store", 'Não conseguimos abrir sua loja')}</h2><p>${esc(e.message)}</p><button class="pri" type="button" onclick="location.reload()">${T('Probar de nuevo', 'Try again', 'Tentar de novo')}</button>`)); return; }
+    if(row){
+      slug = row.slug;
+      if(row.data && Array.isArray(row.data.stores) && row.data.stores.length) window.VITRINA_REMOTE_DATA = row.data;
+      else firstPush = true;
+      window.__v3ok();
+    } else onReady(() => showSetup(tok));
+  }
+
+  // ---------- Guardar en internet ----------
+  let latest = null, timer = null, saving = false, again = false, firstPush = false, statusEl = null;
+  const urlCache = new Map();
+  const setStatus = (t, err) => { if(statusEl){ statusEl.textContent = t; statusEl.className = 'st' + (err ? ' err' : ''); } };
+  async function sha(s){ const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return [...new Uint8Array(b)].slice(0, 16).map(x => x.toString(16).padStart(2, '0')).join(''); }
+  async function upload(blob, name){
+    const tok = await token();
+    await api('POST', `/storage/v1/object/fotos/${uid}/${name}`, {tok, raw: true, body: blob, headers: {'Content-Type': blob.type || 'application/octet-stream', 'x-upsert': 'true', 'cache-control': '31536000'}});
+    return `${CFG.url}/storage/v1/object/public/fotos/${uid}/${name}`;
+  }
+  async function externalize(v){
+    if(typeof v === 'string'){
+      if(!v.startsWith('data:') || v.length < 200) return v;
+      if(urlCache.has(v)) return urlCache.get(v);
+      const blob = await (await fetch(v)).blob();
+      const ext = ({'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'image/svg+xml': 'svg'})[blob.type] || 'bin';
+      const url = await upload(blob, `${await sha(v)}.${ext}`);
+      urlCache.set(v, url); return url;
+    }
+    if(Array.isArray(v)){ const out = []; for(const x of v) out.push(await externalize(x)); return out; }
+    if(v && typeof v === 'object'){ const out = {}; for(const k of Object.keys(v)) out[k] = await externalize(v[k]); return out; }
+    return v;
+  }
+  async function flush(){
+    timer = null;
+    if(!latest || !uid) return;
+    if(saving){ again = true; return; }
+    saving = true; again = false;
+    const snap = latest; latest = null;
+    setStatus(T('Guardando…', 'Saving…', 'Salvando…'));
+    try{
+      const data = await externalize(JSON.parse(JSON.stringify(snap)));
+      const name = data.stores?.[data.active || 0]?.brand?.name;
+      await api('PATCH', `/rest/v1/tiendas?owner=eq.${uid}`, {tok: await token(), body: Object.assign({data, actualizada: new Date().toISOString()}, name ? {nombre: name} : {}), headers: {Prefer: 'return=minimal'}});
+      const d = new Date(); setStatus(T('Guardado', 'Saved', 'Salvo') + ` ✓ ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`);
+    }catch(e){
+      latest = latest || snap; again = true;
+      setStatus(T('Sin conexión: no se guardó. Reintento en 10 s…', 'Offline: not saved. Retrying in 10 s…', 'Sem conexão: não salvou. Tentando em 10 s…'), true);
+      saving = false; setTimeout(flush, 10000); return;
+    }
+    saving = false;
+    if(again || latest) flush();
+  }
+  window.VITRINA_ONSAVE = d => { latest = d; clearTimeout(timer); timer = setTimeout(flush, 1500); setStatus(T('Cambios sin guardar…', 'Unsaved changes…', 'Alterações não salvas…')); };
+  addEventListener('beforeunload', e => { if(latest || saving){ e.preventDefault(); e.returnValue = ''; } });
+  document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden' && latest){ clearTimeout(timer); flush(); } });
+
+  // ---------- Claude por la web (IA con la clave del servidor) ----------
+  const toB64 = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res({type: b.type || 'image/jpeg', data: String(r.result).split(',')[1]}); r.onerror = rej; r.readAsDataURL(b); });
+  async function callIA(prompt, opts = {}, json){
+    const imgs = opts.images ? (Array.isArray(opts.images) ? opts.images : [opts.images]) : [];
+    const r = await fetch('/api/ia', {method: 'POST', signal: opts.signal, headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await token()},
+      body: JSON.stringify({prompt: typeof prompt === 'string' ? prompt : (prompt || []).map(m => m.content).join('\n\n'), images: await Promise.all(imgs.map(toB64)), json: !!json})});
+    const j = await r.json().catch(() => ({}));
+    if(!r.ok){ const e = new Error(j.error || 'IA'); e.code = r.status === 429 ? 'rate_limited' : r.status === 503 ? 'sampling_disabled' : r.status === 401 ? 'not_granted' : 'ia_error'; throw e; }
+    return j.text || '';
+  }
+  function parseJSON(t){
+    try{ return JSON.parse(t); }catch(e){}
+    const a = t.search(/[\[{]/), b = Math.max(t.lastIndexOf('}'), t.lastIndexOf(']'));
+    if(a >= 0 && b > a){ try{ return JSON.parse(t.slice(a, b + 1)); }catch(e){} }
+    throw Object.assign(new Error('La respuesta no vino en el formato esperado.'), {code: 'ia_error'});
+  }
+  let iaOk = null;
+  const sampler = async (prompt, opts = {}) => { const text = await callIA(prompt, opts, false); try{ opts.onText?.({text, delta: text}); }catch(e){} return {text, truncated: false}; };
+  sampler.json = async (prompt, opts = {}) => parseJSON(await callIA(prompt, opts, true));
+  sampler.limits = async () => {
+    if(iaOk === null){ try{ iaOk = !!(await (await fetch('/api/ia')).json()).ok; }catch(e){ iaOk = false; } }
+    return iaOk ? {images: {maxCount: 6, maxBytes: 3500000}} : {images: null};
+  };
+  const assets = {upload: async f => { const ext = (f.name || '').split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '') || 'mp4'; const url = await upload(f, `videos/${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}.${ext}`); return {id: url, url, sizeBytes: f.size, contentType: f.type}; }};
+  window.claude = {use: async n => { await ready; return n === 'sample' ? sampler : n === 'assets' ? assets : null; }};
+
+  // ---------- Barra del dueño ----------
+  ready.then(() => onReady(() => setTimeout(() => {
+    const link = `${location.origin}/t/${slug}`;
+    const bar = document.createElement('div'); bar.className = 'v3bar';
+    bar.innerHTML = `<span class="grp">🌐 ${T('Tu tienda', 'Your store', 'Sua loja')}: <a href="${esc(link)}" target="_blank" rel="noopener">${esc(location.host + '/t/' + slug)}</a>
+      <button type="button" data-copy>${T('Copiar link', 'Copy link', 'Copiar link')}</button></span>
+      <span class="grp"><span class="st" aria-live="polite"></span><button type="button" data-out>${T('Salir', 'Sign out', 'Sair')}</button></span>`;
+    const wrap = document.querySelector('.wrap'); (wrap ? wrap.parentNode : document.body).insertBefore(bar, wrap || document.body.firstChild);
+    statusEl = bar.querySelector('.st'); setStatus(T('Todo guardado en internet', 'Everything saved online', 'Tudo salvo na internet') + ' ✓');
+    bar.querySelector('[data-copy]').onclick = e => { const b = e.currentTarget; navigator.clipboard?.writeText(link).then(() => { b.textContent = T('¡Copiado!', 'Copied!', 'Copiado!'); }, () => { b.textContent = link; }); };
+    bar.querySelector('[data-out]').onclick = async () => { if(latest || saving){ clearTimeout(timer); await flush(); } try{ await api('POST', '/auth/v1/logout', {tok: ses.access_token}); }catch(e){} keep(null); location.reload(); };
+    if(firstPush){ try{ window.VITRINA_SAVE_NOW ? window.VITRINA_SAVE_NOW() : window.VITRINA_REMOTE_DATA && window.VITRINA_ONSAVE(window.VITRINA_REMOTE_DATA); }catch(e){} }
+  }, 0)));
+
+  start();
+})();
+
+</script>
 </head>
 <body>
 <title>Vitrina 360</title>
@@ -947,6 +1223,10 @@ body.clientmode .socialbox{display:none!important}
   }
   const snapshot = () => ({cats: cats.map(catClean), products, sort: sortMode, brand});
   function load(){
+    const RD = window.VITRINA_REMOTE_DATA;
+    if(!PUBLIC && RD && Array.isArray(RD.stores) && RD.stores.length){
+      stores = RD.stores.slice(0, MAX_STORES); active = Math.max(0, Math.min(RD.active || 0, stores.length - 1)); applyData(stores[active]); return;
+    }
     if(PUBLIC){
       if(PUBLIC_DATA){ stores = PUBLIC_DATA.stores.slice(0, MAX_STORES); active = Math.max(0, Math.min(PUBLIC_DATA.active || 0, stores.length - 1)); applyData(stores[active]); return; }
       products = samples(); stores = [snapshot()]; active = 0; return;
@@ -976,6 +1256,7 @@ body.clientmode .socialbox{display:none!important}
   function save(){
     stores[active] = snapshot();
     if(PUBLIC) return true;
+    try{ window.VITRINA_ONSAVE?.({stores, active}); }catch(e){}
     try{ localStorage.setItem(KEY, JSON.stringify({stores, active})); return true; }
     catch(e){ $('formMsg').textContent = 'Este navegador no tiene espacio para guardar los últimos cambios. Si recargás la página se pueden perder. Probá con fotos más livianas.'; return false; }
   }
@@ -3154,10 +3435,13 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   function boot(){
     load(); applyBrand(); applyTheme(); applyBtnColor(); applyBg(); renderPresets(); renderContact(); updateFab(); fillCatSelect(cats[0].id); setAuto(autoOn); renderHome(); renderStoreBar(); setLang(LANG); requestAnimationFrame(loop);
     if(PUBLIC){ document.body.classList.add('publicmode'); setClient(true); }
+    else window.VITRINA_SAVE_NOW = save;
   }
-  if(PUBLIC){
-    fetch('tienda.json', {cache: 'no-store'}).then(r => r.ok ? r.json() : null).then(d => { if(d && Array.isArray(d.stores) && d.stores.length) PUBLIC_DATA = d; }).catch(() => {}).finally(boot);
-  } else boot();
+  (window.VITRINA_READY || Promise.resolve()).then(() => {
+    if(!PUBLIC){ boot(); return; }
+    const get = window.VITRINA_LOAD ? window.VITRINA_LOAD() : fetch('tienda.json', {cache: 'no-store'}).then(r => r.ok ? r.json() : null);
+    Promise.resolve(get).then(d => { if(d && Array.isArray(d.stores) && d.stores.length) PUBLIC_DATA = d; }).catch(() => {}).finally(boot);
+  });
 })();
 </script>
 

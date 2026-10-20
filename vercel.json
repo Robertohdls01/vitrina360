@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/t/:slug", "destination": "/index.html" },
+    { "source": "/panel", "destination": "/index.html" }
+  ],
+  "functions": { "api/ia.js": { "maxDuration": 60 } }
+}
