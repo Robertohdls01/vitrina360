@@ -2144,8 +2144,13 @@ Respondé solo con el texto de la publicación, sin comillas ni títulos.`;
     const bin = atob(b64), arr = new Uint8Array(bin.length); for(let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
     return new Blob([arr], {type: mime});
   }
+  // Las fotos guardadas en internet se cargan con permiso para poder retocarlas (girar, dar luz, enderezar).
+  function setSrc(img, src){
+    if(/^https?:/i.test(src)){ img.crossOrigin = 'anonymous'; src += (src.includes('?') ? '&' : '?') + 'v360=edit'; }
+    img.src = src;
+  }
   async function toJpegBlob(src){
-    const im = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+    const im = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; setSrc(i, src); });
     const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
     const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0);
     return dataUrlToBlob(c.toDataURL('image/jpeg', 0.85));
@@ -2169,7 +2174,7 @@ Respondé solo con el texto de la publicación, sin comillas ni títulos.`;
   // Elegir entre opciones a la vista es mucho más confiable que calcular grados.
   const ORI = ['A', 'B', 'C', 'D'];
   async function orientSheet(src){
-    const im = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+    const im = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; setSrc(i, src); });
     const S = 300, P = 10, c = document.createElement('canvas'); c.width = S * 2; c.height = S * 2;
     const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
     for(let k = 0; k < 4; k++){
@@ -2713,7 +2718,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
         let o = c.toDataURL('image/webp', HQ ? 0.92 : 0.88); if(!o.startsWith('data:image/webp')) o = c.toDataURL('image/jpeg', 0.92);
         res(o);
       };
-      im.onerror = rej; im.src = src;
+      im.onerror = rej; setSrc(im, src);
     });
   }
   // Ajuste automático para recortes de catálogo: estira los tonos (negro a negro, blanco a blanco) y aclara si quedó oscuro.
@@ -2740,7 +2745,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
         let o = c.toDataURL('image/webp', HQ ? 0.92 : 0.88); if(!o.startsWith('data:image/webp')) o = c.toDataURL('image/jpeg', 0.92);
         res(o);
       };
-      im.onerror = rej; im.src = src;
+      im.onerror = rej; setSrc(im, src);
     });
   }
   function rotateSrc(src, deg){
@@ -2754,7 +2759,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
         let o = c.toDataURL('image/webp', HQ ? 0.92 : 0.88); if(!o.startsWith('data:image/webp')) o = c.toDataURL('image/png');
         res(o);
       };
-      im.onerror = rej; im.src = src;
+      im.onerror = rej; setSrc(im, src);
     });
   }
   const fmtPrice = v => { const t = String(v || '').trim(); if(!t) return ''; const n = priceNum(t.startsWith('$') ? t : '$' + t); return isFinite(n) && n > 0 ? '$' + Math.round(n).toLocaleString('es-AR') : ''; };
