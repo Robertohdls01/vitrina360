@@ -84,6 +84,7 @@
   }
 
   // ---------- Panel del dueño ----------
+  window.VITRINA_HQ = true;
   let ses = null;
   try{ ses = JSON.parse(localStorage.getItem(SKEY) || 'null'); }catch(e){}
   const keep = s => { ses = s; try{ s ? localStorage.setItem(SKEY, JSON.stringify(s)) : localStorage.removeItem(SKEY); }catch(e){} };
@@ -1313,7 +1314,7 @@ body.clientmode .socialbox{display:none!important}
   function save(){
     stores[active] = snapshot();
     if(PUBLIC) return true;
-    try{ window.VITRINA_ONSAVE?.({stores, active}); }catch(e){}
+    if(window.VITRINA_ONSAVE){ try{ window.VITRINA_ONSAVE({stores, active}); }catch(e){} return true; }
     try{ localStorage.setItem(KEY, JSON.stringify({stores, active})); return true; }
     catch(e){ $('formMsg').textContent = 'Este navegador no tiene espacio para guardar los últimos cambios. Si recargás la página se pueden perder. Probá con fotos más livianas.'; return false; }
   }
@@ -2091,7 +2092,9 @@ Respondé solo con el texto de la publicación, sin comillas ni títulos.`;
     if(!sampler){ startEdit(p); $('formMsg').textContent = L('Cambié la foto. Escribí el nombre a mano.', 'Photo updated. Type the name in.', 'Foto trocada. Digite o nome à mão.'); return; }
     msg().textContent = L('Reconociendo el producto…', 'Recognizing the product…', 'Reconhecendo o produto…');
     try{
-      const res = await recognize({src: r.src, blob: r.blob}, undefined, false);
+      const it = {src: r.src, blob: r.blob};
+      const res = await recognize(it, undefined, false);
+      if(it.src !== r.src) p.img = it.src;
       if(res.name){
         const keep = (p.features || []).filter(x => /^(código|marca)\s*:/i.test(x));
         p.name = res.name; p.features = [...keep, ...res.features.filter(x => !keep.some(k => k.split(':')[0].toLowerCase() === x.split(':')[0].toLowerCase()))];
@@ -2245,19 +2248,21 @@ Respondé SOLO con JSON: {"rotations": [ ... ]} con ${n} número${n === 1 ? '' :
   });
 
   // Imágenes: se achican para que la vitrina cargue rápido y se pueda guardar
+  // En la página web las fotos se guardan en internet: se pueden guardar más grandes y nítidas.
+  const HQ = !!window.VITRINA_HQ;
   function shrink(file){
     return new Promise((res, rej) => {
       const url = URL.createObjectURL(file), img = new Image();
       img.onload = () => {
-        const max = 600, k = Math.min(1, max / Math.max(img.width, img.height));
+        const max = HQ ? 1400 : 600, k = Math.min(1, max / Math.max(img.width, img.height));
         const c = document.createElement('canvas');
         c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
         c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
         URL.revokeObjectURL(url);
-        let out = c.toDataURL('image/webp', 0.86);
-        if(!out.startsWith('data:image/webp')) out = c.toDataURL('image/png');
+        let out = c.toDataURL('image/webp', HQ ? 0.92 : 0.86);
+        if(!out.startsWith('data:image/webp')) out = HQ ? c.toDataURL('image/jpeg', 0.92) : c.toDataURL('image/png');
         // copia más grande para que Claude reconozca mejor el producto
-        const k2 = Math.min(1, 1100 / Math.max(img.width, img.height));
+        const k2 = Math.min(1, (HQ ? 1400 : 1100) / Math.max(img.width, img.height));
         const c2 = document.createElement('canvas');
         c2.width = Math.round(img.width * k2); c2.height = Math.round(img.height * k2);
         c2.getContext('2d').drawImage(img, 0, 0, c2.width, c2.height);
@@ -2280,7 +2285,8 @@ Respondé SOLO con JSON: {"rotations": [ ... ]} con ${n} número${n === 1 ? '' :
   const PROMPT = `Esta foto muestra un producto que una tienda va a exhibir en su vitrina online.
 Identificá qué producto es. Si se lee con claridad la marca o el modelo, usalos; si no, describilo de forma genérica (por ejemplo "Campera de cuero marrón").
 Respondé SOLO con un objeto JSON, sin texto extra, con esta forma:
-{"name": "nombre corto del producto, máximo 6 palabras", "features": ["Clave: valor", "..."]}
+{"name": "nombre corto del producto, máximo 6 palabras", "features": ["Clave: valor", "..."], "rotation": 0}
+"rotation": cuántos grados hay que girar la foto en sentido horario para que el producto quede PARADO y derecho, como apoyado en un estante (botellas, frascos y cajas con la tapa o el frente arriba): 0, 90, 180 o 270. 0 si ya está bien.
 Incluí de 4 a 6 características en español rioplatense, cada una como "Clave: valor" (por ejemplo "Material: cuero", "Color: marrón", "Uso: diario", "Tamaño aprox.: 30 cm").
 Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garantías ni datos técnicos que no se puedan ver.`;
 
@@ -2316,6 +2322,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     const auto = forceAuto === true || (forceAuto !== false && $('f-cat').value === '__auto');
     const prompt = (auto ? PROMPT + `\nAdemás elegí en qué vitrina va. Vitrinas:\n${catList()}\nAgregá al JSON el campo "vitrina" con el número de la que mejor corresponda.` + newCatRule() : PROMPT) + aiLang();
     const r = await sampler.json(prompt, {images: item.blob, signal});
+    await applyRot(item, r);
     const vi = auto && r ? parseInt(r.vitrina, 10) : NaN;
     item.aiCat = auto ? pickCat(r) : null;
     const name = r && typeof r.name === 'string' ? r.name.trim().slice(0, 80) : '';
@@ -2513,7 +2520,14 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       return `TIENDA ${i + 1}: ${storeNameOf(i)} (rubro: ${presetOf(b.preset).name})\n${cl}`;
     }).join('\n');
     const prompt = PROMPT + `\nEste comerciante tiene varias tiendas, cada una de un rubro distinto. Elegí a qué TIENDA va el producto según su rubro, y a qué VITRINA de esa tienda:\n${txt}\nAgregá al JSON "tienda" (el número de tienda) y "vitrina" (el número de la vitrina dentro de ESA tienda).` + newCatRule() + aiLang();
-    return sampler.json(prompt, {images: item.blob, signal});
+    const r = await sampler.json(prompt, {images: item.blob, signal});
+    await applyRot(item, r);
+    return r;
+  }
+  // Si Claude dice que la foto está de costado, se endereza antes de ponerla en el estante.
+  async function applyRot(item, r){
+    const deg = r ? ((parseInt(r.rotation, 10) || 0) % 360 + 360) % 360 : 0;
+    if(item && item.src && [90, 180, 270].includes(deg)){ try{ item.src = await rotateSrc(item.src, deg); }catch(e){} }
   }
   function placeInStore(r, item, addedBase){
     let si = parseInt(r && r.tienda, 10) - 1; if(!(si >= 0 && si < stores.length)) si = active;
@@ -2616,7 +2630,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       const den = cs * cs - sn * sn, pw = (sw * cs - sh * sn) / den, ph = (sh * cs - sw * sn) / den;
       if(pw > 10 && ph > 10){ ow = pw * 1.08; oh = ph * 1.08; }
     }
-    const k = Math.min(1, 600 / Math.max(ow, oh)), c = document.createElement('canvas');
+    const k = Math.min(1, (HQ ? 1200 : 600) / Math.max(ow, oh)), c = document.createElement('canvas');
     c.width = Math.max(1, Math.round(ow * k)); c.height = Math.max(1, Math.round(oh * k));
     const g = c.getContext('2d');
     g.fillStyle = '#ffffff'; g.fillRect(0, 0, c.width, c.height);
@@ -2633,7 +2647,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
         c.width = side ? im.naturalHeight : im.naturalWidth; c.height = side ? im.naturalWidth : im.naturalHeight;
         const g = c.getContext('2d'); g.translate(c.width / 2, c.height / 2); g.rotate(q * Math.PI / 180);
         g.drawImage(im, -im.naturalWidth / 2, -im.naturalHeight / 2);
-        let o = c.toDataURL('image/webp', 0.88); if(!o.startsWith('data:image/webp')) o = c.toDataURL('image/png');
+        let o = c.toDataURL('image/webp', HQ ? 0.92 : 0.88); if(!o.startsWith('data:image/webp')) o = c.toDataURL('image/png');
         res(o);
       };
       im.onerror = rej; im.src = src;
