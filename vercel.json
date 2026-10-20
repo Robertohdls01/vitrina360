@@ -3,5 +3,6 @@
     { "source": "/t/:slug", "destination": "/index.html" },
     { "source": "/panel", "destination": "/index.html" }
   ],
-  "functions": { "api/ia.js": { "maxDuration": 60 } }
+  "functions": { "api/ia.js": { "maxDuration": 60 } },
+  "crons": [ { "path": "/api/sincronizar", "schedule": "0 12 * * *" } ]
 }

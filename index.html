@@ -14,6 +14,8 @@
   const slugM = path.match(/^\/t\/([a-z0-9-]{3,40})$/);
   const isPanel = path === '/panel';
   const SKEY = 'v360-sesion';
+  const PLAN_LIM = {emprendedora: {vitrinas: 10, tiendas: 1}, comercio: {vitrinas: 20, tiendas: 1}, pro: {vitrinas: 20, tiendas: 4}};
+  const limitsFor = row => { const now = Date.now(), pag = Date.parse(row.pagada_hasta || '') || 0, pru = Date.parse(row.prueba_hasta || '') || 0; return pag > now ? (PLAN_LIM[row.plan] || PLAN_LIM.emprendedora) : pru > now ? PLAN_LIM.pro : (PLAN_LIM[row.plan] || PLAN_LIM.emprendedora); };
   const T = (es, en, pt) => { try{ const l = localStorage.getItem('vitrina360-lang'); return l === 'en' ? en : l === 'pt' ? pt : es; }catch(e){ return es; } };
 
   async function api(method, p, o = {}){
@@ -37,6 +39,10 @@
   .v3o .msg{min-height:1.2em;font-size:14px}
   .v3o .msg.err{color:var(--danger,#a8392c)}
   .v3o .opt{display:grid;gap:8px}
+  .v3o .pl{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line,#d3dad5);border-radius:12px;padding:10px 12px;cursor:pointer}
+  .v3o .pl:has(input:checked){border-color:var(--accent,#0e6a5b);box-shadow:0 0 0 1px var(--accent,#0e6a5b)}
+  .v3o .pl input{width:auto;margin-top:4px}
+  .v3o .pl small{color:var(--muted,#5d6a64)}
   .v3o .link{font-family:var(--mono,monospace);font-size:13px;background:var(--bg,#eee);border-radius:8px;padding:6px 9px;word-break:break-all}
   .v3bar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;background:var(--surface,#fff);border:1px solid var(--line,#ddd);border-radius:14px;padding:8px 12px;font:500 14px/1.4 var(--body,system-ui,sans-serif);color:var(--ink,#222);max-width:1160px;margin:12px auto 0}
   .v3bar a{color:var(--accent,#0e6a5b);font-weight:600;word-break:break-all}
@@ -63,13 +69,14 @@
     if(slugM){
       window.VITRINA_LOAD = async () => {
         let t = null;
-        try{ const rows = await api('GET', `/rest/v1/tiendas?slug=eq.${slugM[1]}&select=nombre,data,activa`); t = rows && rows[0]; }catch(e){}
+        try{ const rows = await api('GET', `/rest/v1/tiendas?slug=eq.${slugM[1]}&select=nombre,data,activa,plan,prueba_hasta,pagada_hasta`); t = rows && rows[0]; }catch(e){}
         if(!t || t.activa === false || !(t.data && Array.isArray(t.data.stores) && t.data.stores.length)){
-          onReady(() => overlay(`<h2>${t ? T('Tienda en pausa', 'Store paused', 'Loja pausada') : T('No encontramos esta tienda', "We couldn't find this store", 'Não encontramos esta loja')}</h2>
-            <p>${t ? T('Esta tienda todavía no tiene productos publicados, o está pausada. Volvé a intentar más tarde.', 'This store has no products yet or is paused. Try again later.', 'Esta loja ainda não tem produtos ou está pausada. Tente mais tarde.') : T('Revisá que el link esté bien escrito.', 'Check that the link is spelled right.', 'Confira se o link está correto.')}</p>`));
+          onReady(() => overlay(`<h2>${t ? T('Tienda en preparación', 'Store coming soon', 'Loja em preparação') : T('Esta tienda no está disponible', 'This store is not available', 'Esta loja não está disponível')}</h2>
+            <p>${t ? T('Esta tienda todavía no tiene productos publicados. Volvé a intentar más tarde.', 'This store has no products yet. Try again later.', 'Esta loja ainda não tem produtos. Tente mais tarde.') : T('Revisá que el link esté bien escrito. Si está bien, puede que la tienda esté en pausa por ahora.', 'Check that the link is spelled right. If it is, the store may be paused for now.', 'Confira se o link está correto. Se estiver, a loja pode estar pausada.')}</p>`));
           return null;
         }
         if(t.nombre) document.title = t.nombre;
+        window.VITRINA_LIMITS = limitsFor(t);
         return t.data;
       };
     }
@@ -98,7 +105,7 @@
     await refreshing; return ses.access_token;
   }
 
-  let uid = null, slug = null;
+  let uid = null, slug = null, userEmail = '', estadoCache = null;
   const ready = new Promise(resolve => { window.__v3ok = resolve; });
   window.VITRINA_READY = ready;
 
@@ -178,13 +185,14 @@
   async function start(){
     if(!ses){ onReady(() => showLogin(hashErr)); return; }
     let tok;
-    try{ tok = await token(); const u = await api('GET', '/auth/v1/user', {tok}); uid = u.id; }
+    try{ tok = await token(); const u = await api('GET', '/auth/v1/user', {tok}); uid = u.id; userEmail = u.email || ''; }
     catch(e){ keep(null); onReady(() => showLogin(T('Tu sesión venció. Pedí un link nuevo.', 'Your session expired. Request a new link.', 'Sua sessão expirou. Peça um novo link.'))); return; }
     let row = null;
     try{ const rows = await api('GET', `/rest/v1/tiendas?owner=eq.${uid}&select=slug,nombre,data`, {tok}); row = rows && rows[0]; }
     catch(e){ onReady(() => overlay(`<h2>${T('No pudimos abrir tu tienda', "We couldn't open your store", 'Não conseguimos abrir sua loja')}</h2><p>${esc(e.message)}</p><button class="pri" type="button" onclick="location.reload()">${T('Probar de nuevo', 'Try again', 'Tentar de novo')}</button>`)); return; }
     if(row){
       slug = row.slug;
+      try{ const r = await fetch('/api/estado', {headers: {Authorization: 'Bearer ' + tok}}); if(r.ok){ estadoCache = await r.json(); if(estadoCache && estadoCache.limites) window.VITRINA_LIMITS = estadoCache.limites; } }catch(e){}
       if(row.data && Array.isArray(row.data.stores) && row.data.stores.length) window.VITRINA_REMOTE_DATA = row.data;
       else firstPush = true;
       window.__v3ok();
@@ -264,17 +272,61 @@
   const assets = {upload: async f => { const ext = (f.name || '').split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '') || 'mp4'; const url = await upload(f, `videos/${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}.${ext}`); return {id: url, url, sizeBytes: f.size, contentType: f.type}; }};
   window.claude = {use: async n => { await ready; return n === 'sample' ? sampler : n === 'assets' ? assets : null; }};
 
+  // ---------- Abono mensual (Mercado Pago) ----------
+  const money = n => '$' + Number(n || 0).toLocaleString('es-AR');
+  const fecha = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('es-AR', {day: 'numeric', month: 'numeric'}); };
+  async function plan(box){
+    let e = estadoCache;
+    if(!e){ try{ const r = await fetch('/api/estado', {headers: {Authorization: 'Bearer ' + await token()}}); if(!r.ok) return; e = await r.json(); }catch(err){ return; } }
+    if(!e || !e.configurado) return;
+    const pn = k => (e.planes && e.planes[k] && e.planes[k].nombre) || k;
+    const btn = e.mp ? `<button type="button" data-sub>${e.suscripto && e.mp_estado === 'pending' ? T('Completar el pago', 'Finish payment', 'Concluir pagamento') : T('Elegir plan', 'Choose plan', 'Escolher plano') + ' · ' + T('desde', 'from', 'a partir de') + ' ' + money(e.precio) + T('/mes', '/mo', '/mês')}</button>` : '';
+    let txt = '';
+    const d0 = window.VITRINA_REMOTE_DATA, vis = d0 && d0.stores ? (d0.stores[d0.active || 0].cats || []).filter(c => !c.hidden).length : 0;
+    const over = e.limites && vis > e.limites.vitrinas ? `<span class="st err">${T(`Tu plan muestra ${e.limites.vitrinas} vitrinas y tenés ${vis}: tus clientes ven las primeras ${e.limites.vitrinas}.`, `Your plan shows ${e.limites.vitrinas} showcases; you have ${vis}.`, `Seu plano mostra ${e.limites.vitrinas} vitrines; você tem ${vis}.`)}</span>` : '';
+    if(e.estado === 'activa') txt = `<span class="st">✓ ${T('Plan', 'Plan', 'Plano')} ${esc(pn(e.plan))}${e.pagada_hasta ? ' · ' + T('al día hasta', 'paid until', 'em dia até') + ' ' + fecha(e.pagada_hasta) : ''}</span>${over}${e.mp ? `<button type="button" data-sub>${T('Cambiar plan', 'Change plan', 'Mudar plano')}</button>` : ''}`;
+    else if(e.estado === 'prueba') txt = `<span class="st">🎁 ${T('Prueba gratis', 'Free trial', 'Teste grátis')}: ${e.dias} ${e.dias === 1 ? T('día', 'day', 'dia') : T('días', 'days', 'dias')}</span>${btn}`;
+    else txt = `<span class="st err">⏸ ${T('Tu tienda está en pausa para tus clientes', 'Your store is paused for customers', 'Sua loja está pausada para os clientes')}</span>${btn}`;
+    box.innerHTML = txt; box.hidden = false;
+    const b = box.querySelector('[data-sub]'); if(b) b.onclick = () => subscribe(e);
+    if(e.estado === 'pausa' && e.mp) subscribe(e);
+  }
+  function subscribe(e){
+    const o = overlay(`<h2>${T('Abono mensual', 'Monthly plan', 'Assinatura mensal')}</h2>
+      <p>${T('Se cobra solo todos los meses con Mercado Pago (dinero en cuenta o tarjeta). Te podés dar de baja cuando quieras desde Mercado Pago.', 'Charged automatically every month through Mercado Pago. Cancel anytime from Mercado Pago.', 'Cobrado automaticamente todo mês pelo Mercado Pago. Cancele quando quiser.')}</p>
+      <div class="opt" role="radiogroup" aria-label="Plan">${Object.entries(e.planes || {emprendedora: {nombre: 'Emprendedora', precio: e.precio, vitrinas: 10, tiendas: 1}}).map(([k, p], i) => `<label class="pl"><input type="radio" name="v3plan" value="${k}"${(e.estado === 'activa' ? k === e.plan_pagado : i === 0) ? ' checked' : ''}><span><b>${esc(p.nombre)}</b> · ${money(p.precio)}${T('/mes', '/mo', '/mês')}<br><small>${p.tiendas > 1 ? T(`Hasta ${p.tiendas} tiendas, ${p.vitrinas} vitrinas cada una`, `Up to ${p.tiendas} stores, ${p.vitrinas} showcases each`, `Até ${p.tiendas} lojas, ${p.vitrinas} vitrines cada`) : T(`1 tienda con ${p.vitrinas} vitrinas`, `1 store with ${p.vitrinas} showcases`, `1 loja com ${p.vitrinas} vitrines`)}</small></span></label>`).join('')}</div>
+      ${e.estado === 'pausa' ? `<p>${T('Mientras tanto tus productos quedan guardados: cuando pagues, tus clientes vuelven a ver la tienda.', 'Your products stay saved: once you pay, customers see your store again.', 'Seus produtos ficam salvos: ao pagar, a loja volta a aparecer.')}</p>` : ''}
+      <label style="display:grid;gap:4px;font-size:14px">${T('Mail de tu cuenta de Mercado Pago', 'Your Mercado Pago email', 'E-mail da sua conta Mercado Pago')}<input type="email" id="v3mp" value="${esc(userEmail)}" autocomplete="email"></label>
+      <button class="pri" type="button" id="v3go">${T('Ir a Mercado Pago', 'Go to Mercado Pago', 'Ir ao Mercado Pago')}</button>
+      <button type="button" id="v3no">${T('Ahora no', 'Not now', 'Agora não')}</button>
+      <div class="msg" id="v3msg" aria-live="polite"></div>`);
+    o.querySelector('#v3no').onclick = () => o.remove();
+    o.querySelector('#v3go').onclick = async () => {
+      const m = o.querySelector('#v3msg'), b = o.querySelector('#v3go');
+      b.disabled = true; m.className = 'msg'; m.textContent = T('Abriendo Mercado Pago…', 'Opening Mercado Pago…', 'Abrindo Mercado Pago…');
+      try{
+        const r = await fetch('/api/suscribir', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await token()}, body: JSON.stringify({email: o.querySelector('#v3mp').value.trim(), plan: (o.querySelector('[name=v3plan]:checked') || {}).value})});
+        const j = await r.json().catch(() => ({}));
+        if(!r.ok || !j.url) throw new Error(j.error || 'Mercado Pago');
+        if(latest || saving){ clearTimeout(timer); await flush(); }
+        location.href = j.url;
+      }catch(err){ b.disabled = false; m.className = 'msg err'; m.textContent = err.message; }
+    };
+  }
+
   // ---------- Barra del dueño ----------
   ready.then(() => onReady(() => setTimeout(() => {
     const link = `${location.origin}/t/${slug}`;
     const bar = document.createElement('div'); bar.className = 'v3bar';
     bar.innerHTML = `<span class="grp">🌐 ${T('Tu tienda', 'Your store', 'Sua loja')}: <a href="${esc(link)}" target="_blank" rel="noopener">${esc(location.host + '/t/' + slug)}</a>
       <button type="button" data-copy>${T('Copiar link', 'Copy link', 'Copiar link')}</button></span>
+      <span class="grp" data-plan hidden></span>
       <span class="grp"><span class="st" aria-live="polite"></span><button type="button" data-out>${T('Salir', 'Sign out', 'Sair')}</button></span>`;
     const wrap = document.querySelector('.wrap'); (wrap ? wrap.parentNode : document.body).insertBefore(bar, wrap || document.body.firstChild);
     statusEl = bar.querySelector('.st'); setStatus(T('Todo guardado en internet', 'Everything saved online', 'Tudo salvo na internet') + ' ✓');
     bar.querySelector('[data-copy]').onclick = e => { const b = e.currentTarget; navigator.clipboard?.writeText(link).then(() => { b.textContent = T('¡Copiado!', 'Copied!', 'Copiado!'); }, () => { b.textContent = link; }); };
     bar.querySelector('[data-out]').onclick = async () => { if(latest || saving){ clearTimeout(timer); await flush(); } try{ await api('POST', '/auth/v1/logout', {tok: ses.access_token}); }catch(e){} keep(null); location.reload(); };
+    plan(bar.querySelector('[data-plan]'));
     if(firstPush){ try{ window.VITRINA_SAVE_NOW ? window.VITRINA_SAVE_NOW() : window.VITRINA_REMOTE_DATA && window.VITRINA_ONSAVE(window.VITRINA_REMOTE_DATA); }catch(e){} }
   }, 0)));
 
@@ -1181,6 +1233,10 @@ body.clientmode .socialbox{display:none!important}
   let brand = {name:'', logo:null, banner:null, preset:'general', wa:'', ig:'', alias:'', paylink:''};
   const BRAND0 = {...brand};
   const MAX_STORES = 4;
+  // Límites del plan contratado en la versión web (en Claude no hay límites extra).
+  const LIM = () => window.VITRINA_LIMITS || {};
+  const capCats = () => Math.min(MAX_CATS, LIM().vitrinas || MAX_CATS);
+  const capStores = () => Math.min(MAX_STORES, LIM().tiendas || MAX_STORES);
   let stores = [], active = 0;
   let products = [], sortMode = 'added', selectedId = null, editingId = null, pending = [];
   let angle = 0, vel = 0, target = null, autoOn = !reduce, dragging = false;
@@ -1219,6 +1275,7 @@ body.clientmode .socialbox{display:none!important}
     const fallback = (cats.find(c => c.id === 'varios') || cats[cats.length - 1]).id;
     products = (d.products || []).map(p => ({...p, cat: cats.some(c => c.id === p.cat) ? p.cat : fallback}));
     sortMode = d.sort || 'added';
+    if(PUBLIC){ let n = 0; cats.forEach(c => { if(!c.hidden && ++n > capCats()) c.hidden = true; }); }
     brand = {...BRAND0, ...(d.brand || {})};
   }
   const snapshot = () => ({cats: cats.map(catClean), products, sort: sortMode, brand});
@@ -1228,7 +1285,7 @@ body.clientmode .socialbox{display:none!important}
       stores = RD.stores.slice(0, MAX_STORES); active = Math.max(0, Math.min(RD.active || 0, stores.length - 1)); applyData(stores[active]); return;
     }
     if(PUBLIC){
-      if(PUBLIC_DATA){ stores = PUBLIC_DATA.stores.slice(0, MAX_STORES); active = Math.max(0, Math.min(PUBLIC_DATA.active || 0, stores.length - 1)); applyData(stores[active]); return; }
+      if(PUBLIC_DATA){ stores = PUBLIC_DATA.stores.slice(0, capStores()); active = Math.max(0, Math.min(PUBLIC_DATA.active || 0, stores.length - 1)); applyData(stores[active]); return; }
       products = samples(); stores = [snapshot()]; active = 0; return;
     }
     try{
@@ -1331,7 +1388,7 @@ body.clientmode .socialbox{display:none!important}
   function renderHome(){
     const vis = cats.filter(c => !c.hidden), hid = cats.filter(c => c.hidden);
     const ring = brand.layout === 'ring' && vis.length >= 2;
-    const addTile = cats.length < MAX_CATS ? `<button class="addchip" type="button" data-addcat="1" aria-label="Agregar una vitrina. Tenés ${cats.length} de ${MAX_CATS}">＋ Vitrina <small>${cats.length}/${MAX_CATS}</small></button>` : '';
+    const addTile = cats.length < capCats() ? `<button class="addchip" type="button" data-addcat="1" aria-label="Agregar una vitrina. Tenés ${cats.length} de ${capCats()}">＋ Vitrina <small>${cats.length}/${capCats()}</small></button>` : '';
     let html = '';
     const free = brand.layout === 'free';
     if(free){
@@ -1902,7 +1959,7 @@ Respondé SOLO con JSON: {"name": "nombre corto del modelo, de 1 a 4 palabras, q
     const dx = e.target.closest('[data-delcat]');
     if(dx){ e.preventDefault(); e.stopPropagation(); if(!editMode) askDeleteCat(dx.dataset.delcat); return; }
     if(e.target.closest('[data-addcat]')){
-      if(cats.length >= MAX_CATS) return;
+      if(cats.length >= capCats()) return;
       const c = {id: 'c' + uid(), name: 'Vitrina ' + (cats.length + 1)};
       cats.push(c); save(); renderHome(); fillCatSelect(cats[0].id);
       const t = $('homegrid').querySelector(`[data-cat="${c.id}"]`);
@@ -2242,7 +2299,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     const empty = cats.find(c => !reservedCats.has(sk() + '|' + c.id) && c.id !== currentCat && !products.some(p => p.cat === c.id));
     let id = null;
     if(empty){ empty.name = capFirst(raw); empty.hidden = false; id = empty.id; }
-    else if(cats.length < MAX_CATS){ const c = {id: 'c' + uid(), name: capFirst(raw)}; cats.push(c); id = c.id; }
+    else if(cats.length < capCats()){ const c = {id: 'c' + uid(), name: capFirst(raw)}; cats.push(c); id = c.id; }
     if(id){ reservedCats.add(sk() + '|' + id); newCatNames.push(capFirst(raw)); }
     return id;
   }
@@ -3343,7 +3400,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       const b = {...BRAND0, ...(st.brand || {})};
       return `<button type="button" class="storechip" data-store="${i}" aria-pressed="${!mall && i === active}">${avatarHTML(b)}${esc(b.name || 'Tienda ' + (i + 1))}</button>`;
     }).join('') +
-      (stores.length < MAX_STORES ? `<button type="button" class="storechip add" data-newstore>＋ Otra tienda<span class="pro">PRO</span></button>` : '') +
+      (stores.length < capStores() ? `<button type="button" class="storechip add" data-newstore>＋ Otra tienda<span class="pro">PRO</span></button>` : '') +
       (stores.length > 1 ? `<button type="button" class="storechip all" data-mall aria-pressed="${mall}">▣ Ver todas</button>` : '');
   }
   function afterStoreChange(){
@@ -3360,7 +3417,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     save(); active = i; applyData(stores[i]); save(); afterStoreChange();
   }
   function newStore(){
-    if(stores.length >= MAX_STORES) return;
+    if(stores.length >= capStores()) return;
     save();
     stores.push({cats: DEFAULT_CATS.map(c => ({...c})), products: [], sort: 'added', brand: {...BRAND0, name: 'Tienda ' + (stores.length + 1), layout: 'ring'}});
     switchStore(stores.length - 1);
