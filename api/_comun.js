@@ -1,9 +1,9 @@
 // Ayudas compartidas por las funciones de Vitrina 360 (este archivo no es una dirección pública).
 const SURL = () => String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const PLANES = () => ({
-  emprendedora: { nombre: 'Emprendedora', precio: Number(process.env.PRECIO_EMPRENDEDORA || process.env.PRECIO_ARS || 9900), vitrinas: 10, tiendas: 1 },
-  comercio: { nombre: 'Comercio', precio: Number(process.env.PRECIO_COMERCIO || 14900), vitrinas: 20, tiendas: 1 },
-  pro: { nombre: 'Pro', precio: Number(process.env.PRECIO_PRO || 19900), vitrinas: 20, tiendas: 4 }
+  emprendedora: { nombre: 'Start', precio: Number(process.env.PRECIO_EMPRENDEDORA || process.env.PRECIO_ARS || 9900), vitrinas: 10, tiendas: 1, productos: 30, fotos: 5, videos: 10 },
+  comercio: { nombre: 'Plus', precio: Number(process.env.PRECIO_COMERCIO || 14900), vitrinas: 20, tiendas: 1, productos: 30, fotos: 8, videos: 30 },
+  pro: { nombre: 'Pro', precio: Number(process.env.PRECIO_PRO || 19900), vitrinas: 20, tiendas: 4, productos: 30, fotos: 8, videos: 60 }
 });
 const PRECIO = () => PLANES().emprendedora.precio;
 
@@ -78,7 +78,7 @@ function estado(row) {
   const pagada = row.pagada_hasta ? Date.parse(row.pagada_hasta) : 0;
   const dias = t => Math.max(0, Math.ceil((t - now) / 864e5));
   const P = PLANES(), pagado = P[row.plan] ? row.plan : 'emprendedora';
-  const con = (estado, d, plan) => ({ estado, dias: d, plan, plan_pagado: pagado, limites: { vitrinas: P[plan].vitrinas, tiendas: P[plan].tiendas } });
+  const con = (estado, d, plan) => ({ estado, dias: d, plan, plan_pagado: pagado, limites: { vitrinas: P[plan].vitrinas, tiendas: P[plan].tiendas, productos: P[plan].productos, fotos: P[plan].fotos, videos: P[plan].videos } });
   if (row.activa === false) return con('pausa', 0, pagado);
   if (pagada > now) return con('activa', dias(pagada), pagado);
   if (prueba > now) return con('prueba', dias(prueba), 'pro');
