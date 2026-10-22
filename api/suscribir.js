@@ -25,7 +25,9 @@ module.exports = async (req, res) => {
     await db('PATCH', '/rest/v1/tiendas?owner=eq.' + u.id, { mp_suscripcion: pre.id, mp_plan: plan, mp_anterior: prev && pagaba ? prev : (rows[0].mp_anterior || null) });
     return res.status(200).json({ url: pre.init_point });
   } catch (e) {
+    console.error('suscribir', e.status || '', e.message, e.body ? JSON.stringify(e.body).slice(0, 500) : '');
+    const det = ' [' + (e.status ? 'MP ' + e.status : 'error') + ': ' + String(e.message || '').slice(0, 160) + ']';
     const msg = e.status === 400 || e.status === 422 ? 'Mercado Pago rechazó el pedido. Revisá que el mail sea el de tu cuenta de Mercado Pago.' : 'No se pudo conectar con Mercado Pago. Probá en un rato.';
-    return res.status(502).json({ error: msg });
+    return res.status(502).json({ error: msg + det });
   }
 };
