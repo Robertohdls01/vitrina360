@@ -135,17 +135,14 @@
 
   const toSlug = t => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
   async function showSetup(tok){
-    let old = null;
-    try{ const r = await fetch('/tienda.json', {cache: 'no-store'}); if(r.ok){ const d = await r.json(); if(d && Array.isArray(d.stores) && d.stores.length) old = d; } }catch(e){}
-    const oldName = old && old.stores[old.active || 0]?.brand?.name || '';
+    const old = null, oldName = '';
     const o = overlay(`<h2>${T('Tu tienda online', 'Your online store', 'Sua loja online')}</h2>
       <p>${T('Elegí el nombre. Va a formar el link que les pasás a tus clientes.', 'Pick a name. It becomes the link you share with customers.', 'Escolha o nome. Ele vira o link para seus clientes.')}</p>
       <input id="v3name" maxlength="40" placeholder="${T('Ej: Kiosco Pepe', 'E.g. Corner Shop', 'Ex: Loja da Ana')}" value="${esc(oldName)}" aria-label="Nombre de la tienda">
       <div class="link" id="v3prev"></div>
       <div class="opt">
         ${old ? `<button class="pri" type="button" data-src="old">${T('Usar los productos que ya publiqué', 'Use the products I already published', 'Usar os produtos que já publiquei')}</button>` : ''}
-        <button type="button" data-src="file"${old ? '' : ' class="pri"'}>${T('Subir mi archivo tienda.json', 'Upload my tienda.json file', 'Enviar meu arquivo tienda.json')}</button>
-        <button type="button" data-src="new">${T('Empezar de cero', 'Start from scratch', 'Começar do zero')}</button>
+        <button type="button" class="pri" data-src="new">${T('Crear mi tienda', 'Create my store', 'Criar minha loja')}</button>
       </div>
       <input type="file" id="v3file" accept=".json,application/json" hidden>
       <div class="msg" id="v3msg" aria-live="polite"></div>`);
@@ -174,8 +171,9 @@
       o.querySelectorAll('button').forEach(b => b.disabled = false);
     };
     o.querySelector('[data-src="new"]').onclick = () => create(null);
+    nameI.onkeydown = e => { if(e.key === 'Enter') create(null); };
+    setTimeout(() => nameI.focus(), 50);
     if(old) o.querySelector('[data-src="old"]').onclick = () => create(old);
-    o.querySelector('[data-src="file"]').onclick = () => o.querySelector('#v3file').click();
     o.querySelector('#v3file').onchange = async e => {
       const f = e.target.files[0]; e.target.value = ''; if(!f) return;
       try{ const d = JSON.parse(await f.text()); if(!(d && Array.isArray(d.stores) && d.stores.length)) throw 0; create(d); }
