@@ -37,7 +37,7 @@ async function db(method, path, body) {
 async function mp(method, path, body) {
   const r = await fetch('https://api.mercadopago.com' + path, {
     method,
-    headers: { Authorization: 'Bearer ' + process.env.MP_ACCESS_TOKEN, 'Content-Type': 'application/json' },
+    headers: { Authorization: 'Bearer ' + String(process.env.MP_ACCESS_TOKEN || '').trim(), 'Content-Type': 'application/json' },
     body: body === undefined ? undefined : JSON.stringify(body)
   });
   const t = await r.text(); let j = null; try { j = t ? JSON.parse(t) : null; } catch (e) {}

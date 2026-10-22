@@ -26,7 +26,16 @@ module.exports = async (req, res) => {
     return res.status(200).json({ url: pre.init_point });
   } catch (e) {
     console.error('suscribir', e.status || '', e.message, e.body ? JSON.stringify(e.body).slice(0, 500) : '');
-    const det = ' [' + (e.status ? 'MP ' + e.status : 'error') + ': ' + String(e.message || '').slice(0, 160) + ']';
+    let det = ' [' + (e.status ? 'MP ' + e.status : 'error') + ': ' + String(e.message || '').slice(0, 160) + ']';
+    if (e.status === 401 || e.status === 403) {
+      const tk = String(process.env.MP_ACCESS_TOKEN || '');
+      det += ' [clave: empieza ' + tk.slice(0, 8) + '…, largo ' + tk.length + (tk !== tk.trim() ? ', tiene espacios' : '') + ']';
+      try {
+        const r = await fetch('https://api.mercadopago.com/users/me', { headers: { Authorization: 'Bearer ' + tk.trim() } });
+        const j = await r.json().catch(() => ({}));
+        det += r.ok ? ' [la clave es válida: cuenta ' + (j.nickname || j.id || '?') + ', país ' + (j.site_id || '?') + ']' : ' [la clave no es válida: ' + r.status + ']';
+      } catch (x) {}
+    }
     const msg = e.status === 400 || e.status === 422 ? 'Mercado Pago rechazó el pedido. Revisá que el mail sea el de tu cuenta de Mercado Pago.' : 'No se pudo conectar con Mercado Pago. Probá en un rato.';
     return res.status(502).json({ error: msg + det });
   }
