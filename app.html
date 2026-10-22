@@ -115,19 +115,42 @@
       <p>${T('Poné tu mail y te mandamos un link para entrar. No hace falta contraseña.', "Enter your email and we'll send you a sign-in link. No password needed.", 'Coloque seu e-mail e enviaremos um link para entrar. Sem senha.')}</p>
       <input type="email" id="v3mail" placeholder="tu@mail.com" autocomplete="email" aria-label="Mail">
       <button class="pri" type="button" id="v3send">${T('Mandarme el link', 'Send me the link', 'Enviar o link')}</button>
-      <div class="msg${msg ? ' err' : ''}" id="v3msg" aria-live="polite">${esc(msg || '')}</div>`);
+      <div class="msg${msg ? ' err' : ''}" id="v3msg" aria-live="polite">${esc(msg || '')}</div>
+      <div id="v3codebox" style="display:none;gap:10px">
+        <p style="margin:0">${T('O escribí el código de números que viene en el mail:', 'Or type the number code from the email:', 'Ou digite o código numérico do e-mail:')}</p>
+        <input id="v3code" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456" aria-label="Código" style="letter-spacing:.3em;font-size:22px;text-align:center">
+        <button class="pri" type="button" id="v3codego">${T('Entrar con el código', 'Sign in with the code', 'Entrar com o código')}</button>
+      </div>`);
     const go = async () => {
       const email = o.querySelector('#v3mail').value.trim(), m = o.querySelector('#v3msg'), b = o.querySelector('#v3send');
       if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ m.className = 'msg err'; m.textContent = T('Revisá el mail, parece incompleto.', 'Check the email, it looks incomplete.', 'Confira o e-mail, parece incompleto.'); return; }
       b.disabled = true; m.className = 'msg'; m.textContent = T('Enviando…', 'Sending…', 'Enviando…');
       try{
         await api('POST', '/auth/v1/otp?redirect_to=' + encodeURIComponent(location.origin + '/panel'), {body: {email, create_user: true}});
-        m.textContent = T(`Listo. Te mandamos un mail a ${email}. Abrilo en este mismo aparato y tocá el link para entrar. Si no llega en unos minutos, mirá en Spam.`, `Done. We sent an email to ${email}. Open it on this same device and tap the link. If it doesn't arrive, check Spam.`, `Pronto. Enviamos um e-mail para ${email}. Abra neste mesmo aparelho e toque no link. Se não chegar, veja o Spam.`);
+        m.textContent = T(`Listo. Te mandamos un mail a ${email}. Tocá el botón del mail, o escribí acá abajo el código que viene adentro. Si no llega en unos minutos, mirá en Spam.`, `Done. We sent an email to ${email}. Tap the button in it, or type the code below. If it doesn't arrive, check Spam.`, `Pronto. Enviamos um e-mail para ${email}. Toque no botão, ou digite o código abaixo. Se não chegar, veja o Spam.`);
+        sentTo = email; o.querySelector('#v3codebox').style.display = 'grid'; b.disabled = false; b.textContent = T('Mandarme otro mail', 'Send another email', 'Enviar outro e-mail'); setTimeout(() => o.querySelector('#v3code').focus(), 50);
       }catch(e){
         b.disabled = false; m.className = 'msg err';
         m.textContent = e.status === 429 ? T('Se pidieron muchos links seguidos. Esperá unos minutos y probá de nuevo.', 'Too many links requested. Wait a few minutes and try again.', 'Muitos links pedidos. Espere alguns minutos e tente de novo.') : T('No se pudo mandar el mail: ', "Couldn't send the email: ", 'Não foi possível enviar: ') + e.message;
       }
     };
+    let sentTo = '';
+    const goCode = async () => {
+      const token = o.querySelector('#v3code').value.replace(/\D/g, ''), m = o.querySelector('#v3msg'), cb = o.querySelector('#v3codego');
+      if(token.length < 6){ m.className = 'msg err'; m.textContent = T('Escribí el código completo del mail.', 'Type the full code from the email.', 'Digite o código completo do e-mail.'); return; }
+      cb.disabled = true; m.className = 'msg'; m.textContent = T('Entrando…', 'Signing in…', 'Entrando…');
+      try{
+        const j = await api('POST', '/auth/v1/verify', {body: {type: 'email', email: sentTo || o.querySelector('#v3mail').value.trim(), token}});
+        if(!j || !j.access_token) throw new Error('sin sesión');
+        keep({access_token: j.access_token, refresh_token: j.refresh_token, expires_at: Math.floor(Date.now() / 1000) + (+j.expires_in || 3600)});
+        location.replace(location.origin + '/panel');
+      }catch(e){
+        cb.disabled = false; m.className = 'msg err';
+        m.textContent = T('Ese código no sirve o ya venció. Fijate que sea el del mail más nuevo, o pedí otro.', 'That code is wrong or expired. Use the newest email, or request another.', 'Esse código não serve ou venceu. Use o e-mail mais novo, ou peça outro.');
+      }
+    };
+    o.querySelector('#v3codego').onclick = goCode;
+    o.querySelector('#v3code').onkeydown = e => { if(e.key === 'Enter') goCode(); };
     o.querySelector('#v3send').onclick = go;
     o.querySelector('#v3mail').onkeydown = e => { if(e.key === 'Enter') go(); };
     setTimeout(() => o.querySelector('#v3mail').focus(), 50);
