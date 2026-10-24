@@ -995,8 +995,6 @@ body.clientmode .socialbox{display:none!important}
 .bigballwrap .ringcenter strong{font-size:clamp(22px,7vw,40px)}
 .bigballwrap .ringcenter .binfo{font-size:clamp(15px,4.6vw,24px)}
 .bigballwrap .bspin{height:4.2em}
-.bigballwrap .moon{width:12%;margin:-6% 0 0 -6%;--orb:360%}
-.moon{--orb:230%}
 .balldeco{position:absolute;left:50%;transform:translateX(-50%);z-index:4;pointer-events:none}
 .bigballwrap .balldeco{top:2%;width:62%;height:96%}
 .bigballwrap .balldeco .deco.big{height:100%}
@@ -1023,6 +1021,20 @@ body.clientmode #ballView{display:none!important}
   background:repeating-linear-gradient(90deg,transparent 0 11%,var(--ink) 11% 11.5%);background-size:200% 100%;
   -webkit-mask-image:radial-gradient(circle,#000 30%,rgba(0,0,0,.6) 55%,transparent 71%);mask-image:radial-gradient(circle,#000 30%,rgba(0,0,0,.6) 55%,transparent 71%)}
 .ringcenter.ball{transform-style:preserve-3d}
+.dring{position:absolute;border-radius:50%;pointer-events:none;z-index:1;
+  border:4px solid var(--brass);box-shadow:0 0 0 1px rgba(255,255,255,.5) inset,0 10px 24px -14px var(--shadow)}
+.dring::before{content:"";position:absolute;inset:-4px;border-radius:50%;
+  background:repeating-conic-gradient(from 0deg,#ff2d55 0 4deg,transparent 4deg 12deg,#ffd60a 12deg 16deg,transparent 16deg 24deg,#34c759 24deg 28deg,transparent 28deg 36deg,#0a84ff 36deg 40deg,transparent 40deg 48deg);
+  -webkit-mask-image:radial-gradient(closest-side,transparent 79%,#000 82% 94%,transparent 96%);mask-image:radial-gradient(closest-side,transparent 79%,#000 82% 94%,transparent 96%);
+  filter:drop-shadow(0 0 3px rgba(255,255,255,.9));animation:dspin 7s linear infinite}
+.dring::after{content:"";position:absolute;inset:9%;border-radius:50%;border:2px solid var(--brass);opacity:.8}
+.dring.m-texto::before{display:none}
+.dring.m-ambos::before{opacity:.45}
+.rtext{position:absolute;inset:-4px;width:calc(100% + 8px);height:calc(100% + 8px);animation:dspin 16s linear infinite reverse;overflow:visible}
+#ringText{width:100%}
+@keyframes dspin{to{transform:rotate(360deg)}}
+.fitem.fcenter .dring,#ringwrap .dring{animation:ballfloat 5s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.dring::before,.dring{animation:none}}
 .ringcenter.ball .bspin,.ringcenter.ball > img{position:relative;z-index:4}
 .ringcenter.ball.bs-auto::before,.ringcenter.ball.spinning::before{animation-duration:3s;opacity:.32}
 .fitem.fcenter .ringcenter.ball,#ringwrap .ringcenter.ball{animation:ballfloat 5s ease-in-out infinite}
@@ -1030,12 +1042,8 @@ body.clientmode #ballView{display:none!important}
 @keyframes ballfloat{50%{translate:0 -4px}}
 @media (prefers-reduced-motion:reduce){.ringcenter.ball::before,.fitem.fcenter .ringcenter.ball,#ringwrap .ringcenter.ball{animation:none}}
 .ringcenter.ball:is(.bs-metal,.bs-disco) .binfo{background:rgba(255,255,255,.82)}
-.moon{position:absolute;left:50%;top:50%;width:8%;aspect-ratio:1;margin:-4% 0 0 -4%;border-radius:50%;z-index:2;pointer-events:none;
-  background:var(--surface);border:2px solid var(--brass);box-shadow:inset -4px -5px 9px rgba(0,0,0,.28),inset 3px 3px 7px rgba(255,255,255,.5),0 6px 10px -5px var(--shadow);
-  animation:orbit 6s linear infinite}
-.fitem .moon{width:30%;margin:-15% 0 0 -15%}
 @keyframes orbit{from{transform:rotate(0deg) translateX(var(--orb,230%)) rotate(0deg)}to{transform:rotate(360deg) translateX(var(--orb,230%)) rotate(-360deg)}}
-@media (prefers-reduced-motion:reduce){.moon,.ringcenter.ball.bs-disco,.ringcenter.ball.bs-auto::before{animation:none}}
+@media (prefers-reduced-motion:reduce){.ringcenter.ball.bs-disco,.ringcenter.ball.bs-auto::before{animation:none}}
 /* Destello de luces */
 @keyframes glowc{0%{box-shadow:0 0 0 3px #ff2d55,0 0 22px 6px #ff2d55}20%{box-shadow:0 0 0 3px #ffcc00,0 0 22px 6px #ffcc00}40%{box-shadow:0 0 0 3px #34c759,0 0 22px 6px #34c759}60%{box-shadow:0 0 0 3px #00c7ff,0 0 22px 6px #00c7ff}80%{box-shadow:0 0 0 3px #af52de,0 0 22px 6px #af52de}100%{box-shadow:0 0 0 3px #ff2d55,0 0 22px 6px #ff2d55}}
 .mini.glow .mstage{animation:glowc 2.4s linear infinite;overflow:visible}
@@ -1512,6 +1520,11 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     <section class="panel ballpanel" id="ballPanel" aria-label="Opciones de la bola">
       <div class="bprow"><strong>Color</strong><div class="bgbar" id="ballColors"></div></div>
       <div class="bprow"><strong>Estilo</strong><div class="bgbar" id="ballStyles"></div></div>
+      <div class="bprow" id="ringRow"><strong>Entre los dos aros</strong>
+        <div class="bgbar" id="ringModes"></div>
+        <input type="text" id="ringText" maxlength="80" placeholder="Ej: Gracias por comprar en Tienda santino · Acá tenés las mejores ofertas" aria-label="Frase que gira entre los aros">
+        <div class="bgbar" id="ringColors"></div>
+      </div>
       <div class="bprow"><strong>Tamaño</strong><div class="bgbar"><span class="zoom"><button type="button" id="ballSmaller" aria-label="Achicar la bola">−</button><span id="ballSizeLbl">Normal</span><button type="button" id="ballBigger" aria-label="Agrandar la bola">+</button></span></div></div>
       <div class="bprow"><strong>Movimiento</strong><div class="bgbar"><button class="matbtn" type="button" id="ballAuto" aria-pressed="false">🔄 Que gire sola</button></div></div>
       <div class="bprow"><strong>Luces y adornos</strong><div class="bgbar" id="ballDecoBar"></div></div>
@@ -1908,6 +1921,14 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     const all = [`<strong>${name}</strong>`, ...items.map(t => `<span class="binfo">${esc(t)}</span>`)];
     return `<span class="bspin"><span class="bdrum" style="--n:${all.length}">${all.map((h, i) => `<span class="bface" style="--i:${i}">${h}</span>`).join('')}</span></span>`;
   }
+  // frase que gira entre los dos aros de la bola doble
+  function ringTextSVG(nameEsc){
+    const raw = String(brand.ringText || '').trim() || `Gracias por comprar en ${brand.name || 'nuestra tienda'}`;
+    let full = raw; while(full.length < 52) full += '  ★  ' + raw; full += '  ★  ';
+    const fs = Math.max(3.4, Math.min(7, 276 / (full.length * 0.56))), id = 'rp' + Math.random().toString(36).slice(2, 8);
+    const col = brand.ringColor || '#ffd60a';
+    return `<svg class="rtext" viewBox="0 0 100 100"><defs><path id="${id}" d="M50,6.2 a43.8,43.8 0 1,1 -0.01,0"/></defs><text font-size="${fs.toFixed(2)}" fill="${col}" stroke="#1c2420" stroke-width="${(fs * 0.12).toFixed(2)}" paint-order="stroke" font-weight="800" font-family="var(--neon-font, system-ui), system-ui, sans-serif" style="filter:drop-shadow(0 0 1.2px ${col})"><textPath href="#${id}" textLength="273" lengthAdjust="spacing">${esc(full)}</textPath></text></svg>`;
+  }
   function centerHTML(){
     const ce = brand.center || {type:'auto'};
     let cls = 'ringcenter', st = '', inner = '';
@@ -1923,7 +1944,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       inner = `${brand.logo ? `<img src="${brand.logo}" alt="">` : ''}${ballHTML(name)}`;
     }
     const bs = brand.ballStyle || 'lisa';
-    return `${brand.ballDeco ? `<span class="balldeco small">${decoHTML(brand.ballDeco, false)}</span>` : ''}<div class="${cls} ball bs-${bs}${brand.ballAuto ? ' bs-auto' : ''}${brand.ballGlow ? ' bglow' : ''}" style="${esc(st + border)}" role="button" tabindex="0" aria-label="${name}: tocá para ver los datos de la tienda">${inner}</div>${bs === 'doble' ? `<span class="moon" style="${esc(st)}" aria-hidden="true"></span>` : ''}`;
+    return `${brand.ballDeco ? `<span class="balldeco small">${decoHTML(brand.ballDeco, false)}</span>` : ''}<div class="${cls} ball bs-${bs}${brand.ballAuto ? ' bs-auto' : ''}${brand.ballGlow ? ' bglow' : ''}" style="${esc(st + border)}" role="button" tabindex="0" aria-label="${name}: tocá para ver los datos de la tienda">${inner}</div>${bs === 'doble' ? `<span class="dring m-${brand.ringMode || 'luces'}" aria-hidden="true">${(brand.ringMode || 'luces') !== 'luces' ? ringTextSVG(name) : ''}</span>` : ''}`;
   }
   // ---- La bola gira: tocás o arrastrás y muestra el siguiente dato; sola vuelve al nombre ----
   const ballState = new WeakMap();
@@ -1940,7 +1961,18 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     clearTimeout(st.t);
     st.t = setTimeout(() => { const k = ((st.i % n) + n) % n; if(k){ ballTurn(el, k <= n / 2 ? -k : n - k); } }, 7000);
   }
+  function syncRings(){
+    document.querySelectorAll('.dring').forEach(r => {
+      const b = r.previousElementSibling, par = r.parentElement; if(!b || !b.classList.contains('ringcenter') || !par) return;
+      const br = b.getBoundingClientRect(), pr = par.getBoundingClientRect(), w = br.width * 1.3;
+      r.style.width = r.style.height = w + 'px';
+      r.style.left = (br.left - pr.left - par.clientLeft + br.width / 2 - w / 2) + 'px';
+      r.style.top = (br.top - pr.top - par.clientTop + br.height / 2 - w / 2) + 'px';
+    });
+  }
+  addEventListener('resize', () => requestAnimationFrame(syncRings));
   function ballInit(){
+    syncRings();
     document.querySelectorAll('.ringcenter.ball .bdrum').forEach(d => {
       const n = d.children.length, w = d.clientWidth || 100, r = n > 2 ? (w / 2) / Math.tan(Math.PI / n) : w / 2;
       d.style.setProperty('--r', r.toFixed(1) + 'px'); d.style.transform = `translateZ(${-r}px) rotateY(0deg)`;
@@ -1949,13 +1981,19 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   }
   const BALLK = [0.6, 0.8, 1, 1.3, 1.6];
   const BALL_COLORS = ['#ffffff', '#ff2d55', '#ff9500', '#ffcc00', '#34c759', '#00c7be', '#0a84ff', '#af52de', '#1c1c1e', '#c9a227'];
-  const BALL_STYLES = [{id:'lisa', name:'⚪ Lisa'}, {id:'metal', name:'🔩 Metalizada'}, {id:'disco', name:'🪩 De espejos'}, {id:'doble', name:'🌗 Doble'}];
+  const BALL_STYLES = [{id:'lisa', name:'⚪ Lisa'}, {id:'metal', name:'🔩 Metalizada'}, {id:'disco', name:'🪩 De espejos'}, {id:'doble', name:'⭕ Doble con luces'}];
   function renderBallPanel(){
     const ce = brand.center || {type:'auto'}, cur = ce.type === 'color' ? ce.color : ce.type === 'auto' ? '#ffffff' : '';
     $('ballColors').innerHTML = BALL_COLORS.map(c => `<button class="sw" type="button" data-bcol="${c}" style="--c:${c}" aria-pressed="${cur === c}" aria-label="Color ${c}"></button>`).join('') +
       `<label class="sw custom" title="Otro color"><input type="color" id="ballCustom" value="${HEXOK(ce.color) ? ce.color : '#0a84ff'}" aria-label="Otro color"></label>`;
     $('ballStyles').innerHTML = BALL_STYLES.map(x => `<button class="matbtn" type="button" data-bstyle="${x.id}" aria-pressed="${(brand.ballStyle || 'lisa') === x.id}">${x.name}</button>`).join('');
     $('ballAuto').setAttribute('aria-pressed', String(!!brand.ballAuto));
+    const isD = (brand.ballStyle || 'lisa') === 'doble', rm = brand.ringMode || 'luces';
+    $('ringRow').hidden = !isD;
+    $('ringModes').innerHTML = [['luces', '💡 Luces'], ['texto', '🔤 Frase'], ['ambos', '💡🔤 Las dos']].map(([id, n]) => `<button class="matbtn" type="button" data-rmode="${id}" aria-pressed="${rm === id}">${n}</button>`).join('');
+    $('ringText').hidden = rm === 'luces'; $('ringColors').hidden = rm === 'luces';
+    if(document.activeElement !== $('ringText')) $('ringText').value = brand.ringText || '';
+    $('ringColors').innerHTML = `<span class="note" style="margin:0">Color de la frase:</span>` + ['#ffd60a', '#ffffff', '#ff4fd8', '#c6ff1a', '#38e8ff', '#ff8a1f', '#ff3b3b', '#1c2420'].map(c => `<button class="sw" type="button" data-rcol="${c}" style="--c:${c}" aria-pressed="${(brand.ringColor || '#ffd60a') === c}" aria-label="Color ${c}"></button>`).join('');
     const bz = brand.ballSize | 0; $('ballSizeLbl').textContent = ['Muy chica', 'Chica', 'Normal', 'Grande', 'Muy grande'][bz + 2]; $('ballSmaller').disabled = bz <= -2; $('ballBigger').disabled = bz >= 2;
     $('ballDecoBar').innerHTML = `<button class="matbtn glowbtn" type="button" data-bglow="1" aria-pressed="${!!brand.ballGlow}">✨ Destello de luces</button>` +
       DECOS.map(d => `<button class="matbtn" type="button" data-bdeco="${d.id}" aria-pressed="${(brand.ballDeco || '') === d.id}">${d.name}</button>`).join('');
@@ -1988,6 +2026,9 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     const c = e.target.closest('[data-bcol]'), st = e.target.closest('[data-bstyle]');
     if(c) setBallColor(c.dataset.bcol);
     else if(st){ brand.ballStyle = st.dataset.bstyle; save(); renderHome(); renderBallPanel(); }
+    const rmo = e.target.closest('[data-rmode]'), rco = e.target.closest('[data-rcol]');
+    if(rmo){ brand.ringMode = rmo.dataset.rmode; save(); renderHome(); renderBallPanel(); renderBigBall(); return; }
+    if(rco){ brand.ringColor = rco.dataset.rcol; save(); renderHome(); renderBallPanel(); renderBigBall(); return; }
     const dc = e.target.closest('[data-bdeco]'), gl = e.target.closest('[data-bglow]');
     if(dc){ brand.ballDeco = dc.dataset.bdeco; if(!brand.ballDeco) delete brand.ballDeco; save(); renderHome(); renderBallPanel(); }
     if(gl){ brand.ballGlow = !brand.ballGlow; save(); renderHome(); renderBallPanel(); }
@@ -1997,6 +2038,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     if(e.target.id === 'ballCustom') setBallColor(e.target.value);
     if(e.target.id === 'q-ball'){ brand.ball = e.target.value.slice(0, 400); save(); renderHome(); renderBigBall(); }
     if(e.target.id === 'ballCustom') renderBigBall();
+    if(e.target.id === 'ringText'){ brand.ringText = e.target.value.slice(0, 80); save(); renderHome(); renderBigBall(); }
   });
   const ballSize = d => { brand.ballSize = Math.max(-2, Math.min(2, (brand.ballSize | 0) + d)); save(); renderHome(); renderBallPanel(); renderBigBall(); };
   $('ballSmaller').onclick = () => ballSize(-1);
