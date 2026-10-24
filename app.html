@@ -979,6 +979,26 @@ body.clientmode .socialbox{display:none!important}
 .prod .refl.side img{max-width:100%;max-height:100%;object-fit:contain;filter:blur(.6px) saturate(.75)}
 #catNum{display:none!important}
 .shelf{overflow:clip;overflow-clip-margin:14px}
+/* Bola: estilos y panel rápido */
+.ballpanel{display:grid;gap:12px}
+.bprow{display:grid;gap:6px}
+.ballpanel textarea{width:100%}
+.ringcenter.ball.bs-metal{background:linear-gradient(135deg,#fbfcfd 0%,#c4ccd2 30%,#8e989f 48%,#eef2f4 62%,#a7b0b7 80%,#e2e7ea 100%)!important;color:#1c2420!important;border-color:#c3ccd2!important}
+.ringcenter.ball.bs-disco{background:radial-gradient(circle at 50% 50%,transparent 55%,rgba(0,0,0,.25)),
+  repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 9px),repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 1px,transparent 1px 9px),
+  linear-gradient(135deg,#f4f6f8,#9aa4ab 40%,#e9edf0 52%,#7d878e 75%,#dfe4e8)!important;background-size:auto,auto,18px 100%,auto!important;color:#1c2420!important;
+  animation:discot 4s linear infinite}
+@keyframes discot{to{background-position:0 0,0 0,-36px 0,0 0}}
+.ringcenter.ball.bs-disco .bspin::after{content:"✦";position:absolute;right:6%;top:-60%;color:#fff;font-size:14px;text-shadow:0 0 6px #fff;animation:sparkle 1.8s ease-in-out infinite}
+@keyframes sparkle{0%,100%{opacity:0;transform:scale(.4)}50%{opacity:1;transform:scale(1.1)}}
+.ringcenter.ball.bs-auto::before{animation:ballmer 3.5s linear infinite;opacity:.26}
+.ringcenter.ball:is(.bs-metal,.bs-disco) .binfo{background:rgba(255,255,255,.82)}
+.moon{position:absolute;left:50%;top:50%;width:8%;aspect-ratio:1;margin:-4% 0 0 -4%;border-radius:50%;z-index:2;pointer-events:none;
+  background:var(--surface);border:2px solid var(--brass);box-shadow:inset -4px -5px 9px rgba(0,0,0,.28),inset 3px 3px 7px rgba(255,255,255,.5),0 6px 10px -5px var(--shadow);
+  animation:orbit 6s linear infinite}
+.fitem .moon{width:30%;margin:-15% 0 0 -15%}
+@keyframes orbit{from{transform:rotate(0deg) translateX(230%) rotate(0deg)}to{transform:rotate(360deg) translateX(230%) rotate(-360deg)}}
+@media (prefers-reduced-motion:reduce){.moon,.ringcenter.ball.bs-disco,.ringcenter.ball.bs-auto::before{animation:none}}
 /* Destello de luces */
 @keyframes glowc{0%{box-shadow:0 0 0 3px #ff2d55,0 0 22px 6px #ff2d55}20%{box-shadow:0 0 0 3px #ffcc00,0 0 22px 6px #ffcc00}40%{box-shadow:0 0 0 3px #34c759,0 0 22px 6px #34c759}60%{box-shadow:0 0 0 3px #00c7ff,0 0 22px 6px #00c7ff}80%{box-shadow:0 0 0 3px #af52de,0 0 22px 6px #af52de}100%{box-shadow:0 0 0 3px #ff2d55,0 0 22px 6px #ff2d55}}
 .mini.glow .mstage{animation:glowc 2.4s linear infinite;overflow:visible}
@@ -1268,6 +1288,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
         <button type="button" id="layoutFree" aria-pressed="false">✋ Libre</button>
         <button type="button" id="layoutFolleto" aria-pressed="false">📰 Folleto</button>
       </span>
+      <button class="btn" type="button" id="ballBtn" aria-expanded="false" aria-controls="ballPanel" hidden>🔮 Bola</button>
       <span class="zoom homesize" role="group" aria-label="Tamaño de las vitrinas">
         <button type="button" id="homeSizeDn" aria-label="Achicar todas">−</button>
         <span id="homeSizeLbl">Normal</span>
@@ -1278,6 +1299,13 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <span class="note" id="editHint" hidden></span>
       <button class="linkbtn" type="button" id="freeReset" hidden>Volver a acomodar</button>
     </div>
+    <section class="panel ballpanel" id="ballPanel" hidden aria-label="La bola del centro">
+      <div class="bprow"><strong>Color</strong><div class="bgbar" id="ballColors"></div></div>
+      <div class="bprow"><strong>Estilo</strong><div class="bgbar" id="ballStyles"></div></div>
+      <div class="bprow"><strong>Movimiento</strong><div class="bgbar"><button class="matbtn" type="button" id="ballAuto" aria-pressed="false">🔄 Que gire sola</button></div></div>
+      <label for="q-ball"><strong>Mensajes</strong> <small class="note">Uno por renglón. Gira y los va mostrando: ofertas, teléfono, dirección, lo que quieras.</small>
+        <textarea id="q-ball" rows="4" maxlength="400" placeholder="🔥 ¡Mirá esta oferta!&#10;🛒 Comprá esto hoy&#10;📱 223 555-1234&#10;📍 Av. Colón 1234"></textarea></label>
+    </section>
     <section class="panel quick" id="quickPanel" hidden>
       <div style="min-width:0">
         <h2>✦ Carga rápida</h2>
@@ -1665,7 +1693,8 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       if(ce.type === 'color' && HEXOK(ce.color)){ const light = lum(ce.color) > 0.45; st = `background:${ce.color};color:${light ? '#1c2420' : '#ffffff'};`; }
       inner = `${brand.logo ? `<img src="${brand.logo}" alt="">` : ''}${ballHTML(name)}`;
     }
-    return `<div class="${cls} ball" style="${esc(st + border)}" role="button" tabindex="0" aria-label="${name}: tocá para ver los datos de la tienda">${inner}</div>`;
+    const bs = brand.ballStyle || 'lisa';
+    return `<div class="${cls} ball bs-${bs}${brand.ballAuto ? ' bs-auto' : ''}" style="${esc(st + border)}" role="button" tabindex="0" aria-label="${name}: tocá para ver los datos de la tienda">${inner}</div>${bs === 'doble' ? `<span class="moon" style="${esc(st)}" aria-hidden="true"></span>` : ''}`;
   }
   // ---- La bola gira: tocás o arrastrás y muestra el siguiente dato; sola vuelve al nombre ----
   const ballState = new WeakMap();
@@ -1689,8 +1718,36 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       [...d.children].forEach((f, k) => f.classList.toggle('on', k === 0));
     });
   }
+  const BALL_COLORS = ['#ffffff', '#ff2d55', '#ff9500', '#ffcc00', '#34c759', '#00c7be', '#0a84ff', '#af52de', '#1c1c1e', '#c9a227'];
+  const BALL_STYLES = [{id:'lisa', name:'⚪ Lisa'}, {id:'metal', name:'🔩 Metalizada'}, {id:'disco', name:'🪩 De espejos'}, {id:'doble', name:'🌗 Doble'}];
+  function renderBallPanel(){
+    const ce = brand.center || {type:'auto'}, cur = ce.type === 'color' ? ce.color : ce.type === 'auto' ? '#ffffff' : '';
+    $('ballColors').innerHTML = BALL_COLORS.map(c => `<button class="sw" type="button" data-bcol="${c}" style="--c:${c}" aria-pressed="${cur === c}" aria-label="Color ${c}"></button>`).join('') +
+      `<label class="sw custom" title="Otro color"><input type="color" id="ballCustom" value="${HEXOK(ce.color) ? ce.color : '#0a84ff'}" aria-label="Otro color"></label>`;
+    $('ballStyles').innerHTML = BALL_STYLES.map(x => `<button class="matbtn" type="button" data-bstyle="${x.id}" aria-pressed="${(brand.ballStyle || 'lisa') === x.id}">${x.name}</button>`).join('');
+    $('ballAuto').setAttribute('aria-pressed', String(!!brand.ballAuto));
+    if(document.activeElement !== $('q-ball')) $('q-ball').value = brand.ball || '';
+  }
+  const setBallColor = c => { brand.center = {...(brand.center || {}), type: c === '#ffffff' ? 'auto' : 'color', color: c}; save(); renderHome(); renderBallPanel(); };
+  $('ballBtn').onclick = () => { const open = $('ballPanel').hidden; $('ballPanel').hidden = !open; $('ballBtn').setAttribute('aria-expanded', String(open)); if(open) renderBallPanel(); };
+  $('ballPanel').addEventListener('click', e => {
+    const c = e.target.closest('[data-bcol]'), st = e.target.closest('[data-bstyle]');
+    if(c) setBallColor(c.dataset.bcol);
+    else if(st){ brand.ballStyle = st.dataset.bstyle; save(); renderHome(); renderBallPanel(); }
+  });
+  $('ballPanel').addEventListener('input', e => {
+    if(e.target.id === 'ballCustom') setBallColor(e.target.value);
+    if(e.target.id === 'q-ball'){ brand.ball = e.target.value.slice(0, 400); save(); renderHome(); }
+  });
+  $('ballAuto').onclick = () => { brand.ballAuto = !brand.ballAuto; save(); renderHome(); renderBallPanel(); };
+  // gira sola: pasa al siguiente mensaje cada 3,5 segundos (si nadie la está tocando)
+  let ballTouched = 0;
+  setInterval(() => {
+    if(!brand.ballAuto || document.hidden || Date.now() - ballTouched < 6000) return;
+    document.querySelectorAll('.ringcenter.ball').forEach(el => { if(el.querySelector('.bdrum')) ballTurn(el, 1); });
+  }, 3500);
   let ballDrag = null;
-  document.addEventListener('pointerdown', e => { const b = e.target.closest('.ringcenter.ball'); if(!b || editMode) return; ballDrag = {el: b, x: e.clientX, done: false}; });
+  document.addEventListener('pointerdown', e => { const b = e.target.closest('.ringcenter.ball'); if(!b || editMode) return; ballTouched = Date.now(); ballDrag = {el: b, x: e.clientX, done: false}; });
   document.addEventListener('pointermove', e => {
     if(!ballDrag || ballDrag.done) return;
     const dx = e.clientX - ballDrag.x;
@@ -1752,6 +1809,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     $('layoutRing').setAttribute('aria-pressed', String(brand.layout === 'ring'));
     $('layoutFree').setAttribute('aria-pressed', String(free));
     $('layoutFolleto').setAttribute('aria-pressed', String(folleto));
+    $('ballBtn').hidden = !(ring || free); if($('ballBtn').hidden) $('ballPanel').hidden = true;
     $('homeSizeLbl').textContent = ['Muy chicas', 'Chicas', 'Normal', 'Grandes', 'Muy grandes'][(brand.homeSize | 0) + 2];
     $('homeSizeDn').disabled = (brand.homeSize | 0) <= -2; $('homeSizeUp').disabled = (brand.homeSize | 0) >= 2;
     $('freeReset').hidden = !(free && editMode);
