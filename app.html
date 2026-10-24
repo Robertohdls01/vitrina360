@@ -4571,9 +4571,13 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     const r = new SR(); r.lang = LANG === 'pt' ? 'pt-BR' : LANG === 'en' ? 'en-US' : 'es-AR'; r.interimResults = false; r.maxAlternatives = 1;
     $('hMic').classList.add('rec'); $('hSay').textContent = 'Te escucho…';
     r.onresult = e => { const t = e.results[0][0].transcript; $('hIn').value = t; hAnswer(t); };
-    r.onerror = () => { $('hSay').textContent = 'No te escuché bien. Probá de nuevo o escribime.'; };
+    r.onerror = e => {
+      $('hSay').textContent = (e && /not-allowed|service-not-allowed|audio-capture/.test(e.error))
+        ? 'No tengo permiso para usar el micrófono acá. Permitilo en el navegador (el candadito de arriba) o escribime abajo.'
+        : 'No te escuché bien. Probá de nuevo, hablando cerca del celular, o escribime.';
+    };
     r.onend = () => $('hMic').classList.remove('rec');
-    try{ r.start(); }catch(e){ $('hMic').classList.remove('rec'); }
+    try{ r.start(); }catch(e){ $('hMic').classList.remove('rec'); $('hSay').textContent = 'El micrófono no está disponible acá. Escribime abajo.'; }
   };
   function boot(){
     load(); applyBrand(); applyTheme(); applyBtnColor(); applyBg(); renderPresets(); renderContact(); updateFab(); renderMusic(); renderHelpers(); fillCatSelect(cats[0].id); setAuto(autoOn); renderHome(); renderStoreBar(); setLang(LANG); requestAnimationFrame(loop);
