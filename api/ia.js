@@ -27,25 +27,30 @@ module.exports = async (req, res) => {
   }
   content.push({ type: 'text', text: prompt + (body.json ? '\n\nRespondé únicamente con JSON válido, sin texto antes ni después.' : '') });
 
-  // Páginas de catálogo y enderezado de fotos: el modelo más potente (Opus).
-  // Fotos de productos sueltos: Sonnet, que reconoce mucho mejor marcas, modelos y objetos que Haiku.
-  // Texto sin fotos (sugerir precio, textos para redes): el económico.
-  const dificil = images.length > 0 && (body.tier === 'complex' || /cat[aá]logo/i.test(prompt));
-  const model = dificil ? (process.env.IA_MODEL_VISION || 'claude-opus-5-5')
-    : images.length > 0 ? (process.env.IA_MODEL || 'claude-sonnet-5-5')
-    : (process.env.IA_MODEL_TEXT || 'claude-haiku-5-5');
+  // Todo lo que lleva fotos (reconocer productos, catálogos, enderezar): el modelo más potente, Opus.
+  // Solo texto (sugerir precio, textos para redes): el económico.
+  const model = images.length > 0 ? (process.env.IA_MODEL_VISION || 'claude-opus-5-5') : (process.env.IA_MODEL_TEXT || 'claude-haiku-5-5');
+  // Respuestas parejas: sin "creatividad" al reconocer
+  let temp = true;
+  const ask = () => fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'x-api-key': KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    body: JSON.stringify({ model, max_tokens: 8000, ...(temp ? { temperature: 0 } : {}), messages: [{ role: 'user', content }] })
+  });
   try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'x-api-key': KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model, max_tokens: 8000, messages: [{ role: 'user', content }] })
-    });
-    const j = await r.json().catch(() => ({}));
+    let r = await ask(), j = await r.json().catch(() => ({}));
+    // si el modelo no acepta "temperature", se pide igual sin ese ajuste
+    if (r.status === 400 && /temperature/i.test(String((j.error && j.error.message) || ''))) { temp = false; r = await ask(); j = await r.json().catch(() => ({})); }
+    // si la IA está saturada o falla un momento, se reintenta solo (hasta 2 veces)
+    for (let k = 0; k < 2 && !r.ok && [429, 500, 502, 503, 529].includes(r.status); k++) {
+      await new Promise(ok => setTimeout(ok, 1500 * (k + 1)));
+      r = await ask(); j = await r.json().catch(() => ({}));
+    }
     if (!r.ok) {
       const msg = String((j.error && j.error.message) || '');
       if (/credit balance|billing|purchase credits/i.test(msg)) return res.status(402).json({ error: 'La IA se quedó sin saldo. Cargá crédito en la cuenta de Anthropic (console.anthropic.com → Billing).' });
       const busy = r.status === 429 || r.status === 529;
-      return res.status(busy ? 429 : 502).json({ error: busy ? 'La IA está ocupada, probá en un rato.' : ((j.error && j.error.message) || 'La IA no respondió.') });
+      return res.status(busy ? 429 : 502).json({ error: busy ? 'La IA está ocupada, probá en un rato.' : (msg || 'La IA no respondió.') });
     }
     const text = (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
     return res.status(200).json({ text });

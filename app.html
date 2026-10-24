@@ -302,7 +302,7 @@
   }
   let iaOk = null;
   const sampler = async (prompt, opts = {}) => { const text = await callIA(prompt, opts, false); try{ opts.onText?.({text, delta: text}); }catch(e){} return {text, truncated: false}; };
-  sampler.json = async (prompt, opts = {}) => parseJSON(await callIA(prompt, opts, true));
+  sampler.json = async (prompt, opts = {}) => { try{ return parseJSON(await callIA(prompt, opts, true)); }catch(e){ if(e.code !== 'ia_error' || (opts.signal && opts.signal.aborted)) throw e; return parseJSON(await callIA(prompt, opts, true)); } };
   sampler.limits = async () => {
     if(iaOk === null){ try{ iaOk = !!(await (await fetch('/api/ia')).json()).ok; }catch(e){ iaOk = false; } }
     return iaOk ? {images: {maxCount: 6, maxBytes: 3500000}} : {images: null};
@@ -3180,7 +3180,7 @@ Respondé SOLO con JSON: {"letras": [ ... ]} con ${n} letra${n === 1 ? '' : 's'}
         let out = c.toDataURL('image/webp', HQ ? 0.92 : 0.86);
         if(!out.startsWith('data:image/webp')) out = HQ ? c.toDataURL('image/jpeg', 0.92) : c.toDataURL('image/png');
         // copia más grande para que Claude reconozca mejor el producto
-        const k2 = Math.min(1, (HQ ? 1400 : 1100) / Math.max(img.width, img.height));
+        const k2 = Math.min(1, 1500 / Math.max(img.width, img.height));
         const c2 = document.createElement('canvas');
         c2.width = Math.round(img.width * k2); c2.height = Math.round(img.height * k2);
         c2.getContext('2d').drawImage(img, 0, 0, c2.width, c2.height);
@@ -3202,7 +3202,9 @@ Respondé SOLO con JSON: {"letras": [ ... ]} con ${n} letra${n === 1 ? '' : 's'}
 
   const PROMPT = `Esta foto muestra un producto que una tienda va a exhibir en su vitrina online.
 Identificá qué producto es. Si se lee con claridad la marca o el modelo, usalos; si no, describilo de forma genérica (por ejemplo "Campera de cuero marrón").
-La foto puede estar sacada con el celular en casa: con poca luz, sombras, reflejos, algo torcida o con otras cosas alrededor (mesa, mano, fondo). Eso no importa: concentrate en el producto principal (el más grande o el del centro) e ignorá el resto. Mirá con atención etiquetas, logos y textos del envase para reconocer marca, línea, variedad y tamaño.
+La foto puede estar sacada con el celular en casa: con poca luz, sombras, reflejos, borrosa, de costado, al revés o con otras cosas alrededor (mesa, mano, fondo, otros productos). Eso NO es un problema y nunca es motivo para no responder: concentrate en el producto principal (el más grande, el más nítido o el del centro) e ignorá el resto.
+Para reconocerlo, leé con atención etiquetas, logos y textos del envase aunque estén de costado o al revés, y usá también la forma, los colores y el tipo de envase. Si la marca no se lee, igual nombrá el producto por lo que es (por ejemplo "Detergente líquido 750 ml" o "Zapatilla urbana negra").
+Nunca respondas que la foto es mala ni pidas otra foto: siempre devolvé tu mejor reconocimiento.
 Respondé SOLO con un objeto JSON, sin texto extra, con esta forma:
 {"name": "nombre corto del producto, máximo 6 palabras", "features": ["Clave: valor", "..."], "rotation": 0}
 "rotation": cuántos grados hay que girar la foto en sentido horario para que el producto quede PARADO y derecho, como apoyado en un estante (botellas, frascos y cajas con la tapa o el frente arriba): 0, 90, 180 o 270. 0 si ya está bien.
