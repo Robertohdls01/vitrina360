@@ -1029,6 +1029,18 @@ body.clientmode #ballView{display:none!important}
   filter:drop-shadow(0 0 3px rgba(255,255,255,.9));animation:dspin 7s linear infinite}
 .dring::after{content:"";position:absolute;inset:9%;border-radius:50%;border:2px solid var(--brass);opacity:.8}
 .dring.m-texto::before{display:none}
+@keyframes fxblink{0%,49%{opacity:1}50%,100%{opacity:.12}}
+@keyframes fxhue{to{filter:hue-rotate(360deg)}}
+@keyframes fxbeat{0%,100%{transform:scale(1)}15%{transform:scale(1.07)}30%{transform:scale(1)}45%{transform:scale(1.05)}}
+.dring.fx-titila .rtext text{animation:fxblink .9s infinite}
+.dring.fx-titila::before{animation:dspin 7s linear infinite,fxblink .6s infinite}
+.dring.fx-arcoiris .rtext,.dring.fx-arcoiris::before{animation:dspin 16s linear infinite reverse,fxhue 2.5s linear infinite}
+.dring.fx-arcoiris::before{animation:dspin 7s linear infinite,fxhue 2.5s linear infinite}
+.dring.fx-late{animation:fxbeat 1.3s ease-in-out infinite}
+html[data-nfx="titila"] .neon{animation:fxblink .9s infinite}
+html[data-nfx="arcoiris"] .neon{animation:fxhue 2.5s linear infinite}
+html[data-nfx="late"] .neon{animation:fxbeat 1.3s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.dring[class*="fx-"],.dring[class*="fx-"]::before,.dring .rtext,.dring .rtext text,html[data-nfx] .neon{animation:none!important}}
 .dring.m-ambos::before{opacity:.45}
 .rtext{position:absolute;inset:-4px;width:calc(100% + 8px);height:calc(100% + 8px);animation:dspin 16s linear infinite reverse;overflow:visible}
 #ringText{width:100%}
@@ -1524,6 +1536,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
         <div class="bgbar" id="ringModes"></div>
         <input type="text" id="ringText" maxlength="80" placeholder="Ej: Gracias por comprar en Tienda santino · Acá tenés las mejores ofertas" aria-label="Frase que gira entre los aros">
         <div class="bgbar" id="ringColors"></div>
+        <div class="bgbar" id="ringFx"></div>
       </div>
       <div class="bprow"><strong>Tamaño</strong><div class="bgbar"><span class="zoom"><button type="button" id="ballSmaller" aria-label="Achicar la bola">−</button><span id="ballSizeLbl">Normal</span><button type="button" id="ballBigger" aria-label="Agrandar la bola">+</button></span></div></div>
       <div class="bprow"><strong>Movimiento</strong><div class="bgbar"><button class="matbtn" type="button" id="ballAuto" aria-pressed="false">🔄 Que gire sola</button></div></div>
@@ -1944,7 +1957,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       inner = `${brand.logo ? `<img src="${brand.logo}" alt="">` : ''}${ballHTML(name)}`;
     }
     const bs = brand.ballStyle || 'lisa';
-    return `${brand.ballDeco ? `<span class="balldeco small">${decoHTML(brand.ballDeco, false)}</span>` : ''}<div class="${cls} ball bs-${bs}${brand.ballAuto ? ' bs-auto' : ''}${brand.ballGlow ? ' bglow' : ''}" style="${esc(st + border)}" role="button" tabindex="0" aria-label="${name}: tocá para ver los datos de la tienda">${inner}</div>${bs === 'doble' ? `<span class="dring m-${brand.ringMode || 'luces'}" aria-hidden="true">${(brand.ringMode || 'luces') !== 'luces' ? ringTextSVG(name) : ''}</span>` : ''}`;
+    return `${brand.ballDeco ? `<span class="balldeco small">${decoHTML(brand.ballDeco, false)}</span>` : ''}<div class="${cls} ball bs-${bs}${brand.ballAuto ? ' bs-auto' : ''}${brand.ballGlow ? ' bglow' : ''}" style="${esc(st + border)}" role="button" tabindex="0" aria-label="${name}: tocá para ver los datos de la tienda">${inner}</div>${bs === 'doble' ? `<span class="dring m-${brand.ringMode || 'luces'} fx-${brand.ringFx || 'fijo'}" aria-hidden="true">${(brand.ringMode || 'luces') !== 'luces' ? ringTextSVG(name) : ''}</span>` : ''}`;
   }
   // ---- La bola gira: tocás o arrastrás y muestra el siguiente dato; sola vuelve al nombre ----
   const ballState = new WeakMap();
@@ -1994,6 +2007,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     $('ringText').hidden = rm === 'luces'; $('ringColors').hidden = rm === 'luces';
     if(document.activeElement !== $('ringText')) $('ringText').value = brand.ringText || '';
     $('ringColors').innerHTML = `<span class="note" style="margin:0">Color de la frase:</span>` + ['#ffd60a', '#ffffff', '#ff4fd8', '#c6ff1a', '#38e8ff', '#ff8a1f', '#ff3b3b', '#1c2420'].map(c => `<button class="sw" type="button" data-rcol="${c}" style="--c:${c}" aria-pressed="${(brand.ringColor || '#ffd60a') === c}" aria-label="Color ${c}"></button>`).join('');
+    $('ringFx').innerHTML = `<span class="note" style="margin:0">Efecto:</span>` + [['fijo', '● Fijo'], ['titila', '💡 Titila'], ['arcoiris', '🌈 Arcoíris'], ['late', '💓 Late']].map(([id, n]) => `<button class="matbtn" type="button" data-rfx="${id}" aria-pressed="${(brand.ringFx || 'fijo') === id}">${n}</button>`).join('');
     const bz = brand.ballSize | 0; $('ballSizeLbl').textContent = ['Muy chica', 'Chica', 'Normal', 'Grande', 'Muy grande'][bz + 2]; $('ballSmaller').disabled = bz <= -2; $('ballBigger').disabled = bz >= 2;
     $('ballDecoBar').innerHTML = `<button class="matbtn glowbtn" type="button" data-bglow="1" aria-pressed="${!!brand.ballGlow}">✨ Destello de luces</button>` +
       DECOS.map(d => `<button class="matbtn" type="button" data-bdeco="${d.id}" aria-pressed="${(brand.ballDeco || '') === d.id}">${d.name}</button>`).join('');
@@ -2031,6 +2045,8 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     else if(st){ brand.ballStyle = st.dataset.bstyle; save(); renderHome(); renderBallPanel(); }
     const rmo = e.target.closest('[data-rmode]'), rco = e.target.closest('[data-rcol]');
     if(rmo){ brand.ringMode = rmo.dataset.rmode; save(); renderHome(); renderBallPanel(); renderBigBall(); return; }
+    const rfx = e.target.closest('[data-rfx]');
+    if(rfx){ brand.ringFx = rfx.dataset.rfx; save(); renderHome(); renderBallPanel(); renderBigBall(); return; }
     if(rco){ brand.ringColor = rco.dataset.rcol; save(); renderHome(); renderBallPanel(); renderBigBall(); return; }
     const dc = e.target.closest('[data-bdeco]'), gl = e.target.closest('[data-bglow]');
     if(dc){ brand.ballDeco = dc.dataset.bdeco; if(!brand.ballDeco) delete brand.ballDeco; save(); renderHome(); renderBallPanel(); }
@@ -2240,6 +2256,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     r.setProperty('--neon', n.c);
     r.setProperty('--neon-font', (NFONTS.find(x => x.id === (brand.neonFont || '')) || NFONTS[0]).f);
     r.setProperty('--neon-scale', NSIZES[(brand.neonSize | 0) + 2]);
+    document.documentElement.dataset.nfx = brand.neonFx || 'fijo';
     r.setProperty('--neon-case', brand.neonCase === 'lower' ? 'lowercase' : brand.neonCase === 'none' ? 'none' : 'uppercase');
     renderLetras();
     const bar = $('neonBar'); if(!bar) return;
@@ -2252,15 +2269,18 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     const html = `<div class="lrow"><span class="lbl">Color</span>${NEONS.map(x => `<button class="sw" type="button" data-neon="${x.id}" style="--c:${x.c};box-shadow:0 0 6px ${x.c}" aria-pressed="${cur === x.id}" aria-label="Letras ${x.id}" title="${x.id}"></button>`).join('')}<button class="matbtn" type="button" data-neon="off" aria-pressed="${cur === 'off'}">Sin carteles</button></div>
       <div class="lrow"><span class="lbl">Forma</span>${NFONTS.map(x => `<button class="matbtn fontbtn" type="button" data-nfont="${x.id}" aria-pressed="${(brand.neonFont || '') === x.id}" style="font-family:${x.f}">${x.name}</button>`).join('')}</div>
       <div class="lrow"><span class="lbl">Tamaño</span><span class="zoom"><button type="button" data-nsize="-1" aria-label="Letra más chica" ${sz <= -2 ? 'disabled' : ''}>−</button><span>${['Muy chica', 'Chica', 'Normal', 'Grande', 'Muy grande'][sz + 2]}</span><button type="button" data-nsize="1" aria-label="Letra más grande" ${sz >= 2 ? 'disabled' : ''}>+</button></span>
-        <span class="lbl">Letras</span>${NCASES.map(([id, t]) => `<button class="matbtn" type="button" data-ncase="${id}" aria-pressed="${cs === id}">${t}</button>`).join('')}</div>`;
+        <span class="lbl">Letras</span>${NCASES.map(([id, t]) => `<button class="matbtn" type="button" data-ncase="${id}" aria-pressed="${cs === id}">${t}</button>`).join('')}</div>
+      <div class="lrow"><span class="lbl">Efecto</span>${[['fijo', '● Fijo'], ['titila', '💡 Titila'], ['arcoiris', '🌈 Arcoíris'], ['late', '💓 Late']].map(([id, n]) => `<button class="matbtn" type="button" data-nfx="${id}" aria-pressed="${(brand.neonFx || 'fijo') === id}">${n}</button>`).join('')}</div>`;
     document.querySelectorAll('.letrasbar').forEach(el => { el.innerHTML = html; });
   }
   document.addEventListener('click', e => {
     const b = e.target.closest('[data-neon]'), f = e.target.closest('[data-nfont]'), z = e.target.closest('[data-nsize]'), c = e.target.closest('[data-ncase]');
+    if(!b && !f && !z && !c && !e.target.closest('[data-nfx]')) return;
     if(b) brand.neon = b.dataset.neon;
     else if(f){ brand.neonFont = f.dataset.nfont; if(!brand.neonFont) delete brand.neonFont; }
     else if(z) brand.neonSize = Math.max(-2, Math.min(2, (brand.neonSize | 0) + (+z.dataset.nsize)));
     else if(c) brand.neonCase = c.dataset.ncase;
+    else if(e.target.closest('[data-nfx]')) brand.neonFx = e.target.closest('[data-nfx]').dataset.nfx;
     else return;
     applyNeon(); save(); render(); if(currentCat) renderStrip();
   });
