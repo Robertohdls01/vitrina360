@@ -1101,9 +1101,11 @@ body.clientmode .decoshop{display:none}
 .hlist li{display:grid;gap:2px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
 .hlist li .btn{justify-self:start;margin-top:4px}
 .hyn{display:flex;gap:8px;flex-wrap:wrap}
+.hav.carrying::after{content:"🧺";position:absolute;right:-10px;bottom:22px;font-size:22px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
 .cashier{display:flex;align-items:center;gap:10px;margin:10px 0 4px;padding:8px 12px 8px 22px;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 20px -16px var(--shadow)}
 .cside{display:grid;gap:6px;min-width:0;flex:1;justify-items:start}
 .cgo{font-weight:700}
+.cashier.lit{animation:glowc 1.2s linear 2.6}
 .cbtn{position:relative;border:0;background:none;padding:0;cursor:pointer;display:grid;justify-items:center;width:58px}
 .cav svg{width:54px;height:auto;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2))}
 .cbtn.talking .hmouth{animation:htalk .22s ease-in-out infinite alternate;transform-origin:40px 48px}
@@ -4739,14 +4741,17 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     $('cBubble').textContent = text;
     clearTimeout(cBubbleT); cBubbleT = setTimeout(cIdle, Math.max(7000, text.length * 80));
     const av = $('cBtn');
-    if(!window.speechSynthesis){ then && setTimeout(then, 1200); return; }
+    if(!window.speechSynthesis){ then && setTimeout(then, Math.max(2500, text.length * 60)); return; }
     const u = new SpeechSynthesisUtterance(text);
     u.lang = LANG === 'pt' ? 'pt-BR' : LANG === 'en' ? 'en-US' : 'es-AR'; u.pitch = CAJERA.pitch; u.rate = 1.03;
     const vs = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith(u.lang.slice(0, 2)));
-    u.voice = vs.find(v => /female|mujer|paulina|monica|helena|sabina|laura|luciana/i.test(v.name)) || vs[0] || null;
-    u.onstart = () => av.classList.add('talking'); u.onend = u.onerror = () => { av.classList.remove('talking'); duck(false); };
+    // otra voz que la de los vendedores: la última femenina disponible, o la última de la lista
+    const fem = vs.filter(v => /female|mujer|paulina|monica|helena|sabina|laura|luciana|marisol|elena/i.test(v.name));
+    u.voice = fem[fem.length - 1] || vs[vs.length - 1] || null;
+    let done = false; const fin = () => { if(done) return; done = true; av.classList.remove('talking'); duck(false); then && setTimeout(then, 300); };
+    u.onstart = () => av.classList.add('talking'); u.onend = fin; u.onerror = fin;
     duck(true); speechSynthesis.cancel(); speechSynthesis.speak(u);
-    then && setTimeout(then, 1400);
+    setTimeout(fin, Math.max(3500, text.length * 68));   // por si el celular no avisa que terminó
   }
   const qtyWord = q => ['', 'un', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez'][q] || String(q);
   function cajeraCobra(){
@@ -4754,17 +4759,45 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(!items.length) return cSpeak('¡Hola! Soy Caro, la cajera. Tu canastito está vacío: agregá lo que te guste y acá te cobro.');
     const {t, unpriced} = cartTotal(items);
     const list = items.map(it => `${qtyWord(it.q)} ${it.name}`).join(', ');
-    cSpeak(`Llevás: ${list}. ${t ? 'Son ' + fmt(t) + ' en total' : 'El precio te lo confirmamos'}${unpriced && t ? ', más lo que falta cotizar' : ''}. Elegí cómo lo querés recibir, y mandame el pedido.`, () => { $('hPanel').hidden = true; openCart(); });
+    $('cashier').scrollIntoView({block: 'start', behavior: 'auto'}); scrollBy(0, -8);
+    cSpeak(`¡Hola! Soy Caro, la cajera. Llevás: ${list}. ${t ? 'Son ' + fmt(t) + ' en total' : 'El precio te lo confirmamos'}${unpriced && t ? ', más lo que falta cotizar' : ''}. Ahora elegí cómo lo querés recibir, y mandame el pedido.`, () => { $('hPanel').hidden = true; openCart(); });
   }
   function cIdle(){ const n = cartCount(); $('cBubble').textContent = n ? `Llevás ${n} producto${n === 1 ? '' : 's'} en el canastito. Cuando quieras, pasá por la caja.` : '¡Hola! Soy Caro, la cajera. Lo que agregues va a tu canastito.'; }
   $('cBtn').onclick = cajeraCobra;
   $('cGo').onclick = cajeraCobra;
   function hToCaja(){
     if(!cartCount()){ hShow([]); return hSpeak('Tu pedido todavía está vacío. Decime qué te gustaría y te lo agrego.'); }
-    if(cajeraOn()){ hSpeak('¡Perfecto! Te paso con Caro, la cajera.'); setTimeout(() => { $('hPanel').hidden = true; cajeraCobra(); }, 1500); return; }
+    if(cajeraOn()){ hSpeak('¡Listo! Te llevo el pedido a la caja.'); hCarry(); return; }
     const {t} = cartTotal(cartItems());
     hSpeak(`¡Perfecto, te llevo a la caja! Tenés ${cartCount()} producto${cartCount() === 1 ? '' : 's'}${t ? ', en total ' + fmt(t) : ''}. Te dejé todo listo: elegí cómo lo recibís y tocá “Enviar pedido por WhatsApp”.`);
     setTimeout(() => { $('hPanel').hidden = true; openCart(); }, 900);
+  }
+  // el vendedor camina con la canastita hasta la caja, la deja y vuelve; después habla la cajera
+  function hCarry(){
+    const av = $('hRow').querySelector(`[data-hav="${hCur}"]`), box = $('helpers'), target = $('cBtn');
+    $('cashier').scrollIntoView({block: 'start', behavior: 'auto'}); scrollBy(0, -8);
+    box.classList.add('away');
+    if(!av || !av.animate || !target){ setTimeout(() => { box.classList.remove('away'); $('hPanel').hidden = true; cajeraCobra(); }, 1200); return; }
+    setTimeout(() => {
+      const a = av.getBoundingClientRect(), t = target.getBoundingClientRect();
+      const dx = t.right + 6 - a.left, dy = t.bottom - a.bottom;
+      av.classList.add('walking', 'carrying');
+      const anim = av.animate([
+        {transform: 'translate(0,0)', easing: 'ease-in-out'},
+        {transform: `translate(${dx}px, ${dy}px)`, offset: 0.4},
+        {transform: `translate(${dx}px, ${dy}px)`, offset: 0.58, easing: 'ease-in-out'},
+        {transform: 'translate(0,0)'}
+      ], {duration: 2700, easing: 'linear'});
+      // llega, deja la canastita, la caja se ilumina y habla la cajera; ella vuelve
+      setTimeout(() => {
+        av.classList.remove('carrying', 'walking');
+        const bk = document.querySelector('#cashier .basket'); if(bk){ bk.classList.remove('bump'); void bk.offsetWidth; bk.classList.add('bump'); }
+        const cs = $('cashier'); cs.classList.remove('lit'); void cs.offsetWidth; cs.classList.add('lit'); setTimeout(() => cs.classList.remove('lit'), 3200);
+        $('hPanel').hidden = true; cajeraCobra();
+      }, 1100);
+      setTimeout(() => av.classList.add('walking'), 1550);
+      anim.onfinish = anim.oncancel = () => { av.classList.remove('walking', 'carrying'); box.classList.remove('away'); };
+    }, 120);
   }
   function hCajaChip(){
     if(!cartCount() || $('hRes').querySelector('.hcaja')) return;
