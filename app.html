@@ -1009,10 +1009,10 @@ body.clientmode #ballView{display:none!important}
 .ballpanel{display:grid;gap:12px}
 .bprow{display:grid;gap:6px}
 .ballpanel textarea{width:100%}
-.ringcenter.ball.bs-metal{background:linear-gradient(135deg,#fbfcfd 0%,#c4ccd2 30%,#8e989f 48%,#eef2f4 62%,#a7b0b7 80%,#e2e7ea 100%)!important;color:#1c2420!important;border-color:#c3ccd2!important}
+.ringcenter.ball.bs-metal{background:linear-gradient(135deg,color-mix(in srgb,var(--bcol,#ffffff) 30%,#fbfcfd) 0%,color-mix(in srgb,var(--bcol,#c4ccd2) 55%,#c4ccd2) 30%,color-mix(in srgb,var(--bcol,#8e989f) 70%,#5f676d) 48%,color-mix(in srgb,var(--bcol,#ffffff) 25%,#eef2f4) 62%,color-mix(in srgb,var(--bcol,#a7b0b7) 60%,#8a939a) 80%,color-mix(in srgb,var(--bcol,#ffffff) 30%,#e2e7ea) 100%)!important;color:#1c2420!important;border-color:color-mix(in srgb,var(--bcol,#c3ccd2) 50%,#c3ccd2)!important}
 .ringcenter.ball.bs-disco{background:radial-gradient(circle at 50% 50%,transparent 55%,rgba(0,0,0,.25)),
   repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 9px),repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 1px,transparent 1px 9px),
-  linear-gradient(135deg,#f4f6f8,#9aa4ab 40%,#e9edf0 52%,#7d878e 75%,#dfe4e8)!important;background-size:auto,auto,18px 100%,auto!important;color:#1c2420!important;
+  linear-gradient(135deg,color-mix(in srgb,var(--bcol,#ffffff) 25%,#f4f6f8),color-mix(in srgb,var(--bcol,#9aa4ab) 60%,#7d878e) 40%,color-mix(in srgb,var(--bcol,#ffffff) 25%,#e9edf0) 52%,color-mix(in srgb,var(--bcol,#7d878e) 65%,#5d666c) 75%,color-mix(in srgb,var(--bcol,#ffffff) 30%,#dfe4e8))!important;background-size:auto,auto,18px 100%,auto!important;color:#1c2420!important;
   animation:discot 4s linear infinite}
 @keyframes discot{to{background-position:0 0,0 0,-36px 0,0 0}}
 .ringcenter.ball.bs-disco .bspin::after{content:"✦";position:absolute;right:6%;top:-60%;color:#fff;font-size:14px;text-shadow:0 0 6px #fff;animation:sparkle 1.8s ease-in-out infinite}
@@ -1957,6 +1957,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       inner = `${brand.logo ? `<img src="${brand.logo}" alt="">` : ''}${ballHTML(name)}`;
     }
     const bs = brand.ballStyle || 'lisa';
+    if(HEXOK(ce.color) && ce.type === 'color') st += `--bcol:${ce.color};`;
     return `${brand.ballDeco ? `<span class="balldeco small">${decoHTML(brand.ballDeco, false)}</span>` : ''}<div class="${cls} ball bs-${bs}${brand.ballAuto ? ' bs-auto' : ''}${brand.ballGlow ? ' bglow' : ''}" style="${esc(st + border)}" role="button" tabindex="0" aria-label="${name}: tocá para ver los datos de la tienda">${inner}</div>${bs === 'doble' ? `<span class="dring m-${brand.ringMode || 'luces'} fx-${brand.ringFx || 'fijo'}" aria-hidden="true">${(brand.ringMode || 'luces') !== 'luces' ? ringTextSVG(name) : ''}</span>` : ''}`;
   }
   // ---- La bola gira: tocás o arrastrás y muestra el siguiente dato; sola vuelve al nombre ----
