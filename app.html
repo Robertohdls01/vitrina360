@@ -1019,7 +1019,16 @@ body.clientmode #ballView{display:none!important}
 @keyframes discot{to{background-position:0 0,0 0,-36px 0,0 0}}
 .ringcenter.ball.bs-disco .bspin::after{content:"✦";position:absolute;right:6%;top:-60%;color:#fff;font-size:14px;text-shadow:0 0 6px #fff;animation:sparkle 1.8s ease-in-out infinite}
 @keyframes sparkle{0%,100%{opacity:0;transform:scale(.4)}50%{opacity:1;transform:scale(1.1)}}
-.ringcenter.ball.bs-auto::before{animation:ballmer 3.5s linear infinite;opacity:.26}
+.ringcenter.ball::before{animation:ballmer 9s linear infinite;opacity:.22;
+  background:repeating-linear-gradient(90deg,transparent 0 11%,var(--ink) 11% 11.5%);background-size:200% 100%;
+  -webkit-mask-image:radial-gradient(circle,#000 30%,rgba(0,0,0,.6) 55%,transparent 71%);mask-image:radial-gradient(circle,#000 30%,rgba(0,0,0,.6) 55%,transparent 71%)}
+.ringcenter.ball{transform-style:preserve-3d}
+.ringcenter.ball .bspin,.ringcenter.ball > img{position:relative;z-index:4}
+.ringcenter.ball.bs-auto::before,.ringcenter.ball.spinning::before{animation-duration:3s;opacity:.32}
+.fitem.fcenter .ringcenter.ball,#ringwrap .ringcenter.ball{animation:ballfloat 5s ease-in-out infinite}
+.ringcenter.ball.bglow{animation:glowc 2.4s linear infinite,ballfloat 5s ease-in-out infinite}
+@keyframes ballfloat{50%{translate:0 -4px}}
+@media (prefers-reduced-motion:reduce){.ringcenter.ball::before,.fitem.fcenter .ringcenter.ball,#ringwrap .ringcenter.ball{animation:none}}
 .ringcenter.ball:is(.bs-metal,.bs-disco) .binfo{background:rgba(255,255,255,.82)}
 .moon{position:absolute;left:50%;top:50%;width:8%;aspect-ratio:1;margin:-4% 0 0 -4%;border-radius:50%;z-index:2;pointer-events:none;
   background:var(--surface);border:2px solid var(--brass);box-shadow:inset -4px -5px 9px rgba(0,0,0,.28),inset 3px 3px 7px rgba(255,255,255,.5),0 6px 10px -5px var(--shadow);
@@ -1108,6 +1117,8 @@ body.clientmode .decoshop{display:none}
 .hlist li{display:grid;gap:2px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
 .hlist li .btn{justify-self:start;margin-top:4px}
 .hyn{display:flex;gap:8px;flex-wrap:wrap}
+body:not(.clientmode) .fitem.fcenter{touch-action:none;cursor:grab}
+.fitem.fcenter.lifting{cursor:grabbing;z-index:5}
 .viewtog{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .flyerper{display:flex;gap:6px;align-items:center;margin:0 0 0 6px}
 .qflyer{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
@@ -1501,6 +1512,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     <section class="panel ballpanel" id="ballPanel" aria-label="Opciones de la bola">
       <div class="bprow"><strong>Color</strong><div class="bgbar" id="ballColors"></div></div>
       <div class="bprow"><strong>Estilo</strong><div class="bgbar" id="ballStyles"></div></div>
+      <div class="bprow"><strong>Tamaño</strong><div class="bgbar"><span class="zoom"><button type="button" id="ballSmaller" aria-label="Achicar la bola">−</button><span id="ballSizeLbl">Normal</span><button type="button" id="ballBigger" aria-label="Agrandar la bola">+</button></span></div></div>
       <div class="bprow"><strong>Movimiento</strong><div class="bgbar"><button class="matbtn" type="button" id="ballAuto" aria-pressed="false">🔄 Que gire sola</button></div></div>
       <div class="bprow"><strong>Luces y adornos</strong><div class="bgbar" id="ballDecoBar"></div></div>
       <label for="q-ball"><strong>Mensajes</strong> <small class="note">Uno por renglón. Gira y los va mostrando: ofertas, teléfono, dirección, lo que quieras.</small>
@@ -1935,6 +1947,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       [...d.children].forEach((f, k) => f.classList.toggle('on', k === 0));
     });
   }
+  const BALLK = [0.6, 0.8, 1, 1.3, 1.6];
   const BALL_COLORS = ['#ffffff', '#ff2d55', '#ff9500', '#ffcc00', '#34c759', '#00c7be', '#0a84ff', '#af52de', '#1c1c1e', '#c9a227'];
   const BALL_STYLES = [{id:'lisa', name:'⚪ Lisa'}, {id:'metal', name:'🔩 Metalizada'}, {id:'disco', name:'🪩 De espejos'}, {id:'doble', name:'🌗 Doble'}];
   function renderBallPanel(){
@@ -1943,6 +1956,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       `<label class="sw custom" title="Otro color"><input type="color" id="ballCustom" value="${HEXOK(ce.color) ? ce.color : '#0a84ff'}" aria-label="Otro color"></label>`;
     $('ballStyles').innerHTML = BALL_STYLES.map(x => `<button class="matbtn" type="button" data-bstyle="${x.id}" aria-pressed="${(brand.ballStyle || 'lisa') === x.id}">${x.name}</button>`).join('');
     $('ballAuto').setAttribute('aria-pressed', String(!!brand.ballAuto));
+    const bz = brand.ballSize | 0; $('ballSizeLbl').textContent = ['Muy chica', 'Chica', 'Normal', 'Grande', 'Muy grande'][bz + 2]; $('ballSmaller').disabled = bz <= -2; $('ballBigger').disabled = bz >= 2;
     $('ballDecoBar').innerHTML = `<button class="matbtn glowbtn" type="button" data-bglow="1" aria-pressed="${!!brand.ballGlow}">✨ Destello de luces</button>` +
       DECOS.map(d => `<button class="matbtn" type="button" data-bdeco="${d.id}" aria-pressed="${(brand.ballDeco || '') === d.id}">${d.name}</button>`).join('');
     if(document.activeElement !== $('q-ball')) $('q-ball').value = brand.ball || '';
@@ -1984,6 +1998,9 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     if(e.target.id === 'q-ball'){ brand.ball = e.target.value.slice(0, 400); save(); renderHome(); renderBigBall(); }
     if(e.target.id === 'ballCustom') renderBigBall();
   });
+  const ballSize = d => { brand.ballSize = Math.max(-2, Math.min(2, (brand.ballSize | 0) + d)); save(); renderHome(); renderBallPanel(); renderBigBall(); };
+  $('ballSmaller').onclick = () => ballSize(-1);
+  $('ballBigger').onclick = () => ballSize(1);
   $('ballAuto').onclick = () => { brand.ballAuto = !brand.ballAuto; save(); renderHome(); renderBallPanel(); renderBigBall(); };
   // gira sola: pasa al siguiente mensaje cada 3,5 segundos (si nadie la está tocando)
   let ballTouched = 0;
@@ -1994,13 +2011,14 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   let ballDrag = null;
   document.addEventListener('pointerdown', e => { const b = e.target.closest('.ringcenter.ball'); if(!b || editMode) return; ballTouched = Date.now(); ballDrag = {el: b, x: e.clientX, done: false}; });
   document.addEventListener('pointermove', e => {
-    if(!ballDrag || ballDrag.done) return;
+    if(!ballDrag || ballDrag.done || ballDrag.el.closest('.fcenter')) return;
     const dx = e.clientX - ballDrag.x;
     if(Math.abs(dx) > 30){ ballTurn(ballDrag.el, dx < 0 ? 1 : -1); ballDrag.done = true; }
   });
   document.addEventListener('pointerup', e => {
     if(!ballDrag) return;
     const d = ballDrag; ballDrag = null;
+    if(fdrag && fdrag.moved) return;
     if(!d.done && e.target.closest('.ringcenter.ball') === d.el){
       if(!clientMode && !PUBLIC && !d.el.closest('#bigBall')) openBall(); else ballTurn(d.el, 1);
     }
@@ -2065,7 +2083,8 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     $('editHint').textContent = free ? 'Arrastrá cada vitrina, y también el círculo con tu nombre, a donde quieras. Quedan donde las sueltes.' : 'Arrastrá una vitrina sobre otra para cambiarlas de lugar en el orden.';
     $('editBtn').setAttribute('aria-pressed', String(editMode));
     $('editBtn').textContent = editMode ? '✓ Listo' : '✥ Mover vitrinas';
-    $('editHint').hidden = !editMode;
+    $('editHint').hidden = !editMode && !(free && !clientMode && !PUBLIC);
+    if(free && !editMode) $('editHint').textContent = '🔮 Arrastrá la bola a donde quieras. Para mover las vitrinas, tocá “✥ Mover vitrinas”.';
   }
 
   function sizeMinis(){
@@ -2078,7 +2097,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     if(fw){
       const W = fw.clientWidth, nF = fw.querySelectorAll('.fitem').length - 1, tw = f * W * (W < 700 ? (nF <= 6 ? 0.27 : nF <= 10 ? 0.24 : 0.2) : (nF <= 6 ? 0.16 : 0.13));
       fw.style.setProperty('--tw', tw.toFixed(1) + 'px');
-      fw.style.setProperty('--cwid', (tw * 1.4).toFixed(1) + 'px');
+      fw.style.setProperty('--cwid', (tw * 1.4 * BALLK[(brand.ballSize | 0) + 2]).toFixed(1) + 'px');
       fw.style.setProperty('--cw', (tw * 0.62).toFixed(1) + 'px'); fw.style.setProperty('--cwb', (tw * 0.62).toFixed(1) + 'px');
       fw.style.setProperty('--mp', Math.round(tw * 3.4) + 'px');
     }
@@ -2087,7 +2106,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       // en círculo, el tamaño crece hasta donde entran sin pisarse
       // con aire entre vitrinas y alrededor de la bola, para que no se choquen
       const tw = W * [0.6, 0.75, 0.9, 1, 1][hs] * Math.min(0.25, 3.0 / (n * 1.32 + 3.83));
-      const rc = rw.querySelector(':scope > .ringcenter'); if(rc) rc.style.width = '27%';
+      const rc = rw.querySelector(':scope > .ringcenter'); if(rc) rc.style.width = Math.min(33, 27 * BALLK[(brand.ballSize | 0) + 2]).toFixed(1) + '%';
       const th = tw * 1.22;
       rw.style.setProperty('--tw', tw.toFixed(1) + 'px');
       rw.style.setProperty('--th', th.toFixed(1) + 'px');
@@ -2798,6 +2817,12 @@ Respondé SOLO con JSON: {"name": "nombre corto del modelo, de 1 a 4 palabras, q
   let fdrag = null;
   $('homegrid').addEventListener('pointerdown', e => {
     if(e.target.closest('[data-delcat]')) return;
+    if(!editMode && brand.layout === 'free' && !clientMode && !PUBLIC){
+      const it = e.target.closest('.fitem.fcenter'); if(!it) return;
+      const r = $('freewrap').getBoundingClientRect(), ir = it.getBoundingClientRect();
+      fdrag = {el: it, id: it.dataset.fid, r, ox: e.clientX - (ir.left + ir.width / 2), oy: e.clientY - (ir.top + ir.height / 2), moved: false, x: null, y: null, pending: true, sx: e.clientX, sy: e.clientY};
+      return;
+    }
     if(editMode && brand.layout === 'free'){
       const it = e.target.closest('.fitem'); if(!it) return;
       e.preventDefault();
@@ -2809,6 +2834,7 @@ Respondé SOLO con JSON: {"name": "nombre corto del modelo, de 1 a 4 palabras, q
   });
   addEventListener('pointermove', e => {
     if(!fdrag) return;
+    if(fdrag.pending){ if(Math.hypot(e.clientX - fdrag.sx, e.clientY - fdrag.sy) < 8) return; fdrag.pending = false; fdrag.el.classList.add('lifting'); }
     const r = fdrag.r;
     const x = Math.max(4, Math.min(96, (e.clientX - fdrag.ox - r.left) / r.width * 100));
     const y = Math.max(6, Math.min(94, (e.clientY - fdrag.oy - r.top) / r.height * 100));
