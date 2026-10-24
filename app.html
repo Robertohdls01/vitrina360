@@ -991,7 +991,7 @@ body.clientmode .socialbox{display:none!important}
 .ballstage{position:relative;border-radius:20px;border:1px solid var(--line);overflow:hidden;padding:24px 12px;
   background:radial-gradient(120% 95% at 50% 25%, var(--room-a), var(--room-b))}
 .bigballwrap{position:relative;width:min(100%,440px);aspect-ratio:1;margin:0 auto}
-.bigballwrap .ringcenter{width:70%}
+.bigballwrap .ringcenter{width:44%}
 .bigballwrap .ringcenter strong{font-size:clamp(22px,7vw,40px)}
 .bigballwrap .ringcenter .binfo{font-size:clamp(15px,4.6vw,24px)}
 .bigballwrap .bspin{height:4.2em}
@@ -2003,6 +2003,9 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   function renderBigBall(){
     $('bigBall').innerHTML = centerHTML() + (brand.ballDeco ? `<span class="balldeco">${decoHTML(brand.ballDeco, true)}</span>` : '');
     $('ballStage').classList.toggle('glow', !!brand.ballGlow);
+    // la bola grande también muestra el tamaño elegido
+    const k = BALLK[(brand.ballSize | 0) + 2], bb = $('bigBall').querySelector('.ringcenter');
+    if(bb) bb.style.width = (44 * k) + '%';
     requestAnimationFrame(ballInit);
   }
   function openBall(){
