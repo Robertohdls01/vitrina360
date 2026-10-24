@@ -979,6 +979,34 @@ body.clientmode .socialbox{display:none!important}
 .prod .refl.side img{max-width:100%;max-height:100%;object-fit:contain;filter:blur(.6px) saturate(.75)}
 #catNum{display:none!important}
 .shelf{overflow:clip;overflow-clip-margin:14px}
+/* Modo temporada: lo que cae por la pantalla */
+.seasonbar{flex-basis:100%}
+#seasonFx{position:fixed;inset:0;pointer-events:none;z-index:30;overflow:hidden}
+#seasonFx span{position:absolute;top:-30px;animation:fxfall linear infinite;opacity:.9;will-change:transform}
+#seasonFx.fx-snow span{color:#fff;text-shadow:0 0 3px rgba(80,120,160,.7)}
+#seasonFx.fx-bubbles span{top:auto;bottom:-30px;color:rgba(60,170,230,.75);animation-name:fxrise;font-weight:700}
+@keyframes fxfall{0%{transform:translate(0,0) rotate(0deg)}50%{transform:translate(var(--sw),52vh) rotate(160deg)}100%{transform:translate(0,108vh) rotate(320deg)}}
+@keyframes fxrise{0%{transform:translate(0,0) scale(.8)}50%{transform:translate(var(--sw),-52vh) scale(1)}100%{transform:translate(0,-108vh) scale(1.15);opacity:.2}}
+/* Vista grande de la bola */
+.ballstage{position:relative;border-radius:20px;border:1px solid var(--line);overflow:hidden;padding:24px 12px;
+  background:radial-gradient(120% 95% at 50% 25%, var(--room-a), var(--room-b))}
+.bigballwrap{position:relative;width:min(100%,440px);aspect-ratio:1;margin:0 auto}
+.bigballwrap .ringcenter{width:70%}
+.bigballwrap .ringcenter strong{font-size:clamp(22px,7vw,40px)}
+.bigballwrap .ringcenter .binfo{font-size:clamp(15px,4.6vw,24px)}
+.bigballwrap .bspin{height:4.2em}
+.bigballwrap .moon{width:12%;margin:-6% 0 0 -6%;--orb:360%}
+.moon{--orb:230%}
+.balldeco{position:absolute;left:50%;transform:translateX(-50%);z-index:4;pointer-events:none}
+.bigballwrap .balldeco{top:2%;width:62%;height:96%}
+.bigballwrap .balldeco .deco.big{height:100%}
+.bigballwrap .balldeco.small{display:none}
+.balldeco.small{top:calc(50% - 17%);width:24%;height:auto}
+.balldeco.small .deco{position:relative;--cw:70px}
+.ringcenter.ball.bglow{animation:glowc 2.4s linear infinite}
+.ringcenter.ball.bs-disco.bglow{animation:discot 4s linear infinite,glowc 2.4s linear infinite}
+#ballStage.glow{animation:glowc 2.4s linear infinite}
+body.clientmode #ballView{display:none!important}
 /* Bola: estilos y panel rápido */
 .ballpanel{display:grid;gap:12px}
 .bprow{display:grid;gap:6px}
@@ -997,7 +1025,7 @@ body.clientmode .socialbox{display:none!important}
   background:var(--surface);border:2px solid var(--brass);box-shadow:inset -4px -5px 9px rgba(0,0,0,.28),inset 3px 3px 7px rgba(255,255,255,.5),0 6px 10px -5px var(--shadow);
   animation:orbit 6s linear infinite}
 .fitem .moon{width:30%;margin:-15% 0 0 -15%}
-@keyframes orbit{from{transform:rotate(0deg) translateX(230%) rotate(0deg)}to{transform:rotate(360deg) translateX(230%) rotate(-360deg)}}
+@keyframes orbit{from{transform:rotate(0deg) translateX(var(--orb,230%)) rotate(0deg)}to{transform:rotate(360deg) translateX(var(--orb,230%)) rotate(-360deg)}}
 @media (prefers-reduced-motion:reduce){.moon,.ringcenter.ball.bs-disco,.ringcenter.ball.bs-auto::before{animation:none}}
 /* Destello de luces */
 @keyframes glowc{0%{box-shadow:0 0 0 3px #ff2d55,0 0 22px 6px #ff2d55}20%{box-shadow:0 0 0 3px #ffcc00,0 0 22px 6px #ffcc00}40%{box-shadow:0 0 0 3px #34c759,0 0 22px 6px #34c759}60%{box-shadow:0 0 0 3px #00c7ff,0 0 22px 6px #00c7ff}80%{box-shadow:0 0 0 3px #af52de,0 0 22px 6px #af52de}100%{box-shadow:0 0 0 3px #ff2d55,0 0 22px 6px #ff2d55}}
@@ -1288,7 +1316,9 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
         <button type="button" id="layoutFree" aria-pressed="false">✋ Libre</button>
         <button type="button" id="layoutFolleto" aria-pressed="false">📰 Folleto</button>
       </span>
-      <button class="btn" type="button" id="ballBtn" aria-expanded="false" aria-controls="ballPanel" hidden>🔮 Bola</button>
+      <button class="btn" type="button" id="ballBtn" hidden>🔮 Bola</button>
+      <button class="btn" type="button" id="seasonBtn" aria-expanded="false" aria-controls="seasonBar">🎉 Temporada</button>
+      <div class="bgbar seasonbar" id="seasonBar" hidden role="group" aria-label="Modo temporada"></div>
       <span class="zoom homesize" role="group" aria-label="Tamaño de las vitrinas">
         <button type="button" id="homeSizeDn" aria-label="Achicar todas">−</button>
         <span id="homeSizeLbl">Normal</span>
@@ -1299,13 +1329,6 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <span class="note" id="editHint" hidden></span>
       <button class="linkbtn" type="button" id="freeReset" hidden>Volver a acomodar</button>
     </div>
-    <section class="panel ballpanel" id="ballPanel" hidden aria-label="La bola del centro">
-      <div class="bprow"><strong>Color</strong><div class="bgbar" id="ballColors"></div></div>
-      <div class="bprow"><strong>Estilo</strong><div class="bgbar" id="ballStyles"></div></div>
-      <div class="bprow"><strong>Movimiento</strong><div class="bgbar"><button class="matbtn" type="button" id="ballAuto" aria-pressed="false">🔄 Que gire sola</button></div></div>
-      <label for="q-ball"><strong>Mensajes</strong> <small class="note">Uno por renglón. Gira y los va mostrando: ofertas, teléfono, dirección, lo que quieras.</small>
-        <textarea id="q-ball" rows="4" maxlength="400" placeholder="🔥 ¡Mirá esta oferta!&#10;🛒 Comprá esto hoy&#10;📱 223 555-1234&#10;📍 Av. Colón 1234"></textarea></label>
-    </section>
     <section class="panel quick" id="quickPanel" hidden>
       <div style="min-width:0">
         <h2>✦ Carga rápida</h2>
@@ -1327,6 +1350,20 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <div class="bulkprices" id="qPrices" hidden></div>
     </section>
     <div class="homegrid" id="homegrid"></div>
+  </section>
+
+  <section id="ballView" hidden aria-label="La bola de tu tienda" style="display:grid;gap:14px">
+    <div class="shopbar"><button class="btn" type="button" id="ballBack">← Todas las vitrinas</button><h2>🔮 La bola de tu tienda</h2></div>
+    <div class="ballstage" id="ballStage"><div class="bigballwrap" id="bigBall"></div></div>
+    <p class="note" style="margin:0;text-align:center">Tocala o arrastrala para verla girar, como la van a ver tus clientes.</p>
+    <section class="panel ballpanel" id="ballPanel" aria-label="Opciones de la bola">
+      <div class="bprow"><strong>Color</strong><div class="bgbar" id="ballColors"></div></div>
+      <div class="bprow"><strong>Estilo</strong><div class="bgbar" id="ballStyles"></div></div>
+      <div class="bprow"><strong>Movimiento</strong><div class="bgbar"><button class="matbtn" type="button" id="ballAuto" aria-pressed="false">🔄 Que gire sola</button></div></div>
+      <div class="bprow"><strong>Luces y adornos</strong><div class="bgbar" id="ballDecoBar"></div></div>
+      <label for="q-ball"><strong>Mensajes</strong> <small class="note">Uno por renglón. Gira y los va mostrando: ofertas, teléfono, dirección, lo que quieras.</small>
+        <textarea id="q-ball" rows="4" maxlength="400" placeholder="🔥 ¡Mirá esta oferta!&#10;🛒 Comprá esto hoy&#10;📱 223 555-1234&#10;📍 Av. Colón 1234"></textarea></label>
+    </section>
   </section>
 
   <section id="shopView" hidden style="display:grid;gap:14px">
@@ -1631,10 +1668,29 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     {id:'fiesta', name:'🎈 Fiesta', items:['🎈','🎉','🎂','🎊','🎈'], bulbs:true},
     {id:'madre', name:'💐 Día de la Madre', items:['💐','💖','🌷','🎀','🌸']},
     {id:'halloween', name:'🎃 Halloween', items:['🎃','🦇','👻','🕸️','🍬']},
-    {id:'verano', name:'☀️ Verano', items:['☀️','🌴','🕶️','🏖️','🍉']},
+    {id:'verano', name:'☀️ Verano', items:['☀️','🌊','🏖️','🐚','🍉']},
+    {id:'invierno', name:'❄️ Invierno', items:['❄️','⛄','🧣','☕','🧤'], snow:true},
+    {id:'otono', name:'🍂 Otoño', items:['🍂','🍁','🌰','🍄','🍁']},
+    {id:'primavera', name:'🌸 Primavera', items:['🌸','🌷','🦋','🌼','🐝']},
     {id:'pascua', name:'🐰 Pascua', items:['🐣','🥚','🐰','🍫','🌼']},
     {id:'ofertas', name:'🔥 Ofertas', items:['🔥','🏷️','💥','⭐','🔥'], bulbs:true}
   ];
+  const SEASONS = [
+    {id:'', name:'Sin temporada'},
+    {id:'navidad', name:'🎄 Navidad', fx:'snow'}, {id:'verano', name:'☀️ Verano', fx:'bubbles'},
+    {id:'invierno', name:'❄️ Invierno', fx:'snow'}, {id:'otono', name:'🍂 Otoño', fx:'leaves'}, {id:'primavera', name:'🌸 Primavera', fx:'petals'}
+  ];
+  const decoOf = c => (c && c.deco) || brand.season || '';
+  function seasonFx(){
+    let el = document.getElementById('seasonFx');
+    const se = SEASONS.find(x => x.id === brand.season);
+    if(!se || !se.fx || reduce){ if(el) el.remove(); return; }
+    if(el && el.dataset.fx === se.fx) return;
+    if(!el){ el = document.createElement('div'); el.id = 'seasonFx'; el.setAttribute('aria-hidden', 'true'); document.body.appendChild(el); }
+    el.dataset.fx = se.fx; el.className = 'fx-' + se.fx;
+    const pick = {snow: ['❄', '❅', '•'], leaves: ['🍂', '🍁', '🍂'], petals: ['🌸', '🌼', '🌸'], bubbles: ['◦', '○', '◦']}[se.fx];
+    el.innerHTML = Array.from({length: innerWidth < 700 ? 16 : 26}, (_, i) => `<span style="left:${(Math.random() * 100).toFixed(1)}%;animation-duration:${(9 + Math.random() * 10).toFixed(1)}s;animation-delay:${(-Math.random() * 18).toFixed(1)}s;font-size:${(10 + Math.random() * 14).toFixed(0)}px;--sw:${(Math.random() * 60 - 30).toFixed(0)}px">${pick[i % pick.length]}</span>`).join('');
+  }
   function decoHTML(id, big){
     const d = DECOS.find(x => x.id === id); if(!d || !d.items) return '';
     return `<span class="deco${big ? ' big' : ''}" aria-hidden="true">${d.bulbs ? '<span class="bulbs"></span>' : ''}<span class="decoi">${d.items.map((e, i) => `<i style="--j:${i}">${e}</i>`).join('')}</span>${big && d.snow ? '<span class="snow"></span><span class="snow s2"></span>' : ''}</span>`;
@@ -1652,7 +1708,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     const ks = c.size | 0;
     return `<button class="mini${c.glow ? ' glow' : ''}${ks > 0 ? ' sz-big' : ks < 0 ? ' sz-small' : ''}${isHid ? ' hiddencat' : ''}${n === 0 ? ' emptycat' : ''}${editMode && !isHid ? ' wiggle' : ''}" type="button" data-cat="${c.id}" aria-label="Abrir la vitrina ${esc(c.name)}${isHid ? ', oculta' : ''}, ${n} producto${n===1?'':'s'}">
       <span class="plaque"><span class="mnum">${isHid ? 'OCULTA' : two(idx+1)}</span><span class="t">${esc(c.name)}</span></span>
-      <span class="mstage" style="${esc(varsStyle(bgVars(c.bg)))}">${decoHTML(c.deco, false)}${effBg(c.id).type === 'photo' ? '<span class="roomphoto"></span>' : ''}<span class="delx" role="button" tabindex="0" data-delcat="${c.id}" aria-label="Borrar la vitrina ${esc(c.name)}" title="Borrar vitrina">✕</span><span class="szbar"><span role="button" tabindex="0" data-sz="-1" data-szcat="${c.id}" aria-label="Achicar ${esc(c.name)}">−</span><span role="button" tabindex="0" data-sz="1" data-szcat="${c.id}" aria-label="Agrandar ${esc(c.name)}">＋</span></span>
+      <span class="mstage" style="${esc(varsStyle(bgVars(c.bg)))}">${decoHTML(decoOf(c), false)}${effBg(c.id).type === 'photo' ? '<span class="roomphoto"></span>' : ''}<span class="delx" role="button" tabindex="0" data-delcat="${c.id}" aria-label="Borrar la vitrina ${esc(c.name)}" title="Borrar vitrina">✕</span><span class="szbar"><span role="button" tabindex="0" data-sz="-1" data-szcat="${c.id}" aria-label="Achicar ${esc(c.name)}">−</span><span role="button" tabindex="0" data-sz="1" data-szcat="${c.id}" aria-label="Agrandar ${esc(c.name)}">＋</span></span>
         <span class="mfloorp"></span><span class="mshadow"></span>
         <span class="mcar${c.still ? ' still' : ''}" style="--d:${(-idx * 4.3).toFixed(1)}s">
           ${colsArr.map((col, i) => col === 'BIG' ? `<span class="mcol mfeat" style="--i:${i}"><span class="mbig"><img src="${fp.img}" alt="" draggable="false"></span><span class="mboard"></span></span>` : `<span class="mcol" style="--i:${i}">${col.map(sh => `<span class="mshelf">${sh.map(p => `<img src="${p.img}" alt="" draggable="false">`).join('')}<span class="mboard"></span></span>`).join('')}</span>`).join('')}
@@ -1694,7 +1750,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       inner = `${brand.logo ? `<img src="${brand.logo}" alt="">` : ''}${ballHTML(name)}`;
     }
     const bs = brand.ballStyle || 'lisa';
-    return `<div class="${cls} ball bs-${bs}${brand.ballAuto ? ' bs-auto' : ''}" style="${esc(st + border)}" role="button" tabindex="0" aria-label="${name}: tocá para ver los datos de la tienda">${inner}</div>${bs === 'doble' ? `<span class="moon" style="${esc(st)}" aria-hidden="true"></span>` : ''}`;
+    return `${brand.ballDeco ? `<span class="balldeco small">${decoHTML(brand.ballDeco, false)}</span>` : ''}<div class="${cls} ball bs-${bs}${brand.ballAuto ? ' bs-auto' : ''}${brand.ballGlow ? ' bglow' : ''}" style="${esc(st + border)}" role="button" tabindex="0" aria-label="${name}: tocá para ver los datos de la tienda">${inner}</div>${bs === 'doble' ? `<span class="moon" style="${esc(st)}" aria-hidden="true"></span>` : ''}`;
   }
   // ---- La bola gira: tocás o arrastrás y muestra el siguiente dato; sola vuelve al nombre ----
   const ballState = new WeakMap();
@@ -1726,20 +1782,48 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       `<label class="sw custom" title="Otro color"><input type="color" id="ballCustom" value="${HEXOK(ce.color) ? ce.color : '#0a84ff'}" aria-label="Otro color"></label>`;
     $('ballStyles').innerHTML = BALL_STYLES.map(x => `<button class="matbtn" type="button" data-bstyle="${x.id}" aria-pressed="${(brand.ballStyle || 'lisa') === x.id}">${x.name}</button>`).join('');
     $('ballAuto').setAttribute('aria-pressed', String(!!brand.ballAuto));
+    $('ballDecoBar').innerHTML = `<button class="matbtn glowbtn" type="button" data-bglow="1" aria-pressed="${!!brand.ballGlow}">✨ Destello de luces</button>` +
+      DECOS.map(d => `<button class="matbtn" type="button" data-bdeco="${d.id}" aria-pressed="${(brand.ballDeco || '') === d.id}">${d.name}</button>`).join('');
     if(document.activeElement !== $('q-ball')) $('q-ball').value = brand.ball || '';
   }
   const setBallColor = c => { brand.center = {...(brand.center || {}), type: c === '#ffffff' ? 'auto' : 'color', color: c}; save(); renderHome(); renderBallPanel(); };
-  $('ballBtn').onclick = () => { const open = $('ballPanel').hidden; $('ballPanel').hidden = !open; $('ballBtn').setAttribute('aria-expanded', String(open)); if(open) renderBallPanel(); };
+  function renderBigBall(){
+    $('bigBall').innerHTML = centerHTML() + (brand.ballDeco ? `<span class="balldeco">${decoHTML(brand.ballDeco, true)}</span>` : '');
+    $('ballStage').classList.toggle('glow', !!brand.ballGlow);
+    requestAnimationFrame(ballInit);
+  }
+  function openBall(){
+    $('homeView').hidden = true; $('shopView').hidden = true; $('ballView').hidden = false;
+    renderBigBall(); renderBallPanel(); scrollTo(0, Math.max(0, $('ballView').getBoundingClientRect().top + scrollY - 8));
+  }
+  function closeBall(){ $('ballView').hidden = true; $('homeView').hidden = false; renderHome(); }
+  $('ballBtn').onclick = openBall;
+  function renderSeasonBar(){
+    $('seasonBar').innerHTML = `<span class="note" style="margin:0">Decora toda la tienda con un toque:</span>` + SEASONS.map(x => `<button class="matbtn" type="button" data-season="${x.id}" aria-pressed="${(brand.season || '') === x.id}">${x.name}</button>`).join('');
+    $('seasonBtn').textContent = brand.season ? (SEASONS.find(x => x.id === brand.season) || {}).name : '🎉 Temporada';
+  }
+  $('seasonBtn').onclick = () => { const open = $('seasonBar').hidden; $('seasonBar').hidden = !open; $('seasonBtn').setAttribute('aria-expanded', String(open)); renderSeasonBar(); };
+  $('seasonBar').addEventListener('click', e => {
+    const b = e.target.closest('[data-season]'); if(!b) return;
+    brand.season = b.dataset.season; if(!brand.season) delete brand.season;
+    save(); renderSeasonBar(); seasonFx(); renderHome();
+  });
+  $('ballBack').onclick = closeBall;
   $('ballPanel').addEventListener('click', e => {
     const c = e.target.closest('[data-bcol]'), st = e.target.closest('[data-bstyle]');
     if(c) setBallColor(c.dataset.bcol);
     else if(st){ brand.ballStyle = st.dataset.bstyle; save(); renderHome(); renderBallPanel(); }
+    const dc = e.target.closest('[data-bdeco]'), gl = e.target.closest('[data-bglow]');
+    if(dc){ brand.ballDeco = dc.dataset.bdeco; if(!brand.ballDeco) delete brand.ballDeco; save(); renderHome(); renderBallPanel(); }
+    if(gl){ brand.ballGlow = !brand.ballGlow; save(); renderHome(); renderBallPanel(); }
+    if(c || st || dc || gl) renderBigBall();
   });
   $('ballPanel').addEventListener('input', e => {
     if(e.target.id === 'ballCustom') setBallColor(e.target.value);
-    if(e.target.id === 'q-ball'){ brand.ball = e.target.value.slice(0, 400); save(); renderHome(); }
+    if(e.target.id === 'q-ball'){ brand.ball = e.target.value.slice(0, 400); save(); renderHome(); renderBigBall(); }
+    if(e.target.id === 'ballCustom') renderBigBall();
   });
-  $('ballAuto').onclick = () => { brand.ballAuto = !brand.ballAuto; save(); renderHome(); renderBallPanel(); };
+  $('ballAuto').onclick = () => { brand.ballAuto = !brand.ballAuto; save(); renderHome(); renderBallPanel(); renderBigBall(); };
   // gira sola: pasa al siguiente mensaje cada 3,5 segundos (si nadie la está tocando)
   let ballTouched = 0;
   setInterval(() => {
@@ -1756,7 +1840,9 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   document.addEventListener('pointerup', e => {
     if(!ballDrag) return;
     const d = ballDrag; ballDrag = null;
-    if(!d.done && e.target.closest('.ringcenter.ball') === d.el) ballTurn(d.el, 1);
+    if(!d.done && e.target.closest('.ringcenter.ball') === d.el){
+      if(!clientMode && !PUBLIC && !d.el.closest('#bigBall')) openBall(); else ballTurn(d.el, 1);
+    }
   });
   document.addEventListener('keydown', e => { const b = e.target.closest && e.target.closest('.ringcenter.ball'); if(b && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); ballTurn(b, 1); } });
   function renderHome(){
@@ -1809,7 +1895,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     $('layoutRing').setAttribute('aria-pressed', String(brand.layout === 'ring'));
     $('layoutFree').setAttribute('aria-pressed', String(free));
     $('layoutFolleto').setAttribute('aria-pressed', String(folleto));
-    $('ballBtn').hidden = !(ring || free); if($('ballBtn').hidden) $('ballPanel').hidden = true;
+    $('ballBtn').hidden = !(ring || free);
     $('homeSizeLbl').textContent = ['Muy chicas', 'Chicas', 'Normal', 'Grandes', 'Muy grandes'][(brand.homeSize | 0) + 2];
     $('homeSizeDn').disabled = (brand.homeSize | 0) <= -2; $('homeSizeUp').disabled = (brand.homeSize | 0) >= 2;
     $('freeReset').hidden = !(free && editMode);
@@ -1973,7 +2059,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       html += `</div>`;
     }
     carousel.innerHTML = html;
-    { const cc = catOf(currentCat) || {}; stage.classList.toggle('glow', !!cc.glow); $('stageDeco').innerHTML = decoHTML(cc.deco, true); renderDecoBar(cc); }
+    { const cc = catOf(currentCat) || {}; stage.classList.toggle('glow', !!cc.glow); $('stageDeco').innerHTML = decoHTML(decoOf(cc), true); renderDecoBar(cc); }
     carouselRefl.innerHTML = LITE ? '' : html;
     $('reflOuter').hidden = LITE;
     $('emptyStage').hidden = list.length > 0;
@@ -3869,7 +3955,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     const pr = presetOf(brand.preset), r = document.documentElement.style;
     if(pr.id === 'general') ['--brass','--shelf','--shelf-edge'].forEach(k => r.removeProperty(k));
     else { r.setProperty('--brass', pr.frame); r.setProperty('--shelf', pr.shelf); r.setProperty('--shelf-edge', pr.edge); }
-    applyMaterial(); applyNeon();
+    applyMaterial(); applyNeon(); seasonFx(); if($('seasonBar')) renderSeasonBar();
   }
   // ---- Tipo de vitrina: madera, metal, vidrio o plástico ----
   const MATS = [
