@@ -1100,6 +1100,19 @@ body.clientmode .decoshop{display:none}
 .hlist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .hlist li{display:grid;gap:2px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
 .hlist li .btn{justify-self:start;margin-top:4px}
+.hyn{display:flex;gap:8px;flex-wrap:wrap}
+.cashier{position:fixed;top:calc(8px + env(safe-area-inset-top, 0px));right:calc(8px + env(safe-area-inset-right, 0px));z-index:44;display:flex;align-items:flex-start;gap:6px}
+.cbtn{position:relative;border:0;background:none;padding:0;cursor:pointer;display:grid;justify-items:center;width:58px}
+.cav svg{width:54px;height:auto;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2))}
+.cbtn.talking .hmouth{animation:htalk .22s ease-in-out infinite alternate;transform-origin:40px 48px}
+.basket{position:absolute;left:-14px;bottom:10px;font-size:26px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.25))}
+.basket b{position:absolute;right:-6px;top:-6px;min-width:18px;height:18px;border-radius:9px;background:#e63946;color:#fff;font:800 11px/18px var(--body);text-align:center;padding:0 4px}
+.basket.bump{animation:bump .5s}
+.cbubble{max-width:min(260px,62vw);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px 4px 14px 14px;padding:8px 10px;font:600 13px/1.35 var(--body);box-shadow:0 10px 24px -12px var(--shadow)}
+.hcaja{justify-self:start}
+.hcard{display:grid;gap:4px}
+.hplus{border:0;border-radius:8px;padding:6px 4px;background:var(--accent);color:var(--accent-ink,#fff);font:700 11.5px/1 var(--body);cursor:pointer}
+.hplus.done{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
 .hsteps{margin:0;padding-left:22px;display:grid;gap:6px}
 .hsteps li{line-height:1.35}
 .hsteps li::marker{font-weight:800;color:var(--accent)}
@@ -1115,7 +1128,7 @@ body.clientmode .decoshop{display:none}
 .hpick svg{width:46px;height:auto}
 .hpick[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset;background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
 .hpick[aria-pressed="false"] svg{opacity:.55;filter:grayscale(.5)}
-.hhelp{order:9;align-self:center;margin-left:4px;border:0;border-radius:999px;padding:8px 12px;background:var(--accent);color:var(--accent-ink,#fff);font:700 13px/1 var(--body);cursor:pointer;box-shadow:0 6px 14px -6px var(--shadow);animation:mpulse 2.6s ease-in-out infinite}
+.hhelp{align-self:flex-start;margin-left:4px;border:0;border-radius:999px;padding:8px 12px;background:var(--accent);color:var(--accent-ink,#fff);font:700 13px/1 var(--body);cursor:pointer;box-shadow:0 6px 14px -6px var(--shadow);animation:mpulse 2.6s ease-in-out infinite}
 .hchips .matbtn{padding:4px 10px;font-size:12.5px}
 .hask{display:flex;gap:6px}
 .hask input{flex:1;min-width:0}
@@ -1535,6 +1548,10 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   </section>
 </div>
 
+<div class="cashier" id="cashier" hidden>
+  <div class="cbubble" id="cBubble" hidden aria-live="polite"></div>
+  <button class="cbtn" type="button" id="cBtn" aria-label="Caja: ver lo que llevás"><span class="cav" id="cAv"></span><span class="basket" aria-hidden="true">🧺<b id="cN">0</b></span><span class="hname">Caja</span></button>
+</div>
 <div class="helpers" id="helpers" hidden>
   <div class="hpanel" id="hPanel" hidden role="dialog" aria-label="Vendedores virtuales">
     <button class="hclose" type="button" id="hClose" aria-label="Cerrar">✕</button>
@@ -1544,6 +1561,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     <div class="hchips" id="hChips"></div>
     <form class="hask" id="hAsk"><input type="text" id="hIn" placeholder="Ej: mostrame perfumes" aria-label="Escribile al vendedor" autocomplete="off"><button class="btn" type="button" id="hMic" aria-label="Hablar">🎤</button><button class="btn primary" type="submit">Enviar</button></form>
   </div>
+  <button class="hhelp" type="button" id="hHelp" hidden>🙋 Pedí ayuda</button>
   <div class="hrow" id="hRow"></div>
 </div>
 <button class="musicfab" type="button" id="musicFab" hidden aria-pressed="false" aria-label="Música de la tienda">🎵</button>
@@ -3745,6 +3763,8 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   function updateFab(){
     const n = cartItems().reduce((a, it) => a + it.q, 0);
     $('cartN').textContent = n; $('cartFab').hidden = n === 0;
+    const cn = document.getElementById('cN');
+    if(cn){ const was = +cn.textContent; cn.textContent = n; cn.hidden = !n; if(n > was){ const bk = cn.parentElement; bk.classList.remove('bump'); void bk.offsetWidth; bk.classList.add('bump'); } }
   }
   function addToCart(id, srcImg){
     cart[id] = (cart[id] || 0) + 1; saveCart(); updateFab();
@@ -3957,7 +3977,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
           <span class="note">Después de pagar, mandá el comprobante por WhatsApp.</span>
         </div>` : ''}
         <div class="actions">
-          ${wa ? `<a class="btn wa" href="${wa}" target="_blank" rel="noopener">Enviar pedido por WhatsApp</a>` : (!PUBLIC && !clientMode ? `<button class="btn primary" type="button" data-c="setwa">Cargá tu WhatsApp para recibir pedidos</button>` : `<span class="note">Este comercio todavía no cargó su WhatsApp. Copiá el pedido y mandáselo.</span>`)}
+          ${wa ? `<a class="btn wa" href="${wa}" target="_blank" rel="noopener" data-c="sent">Enviar pedido por WhatsApp</a>` : (!PUBLIC && !clientMode ? `<button class="btn primary" type="button" data-c="setwa">Cargá tu WhatsApp para recibir pedidos</button>` : `<span class="note">Este comercio todavía no cargó su WhatsApp. Copiá el pedido y mandáselo.</span>`)}
           <button class="btn" type="button" data-c="copy">Copiar pedido</button>
           <button class="btn danger" type="button" data-c="clear">Vaciar pedido</button>
         </div>
@@ -3965,6 +3985,20 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
       : `<p class="nofeat">Tu pedido está vacío. Tocá “Agregar al pedido” en cualquier producto.</p>`}`;
   }
   let cartLastFocus = null;
+  document.addEventListener('click', e => {
+    if(!e.target.closest('[data-c="sent"]') || !hList().length) return;
+    const ids = hList(); if(!hCur || !ids.includes(hCur)) hCur = ids[0];
+    const o = SHIP_OPTS.find(x => x.id === shipSel), d = o ? (brand.ship || {})[o.id] || '' : '';
+    const next = o ? (SHIP_STEPS[o.id] || SHIP_STEPS.coordinar)(d).filter(t => !/Ver pedido|Agregar al pedido|Escribinos por WhatsApp qué producto/.test(t)) : [];
+    setTimeout(() => {
+      $('cartModal').hidden = true; document.documentElement.style.overflow = '';
+      const thanks = `¡Gracias por tu compra en ${storeName()}!`;
+      if(cajeraOn()) cSpeak(`${thanks} ${o ? 'Elegiste ' + o.name + '. ' : ''}Ahora seguimos por WhatsApp.`);
+      $('hPanel').hidden = false;
+      if(o){ hInfo(`<strong>${esc(thanks)} Lo que sigue (${esc(o.name)}):</strong><ol class="hsteps">${next.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`); if(!cajeraOn()) hSpeak(`${thanks} Elegiste ${o.name}. ${next.join(' ')}`); else $('hSay').textContent = thanks; }
+      else { hShow([]); hSpeak(`${thanks} Ya te va a llegar nuestro mensaje con los pasos para pagar y recibirlo. ¡Que lo disfrutes!`); }
+    }, 700);
+  });
   function openCart(){ cartLastFocus = document.activeElement; const sl = shipList(); if(!sl.find(o => o.id === shipSel)) shipSel = sl[0] ? sl[0].id : null; renderCart(); $('cartModal').hidden = false; document.documentElement.style.overflow = 'hidden'; $('cartSheet').querySelector('.close').focus(); }
   function closeCart(){ $('cartModal').hidden = true; document.documentElement.style.overflow = ''; try{ cartLastFocus && cartLastFocus.focus(); }catch(e){} }
   function copyText(text, msgEl, okMsg){
@@ -4512,22 +4546,25 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       ${brand.logo ? (st === 'cap' ? `<path d="M22 27q18-14 36 0v4H22z" fill="${shirt}"/><rect x="20" y="29" width="40" height="4" rx="2" fill="${shirt}"/><image href="${brand.logo}" x="31" y="17" width="18" height="11" preserveAspectRatio="xMidYMid meet"/>` : `<image href="${brand.logo}" x="50" y="73" width="11" height="11" preserveAspectRatio="xMidYMid meet"/>`) : (st === 'cap' ? `<path d="M22 27q18-14 36 0v4H22z" fill="${shirt}"/><rect x="20" y="29" width="40" height="4" rx="2" fill="${shirt}"/>` : '')}
     </svg>`;
   }
-  let hCur = null, hLast = null;
+  let hCur = null, hLast = null, hPending = null;
   const hOn = () => hList().length > 0;
   const hShirt = () => brand.helperColor || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0e6a5b';
   function renderHelpers(){
     const ids = hList();
+    setTimeout(renderCashier, 0);
     $('helpers').hidden = !ids.length; $('helpers').classList.toggle('many', ids.length > 3);
-    $('hRow').innerHTML = (ids.length ? `<button class="hhelp" type="button" id="hHelp">🙋 Pedí ayuda</button>` : '') + ids.map(id => `<button class="hav" type="button" data-hav="${id}" aria-label="Hablar con ${HELPERS[id].name}">${helperSVG(HELPERS[id], hShirt())}<span class="hname">${HELPERS[id].name}</span></button>`).join('');
+    $('hHelp').hidden = !ids.length;
+    $('hRow').innerHTML = ids.map(id => `<button class="hav" type="button" data-hav="${id}" aria-label="Hablar con ${HELPERS[id].name}">${helperSVG(HELPERS[id], hShirt())}<span class="hname">${HELPERS[id].name}</span></button>`).join('');
     if(!ids.length) $('hPanel').hidden = true;
     const bar = $('helperBar'); if(bar) bar.innerHTML = `<span class="note" style="margin:0;flex-basis:100%">Tocá los que quieras en esta tienda (${ids.length} de ${HIDS.length}):</span>` + HIDS.map(id => `<button class="hpick" type="button" data-hset="${id}" aria-pressed="${ids.includes(id)}">${helperSVG(HELPERS[id], hShirt())}<span>${HELPERS[id].name}</span></button>`).join('') + `<button class="matbtn" type="button" data-hset="" aria-pressed="${!ids.length}">Ninguno</button>`;
-    if(bar) bar.innerHTML += `<button class="matbtn" type="button" id="hWalkBtn" aria-pressed="${brand.helperWalk !== false}">🚶 Que caminen hasta la vitrina</button>`;
+    if(bar) bar.innerHTML += `<button class="matbtn" type="button" id="hWalkBtn" aria-pressed="${brand.helperWalk !== false}">🚶 Que caminen hasta la vitrina</button><button class="matbtn" type="button" id="hCashBtn" aria-pressed="${brand.cashier !== false}">🧺 Cajera con canastito</button>`;
     const cb = $('helperColors'); if(cb) cb.innerHTML = `<span class="note" style="margin:0">Color de la ropa:</span>` + HCOLORS.map(c => `<button class="sw" type="button" data-hcol="${c}" style="--c:${c || 'var(--accent)'}" aria-pressed="${(brand.helperColor || '') === c}" aria-label="${c ? 'Color ' + c : 'Color de mi marca'}" title="${c ? '' : 'Color de mi marca'}"></button>`).join('') + `<label class="sw custom" title="Otro color"><input type="color" id="hColCustom" value="${brand.helperColor || '#0e6a5b'}" aria-label="Otro color"></label>`;
     $('hMic').hidden = !(window.SpeechRecognition || window.webkitSpeechRecognition);
   }
   document.addEventListener('click', e => {
     const a = e.target.closest('[data-hset]'), c = e.target.closest('[data-hcol]');
     if(a){ const id = a.dataset.hset, cur = hList(); brand.helpers = !id ? [] : cur.includes(id) ? cur.filter(x => x !== id) : [...cur, id]; save(); renderHelpers(); }
+    if(e.target.closest('#hCashBtn')){ brand.cashier = brand.cashier === false; save(); renderHelpers(); }
     if(e.target.closest('#hWalkBtn')){ brand.helperWalk = brand.helperWalk === false; save(); renderHelpers(); }
     if(c){ brand.helperColor = c.dataset.hcol; if(!brand.helperColor) delete brand.helperColor; save(); renderHelpers(); }
   });
@@ -4554,11 +4591,17 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       return {p, sc: toks.reduce((n, t) => n + (hay.includes(t) ? (norm(p.name).includes(t) ? 2 : 1) : 0), 0)};
     }).filter(x => x.sc > 0).sort((a, b) => b.sc - a.sc || (b.p.featured ? 1 : 0) - (a.p.featured ? 1 : 0)).slice(0, 6).map(x => x.p);
   }
+  function hFindBest(q){
+    const list = hFind(q); if(list.length < 2) return list;
+    const toks = norm(q).replace(/[^a-z0-9ñ ]/g, ' ').split(/\s+/).filter(w => w && !STOP.has(w)).map(stem);
+    const all = p => toks.every(t => norm(p.name).includes(t));
+    return toks.length > 1 && all(list[0]) && !all(list[1]) ? [list[0]] : list;
+  }
   function hShow(list, big){
     $('hRes').innerHTML = !list.length ? '' : big && list.length === 1
       ? (p => `<div class="hbig"><img src="${curImg(p)}" alt="Foto de ${esc(p.name)}"><div class="hbinfo"><strong>${esc(p.name)}</strong>${curPrice(p) ? `<span class="fprice">${esc(curPrice(p))}</span>` : ''}${p.promo ? `<span class="note">${esc(p.promo)}</span>` : ''}
           <span class="row"><button class="btn primary" type="button" data-hadd="${p.id}">＋ Al pedido</button><button class="btn" type="button" data-hopen="${p.id}">Ver ficha</button>${waHref(productMsg(p)) ? `<a class="btn wa" href="${waHref(productMsg(p))}" target="_blank" rel="noopener">WhatsApp</a>` : ''}</span></div></div>`)(list[0])
-      : `<div class="hgrid">${list.map(p => `<button class="fcard" type="button" data-hpick="${p.id}"><span class="fimg"><img src="${p.img}" alt=""></span><span class="fname">${esc(p.name)}</span>${p.price ? `<span class="fprice">${esc(p.price)}</span>` : ''}</button>`).join('')}</div>`;
+      : `<div class="hgrid">${list.map(p => `<div class="hcard"><button class="fcard" type="button" data-hpick="${p.id}"><span class="fimg"><img src="${p.img}" alt=""></span><span class="fname">${esc(p.name)}</span>${p.price ? `<span class="fprice">${esc(p.price)}</span>` : ''}</button><button class="hplus" type="button" data-hadd="${p.id}" aria-label="Agregar ${esc(p.name)} al pedido">＋ Al pedido</button></div>`).join('')}</div>`;
   }
   const visCats = () => cats.filter(c => !c.hidden && products.some(p => p.cat === c.id));
   // el muñequito camina hasta la vitrina, la toca y vuelve
@@ -4673,14 +4716,73 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(/(como compro|como pido|como hago (el|un|mi) pedido|como funciona|como se compra)/.test(n)){ hShow([]); hSpeak('Es muy fácil: tocá el producto, después “Agregar al pedido”, y cuando termines tocá “Ver pedido” para mandarlo por WhatsApp. ¡Y listo!'); return true; }
     return false;
   }
+  const cartCount = () => cartItems().reduce((n, it) => n + it.q, 0);
+  const CAJERA = {name: 'Caro', pitch: 1.22, hair: '#3b2a20', skin: '#e8b48f', female: true, style: 'bun'};
+  const cajeraOn = () => hList().length > 0 && brand.cashier !== false;
+  function renderCashier(){
+    $('cashier').hidden = !cajeraOn();
+    if(!cajeraOn()) return;
+    $('cAv').innerHTML = helperSVG(CAJERA, hShirt());
+    $('cN').textContent = cartCount(); $('cN').hidden = !cartCount();
+  }
+  let cBubbleT = null;
+  function cSpeak(text, then){
+    $('cBubble').textContent = text; $('cBubble').hidden = false;
+    clearTimeout(cBubbleT); cBubbleT = setTimeout(() => { $('cBubble').hidden = true; }, Math.max(5000, text.length * 75));
+    const av = $('cBtn');
+    if(!window.speechSynthesis){ then && setTimeout(then, 1200); return; }
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = LANG === 'pt' ? 'pt-BR' : LANG === 'en' ? 'en-US' : 'es-AR'; u.pitch = CAJERA.pitch; u.rate = 1.03;
+    const vs = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith(u.lang.slice(0, 2)));
+    u.voice = vs.find(v => /female|mujer|paulina|monica|helena|sabina|laura|luciana/i.test(v.name)) || vs[0] || null;
+    u.onstart = () => av.classList.add('talking'); u.onend = u.onerror = () => { av.classList.remove('talking'); duck(false); };
+    duck(true); speechSynthesis.cancel(); speechSynthesis.speak(u);
+    then && setTimeout(then, 1400);
+  }
+  const qtyWord = q => ['', 'un', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez'][q] || String(q);
+  function cajeraCobra(){
+    const items = cartItems();
+    if(!items.length) return cSpeak('¡Hola! Soy Caro, la cajera. Tu canastito está vacío: agregá lo que te guste y acá te cobro.');
+    const {t, unpriced} = cartTotal(items);
+    const list = items.map(it => `${qtyWord(it.q)} ${it.name}`).join(', ');
+    cSpeak(`Llevás: ${list}. ${t ? 'Son ' + fmt(t) + ' en total' : 'El precio te lo confirmamos'}${unpriced && t ? ', más lo que falta cotizar' : ''}. Elegí cómo lo querés recibir, y mandame el pedido.`, () => { $('hPanel').hidden = true; openCart(); });
+  }
+  $('cBtn').onclick = cajeraCobra;
+  function hToCaja(){
+    if(!cartCount()){ hShow([]); return hSpeak('Tu pedido todavía está vacío. Decime qué te gustaría y te lo agrego.'); }
+    if(cajeraOn()){ hSpeak('¡Perfecto! Te paso con Caro, la cajera.'); setTimeout(() => { $('hPanel').hidden = true; cajeraCobra(); }, 1500); return; }
+    const {t} = cartTotal(cartItems());
+    hSpeak(`¡Perfecto, te llevo a la caja! Tenés ${cartCount()} producto${cartCount() === 1 ? '' : 's'}${t ? ', en total ' + fmt(t) : ''}. Te dejé todo listo: elegí cómo lo recibís y tocá “Enviar pedido por WhatsApp”.`);
+    setTimeout(() => { $('hPanel').hidden = true; openCart(); }, 900);
+  }
+  function hCajaChip(){
+    if(!cartCount() || $('hRes').querySelector('.hcaja')) return;
+    const b = document.createElement('button'); b.className = 'btn primary hcaja'; b.type = 'button'; b.dataset.hcaja = '1';
+    b.textContent = `🧾 Ir a la caja (${cartCount()})`; $('hRes').appendChild(b);
+  }
+  function hYesNo(p){
+    hPending = p;
+    const box = document.createElement('div'); box.className = 'hyn';
+    box.innerHTML = `<button class="btn primary" type="button" data-hyes="1">Sí, agregalo</button><button class="btn" type="button" data-hno="1">No, gracias</button>`;
+    $('hRes').appendChild(box);
+  }
+  function hAddPending(){
+    const p = hPending || hLast; hPending = null;
+    if(!p) return hSpeak('¡Dale! Decime cuál: tocá el producto que querés y te lo agrego.');
+    addToCart(cartKey(p)); $('hRes').querySelectorAll('.hyn').forEach(x => x.remove());
+    const b = $('hRes').querySelector(`[data-hadd="${p.id}"]`); if(b) b.textContent = '✓ Agregado';
+    hCajaChip();
+    hSpeak(`¡Listo! Agregué ${p.name} a tu pedido. ¿Querés algo más, o te llevo a la caja?`);
+  }
   function hAnswer(q){
-    const n = norm(q);
+    const n = norm(q).trim();
+    if(hPending && /^(si|sii+|sip|dale|ok|okey|okay|bueno|claro|obvio|de una|por favor|agregalo|sumalo|perfecto|listo|va|genial|me lo llevo)\b/.test(n)) return hAddPending();
+    if(/(pagar|a la caja|ir a caja|la caja|terminar|termine|finalizar|eso es todo|nada mas|es todo|cerrar (el )?pedido|confirmar (el )?pedido|enviar (el )?pedido|mandar (el )?pedido)/.test(n)){ hPending = null; return hToCaja(); }
+    if(!hPending && /^(si|sii+|sip|dale|ok|okey|bueno|claro|no|nop)$/.test(n)){ return hSpeak($('hRes').querySelector('.hgrid') ? '¿Cuál querés? Tocá “＋ Al pedido” en el que te guste.' : '¿Qué querés que te muestre? Decime un producto o una vitrina.'); }
+    if(hPending && /^(no|nop|nah|todavia no|despues|mas tarde|no gracias|ahora no)\b/.test(n)){ hPending = null; $('hRes').querySelectorAll('.hyn').forEach(x => x.remove()); return hSpeak('¡Dale! Seguimos mirando. Preguntame lo que quieras.'); }
     const fa = hFaq(n); if(fa){ hShow([]); return hSpeak(fa); }
     if(hStore(n)) return;
-    if(/\b(lo quiero|agrega|sumalo|al pedido|comprar|lo llevo)\b/.test(n)){
-      if(hLast){ addToCart(cartKey(hLast)); return hSpeak(`¡Listo! Agregué ${hLast.name} a tu pedido. Cuando quieras, tocá “Ver pedido” para enviarlo.`); }
-      return hSpeak('¡Dale! Decime cuál: tocá el producto que querés y te lo agrego.');
-    }
+    if(/\b(lo quiero|agrega|agregalo|sumalo|al pedido|comprar|lo llevo|me lo llevo)\b/.test(n)){ hPending = hPending || hLast; return hAddPending(); }
     if(/\b(hola|buenas|buen dia|buenas tardes)\b/.test(n) && n.length < 20){ hShow([]); return hSpeak(`¡Hola! Soy ${(HELPERS[hCur] || HELPERS.sofi).name}, de ${storeName()}. Decime qué buscás, o pedime ver una vitrina.`); }
     if(/\b(oferta|ofertas|promo|promocion|destacad|descuento)/.test(n)){
       const f = products.filter(p => p.featured && !(catOf(p.cat) || {}).hidden);
@@ -4692,7 +4794,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     let cat = num ? vc[(+num[1] || words[num[1]]) - 1] : null;
     const qt = n.replace(/[^a-z0-9ñ ]/g, ' ').split(/\s+/).filter(w => w.length > 3 && !STOP.has(w)).map(stem);
     if(!cat) cat = vc.find(c => n.includes(norm(c.name)) || norm(c.name).split(/\s+/).some(w => w.length > 3 && qt.some(t => t.length > 3 && (w.startsWith(t) || t.startsWith(stem(w))))));
-    const found = hFind(q);
+    const found = hFindBest(q);
     const namedHit = found.length && found.some(p => p.cat !== (cat && cat.id) && qt.some(t => norm(p.name).includes(t)));
     if(cat && (num || !namedHit)){
       const inCat = new Set(found.filter(p => p.cat === cat.id).map(p => p.id));
@@ -4704,20 +4806,21 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(found.length){
       hLast = found.length === 1 ? found[0] : null; hShow(found, found.length === 1); hWalk(found[0].cat);
       const p = found[0];
+      if(found.length === 1) hYesNo(p);
       return hSpeak(found.length === 1 ? `Acá tenés ${p.name}${p.promo ? ', ' + p.promo : ''}${curPrice(p) ? ', a ' + curPrice(p) : ''}. ¿Lo agrego a tu pedido?` : `Encontré ${found.length} opciones. La primera es ${p.name}${curPrice(p) ? ', a ' + curPrice(p) : ''}. Tocá la que quieras ver en grande.`);
     }
     hShow([]); hSpeak(`Mmm, eso no lo sé todavía. Podés preguntarme por productos (“mostrame perfumes”), ofertas, envíos, formas de pago o nuestro WhatsApp${String(brand.wa || '').trim() ? ', y si querés, escribinos al ' + brand.wa : ''}.`);
   }
   function hOpen(id){
     hCur = id; $('hPanel').hidden = false;
-    $('hChips').innerHTML = [['🏬 Ver vitrinas', 'vitrinas'], ['🔥 Ofertas', 'ofertas'], ['📱 WhatsApp', 'me pasas el numero'], ['🚚 Envíos', 'como hacen los envios'], ['💳 Cómo pago', 'como pago'], ...visCats().slice(0, 4).map(c => [c.name, 'mostrame ' + c.name])].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${esc(q)}">${esc(t)}</button>`).join('');
+    $('hChips').innerHTML = (cartCount() ? `<button class="matbtn" type="button" data-hcaja="1">🧾 Ir a la caja (${cartCount()})</button>` : '') + [['🏬 Ver vitrinas', 'vitrinas'], ['🔥 Ofertas', 'ofertas'], ['📱 WhatsApp', 'me pasas el numero'], ['🚚 Envíos', 'como hacen los envios'], ['💳 Cómo pago', 'como pago'], ...visCats().slice(0, 4).map(c => [c.name, 'mostrame ' + c.name])].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${esc(q)}">${esc(t)}</button>`).join('');
     $('hRow').querySelectorAll('.hav').forEach(b => b.classList.toggle('on', b.dataset.hav === id));
     renderHMode(); hShow([]); hSpeak(`¡Hola! Soy ${HELPERS[id].name}. ¿Qué andás buscando? Te busco la vitrina y te muestro el producto.`);
   }
   $('hRow').addEventListener('click', e => {
-    if(e.target.closest('#hHelp')){ const ids = hList(); return hOpen(ids[Math.floor(Math.random() * ids.length)]); }
     const b = e.target.closest('[data-hav]'); if(b) hOpen(b.dataset.hav);
   });
+  $('hHelp').onclick = () => { const ids = hList(); if(ids.length) hOpen(ids[Math.floor(Math.random() * ids.length)]); };
   $('hClose').onclick = () => { $('hPanel').hidden = true; try{ speechSynthesis.cancel(); }catch(err){} duck(false); };
   $('hAsk').addEventListener('submit', e => { e.preventDefault(); const q = $('hIn').value.trim(); if(!q) return; $('hIn').value = ''; hAnswer(q); });
   $('hPanel').addEventListener('click', e => {
@@ -4725,10 +4828,13 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(md){ try{ localStorage.setItem('vitrina360-hwalk', md.dataset.hmode); }catch(err){} renderHMode(); hSpeak(md.dataset.hmode === '1' ? '¡Dale! Voy hasta la vitrina y te muestro.' : 'Perfecto, te muestro todo desde acá.'); return; }
     const q = e.target.closest('[data-hq]'), pk = e.target.closest('[data-hpick]'), ad = e.target.closest('[data-hadd]'), op = e.target.closest('[data-hopen]');
     if(q){ if(q.dataset.hq === 'vitrinas'){ const vc = visCats(); hShow([]); hSpeak(`Tenemos ${vc.length} vitrinas: ${vc.map((c, i) => (i + 1) + ', ' + c.name).join('; ')}. ¿Cuál querés ver?`); } else hAnswer(q.dataset.hq); }
-    if(pk){ const p = products.find(x => x.id === pk.dataset.hpick); if(p){ hLast = p; hShow([p], true); hWalk(p.cat); hSpeak(`${p.name}${p.promo ? ', ' + p.promo : ''}${curPrice(p) ? ', a ' + curPrice(p) : ''}. ¿Te lo agrego al pedido?`); } }
-    if(ad){ const p = products.find(x => x.id === ad.dataset.hadd); if(p){ addToCart(cartKey(p)); ad.textContent = '✓ Agregado'; hSpeak('¡Listo, ya está en tu pedido!'); } }
+    if(pk){ const p = products.find(x => x.id === pk.dataset.hpick); if(p){ hLast = p; hShow([p], true); hWalk(p.cat); hYesNo(p); hSpeak(`${p.name}${p.promo ? ', ' + p.promo : ''}${curPrice(p) ? ', a ' + curPrice(p) : ''}. ¿Te lo agrego al pedido?`); } }
+    if(ad){ const p = products.find(x => x.id === ad.dataset.hadd); if(p){ hPending = p; hAddPending(); ad.textContent = '✓ Agregado'; ad.classList.add('done'); } }
     if(op){ $('hPanel').hidden = true; openModal(op.dataset.hopen); }
     const hs = e.target.closest('[data-hship]'); if(hs){ hShipSteps(hs.dataset.hship); return; }
+    if(e.target.closest('[data-hyes]')) return hAddPending();
+    if(e.target.closest('[data-hcaja]')) return hToCaja();
+    if(e.target.closest('[data-hno]')){ hPending = null; $('hRes').querySelectorAll('.hyn').forEach(x => x.remove()); return hSpeak('¡Dale! Seguimos mirando.'); }
     const cp = e.target.closest('[data-hcopy]');
     if(cp){ const t = cp.dataset.hcopy; const ok = () => { cp.textContent = '✓ Copiado'; }; try{ navigator.clipboard.writeText(t).then(ok, () => { $('hIn').value = t; $('hIn').select(); }); }catch(err){ $('hIn').value = t; $('hIn').select(); } }
   });
