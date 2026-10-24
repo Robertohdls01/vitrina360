@@ -1098,6 +1098,12 @@ body.clientmode .decoshop{display:none}
 .hmode{display:flex;flex-wrap:wrap;gap:6px}
 .hmode .matbtn{padding:4px 10px;font-size:12.5px}
 .hrow{align-items:flex-end}
+.helpers.many .hav,.helpers.many .hav svg{width:46px}
+.helpers.many .hname{font-size:9px;padding:1px 5px}
+.hpick{display:grid;justify-items:center;gap:2px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:4px 6px 6px;cursor:pointer;font:600 12px var(--body)}
+.hpick svg{width:46px;height:auto}
+.hpick[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset;background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
+.hpick[aria-pressed="false"] svg{opacity:.55;filter:grayscale(.5)}
 .hhelp{order:9;align-self:center;margin-left:4px;border:0;border-radius:999px;padding:8px 12px;background:var(--accent);color:var(--accent-ink,#fff);font:700 13px/1 var(--body);cursor:pointer;box-shadow:0 6px 14px -6px var(--shadow);animation:mpulse 2.6s ease-in-out infinite}
 .hchips .matbtn{padding:4px 10px;font-size:12.5px}
 .hask{display:flex;gap:6px}
@@ -4460,12 +4466,24 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if((brand.music || {}).style && !musicMuted() && !music.on) musicStart();
   }, true);
   // ---- Vendedores virtuales: Sofi y Tomás ----
-  const HELPERS = {sofi: {name: 'Sofi', pitch: 1.18, hair: '#5a3825', skin: '#f2c9a0', female: true}, tomas: {name: 'Tomás', pitch: 0.82, hair: '#2b2118', skin: '#d9a679', female: false}};
+  const HELPERS = {
+    sofi: {name: 'Sofi', pitch: 1.18, hair: '#5a3825', skin: '#f2c9a0', female: true, style: 'long'},
+    tomas: {name: 'Tomás', pitch: 0.82, hair: '#2b2118', skin: '#d9a679', female: false, style: 'cap'},
+    lucia: {name: 'Lucía', pitch: 1.26, hair: '#e3b35a', skin: '#f6d5b8', female: true, style: 'bun'},
+    martin: {name: 'Martín', pitch: 0.9, hair: '#1a1a1a', skin: '#8d5b3e', female: false, style: 'curly'},
+    vale: {name: 'Vale', pitch: 1.1, hair: '#a1332b', skin: '#c98e6a', female: true, style: 'long'},
+    joaco: {name: 'Joaco', pitch: 0.76, hair: '#6b4a2b', skin: '#f0c49b', female: false, style: 'short'}
+  };
+  const HIDS = Object.keys(HELPERS);
+  // los vendedores elegidos de esta tienda (antes se guardaba 'sofi', 'tomas' o 'ambos')
+  const hList = () => { const h = brand.helpers; if(Array.isArray(h)) return h.filter(id => HELPERS[id]); return h === 'ambos' ? ['sofi', 'tomas'] : HELPERS[h] ? [h] : []; };
   const HCOLORS = ['', '#e63946', '#ff8c00', '#2a9d8f', '#1d4ed8', '#7c3aed', '#111827', '#db2777'];
   function helperSVG(h, shirt){
     const tag = esc((brand.name || 'Mi tienda').slice(0, 14));
-    const hair = h.female
-      ? `<path d="M22 34c-2-15 8-25 18-25s21 9 18 25c3 6 3 16 0 22-2-9-4-14-4-22-8 2-20 1-28-6-1 9-3 18-6 28-2-8-1-14 2-22z" fill="${h.hair}"/>`
+    const st = h.style;
+    const hair = st === 'long' ? `<path d="M22 34c-2-15 8-25 18-25s21 9 18 25c3 6 3 16 0 22-2-9-4-14-4-22-8 2-20 1-28-6-1 9-3 18-6 28-2-8-1-14 2-22z" fill="${h.hair}"/>`
+      : st === 'bun' ? `<circle cx="40" cy="12" r="7" fill="${h.hair}"/><path d="M22 36c-1-15 8-23 18-23s19 8 18 23c-5-8-11-12-18-12s-13 4-18 12z" fill="${h.hair}"/>`
+      : st === 'curly' ? `<g fill="${h.hair}"><circle cx="27" cy="27" r="7"/><circle cx="35" cy="21" r="8"/><circle cx="45" cy="21" r="8"/><circle cx="53" cy="27" r="7"/><circle cx="24" cy="35" r="5"/><circle cx="56" cy="35" r="5"/></g>`
       : `<path d="M23 32c-1-13 7-21 17-21s18 7 17 21c-4-6-9-9-17-9s-13 3-17 9z" fill="${h.hair}"/>`;
     return `<svg viewBox="0 0 80 110" aria-hidden="true"><ellipse cx="40" cy="106" rx="22" ry="4" fill="rgba(0,0,0,.18)"/>
       <path d="M14 104c0-22 11-36 26-36s26 14 26 36z" fill="${shirt}"/>
@@ -4476,25 +4494,25 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       <g class="heyes"><circle cx="33.5" cy="39" r="2.2" fill="#222"/><circle cx="46.5" cy="39" r="2.2" fill="#222"/></g>
       <ellipse cx="29" cy="45" rx="3" ry="1.8" fill="#f08f8f" opacity=".45"/><ellipse cx="51" cy="45" rx="3" ry="1.8" fill="#f08f8f" opacity=".45"/>
       <path class="hmouth" d="M35 47q5 4 10 0" stroke="#7a2e2e" stroke-width="2" fill="#a33" stroke-linecap="round"/>
-      ${brand.logo ? `<image href="${brand.logo}" x="${h.female ? 50 : 30}" y="${h.female ? 74 : 12}" width="${h.female ? 11 : 20}" height="${h.female ? 11 : 12}" preserveAspectRatio="xMidYMid meet"/>` : (h.female ? '' : `<path d="M22 27q18-14 36 0v4H22z" fill="${shirt}"/><rect x="20" y="29" width="40" height="4" rx="2" fill="${shirt}"/>`)}
+      ${brand.logo ? (st === 'cap' ? `<path d="M22 27q18-14 36 0v4H22z" fill="${shirt}"/><rect x="20" y="29" width="40" height="4" rx="2" fill="${shirt}"/><image href="${brand.logo}" x="31" y="17" width="18" height="11" preserveAspectRatio="xMidYMid meet"/>` : `<image href="${brand.logo}" x="50" y="73" width="11" height="11" preserveAspectRatio="xMidYMid meet"/>`) : (st === 'cap' ? `<path d="M22 27q18-14 36 0v4H22z" fill="${shirt}"/><rect x="20" y="29" width="40" height="4" rx="2" fill="${shirt}"/>` : '')}
     </svg>`;
   }
   let hCur = null, hLast = null;
-  const hOn = () => (brand.helpers || '') !== '';
+  const hOn = () => hList().length > 0;
   const hShirt = () => brand.helperColor || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0e6a5b';
   function renderHelpers(){
-    const which = brand.helpers || '', ids = which === 'ambos' ? ['sofi', 'tomas'] : which ? [which] : [];
-    $('helpers').hidden = !ids.length;
+    const ids = hList();
+    $('helpers').hidden = !ids.length; $('helpers').classList.toggle('many', ids.length > 3);
     $('hRow').innerHTML = (ids.length ? `<button class="hhelp" type="button" id="hHelp">🙋 Pedí ayuda</button>` : '') + ids.map(id => `<button class="hav" type="button" data-hav="${id}" aria-label="Hablar con ${HELPERS[id].name}">${helperSVG(HELPERS[id], hShirt())}<span class="hname">${HELPERS[id].name}</span></button>`).join('');
     if(!ids.length) $('hPanel').hidden = true;
-    const bar = $('helperBar'); if(bar) bar.innerHTML = [['', 'Sin vendedores'], ['sofi', '👩 Sofi'], ['tomas', '👨 Tomás'], ['ambos', '👩👨 Los dos']].map(([id, n]) => `<button class="matbtn" type="button" data-hset="${id}" aria-pressed="${which === id}">${n}</button>`).join('');
+    const bar = $('helperBar'); if(bar) bar.innerHTML = `<span class="note" style="margin:0;flex-basis:100%">Tocá los que quieras en esta tienda (${ids.length} de ${HIDS.length}):</span>` + HIDS.map(id => `<button class="hpick" type="button" data-hset="${id}" aria-pressed="${ids.includes(id)}">${helperSVG(HELPERS[id], hShirt())}<span>${HELPERS[id].name}</span></button>`).join('') + `<button class="matbtn" type="button" data-hset="" aria-pressed="${!ids.length}">Ninguno</button>`;
     if(bar) bar.innerHTML += `<button class="matbtn" type="button" id="hWalkBtn" aria-pressed="${brand.helperWalk !== false}">🚶 Que caminen hasta la vitrina</button>`;
     const cb = $('helperColors'); if(cb) cb.innerHTML = `<span class="note" style="margin:0">Color de la ropa:</span>` + HCOLORS.map(c => `<button class="sw" type="button" data-hcol="${c}" style="--c:${c || 'var(--accent)'}" aria-pressed="${(brand.helperColor || '') === c}" aria-label="${c ? 'Color ' + c : 'Color de mi marca'}" title="${c ? '' : 'Color de mi marca'}"></button>`).join('') + `<label class="sw custom" title="Otro color"><input type="color" id="hColCustom" value="${brand.helperColor || '#0e6a5b'}" aria-label="Otro color"></label>`;
     $('hMic').hidden = !(window.SpeechRecognition || window.webkitSpeechRecognition);
   }
   document.addEventListener('click', e => {
     const a = e.target.closest('[data-hset]'), c = e.target.closest('[data-hcol]');
-    if(a){ brand.helpers = a.dataset.hset; save(); renderHelpers(); }
+    if(a){ const id = a.dataset.hset, cur = hList(); brand.helpers = !id ? [] : cur.includes(id) ? cur.filter(x => x !== id) : [...cur, id]; save(); renderHelpers(); }
     if(e.target.closest('#hWalkBtn')){ brand.helperWalk = brand.helperWalk === false; save(); renderHelpers(); }
     if(c){ brand.helperColor = c.dataset.hcol; if(!brand.helperColor) delete brand.helperColor; save(); renderHelpers(); }
   });
@@ -4602,7 +4620,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     renderHMode(); hShow([]); hSpeak(`¡Hola! Soy ${HELPERS[id].name}. ¿Qué andás buscando? Te busco la vitrina y te muestro el producto.`);
   }
   $('hRow').addEventListener('click', e => {
-    if(e.target.closest('#hHelp')){ const ids = (brand.helpers === 'ambos') ? ['sofi', 'tomas'] : [brand.helpers]; return hOpen(ids[Math.floor(Math.random() * ids.length)]); }
+    if(e.target.closest('#hHelp')){ const ids = hList(); return hOpen(ids[Math.floor(Math.random() * ids.length)]); }
     const b = e.target.closest('[data-hav]'); if(b) hOpen(b.dataset.hav);
   });
   $('hClose').onclick = () => { $('hPanel').hidden = true; try{ speechSynthesis.cancel(); }catch(err){} duck(false); };
