@@ -692,7 +692,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 .mini:focus-visible{outline:none}.mini:focus-visible .mstage{outline:3px solid var(--accent);outline-offset:3px}
 .mfloorp{position:absolute;left:0;right:0;bottom:0;height:17%;border-top:1px solid var(--seam);background:linear-gradient(var(--floor-a),var(--floor-b))}
 .mshadow{position:absolute;left:50%;bottom:11%;width:80%;height:12%;transform:translateX(-50%);background:radial-gradient(closest-side,var(--shadow),transparent)}
-.mcar{position:absolute;left:50%;top:45%;width:0;height:0;transform-style:preserve-3d;
+.mcar{position:absolute;left:50%;top:47%;width:0;height:0;transform-style:preserve-3d;
   transform:translateZ(calc(var(--cw,90px) * -0.5)) rotateY(var(--a0,0deg));
   animation:mspin 48s linear infinite;animation-delay:var(--d,0s)}
 @keyframes mspin{from{transform:translateZ(calc(var(--cw,90px) * -0.5)) rotateY(0deg)}to{transform:translateZ(calc(var(--cw,90px) * -0.5)) rotateY(-360deg)}}
@@ -706,7 +706,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 .mcol::after{bottom:-7px;height:7px;background:linear-gradient(var(--shelf-edge),var(--shelf));border-radius:0 0 2px 2px}
 .mshelf{position:relative;display:flex;align-items:flex-end;justify-content:center;padding:2px 2px 5px;min-height:0;overflow:visible}
 .mshelf{gap:2px}
-.mshelf img{max-width:48%;height:92%;width:auto;object-fit:contain;filter:drop-shadow(0 3px 2px var(--shadow))}
+.mshelf img{max-width:94%;height:94%;width:auto;object-fit:contain;filter:drop-shadow(0 3px 2px var(--shadow))}
 .mboard{position:absolute;left:-3px;right:-3px;bottom:0;height:5px;background:linear-gradient(var(--shelf),var(--shelf-edge));box-shadow:0 3px 4px -2px var(--shadow)}
 .mempty{position:absolute;inset:0;z-index:2;display:grid;place-items:center;text-align:center;padding:12px;color:var(--ink);font-size:13px;font-weight:600}
 .mempty span{background:var(--surface);border-radius:10px;padding:6px 10px;box-shadow:0 4px 10px -4px var(--shadow)}
@@ -979,6 +979,29 @@ body.clientmode .socialbox{display:none!important}
 .prod .refl.side img{max-width:100%;max-height:100%;object-fit:contain;filter:blur(.6px) saturate(.75)}
 #catNum{display:none!important}
 .shelf{overflow:clip;overflow-clip-margin:14px}
+/* Tamaño de las vitrinas y folleto */
+.homegrid{grid-template-columns:repeat(var(--gcols,2),minmax(0,1fr))!important}
+.homegrid > .mini.sz-big{grid-column:span 2;--cw:calc(var(--cwb,90px) * 1.75)}
+.homegrid > .mini.sz-big .mstage{aspect-ratio:16/11}
+.homegrid > .mini.sz-small .mstage{width:72%;margin-inline:auto;--cw:calc(var(--cwb,90px) * .72)}
+.rslot{width:calc(var(--tw,120px) * var(--k,1));margin-left:calc(var(--tw,120px) * var(--k,1) / -2);margin-top:calc(var(--th,150px) * var(--k,1) / -2);--cw:calc(var(--cwb,60px) * var(--k,1))}
+.fitem{width:calc(var(--tw,140px) * var(--k,1));--cw:calc(var(--cwb,60px) * var(--k,1))}
+.szbar{display:none;position:absolute;left:6px;bottom:6px;z-index:4;gap:4px}
+.editing .szbar{display:flex}
+.szbar span{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--surface);color:var(--ink);font:700 16px/1 var(--body);box-shadow:0 2px 6px -2px var(--shadow);cursor:pointer}
+.homesize span{min-width:6.5em;text-align:center}
+.folleto{grid-column:1/-1;display:grid;gap:18px;background:var(--surface);border-radius:16px;padding:14px;box-shadow:0 10px 24px -18px var(--shadow)}
+.fsec{display:grid;gap:8px}
+.fhead{font:800 15px/1.1 var(--display);text-transform:uppercase;letter-spacing:.04em;color:var(--accent);border-bottom:2px solid var(--accent);padding-bottom:4px}
+.fgrid{display:grid;grid-template-columns:repeat(var(--fcols,4),minmax(0,1fr));gap:8px}
+.fcard{display:flex;flex-direction:column;gap:3px;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:5px;cursor:pointer;color:var(--ink);text-align:center;min-width:0;font:inherit}
+.fcard:hover{border-color:var(--accent)}
+.fcard.ffeat{border:2px solid var(--brass)}
+.fimg{display:grid;place-items:center;aspect-ratio:1;background:#fff;border-radius:7px;overflow:hidden}
+.fimg img{max-width:100%;max-height:100%;object-fit:contain}
+.fname{font-size:11px;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.4em}
+.fprice{font:700 12.5px var(--mono);color:var(--price-ink,var(--ink));background:var(--price-bg,var(--accent));border-radius:5px;padding:2px 4px;align-self:center}
+@media (max-width:700px){.folleto{padding:10px;gap:14px}.fgrid{gap:6px}.fname{font-size:10px}.fprice{font-size:11px}}
 /* Tipo de vitrina */
 .matbtn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 12px;font:600 13.5px var(--body);cursor:pointer}
 .matbtn[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
@@ -999,7 +1022,7 @@ html[data-mat="plastico"] :is(.col .cap,.col .base){background:var(--brass)!impo
 html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6px;border-radius:6px}
 /* Las otras vitrinas quedan arriba, chiquitas; la elegida se ve grande abajo */
 .catstrip{display:flex;gap:10px;overflow-x:auto;padding:6px 4px 10px;-webkit-overflow-scrolling:touch;
-  --cw:60px;--mp:370px;scrollbar-width:thin}
+  --cw:74px;--mp:370px;scrollbar-width:thin}
 .catstrip .mini{flex:0 0 108px;gap:4px}
 .catstrip .plaque{font-size:12.5px;justify-content:center;text-align:center}
 .catstrip .plaque .t{max-width:100%}
@@ -1007,7 +1030,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
 .catstrip .delx,.catstrip .mempty,.catstrip .more{display:none}
 .catstrip .mini.cur .mstage{outline:3px solid var(--accent);outline-offset:2px}
 .catstrip .mini.cur .plaque{color:var(--accent)}
-@media (max-width:700px){.catstrip{--cw:42px;--mp:260px;gap:8px}.catstrip .mini{flex-basis:76px}.catstrip .plaque{font-size:10.5px}}
+@media (max-width:700px){.catstrip{--cw:58px;--mp:260px;gap:8px}.catstrip .mini{flex-basis:84px}.catstrip .plaque{font-size:10.5px}}
 </style>
 
 <div class="clientbar" id="clientBar" hidden>
@@ -1151,6 +1174,12 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
         <button type="button" id="layoutGrid" aria-pressed="true">▦ Grilla</button>
         <button type="button" id="layoutRing" aria-pressed="false">◎ Círculo</button>
         <button type="button" id="layoutFree" aria-pressed="false">✋ Libre</button>
+        <button type="button" id="layoutFolleto" aria-pressed="false">📰 Folleto</button>
+      </span>
+      <span class="zoom homesize" role="group" aria-label="Tamaño de las vitrinas">
+        <button type="button" id="homeSizeDn" aria-label="Achicar todas">−</button>
+        <span id="homeSizeLbl">Normal</span>
+        <button type="button" id="homeSizeUp" aria-label="Agrandar todas">+</button>
       </span>
       <button class="btn" type="button" id="editBtn" aria-pressed="false">✥ Mover vitrinas</button>
       <button class="btn primary" type="button" id="quickBtn" aria-expanded="false" aria-controls="quickPanel">✦ Carga rápida</button>
@@ -1226,6 +1255,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <span id="zoomLabel">Cerca</span>
       <button type="button" id="zoomIn" aria-label="Acercar">+</button>
     </div>
+    <button class="linkbtn ownerbtn" type="button" id="zoomAll" title="Usar este tamaño en todas las vitrinas">Igual en todas</button>
     <select id="sort" aria-label="Ordenar productos">
       <option value="added">Orden de carga</option>
       <option value="name">Nombre A–Z</option>
@@ -1361,11 +1391,11 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   let products = [], sortMode = 'added', selectedId = null, editingId = null, pending = [];
   let angle = 0, vel = 0, target = null, autoOn = !reduce, dragging = false;
   let cols = 6, step = 60, radius = 300, colW = 200, colH = 400, layout = [];
-  const ZOOMS = ['Lejos', 'Normal', 'Cerca', 'Muy cerca'];
-  let zoom = 2;
-  try{ const z = parseInt(localStorage.getItem('vitrina360-zoom'), 10); if(z >= 0 && z < ZOOMS.length) zoom = z; }catch(e){}
+  const ZOOMS = ['Muy lejos', 'Lejos', 'Normal', 'Cerca', 'Muy cerca', 'Grande', 'Máximo'];
+  const ZF = [-0.55, 0, 0.42, 0.84, 1.26, 1.7, 2.15];
+  let zoom = 3;
   const PERSP = 1500;
-  const zoomPx = () => zoom * colW * 0.42;
+  const zoomPx = () => (ZF[zoom] || 0) * colW;
 
   const $ = id => document.getElementById(id);
   const stage = $('stage'), carousel = $('carousel'), carouselRefl = $('carouselRefl');
@@ -1389,7 +1419,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   const priceNum = p => { const n = parseFloat(String(p||'').replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',', '.')); return isNaN(n) ? Infinity : n; };
 
   const samples = () => SAMPLES.map((s,i) => ({...s, id:'s'+i, sample:true, added:i}));
-  const catClean = c => ({id: c.id, name: c.name, hidden: !!c.hidden, still: !!c.still, ...(c.bg ? {bg: c.bg} : {})});
+  const catClean = c => ({id: c.id, name: c.name, hidden: !!c.hidden, still: !!c.still, ...(c.bg ? {bg: c.bg} : {}), ...(Number.isInteger(c.zoom) ? {zoom: c.zoom} : {}), ...(c.size ? {size: c.size} : {})});
   function applyData(d){
     cats = Array.isArray(d.cats) && d.cats.length ? d.cats.slice(0, MAX_CATS).map(catClean) : DEFAULT_CATS.map(c => ({...c}));
     const fallback = (cats.find(c => c.id === 'varios') || cats[cats.length - 1]).id;
@@ -1471,18 +1501,20 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   const countText = () => { const v = cats.filter(c => !c.hidden).length; return `${v} vitrina${v===1?'':'s'} a la vista · ${products.length} productos`; };
   const two = n => String(n).padStart(2, '0');
 
+  const SZF = [0.7, 0.85, 1, 1.25, 1.5]; const szK = v => SZF[Math.max(-2, Math.min(2, v | 0)) + 2];
   function tileHTML(c, idx, isHid, small){
     const items = products.filter(p => p.cat === c.id).sort((x,y) => (y.featured ? 1 : 0) - (x.featured ? 1 : 0) || x.added - y.added);
     // vitrina de 4 caras: hasta 2 productos por estante; con pocos productos se repiten para que cada cara muestre algo
     const n = items.length, MC = 4, colsArr = Array.from({length: MC}, () => [[], [], []]);
     const fp = n && items[0].featured ? items[0] : null, pool = fp ? items.slice(1) : items, start = fp ? 1 : 0, mc = MC - start;
-    const show = pool.length && pool.length < mc ? Array.from({length: mc}, (_, i) => pool[i % pool.length]) : pool.slice(0, mc * 6);
+    const show = pool.length && pool.length < mc ? Array.from({length: mc}, (_, i) => pool[i % pool.length]) : pool.slice(0, mc * 3);
     show.forEach((p, k) => { const slot = Math.floor(k / mc); colsArr[start + k % mc][SHELF_ORDER[slot % 3]].push(p); });
     if(fp) colsArr[0] = 'BIG';
     const priced = items.filter(p => priceNum(p.price) !== Infinity).sort((x,y) => priceNum(x.price) - priceNum(y.price));
-    return `<button class="mini${isHid ? ' hiddencat' : ''}${n === 0 ? ' emptycat' : ''}${editMode && !isHid ? ' wiggle' : ''}" type="button" data-cat="${c.id}" aria-label="Abrir la vitrina ${esc(c.name)}${isHid ? ', oculta' : ''}, ${n} producto${n===1?'':'s'}">
+    const ks = c.size | 0;
+    return `<button class="mini${ks > 0 ? ' sz-big' : ks < 0 ? ' sz-small' : ''}${isHid ? ' hiddencat' : ''}${n === 0 ? ' emptycat' : ''}${editMode && !isHid ? ' wiggle' : ''}" type="button" data-cat="${c.id}" aria-label="Abrir la vitrina ${esc(c.name)}${isHid ? ', oculta' : ''}, ${n} producto${n===1?'':'s'}">
       <span class="plaque"><span class="mnum">${isHid ? 'OCULTA' : two(idx+1)}</span><span class="t">${esc(c.name)}</span></span>
-      <span class="mstage" style="${esc(varsStyle(bgVars(c.bg)))}">${effBg(c.id).type === 'photo' ? '<span class="roomphoto"></span>' : ''}<span class="delx" role="button" tabindex="0" data-delcat="${c.id}" aria-label="Borrar la vitrina ${esc(c.name)}" title="Borrar vitrina">✕</span>
+      <span class="mstage" style="${esc(varsStyle(bgVars(c.bg)))}">${effBg(c.id).type === 'photo' ? '<span class="roomphoto"></span>' : ''}<span class="delx" role="button" tabindex="0" data-delcat="${c.id}" aria-label="Borrar la vitrina ${esc(c.name)}" title="Borrar vitrina">✕</span><span class="szbar"><span role="button" tabindex="0" data-sz="-1" data-szcat="${c.id}" aria-label="Achicar ${esc(c.name)}">−</span><span role="button" tabindex="0" data-sz="1" data-szcat="${c.id}" aria-label="Agrandar ${esc(c.name)}">＋</span></span>
         <span class="mfloorp"></span><span class="mshadow"></span>
         <span class="mcar${c.still ? ' still' : ''}" style="--d:${(-idx * 4.3).toFixed(1)}s">
           ${colsArr.map((col, i) => col === 'BIG' ? `<span class="mcol mfeat" style="--i:${i}"><span class="mbig"><img src="${fp.img}" alt="" draggable="false"></span><span class="mboard"></span></span>` : `<span class="mcol" style="--i:${i}">${col.map(sh => `<span class="mshelf">${sh.map(p => `<img src="${p.img}" alt="" draggable="false">`).join('')}<span class="mboard"></span></span>`).join('')}</span>`).join('')}
@@ -1518,8 +1550,15 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     const ring = brand.layout === 'ring' && vis.length >= 2;
     const addTile = cats.length < capCats() ? `<button class="addchip" type="button" data-addcat="1" aria-label="Agregar una vitrina. Tenés ${cats.length} de ${capCats()}">＋ Vitrina <small>${cats.length}/${capCats()}</small></button>` : '';
     let html = '';
-    const free = brand.layout === 'free';
-    if(free){
+    const free = brand.layout === 'free', folleto = brand.layout === 'folleto';
+    if(folleto){
+      // Folleto: todos los productos como en una hoja, foto chica con nombre y precio, ordenados por rubro
+      html += `<div class="folleto">` + vis.map(c => {
+        const items = products.filter(p => p.cat === c.id).sort((x, y) => (y.featured ? 1 : 0) - (x.featured ? 1 : 0) || x.added - y.added);
+        if(!items.length) return '';
+        return `<section class="fsec"><h3 class="fhead">${esc(c.name)}</h3><div class="fgrid">${items.map(p => `<button class="fcard${p.featured ? ' ffeat' : ''}" type="button" data-pid="${p.id}" aria-label="${esc(p.name)}"><span class="fimg"><img src="${p.img}" alt="" loading="lazy" draggable="false"></span><span class="fname">${esc(p.name)}</span>${p.price ? `<span class="fprice">${esc(p.price)}</span>` : ''}</button>`).join('')}</div></section>`;
+      }).join('') + `</div>`;
+    } else if(free){
       const nV = vis.length, fp = brand.freePos || {};
       // posición inicial: filas arriba y abajo, con tu comercio en el medio; después cada una queda donde la sueltes
       const perRow = innerWidth < 700 ? 3 : 5, rows = Math.ceil(nV / perRow), topRows = Math.ceil(rows / 2), botRows = rows - topRows;
@@ -1532,10 +1571,10 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       const pos = (id, i) => fp[id] || (id === '__center' ? {x:50, y:50} : defPos(i));
       const c0 = pos('__center', 0);
       html += `<div class="freewrap" id="freewrap"><div class="fitem fcenter" data-fid="__center" style="left:${c0.x}%;top:${c0.y}%">${centerHTML()}</div>` +
-        vis.map((c, i) => { const q = pos(c.id, i); return `<div class="fitem" data-fid="${c.id}" style="left:${q.x}%;top:${q.y}%">${tileHTML(c, i, false, true)}</div>`; }).join('') + `</div>` + addTile;
+        vis.map((c, i) => { const q = pos(c.id, i); return `<div class="fitem" data-fid="${c.id}" style="left:${q.x}%;top:${q.y}%;--k:${szK(c.size)}">${tileHTML(c, i, false, true)}</div>`; }).join('') + `</div>` + addTile;
     } else if(ring){
       const nV = vis.length;
-      html += `<div class="ringwrap" id="ringwrap"><div class="ring">${vis.map((c, i) => `<div class="rslot" style="--a:${(i * 360 / nV).toFixed(2)}deg">${tileHTML(c, i, false, true)}</div>`).join('')}</div><div class="ring ringlbl" aria-hidden="true">${vis.map((c, i) => { const np = products.filter(p => p.cat === c.id).length; return `<div class="rslot" style="--a:${(i * 360 / nV).toFixed(2)}deg"><span class="mini${c.hidden ? ' hiddencat' : ''}${np === 0 ? ' emptycat' : ''}"><span class="plaque"><span class="t">${esc(c.name)}</span></span><span class="mstage"></span></span></div>`; }).join('')}</div>
+      html += `<div class="ringwrap" id="ringwrap"><div class="ring">${vis.map((c, i) => `<div class="rslot" style="--a:${(i * 360 / nV).toFixed(2)}deg;--k:${szK(c.size)}">${tileHTML(c, i, false, true)}</div>`).join('')}</div><div class="ring ringlbl" aria-hidden="true">${vis.map((c, i) => { const np = products.filter(p => p.cat === c.id).length; return `<div class="rslot" style="--a:${(i * 360 / nV).toFixed(2)}deg;--k:${szK(c.size)}"><span class="mini${c.hidden ? ' hiddencat' : ''}${np === 0 ? ' emptycat' : ''}"><span class="plaque"><span class="t">${esc(c.name)}</span></span><span class="mstage"></span></span></div>`; }).join('')}</div>
         ${centerHTML()}</div>`;
       html += addTile;
     } else {
@@ -1551,6 +1590,9 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     $('layoutGrid').setAttribute('aria-pressed', String(!brand.layout || brand.layout === 'grid'));
     $('layoutRing').setAttribute('aria-pressed', String(brand.layout === 'ring'));
     $('layoutFree').setAttribute('aria-pressed', String(free));
+    $('layoutFolleto').setAttribute('aria-pressed', String(folleto));
+    $('homeSizeLbl').textContent = ['Muy chicas', 'Chicas', 'Normal', 'Grandes', 'Muy grandes'][(brand.homeSize | 0) + 2];
+    $('homeSizeDn').disabled = (brand.homeSize | 0) <= -2; $('homeSizeUp').disabled = (brand.homeSize | 0) >= 2;
     $('freeReset').hidden = !(free && editMode);
     $('editHint').textContent = free ? 'Arrastrá cada vitrina, y también el círculo con tu nombre, a donde quieras. Quedan donde las sueltes.' : 'Arrastrá una vitrina sobre otra para cambiarlas de lugar en el orden.';
     $('editBtn').setAttribute('aria-pressed', String(editMode));
@@ -1560,26 +1602,33 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
 
   function sizeMinis(){
     const g = $('homegrid'), rw = $('ringwrap'), fw = $('freewrap');
+    const hs = (brand.homeSize | 0) + 2, f = SZF[hs], vw = innerWidth;
+    const gcols = vw <= 700 ? [4, 3, 2, 2, 1][hs] : vw <= 999 ? [5, 4, 3, 2, 2][hs] : [7, 6, 5, 4, 3][hs];
+    g.style.setProperty('--gcols', gcols);
+    g.style.setProperty('--fcols', vw <= 700 ? [6, 5, 4, 3, 2][hs] : vw <= 999 ? [8, 7, 6, 5, 4][hs] : [12, 10, 8, 6, 5][hs]);
     if(fw){
-      const W = fw.clientWidth, tw = W * (W < 700 ? 0.22 : 0.13);
+      const W = fw.clientWidth, nF = fw.querySelectorAll('.fitem').length - 1, tw = f * W * (W < 700 ? (nF <= 6 ? 0.27 : nF <= 10 ? 0.24 : 0.2) : (nF <= 6 ? 0.16 : 0.13));
       fw.style.setProperty('--tw', tw.toFixed(1) + 'px');
       fw.style.setProperty('--cwid', (tw * 1.4).toFixed(1) + 'px');
-      fw.style.setProperty('--cw', (tw * 0.56).toFixed(1) + 'px');
+      fw.style.setProperty('--cw', (tw * 0.62).toFixed(1) + 'px'); fw.style.setProperty('--cwb', (tw * 0.62).toFixed(1) + 'px');
       fw.style.setProperty('--mp', Math.round(tw * 3.4) + 'px');
     }
     if(rw){
       const W = rw.clientWidth, n = rw.querySelectorAll('.ring:not(.ringlbl) > .rslot').length;
-      const tw = W * (n <= 4 ? 0.25 : n <= 6 ? 0.21 : n <= 10 ? 0.175 : 0.14);
+      // en círculo, el tamaño crece hasta donde entran sin pisarse
+      const tw = W * [0.65, 0.82, 1, 1.05, 1.1][hs] * Math.min(0.285, 3.0 / (n * 1.08 + 3.83));
+      const rc = rw.querySelector(':scope > .ringcenter'); if(rc) rc.style.width = (hs >= 3 ? 24 : n <= 8 ? 28 : 32) + '%';
       const th = tw * 1.22;
       rw.style.setProperty('--tw', tw.toFixed(1) + 'px');
       rw.style.setProperty('--th', th.toFixed(1) + 'px');
       rw.style.setProperty('--R', (W / 2 - th / 2 - 6).toFixed(1) + 'px');
-      rw.style.setProperty('--cw', (tw * 0.56).toFixed(1) + 'px');
+      rw.style.setProperty('--cw', (tw * 0.62).toFixed(1) + 'px'); rw.style.setProperty('--cwb', (tw * 0.62).toFixed(1) + 'px');
       rw.style.setProperty('--mp', Math.round(tw * 3.4) + 'px');
     }
     const t = g.querySelector('.homegrid > .mini .mstage, .homegrid > .mini.hiddencat .mstage');
     if(!t || !t.clientWidth) return;
-    g.style.setProperty('--cw', (t.clientWidth * 0.56).toFixed(1) + 'px');
+    g.style.setProperty('--cw', (t.clientWidth * 0.6).toFixed(1) + 'px');
+    g.style.setProperty('--cwb', (t.clientWidth * 0.6).toFixed(1) + 'px');
     g.style.setProperty('--mp', Math.round(t.clientWidth * 3.4) + 'px');
   }
   addEventListener('resize', () => { if(!currentCat) sizeMinis(); });
@@ -1592,7 +1641,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   function openCat(id, tile){
     const from = tile ? tile.querySelector('.mstage').getBoundingClientRect() : null;
     const oldY = scrollY;
-    currentCat = id; selectedId = null; angle = 0; target = null; vel = 0; setAuto(!reduce && !(catOf(id) || {}).still);
+    currentCat = id; selectedId = null; angle = 0; target = null; vel = 0; setZoom(catZoom(catOf(id))); setAuto(!reduce && !(catOf(id) || {}).still);
     $('homeView').hidden = true; $('shopView').hidden = false;
     applyStageBg(); renderBgBars(); $('fixMsg').textContent = '';
     $('lede').textContent = 'Arrastrá la vitrina para girarla. Tocá un producto para ver su ficha, o dos veces para ver todas sus fotos.';
@@ -2083,10 +2132,18 @@ Respondé SOLO con JSON: {"name": "nombre corto del modelo, de 1 a 4 palabras, q
     zoom = Math.max(0, Math.min(ZOOMS.length - 1, z));
     $('zoomLabel').textContent = ZOOMS[zoom];
     $('zoomOut').disabled = zoom === 0; $('zoomIn').disabled = zoom === ZOOMS.length - 1;
-    try{ localStorage.setItem('vitrina360-zoom', String(zoom)); }catch(e){}
   }
-  $('zoomIn').onclick = () => { setZoom(zoom + 1); render(); };
-  $('zoomOut').onclick = () => { setZoom(zoom - 1); render(); };
+  // cada vitrina guarda su propio tamaño; "Igual en todas" lo copia a todas
+  const catZoom = c => { const z = c && Number.isInteger(c.zoom) ? c.zoom : (Number.isInteger(brand.zoom) ? brand.zoom : 3); return Math.max(0, Math.min(ZOOMS.length - 1, z)); };
+  function zoomStep(d){
+    setZoom(zoom + d);
+    const c = currentCat && catOf(currentCat);
+    if(c && !clientMode){ c.zoom = zoom; save(); }
+    render();
+  }
+  $('zoomIn').onclick = () => zoomStep(1);
+  $('zoomOut').onclick = () => zoomStep(-1);
+  $('zoomAll').onclick = () => { brand.zoom = zoom; cats.forEach(c => { delete c.zoom; }); save(); $('zoomAll').textContent = '✓ Listo'; setTimeout(() => { $('zoomAll').textContent = 'Igual en todas'; }, 1500); };
   setZoom(zoom);
   $('auto').onclick = () => { target = null; setAuto(!autoOn); const c = currentCat && catOf(currentCat); if(c && !clientMode){ c.still = !autoOn; save(); } };
   $('sort').onchange = e => { sortMode = e.target.value; save(); render(); const it = layout.find(l => l.p.id === selectedId); if(it) goToCol(it.col); };
@@ -2125,6 +2182,10 @@ Respondé SOLO con JSON: {"name": "nombre corto del modelo, de 1 a 4 palabras, q
     if(x && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); e.stopPropagation(); askDeleteCat(x.dataset.delcat); }
   });
   $('homegrid').addEventListener('click', e => {
+    const sz = e.target.closest('[data-sz]');
+    if(sz){ e.preventDefault(); e.stopPropagation(); const c = catOf(sz.dataset.szcat); if(c){ c.size = Math.max(-2, Math.min(2, (c.size | 0) + (+sz.dataset.sz))); if(!c.size) delete c.size; save(); renderHome(); } return; }
+    const fc = e.target.closest('.fcard');
+    if(fc){ openModal(fc.dataset.pid); return; }
     const dx = e.target.closest('[data-delcat]');
     if(dx){ e.preventDefault(); e.stopPropagation(); if(!editMode) askDeleteCat(dx.dataset.delcat); return; }
     if(e.target.closest('[data-addcat]')){
@@ -2143,6 +2204,9 @@ Respondé SOLO con JSON: {"name": "nombre corto del modelo, de 1 a 4 palabras, q
   $('layoutGrid').onclick = () => { brand.layout = 'grid'; save(); renderHome(); };
   $('layoutRing').onclick = () => { brand.layout = 'ring'; save(); renderHome(); };
   $('layoutFree').onclick = () => { brand.layout = 'free'; save(); renderHome(); };
+  $('layoutFolleto').onclick = () => { brand.layout = 'folleto'; save(); renderHome(); };
+  $('homeSizeDn').onclick = () => { brand.homeSize = Math.max(-2, (brand.homeSize | 0) - 1); save(); renderHome(); };
+  $('homeSizeUp').onclick = () => { brand.homeSize = Math.min(2, (brand.homeSize | 0) + 1); save(); renderHome(); };
   $('freeReset').onclick = () => { brand.freePos = {}; save(); renderHome(); };
   $('editBtn').onclick = () => { editMode = !editMode; renderHome(); };
   // ---- Arrastrar vitrinas para ordenarlas (como las apps del celular) ----
