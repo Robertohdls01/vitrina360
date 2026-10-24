@@ -1779,7 +1779,11 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       ${withAdd && vs.length < 6 ? `<button class="mchip addv" type="button" data-m="addvar"><b>＋</b>Agregar modelo</button>` : ''}
     </div></div>`;
   }
-  const priceNum = p => { const n = parseFloat(String(p||'').replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',', '.')); return isNaN(n) ? Infinity : n; };
+  // Lee precios de Argentina ($1.500 / $1.500,50) y de Estados Unidos ($25.99 / $1,500.00): el último separador es decimal salvo que le sigan justo 3 cifras.
+const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i = Math.max(t.lastIndexOf('.'), t.lastIndexOf(','));
+  if(i >= 0){ const dec = t.slice(i + 1), mixed = /[.,]/.test(t.slice(0, i)) && t[i] !== t.slice(0, i).replace(/[^.,]/g, '').slice(-1);
+    t = (mixed || dec.length !== 3) ? t.slice(0, i).replace(/[.,]/g, '') + '.' + dec : t.replace(/[.,]/g, ''); }
+  const n = parseFloat(t); return isNaN(n) ? Infinity : n; };
 
   const samples = () => SAMPLES.map((s,i) => ({...s, id:'s'+i, sample:true, added:i}));
   const catClean = c => ({id: c.id, name: c.name, hidden: !!c.hidden, still: !!c.still, ...(c.bg ? {bg: c.bg} : {}), ...(Number.isInteger(c.zoom) ? {zoom: c.zoom} : {}), ...(c.size ? {size: c.size} : {}), ...(c.glow ? {glow: true} : {}), ...(c.deco ? {deco: c.deco} : {}), ...(c.flyer ? {flyer: true} : {})});
