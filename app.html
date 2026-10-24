@@ -4014,7 +4014,7 @@ function paypalHref(t, unpriced){
   return 'https://www.paypal.com/paypalme/' + encodeURIComponent(u) + (t > 0 && !unpriced ? '/' + (Math.round(t * 100) / 100) : '');
 }
 // Billeteras: cada comerciante agrega las suyas (link para pagar, o usuario/alias para copiar).
-const WALLETS = ['Mercado Pago','AstroPay','Ualá','MODO','Naranja X','Cuenta DNI','Personal Pay','Prex','Brubank','Lemon','Binance Pay','Cripto (USDT)','Stripe','Zelle','Venmo','Cash App','PIX','Nequi','Yape','Otra forma de pago'];
+const WALLETS = ['Mercado Pago','AstroPay','Ualá','MODO','Naranja X','Cuenta DNI','Personal Pay','Prex','Brubank','Lemon','Binance Pay','Coinbase','Cripto (USDT)','Stripe','Zelle','Venmo','Cash App','PIX','Nequi','Yape','Otra forma de pago'];
 const walletsOf = () => (Array.isArray(brand.wallets) ? brand.wallets : []).filter(w => w && String(w.value || '').trim());
 const walletHref = v => { v = String(v || '').trim(); return /^https?:\/\//i.test(v) ? v.replace(/^http:/i, 'https:') : /^(www\.)?[\w-]+(\.[\w-]+)*\.[a-z]{2,}\/\S+$/i.test(v) ? 'https://' + v : ''; };
 function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const v = priceNum(it.price); if(v === Infinity) unpriced++; else t += v * it.q; }); return {t, unpriced}; }
