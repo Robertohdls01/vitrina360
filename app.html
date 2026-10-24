@@ -292,7 +292,7 @@
     const r = await fetch('/api/ia', {method: 'POST', signal: opts.signal, headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await token()},
       body: JSON.stringify({prompt: typeof prompt === 'string' ? prompt : (prompt || []).map(m => m.content).join('\n\n'), images: await Promise.all(imgs.map(toB64)), json: !!json, tier: opts.modelTier || ''})});
     const j = await r.json().catch(() => ({}));
-    if(!r.ok){ const e = new Error(j.error || 'IA'); e.code = r.status === 402 ? 'no_credit' : r.status === 429 ? 'rate_limited' : r.status === 503 ? 'sampling_disabled' : r.status === 401 ? 'not_granted' : 'ia_error'; throw e; }
+    if(!r.ok){ const e = new Error(j.error || 'IA'); e.code = r.status === 402 ? 'no_credit' : r.status === 429 ? 'rate_limited' : r.status === 503 ? 'sampling_disabled' : r.status === 401 ? 'not_granted' : r.status === 403 ? 'trial_limit' : 'ia_error'; throw e; }
     return j.text || '';
   }
   function parseJSON(t){
@@ -3287,6 +3287,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     image_rejected:'No se pudo leer esa foto. Probá con otra (JPG o PNG).',
     refused:'No se pudo reconocer este producto. Completá los datos a mano.',
     session_expired:'Tu sesión venció. Volvé a iniciar sesión para usar el reconocimiento.',
+    trial_limit:'Ya usaste las fotos con IA de la prueba gratis. Elegí un plan para seguir reconociendo productos; mientras, completá los datos a mano.',
     no_credit:'La IA se quedó sin saldo: hay que cargar crédito en la cuenta de Anthropic. Mientras, completá los datos a mano.'
   })[c] || 'No se pudo reconocer el producto esta vez. Podés completar los datos a mano.';
 
@@ -3312,7 +3313,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
         if(e && e.code === 'cancelled') return;
         lastErr = e;
         if(e && ['not_granted','sampling_disabled','not_declared','images_unavailable','capability_disabled','capability_removed'].includes(e.code)){ sampler = null; $('aiNote').hidden = true; break; }
-        if(e && (e.code === 'rate_limited' || e.code === 'no_credit')) break;
+        if(e && (e.code === 'rate_limited' || e.code === 'no_credit' || e.code === 'trial_limit')) break;
       }
     }
     if(ctl !== aiCtl) return;
@@ -3529,14 +3530,14 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
           continue;
         }catch(e){
           if(e && e.code === 'cancelled') break;
-          if(e && ['not_granted','sampling_disabled','not_declared','images_unavailable','capability_disabled','capability_removed','rate_limited'].includes(e.code)){ $('qMsg').textContent = errCopy(e.code); break; }
+          if(e && ['not_granted','sampling_disabled','not_declared','images_unavailable','capability_disabled','capability_removed','rate_limited','trial_limit'].includes(e.code)){ $('qMsg').textContent = errCopy(e.code); break; }
         }
       }
       if(sampler && !multi){
         try{ ai = await recognize(item, ctl.signal, true); }
         catch(e){
           if(e && e.code === 'cancelled') break;
-          if(e && ['not_granted','sampling_disabled','not_declared','images_unavailable','capability_disabled','capability_removed','rate_limited'].includes(e.code)){ $('qMsg').textContent = errCopy(e.code); sampler = e.code === 'rate_limited' ? sampler : null; }
+          if(e && ['not_granted','sampling_disabled','not_declared','images_unavailable','capability_disabled','capability_removed','rate_limited','trial_limit'].includes(e.code)){ $('qMsg').textContent = errCopy(e.code); sampler = e.code === 'rate_limited' ? sampler : null; }
         }
       }
       const p = {id: uid(), cat: item.aiCat || fallback, added: base + i, img: item.src, name: ai.name || item.name, price: '', features: ai.features || []};

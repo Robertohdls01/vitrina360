@@ -1,5 +1,27 @@
 // Vitrina 360 · IA para reconocer productos. La clave de Anthropic vive en Vercel (variable ANTHROPIC_API_KEY), nunca en la página.
 const TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const { db, estado } = require('./_comun');
+
+// Cuenta las fotos reconocidas mientras la tienda está en prueba gratis (se guarda en la cuenta del comerciante, donde él no lo puede tocar).
+// LIMITE_FOTOS_PRUEBA en Vercel cambia el número; IA_SIN_LIMITE (mails separados por coma) deja sin límite, por ejemplo al dueño de Vitrina 360.
+async function cupoPrueba(user) {
+  const SK = process.env.SUPABASE_SERVICE_KEY, base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
+  if (!SK || !user || !user.id) return null;
+  const libres = String(process.env.IA_SIN_LIMITE || '').toLowerCase().split(',').map(x => x.trim()).filter(Boolean);
+  if (user.email && libres.includes(String(user.email).toLowerCase())) return null;
+  try {
+    const rows = await db('GET', '/rest/v1/tiendas?owner=eq.' + user.id + '&select=owner,prueba_hasta,pagada_hasta,activa,plan');
+    if (rows && rows[0] && estado(rows[0]).estado === 'activa') return null; // ya paga: sin este límite
+  } catch (e) { return null; } // si la base no responde, no se le corta la IA a nadie
+  const limite = Math.max(0, Number(process.env.LIMITE_FOTOS_PRUEBA || 10));
+  const meta = user.app_metadata || {}, usadas = Number(meta.ia_prueba) || 0;
+  if (usadas >= limite) return { agotado: true, limite };
+  return { limite, sumar: async () => {
+    const headers = { apikey: SK, 'Content-Type': 'application/json' };
+    if (String(SK).startsWith('eyJ')) headers.Authorization = 'Bearer ' + SK;
+    try { await fetch(base + '/auth/v1/admin/users/' + user.id, { method: 'PUT', headers, body: JSON.stringify({ app_metadata: Object.assign({}, meta, { ia_prueba: usadas + 1 }) }) }); } catch (e) {}
+  } };
+}
 module.exports = async (req, res) => {
   const KEY = process.env.ANTHROPIC_API_KEY, SURL = process.env.SUPABASE_URL, SKEY = process.env.SUPABASE_KEY;
   const ready = !!(KEY && SURL && SKEY);
@@ -9,9 +31,11 @@ module.exports = async (req, res) => {
 
   const tok = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   if (!tok) return res.status(401).json({ error: 'Tenés que entrar a tu tienda.' });
+  let user = null;
   try {
     const u = await fetch(SURL.replace(/\/+$/, '') + '/auth/v1/user', { headers: { apikey: SKEY, Authorization: 'Bearer ' + tok } });
     if (!u.ok) return res.status(401).json({ error: 'Tu sesión venció. Volvé a entrar.' });
+    user = await u.json().catch(() => null);
   } catch (e) { return res.status(502).json({ error: 'No se pudo verificar la sesión.' }); }
 
   let body = req.body;
@@ -25,6 +49,9 @@ module.exports = async (req, res) => {
     if (!im || typeof im.data !== 'string' || im.data.length > 5000000) return res.status(400).json({ error: 'Foto inválida o muy pesada.' });
     content.push({ type: 'image', source: { type: 'base64', media_type: TYPES.includes(im.type) ? im.type : 'image/jpeg', data: im.data } });
   }
+  // Prueba gratis: pocas fotos reconocidas con IA, para que vean que funciona sin que se gaste de más.
+  const cupo = images.length > 0 ? await cupoPrueba(user) : null;
+  if (cupo && cupo.agotado) return res.status(403).json({ error: `Usaste las ${cupo.limite} fotos con IA de la prueba gratis. Elegí un plan para seguir reconociendo productos; mientras, completá los datos a mano.`, limite: cupo.limite });
   content.push({ type: 'text', text: prompt + (body.json ? '\n\nRespondé únicamente con JSON válido, sin texto antes ni después.' : '') });
 
   // Todo lo que lleva fotos (reconocer productos, catálogos, enderezar): el modelo más potente, Opus.
@@ -52,6 +79,7 @@ module.exports = async (req, res) => {
       const busy = r.status === 429 || r.status === 529;
       return res.status(busy ? 429 : 502).json({ error: busy ? 'La IA está ocupada, probá en un rato.' : (msg || 'La IA no respondió.') });
     }
+    if (cupo && cupo.sumar) await cupo.sumar();
     const text = (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
     return res.status(200).json({ text });
   } catch (e) {
