@@ -27,9 +27,13 @@ module.exports = async (req, res) => {
   }
   content.push({ type: 'text', text: prompt + (body.json ? '\n\nRespondé únicamente con JSON válido, sin texto antes ni después.' : '') });
 
-  // Páginas de catálogo y enderezado de fotos: modelo con mejor vista. Productos sueltos: el más económico.
+  // Páginas de catálogo y enderezado de fotos: el modelo más potente (Opus).
+  // Fotos de productos sueltos: Sonnet, que reconoce mucho mejor marcas, modelos y objetos que Haiku.
+  // Texto sin fotos (sugerir precio, textos para redes): el económico.
   const dificil = images.length > 0 && (body.tier === 'complex' || /cat[aá]logo/i.test(prompt));
-  const model = dificil ? (process.env.IA_MODEL_VISION || 'claude-sonnet-5-5') : (process.env.IA_MODEL || 'claude-haiku-5-5');
+  const model = dificil ? (process.env.IA_MODEL_VISION || 'claude-opus-5-5')
+    : images.length > 0 ? (process.env.IA_MODEL || 'claude-sonnet-5-5')
+    : (process.env.IA_MODEL_TEXT || 'claude-haiku-5-5');
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -38,6 +42,8 @@ module.exports = async (req, res) => {
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) {
+      const msg = String((j.error && j.error.message) || '');
+      if (/credit balance|billing|purchase credits/i.test(msg)) return res.status(402).json({ error: 'La IA se quedó sin saldo. Cargá crédito en la cuenta de Anthropic (console.anthropic.com → Billing).' });
       const busy = r.status === 429 || r.status === 529;
       return res.status(busy ? 429 : 502).json({ error: busy ? 'La IA está ocupada, probá en un rato.' : ((j.error && j.error.message) || 'La IA no respondió.') });
     }

@@ -4,6 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Tienda online con vitrinas 360°">
+<link rel="icon" href="/icons/favicon-64.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Vitrina 360">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0e6a5b">
+<script>
+/* App instalable: en el panel del dueño el celular puede poner el ícono de Vitrina 360 en la pantalla, como una app. */
+(function(){
+  var p = location.pathname.replace(/\/+$/, '');
+  if(p !== '/panel') return;
+  var l = document.createElement('link'); l.rel = 'manifest'; l.href = '/manifest.webmanifest'; document.head.appendChild(l);
+  window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); window.__v360Install = e; document.dispatchEvent(new Event('v360-installable')); });
+  if('serviceWorker' in navigator) window.addEventListener('load', function(){ navigator.serviceWorker.register('/sw.js').catch(function(){}); });
+})();
+</script>
 <style>*,*::before,*::after{box-sizing:border-box}html,body{margin:0;padding:0}[hidden]{display:none!important}</style>
 <script>window.VITRINA_CFG = {"url": "https://oqsbjxezzqiyvvqxhkja.supabase.co", "key": "sb_publishable_S6yT1n9xzCn4Agmqc6Tbfw_hn0tTElq"};</script>
 <script>
@@ -275,7 +291,7 @@
     const r = await fetch('/api/ia', {method: 'POST', signal: opts.signal, headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await token()},
       body: JSON.stringify({prompt: typeof prompt === 'string' ? prompt : (prompt || []).map(m => m.content).join('\n\n'), images: await Promise.all(imgs.map(toB64)), json: !!json, tier: opts.modelTier || ''})});
     const j = await r.json().catch(() => ({}));
-    if(!r.ok){ const e = new Error(j.error || 'IA'); e.code = r.status === 429 ? 'rate_limited' : r.status === 503 ? 'sampling_disabled' : r.status === 401 ? 'not_granted' : 'ia_error'; throw e; }
+    if(!r.ok){ const e = new Error(j.error || 'IA'); e.code = r.status === 402 ? 'no_credit' : r.status === 429 ? 'rate_limited' : r.status === 503 ? 'sampling_disabled' : r.status === 401 ? 'not_granted' : 'ia_error'; throw e; }
     return j.text || '';
   }
   function parseJSON(t){
@@ -944,6 +960,54 @@ body.clientmode .socialbox{display:none!important}
   .sbox input{padding:6px 2px}
 }
 @media (prefers-reduced-motion:reduce){.prod img{transition:none}.mcar{animation:none}.mstage{transition:none}}
+
+/* ===== Mejoras oct-2026 ===== */
+/* Menos palabras en pantalla: la vitrina habla con los productos y los precios */
+#lede,.count,#catCount,.controls .hint,.col .num,.board .tag,.mfoot,.plaque .mnum{display:none!important}
+/* Celular: vitrina un poco más alta para que los productos se vean mejor de lejos */
+@media (max-width:700px){.stage{height:clamp(500px,68vh,640px)}}
+/* Interior espejado: el fondo refleja el producto y los costados muestran sus lados, como verlo en 360° */
+.col .wall{background:
+    linear-gradient(112deg, transparent calc(var(--sheen,50%) - 14%), var(--sheen-c) var(--sheen,50%), transparent calc(var(--sheen,50%) + 9%)),
+    linear-gradient(90deg, rgba(255,255,255,.28), transparent 14%, transparent 86%, rgba(255,255,255,.28)),
+    linear-gradient(180deg, var(--mirror-a), var(--mirror-b) 48%, var(--mirror-c))}
+.prod .refl{transform:translateX(-12%) translateY(-6%) scale(.82) scaleX(-1);opacity:var(--refl-op2,.32);bottom:4px}
+.prod .refl img{filter:blur(.5px) saturate(.8) brightness(1.05)}
+.prod .refl.side{width:38%;height:90%;bottom:3px;opacity:var(--refl-side,.28);display:flex;align-items:flex-end;justify-content:center}
+.prod .refl.side.l{left:-12%;transform:perspective(260px) rotateY(48deg) scaleX(-1)}
+.prod .refl.side.r{left:auto;right:-12%;transform:perspective(260px) rotateY(-48deg) scaleX(-1)}
+.prod .refl.side img{max-width:100%;max-height:100%;object-fit:contain;filter:blur(.6px) saturate(.75)}
+#catNum{display:none!important}
+.shelf{overflow:clip;overflow-clip-margin:14px}
+/* Tipo de vitrina */
+.matbtn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 12px;font:600 13.5px var(--body);cursor:pointer}
+.matbtn[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.matsw{width:16px;height:16px;border-radius:4px;display:inline-block;border:1px solid rgba(0,0,0,.15)}
+.matsw.mat-madera{background:linear-gradient(#c08f60,#8b603d)}.matsw.mat-metal{background:linear-gradient(135deg,#f4f6f8,#9aa4ab 55%,#e6eaed)}
+.matsw.mat-vidrio{background:linear-gradient(135deg,rgba(220,240,246,.9),rgba(150,195,208,.6))}.matsw.mat-plastico{background:linear-gradient(#fff,#ef5b6e)}
+body.clientmode .matshop{display:none}
+html[data-mat="metal"] :is(.board,.mboard,.col .cap,.col .base){background:linear-gradient(180deg,#f7f9fa,#c9d1d6 40%,#8e989f 60%,#dde3e7)!important}
+html[data-mat="metal"] .col .wall{border-left-width:5px;border-right-width:5px;border-image:linear-gradient(180deg,#eef2f4,#9aa4ab,#eef2f4) 1}
+html[data-mat="vidrio"] :is(.board,.mboard){background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(190,225,235,.45) 30%,rgba(120,175,190,.55))!important;box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 6px 10px -6px var(--shadow)!important}
+html[data-mat="vidrio"] :is(.col .cap,.col .base){background:linear-gradient(180deg,rgba(255,255,255,.75),rgba(150,195,208,.6))!important}
+html[data-mat="vidrio"] .col .wall{border-left:2px solid rgba(255,255,255,.85);border-right:2px solid rgba(255,255,255,.85);
+  background:linear-gradient(112deg, transparent calc(var(--sheen,50%) - 14%), rgba(255,255,255,.7) var(--sheen,50%), transparent calc(var(--sheen,50%) + 9%)),
+  linear-gradient(180deg,rgba(225,240,245,.35),rgba(190,215,225,.25))!important}
+html[data-mat="vidrio"] .mcol{background:linear-gradient(180deg,rgba(225,240,245,.4),rgba(190,215,225,.3))!important;border-color:rgba(255,255,255,.85)!important}
+html[data-mat="plastico"] :is(.board,.mboard){border-radius:6px;background:linear-gradient(180deg,#ffffff,#e9ecef)!important}
+html[data-mat="plastico"] :is(.col .cap,.col .base){background:var(--brass)!important;border-radius:8px}
+html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6px;border-radius:6px}
+/* Las otras vitrinas quedan arriba, chiquitas; la elegida se ve grande abajo */
+.catstrip{display:flex;gap:10px;overflow-x:auto;padding:6px 4px 10px;-webkit-overflow-scrolling:touch;
+  --cw:60px;--mp:370px;scrollbar-width:thin}
+.catstrip .mini{flex:0 0 108px;gap:4px}
+.catstrip .plaque{font-size:12.5px;justify-content:center;text-align:center}
+.catstrip .plaque .t{max-width:100%}
+.catstrip .mstage{aspect-ratio:1/1;border-radius:11px}
+.catstrip .delx,.catstrip .mempty,.catstrip .more{display:none}
+.catstrip .mini.cur .mstage{outline:3px solid var(--accent);outline-offset:2px}
+.catstrip .mini.cur .plaque{color:var(--accent)}
+@media (max-width:700px){.catstrip{--cw:42px;--mp:260px;gap:8px}.catstrip .mini{flex-basis:76px}.catstrip .plaque{font-size:10.5px}}
 </style>
 
 <div class="clientbar" id="clientBar" hidden>
@@ -963,6 +1027,7 @@ body.clientmode .socialbox{display:none!important}
       <div class="contactrow" id="contactRow" hidden></div>
       <span class="row" style="gap:6px;justify-content:flex-end">
         <select id="langSel" class="langsel" aria-label="Idioma / Language / Idioma"><option value="es">🇦🇷 Español</option><option value="en">🇺🇸 English</option><option value="pt">🇧🇷 Português</option></select>
+        <button class="btn primary" type="button" id="installBtn" hidden>📲 Instalar la app</button>
         <button class="btn" type="button" id="clientBtn">👁 Ver como cliente</button>
         <button class="btn ownerbtn" type="button" id="webBtn" hidden>🌐 Llevar a la web</button>
         <button class="btn" type="button" id="brandBtn" aria-expanded="false" aria-controls="brandPanel">Personalizar mi comercio</button>
@@ -993,6 +1058,11 @@ body.clientmode .socialbox{display:none!important}
       <p class="note" style="margin:0">Elegí una plantilla: pone nombre a las 10 vitrinas y cambia el estilo del mueble. Tus productos no se borran; los de ejemplo se quitan.</p>
       <div class="presetgrid" id="presetGrid"></div>
       <p class="note" id="presetMsg" role="status" style="margin:0"></p>
+    </div>
+    <div class="presets">
+      <strong>Tipo de vitrina</strong>
+      <p class="note" style="margin:0">Elegí de qué está hecho el mueble. Se aplica a todas tus vitrinas.</p>
+      <div class="bgbar" id="matBar" role="group" aria-label="Tipo de vitrina"></div>
     </div>
     <div class="slot">
       <label for="b-name">Nombre del comercio
@@ -1110,7 +1180,8 @@ body.clientmode .socialbox{display:none!important}
     <div class="homegrid" id="homegrid"></div>
   </section>
 
-  <section id="shopView" hidden style="display:grid;gap:18px">
+  <section id="shopView" hidden style="display:grid;gap:14px">
+  <div class="catstrip" id="catStrip" role="group" aria-label="Otras vitrinas"></div>
   <div class="shopbar">
     <button class="btn" type="button" id="back">← Todas las vitrinas</button>
     <div class="shoptitle">
@@ -1145,6 +1216,7 @@ body.clientmode .socialbox{display:none!important}
   </div>
 
   <div class="bgbar" id="bgBarShop" role="group" aria-label="Fondo de la vitrina"></div>
+  <div class="bgbar matshop" id="matBarShop" role="group" aria-label="Tipo de vitrina"></div>
   <div class="controls">
     <button class="btn" id="prev" type="button" aria-label="Girar a la izquierda">◀ Anterior</button>
     <button class="btn" id="next" type="button" aria-label="Girar a la derecha">Siguiente ▶</button>
@@ -1380,8 +1452,10 @@ body.clientmode .socialbox{display:none!important}
 
   function measure(){
     const w = stage.clientWidth, h = stage.clientHeight;
-    colW = Math.round(Math.min(300, Math.max(170, w * 0.5)));
-    colH = Math.round(h * 0.68);
+    // en el celular los módulos son un poco más anchos y altos, para que los productos se vean de lejos
+    const narrow = w < 700;
+    colW = Math.round(Math.min(300, Math.max(170, w * (narrow ? 0.62 : 0.5))));
+    colH = Math.round(h * (narrow ? 0.72 : 0.68));
     const cy = h * 0.46, scale = PERSP / (PERSP - zoomPx());
     const floorY = Math.min(h - 8, Math.round(h / 2 + (cy + colH / 2 + 16 - h / 2) * scale));
     $('floorplane').style.top = floorY + 'px';
@@ -1527,9 +1601,13 @@ body.clientmode .socialbox{display:none!important}
     $('catTitle').textContent = c.name;
     $('renameForm').hidden = true; $('renameBtn').hidden = false; $('catTitle').hidden = false;
     if(!editingId) fillCatSelect(id);
-    scrollTo(0, 0);
+    renderStrip();
     render();
-    if(from && !reduce && stage.animate){
+    // la tira de vitrinas arriba y la elegida, grande, justo debajo
+    const strip = $('catStrip');
+    scrollTo(0, Math.max(0, strip.getBoundingClientRect().top + scrollY - 8));
+    const cur = strip.querySelector('.mini.cur');
+    if(cur){ const sr = strip.getBoundingClientRect(), cr = cur.getBoundingClientRect(); strip.scrollLeft += (cr.left + cr.width / 2) - (sr.left + sr.width / 2); }    if(from && !reduce && stage.animate){
       const to = stage.getBoundingClientRect();
       const dx = from.left - to.left, dy = (from.top + oldY - scrollY) - to.top;
       stage.animate([
@@ -1539,6 +1617,14 @@ body.clientmode .socialbox{display:none!important}
     }
     stage.focus({preventScroll:true});
   }
+  function renderStrip(){
+    const list = cats.filter(c => !c.hidden || c.id === currentCat);
+    $('catStrip').innerHTML = list.map((c, i) => tileHTML(c, i, false, true).replace('class="mini', `class="mini${c.id === currentCat ? ' cur' : ''}`)).join('');
+  }
+  $('catStrip').addEventListener('click', e => {
+    const t = e.target.closest('.mini'); if(!t || t.dataset.cat === currentCat) return;
+    openCat(t.dataset.cat, t);
+  });
   function closeCat(){
     const was = currentCat;
     currentCat = null; resetForm(); $('formMsg').textContent = '';
@@ -1562,7 +1648,7 @@ body.clientmode .socialbox{display:none!important}
     const sh = colH / SHELVES, rc = cols - off;
     layout = rest.map((p, k) => ({p, col: off + k % rc, shelf: SHELF_ORDER[Math.floor(k / rc)]}));
     if(feat) layout.unshift({p: feat, col: 0, shelf: 1, big: true});
-    const prodBtn = (p, h, extra) => `<button class="prod${extra || ''}${p.id===selectedId?' sel':''}" type="button" data-id="${p.id}" style="height:${h}px" aria-label="${esc(p.name)}"><span class="refl" aria-hidden="true"><img src="${p.img}" alt="" draggable="false"></span><img src="${p.img}" alt="" draggable="false">${p.featured ? '<span class="fstar" title="Destacado">★ Destacado</span>' : ''}${p.review ? '<span class="rvbadge" title="Nombre sin identificar">⚠</span>' : ''}${p.price ? `<span class="ptag">${esc(p.price)}</span>` : ''}${(p.variants||[]).length ? `<span class="vrow">${p.variants.slice(0,3).map(v => `<img src="${v.img}" alt="" draggable="false" data-v="${v.id}">`).join('')}${p.variants.length > 3 ? `<span class="vmore">+${p.variants.length - 3}</span>` : ''}</span>` : ''}</button>`;
+    const prodBtn = (p, h, extra) => `<button class="prod${extra || ''}${p.id===selectedId?' sel':''}" type="button" data-id="${p.id}" style="height:${h}px" aria-label="${esc(p.name)}"><span class="refl" aria-hidden="true"><img src="${p.img}" alt="" draggable="false"></span><span class="refl side l" aria-hidden="true"><img src="${p.img}" alt="" draggable="false"></span><span class="refl side r" aria-hidden="true"><img src="${p.img}" alt="" draggable="false"></span><img src="${p.img}" alt="" draggable="false">${p.featured ? '<span class="fstar" title="Destacado">★ Destacado</span>' : ''}${p.review ? '<span class="rvbadge" title="Nombre sin identificar">⚠</span>' : ''}${p.price ? `<span class="ptag">${esc(p.price)}</span>` : ''}${(p.variants||[]).length ? `<span class="vrow">${p.variants.slice(0,3).map(v => `<img src="${v.img}" alt="" draggable="false" data-v="${v.id}">`).join('')}${p.variants.length > 3 ? `<span class="vmore">+${p.variants.length - 3}</span>` : ''}</span>` : ''}</button>`;
 
     let html = '';
     for(let c = 0; c < cols; c++){
@@ -2400,6 +2486,7 @@ Respondé SOLO con JSON: {"letras": [ ... ]} con ${n} letra${n === 1 ? '' : 's'}
 
   const PROMPT = `Esta foto muestra un producto que una tienda va a exhibir en su vitrina online.
 Identificá qué producto es. Si se lee con claridad la marca o el modelo, usalos; si no, describilo de forma genérica (por ejemplo "Campera de cuero marrón").
+La foto puede estar sacada con el celular en casa: con poca luz, sombras, reflejos, algo torcida o con otras cosas alrededor (mesa, mano, fondo). Eso no importa: concentrate en el producto principal (el más grande o el del centro) e ignorá el resto. Mirá con atención etiquetas, logos y textos del envase para reconocer marca, línea, variedad y tamaño.
 Respondé SOLO con un objeto JSON, sin texto extra, con esta forma:
 {"name": "nombre corto del producto, máximo 6 palabras", "features": ["Clave: valor", "..."], "rotation": 0}
 "rotation": cuántos grados hay que girar la foto en sentido horario para que el producto quede PARADO y derecho, como apoyado en un estante (botellas, frascos y cajas con la tapa o el frente arriba): 0, 90, 180 o 270. 0 si ya está bien.
@@ -2456,7 +2543,8 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     rate_limited:'Se hicieron muchos reconocimientos seguidos. Esperá un rato o completá a mano.',
     image_rejected:'No se pudo leer esa foto. Probá con otra (JPG o PNG).',
     refused:'No se pudo reconocer este producto. Completá los datos a mano.',
-    session_expired:'Tu sesión venció. Volvé a iniciar sesión para usar el reconocimiento.'
+    session_expired:'Tu sesión venció. Volvé a iniciar sesión para usar el reconocimiento.',
+    no_credit:'La IA se quedó sin saldo: hay que cargar crédito en la cuenta de Anthropic. Mientras, completá los datos a mano.'
   })[c] || 'No se pudo reconocer el producto esta vez. Podés completar los datos a mano.';
 
   async function autoFill(){
@@ -2481,7 +2569,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
         if(e && e.code === 'cancelled') return;
         lastErr = e;
         if(e && ['not_granted','sampling_disabled','not_declared','images_unavailable','capability_disabled','capability_removed'].includes(e.code)){ sampler = null; $('aiNote').hidden = true; break; }
-        if(e && e.code === 'rate_limited') break;
+        if(e && (e.code === 'rate_limited' || e.code === 'no_credit')) break;
       }
     }
     if(ctl !== aiCtl) return;
@@ -2827,7 +2915,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     const fallback = (cats.find(c => c.id === 'varios') || cats.find(c => !c.hidden) || cats[0]).id;
     let base = products.reduce((m, p) => Math.max(m, p.added), -1) + 1;
     newCatNames = [];
-    const created = [];
+    const created = []; let iaFail = false;
     for(let pg = 0; pg < imgs.length; pg++){
       if(ctl.signal.aborted) break;
       $('qMsg').textContent = `Leyendo la página ${pg + 1} de ${imgs.length} del catálogo… (puede tardar un minuto)`;
@@ -2861,7 +2949,8 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
         URL.revokeObjectURL(url);
         if(e && e.code === 'cancelled') break;
         $('qMsg').textContent = errCopy(e && e.code);
-        if(e && ['not_granted','sampling_disabled','rate_limited'].includes(e.code)) break;
+        if(e && ['not_granted','sampling_disabled','rate_limited','no_credit'].includes(e.code)) break;
+        iaFail = true;
         continue;
       }
       const items = Array.isArray(res && res.products) ? res.products.slice(0, 24) : [];
@@ -2894,7 +2983,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
       save(); renderHome();
     }
     $('qStop').hidden = true;
-    if(!created.length){ if(!ctl.signal.aborted && !/límite|permiso|disponible/.test($('qMsg').textContent)) $('qMsg').textContent = 'No pude separar productos en esa foto. Probá con la página derecha, con buena luz y sin reflejos.'; return; }
+    if(!created.length){ if(!ctl.signal.aborted && !iaFail && !/límite|permiso|disponible|saldo|ocupad|sesión/.test($('qMsg').textContent)) $('qMsg').textContent = 'No pude separar productos en esa foto. Probá con la página derecha, con buena luz y sin reflejos.'; return; }
     const priced = created.filter(p => p.price).length, nc = new Set(created.map(p => p.cat)).size, toReview = created.filter(p => p.review).length;
     $('qMsg').textContent = `Listo: encontré ${created.length} producto${created.length===1?'':'s'} y los repartí en ${nc} vitrina${nc===1?'':'s'}. ${priced ? priced + ' ya tienen el precio del catálogo. ' : ''}Revisá los precios y completá los que faltan.${toReview ? (toReview === 1 ? ' Uno no tenía el nombre legible en la página: está marcado con ⚠ para que lo revises.' : ` ${toReview} no tenían el nombre legible en la página: están marcados con ⚠ para que los revises.`) : ''} Si alguna foto quedó mal recortada, la cambiás con “Editar”.`;
     showBulkPrices(created, $('qPrices'), $('qMsg'));
@@ -3460,9 +3549,33 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   const presetOf = id => PRESETS.find(x => x.id === id) || PRESETS[0];
   function applyTheme(){
     const pr = presetOf(brand.preset), r = document.documentElement.style;
-    if(pr.id === 'general'){ ['--brass','--shelf','--shelf-edge'].forEach(k => r.removeProperty(k)); return; }
-    r.setProperty('--brass', pr.frame); r.setProperty('--shelf', pr.shelf); r.setProperty('--shelf-edge', pr.edge);
+    if(pr.id === 'general') ['--brass','--shelf','--shelf-edge'].forEach(k => r.removeProperty(k));
+    else { r.setProperty('--brass', pr.frame); r.setProperty('--shelf', pr.shelf); r.setProperty('--shelf-edge', pr.edge); }
+    applyMaterial();
   }
+  // ---- Tipo de vitrina: madera, metal, vidrio o plástico ----
+  const MATS = [
+    {id:'madera', name:'Madera', ico:'🪵'},
+    {id:'metal', name:'Metal', ico:'🔩', frame:'#c3ccd2', shelf:'#e3e8ec', edge:'#7f8a92'},
+    {id:'vidrio', name:'Vidrio', ico:'💎', frame:'#cfe3ea', shelf:'rgba(214,236,242,.55)', edge:'rgba(140,185,198,.75)'},
+    {id:'plastico', name:'Plástico', ico:'🧴', frame:'#ef5b6e', shelf:'#ffffff', edge:'#d5d9de'}
+  ];
+  const matOf = id => MATS.find(m => m.id === id) || MATS[0];
+  function applyMaterial(){
+    const m = matOf(brand.material), root = document.documentElement;
+    root.dataset.mat = m.id;
+    if(m.id !== 'madera'){ root.style.setProperty('--brass', m.frame); root.style.setProperty('--shelf', m.shelf); root.style.setProperty('--shelf-edge', m.edge); }
+    renderMats();
+  }
+  function renderMats(){
+    const cur = matOf(brand.material).id;
+    const html = MATS.map(m => `<button class="matbtn" type="button" data-mat="${m.id}" aria-pressed="${cur === m.id}"><span class="matsw mat-${m.id}"></span>${m.ico} ${m.name}</button>`).join('');
+    ['matBar', 'matBarShop'].forEach(id => { const el = $(id); if(el) el.innerHTML = html; });
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest('.matbtn'); if(!b) return;
+    brand.material = b.dataset.mat; applyTheme(); save(); render();
+  });
   function renderPresets(){
     $('presetGrid').innerHTML = PRESETS.map(pr => `<button class="preset" type="button" data-preset="${pr.id}" aria-pressed="${(brand.preset||'general')===pr.id}">
       <span class="swatch"><i style="background:${pr.frame}"></i><i style="background:${pr.shelf}"></i><i style="background:${pr.edge}"></i></span>
@@ -3674,6 +3787,24 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     }
   };
 
+  // ---- Instalar Vitrina 360 como app en el celular (ícono propio en la pantalla) ----
+  (function(){
+    const btn = $('installBtn'); if(!btn) return;
+    const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    const onPanel = location.pathname.replace(/\/+$/, '') === '/panel';
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    if(!onPanel || standalone) return;
+    const show = () => { btn.hidden = false; };
+    if(window.__v360Install) show();
+    document.addEventListener('v360-installable', show);
+    if(ios) show();
+    btn.onclick = async () => {
+      const ev = window.__v360Install;
+      if(ev){ ev.prompt(); try{ const r = await ev.userChoice; if(r && r.outcome === 'accepted') btn.hidden = true; }catch(e){} window.__v360Install = null; return; }
+      if(ios) ask('Instalar Vitrina 360', 'En el iPhone: tocá el botón Compartir (el cuadrado con la flecha hacia arriba) y elegí “Agregar a inicio”. Te queda el ícono de Vitrina 360 en la pantalla.', 'Entendido', () => {});
+    };
+    addEventListener('appinstalled', () => { btn.hidden = true; });
+  })();
   function boot(){
     load(); applyBrand(); applyTheme(); applyBtnColor(); applyBg(); renderPresets(); renderContact(); updateFab(); fillCatSelect(cats[0].id); setAuto(autoOn); renderHome(); renderStoreBar(); setLang(LANG); requestAnimationFrame(loop);
     if(PUBLIC){ document.body.classList.add('publicmode'); setClient(true); }
