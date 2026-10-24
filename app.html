@@ -647,6 +647,14 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 .shiprow .nm{font-weight:600}
 .shiprow input[type=text]{grid-column:1/-1}
 .shipbox{display:grid;gap:6px}
+.riderbox{display:grid;gap:8px;margin-top:10px}
+.riderbox input,.riderbox select{font:inherit}
+.motogo{position:fixed;left:0;bottom:calc(96px + env(safe-area-inset-bottom, 0px));z-index:60;display:flex;flex-direction:column;align-items:center;gap:2px;pointer-events:none;animation:motogo 6s linear forwards}
+.mg-bike{font-size:56px;line-height:1;display:block;transform:scaleX(-1);animation:mgbump .35s ease-in-out infinite alternate}
+.mg-tag{background:var(--ink);color:var(--bg);font:600 12px system-ui,sans-serif;padding:3px 9px;border-radius:999px;white-space:nowrap;max-width:70vw;overflow:hidden;text-overflow:ellipsis}
+@keyframes motogo{from{transform:translateX(-25vw)}to{transform:translateX(110vw)}}
+@keyframes mgbump{to{translate:0 -3px}}
+@media (prefers-reduced-motion:reduce){.motogo{animation:none;left:50%;transform:translateX(-50%)}.mg-bike{animation:none}}
 .bfield{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;background:var(--bg);color:inherit}
 .addrbox,.giftbox{display:grid;gap:6px}
 .addrbox[hidden],.giftbox[hidden]{display:none}
@@ -1464,6 +1472,17 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <strong>Formas de entrega</strong>
       <p class="note" style="margin:0">Marcá las que ofrecés. Tus clientes eligen una cuando hacen el pedido.</p>
       <div class="shipgrid" id="shipGrid"></div>
+      <div class="riderbox">
+        <strong>🛵 Delivery propio</strong>
+        <p class="note" style="margin:0">Si tenés repartidores, poné sus nombres separados por coma. Cuando un cliente pide envío en moto, sale la motito con tu equipo. Si no tenés delivery, dejalo vacío.</p>
+        <input type="text" id="b-riders" maxlength="160" placeholder="Juan, Pedro, Lucas, Matías" aria-label="Nombres de los repartidores">
+        <label for="b-delay">Demora de ahora <small>Cambiala cuando haya muchos pedidos. La cajera se la dice al cliente</small>
+          <select id="b-delay">
+            <option value="">No decir demora</option>
+            <option>15 a 25 minutos</option><option>20 a 30 minutos</option><option>30 a 45 minutos</option><option>45 a 60 minutos</option><option>más de una hora</option>
+          </select>
+        </label>
+      </div>
     </div>
     <div class="contactgrid">
       <label for="b-wa">WhatsApp <small>Con código de área, sin 0 ni 15. Ej: 223 5551234</small>
@@ -3987,8 +4006,18 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   const buyer = {name:'', tel:'', dir:'', ref:''}, gift = {on:false, who:'', msg:''};
   const GIFT_WHO = ['Mujer', 'Hombre', 'Niña', 'Niño', 'Otro'];
   const needAddr = () => !!shipSel && shipSel !== 'retiro';
+  const ridersOf = () => String(brand.riders || '').split(',').map(x => x.trim()).filter(Boolean).slice(0, 8);
+  // La motito del delivery propio cruza la pantalla con el nombre del equipo.
+  function motoGo(){
+    const rs = ridersOf(); if(!rs.length) return;
+    const el = document.createElement('div'); el.className = 'motogo'; el.setAttribute('aria-hidden', 'true');
+    el.innerHTML = `<span class="mg-bike">🛵</span><span class="mg-tag">${esc(rs.length === 1 ? 'Delivery: ' + rs[0] : 'Nuestro delivery: ' + rs.join(', '))}</span>`;
+    document.body.appendChild(el); setTimeout(() => el.remove(), 6500);
+  }
+  const deliveryLine = () => `Tu pedido ya está en preparación${brand.delay ? '. Demora aproximada: ' + brand.delay : ''}. Cuando esté listo, sale nuestro delivery para tu casa.`;
   function renderShipPanel(){
     const sh = brand.ship || {};
+    if($('b-riders')){ $('b-riders').value = brand.riders || ''; $('b-delay').value = brand.delay || ''; }
     $('shipGrid').innerHTML = SHIP_OPTS.map(o => `<div class="shiprow">
       <input type="checkbox" id="ship-${o.id}" data-ship="${o.id}" ${typeof sh[o.id]==='string'?'checked':''}>
       <label class="nm" for="ship-${o.id}">${o.name}</label>
@@ -4002,6 +4031,10 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     $('shipd-' + id).hidden = !e.target.checked; if(e.target.checked) $('shipd-' + id).focus();
     save();
   });
+  if($('b-riders')){
+    $('b-riders').addEventListener('input', e => { brand.riders = e.target.value; save(); });
+    $('b-delay').addEventListener('change', e => { brand.delay = e.target.value; save(); });
+  }
   $('shipGrid').addEventListener('input', e => {
     const id = e.target.dataset.shipd; if(!id) return;
     brand.ship = brand.ship || {}; brand.ship[id] = e.target.value.trim(); save();
@@ -4252,7 +4285,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         </li>`).join('')}</ul>
         <div class="carttotal"><span>Total</span><span class="v">${fmt(t)}</span></div>
         ${unpriced ? `<p class="note" style="margin:0">${unpriced} producto${unpriced===1?'':'s'} sin precio: el comercio te lo confirma.</p>` : ''}
-        ${shipList().length ? `<div class="shipbox"><strong>¿Cómo lo recibís?</strong>${shipList().map(o => `<label class="shipopt"><input type="radio" name="ship" value="${o.id}" ${shipSel===o.id?'checked':''}><span>${esc(o.name)}</span>${o.detail ? `<small>${esc(o.detail)}</small>` : ''}</label>`).join('')}</div>` : ''}
+        ${shipList().length ? `<div class="shipbox"><strong>¿Cómo lo recibís?</strong>${shipList().map(o => `<label class="shipopt"><input type="radio" name="ship" value="${o.id}" ${shipSel===o.id?'checked':''}><span>${esc(o.name)}</span>${o.detail ? `<small>${esc(o.detail)}</small>` : ''}${o.id === 'moto' && brand.delay ? `<small>⏱ Demora de ahora: ${esc(brand.delay)}</small>` : ''}</label>`).join('')}</div>` : ''}
         <div class="shipbox"><strong>Tus datos</strong>
           <input class="bfield" type="text" data-b="name" maxlength="80" autocomplete="name" placeholder="Nombre y apellido" value="${esc(buyer.name)}">
           <input class="bfield" type="tel" data-b="tel" maxlength="30" autocomplete="tel" placeholder="Teléfono" value="${esc(buyer.tel)}">
@@ -4295,9 +4328,11 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     setTimeout(() => {
       $('cartModal').hidden = true; document.documentElement.style.overflow = '';
       const thanks = `¡Gracias por tu compra en ${storeName()}!`;
-      if(cajeraOn()) cSpeak(`${thanks} ${o ? 'Elegiste ' + o.name + '. ' : ''}Ahora seguimos por WhatsApp.`);
+      const moto = o && o.id === 'moto' && ridersOf().length;
+      if(moto) motoGo();
+      if(cajeraOn()) cSpeak(moto ? `${thanks} ${deliveryLine()} Cualquier cosa, seguimos por WhatsApp.` : `${thanks} ${o ? 'Elegiste ' + o.name + '. ' : ''}Ahora seguimos por WhatsApp.`);
       $('hPanel').hidden = false;
-      if(o){ hInfo(`<strong>${esc(thanks)} Lo que sigue (${esc(o.name)}):</strong><ol class="hsteps">${next.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`); if(!cajeraOn()) hSpeak(`${thanks} Elegiste ${o.name}. ${next.join(' ')}`); else $('hSay').textContent = thanks; }
+      if(o){ hInfo(`<strong>${esc(thanks)} Lo que sigue (${esc(o.name)}):</strong><ol class="hsteps">${next.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`); if(!cajeraOn()) hSpeak(moto ? `${thanks} ${deliveryLine()}` : `${thanks} Elegiste ${o.name}. ${next.join(' ')}`); else $('hSay').textContent = thanks; }
       else { hShow([]); hSpeak(`${thanks} Ya te va a llegar nuestro mensaje con los pasos para pagar y recibirlo. ¡Que lo disfrutes!`); }
     }, 700);
   });
@@ -5095,7 +5130,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     const {t, unpriced} = cartTotal(items);
     const list = items.map(it => `${qtyWord(it.q)} ${it.name}`).join(', ');
     $('cashier').scrollIntoView({block: 'start', behavior: 'auto'}); scrollBy(0, -8);
-    cSpeak(`¡Hola! Soy Caro, la cajera. Llevás: ${list}. ${t ? 'Son ' + fmt(t) + ' en total' : 'El precio te lo confirmamos'}${unpriced && t ? ', más lo que falta cotizar' : ''}. Ahora elegí cómo lo querés recibir y dejame tus datos. ¿Es para regalo? Marcalo y te lo preparamos en una bolsa especial con moño.`, () => { $('hPanel').hidden = true; openCart(); });
+    cSpeak(`¡Hola! Soy Caro, la cajera. Llevás: ${list}. ${t ? 'Son ' + fmt(t) + ' en total' : 'El precio te lo confirmamos'}${unpriced && t ? ', más lo que falta cotizar' : ''}. ${brand.delay && shipList().some(o => o.id === 'moto') ? 'El delivery hoy está tardando ' + brand.delay + '. ' : ''}Ahora elegí cómo lo querés recibir y dejame tus datos. ¿Es para regalo? Marcalo y te lo preparamos en una bolsa especial con moño.`, () => { $('hPanel').hidden = true; openCart(); });
   }
   function cIdle(){ const n = cartCount(); $('cBubble').textContent = n ? `Llevás ${n} producto${n === 1 ? '' : 's'} en el canastito. Cuando quieras, pasá por la caja.` : '¡Hola! Soy Caro, la cajera. Lo que agregues va a tu canastito.'; }
   $('cBtn').onclick = cajeraCobra;
