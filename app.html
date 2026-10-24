@@ -1095,6 +1095,14 @@ body.clientmode .decoshop{display:none}
 .hbig img{width:100%;max-height:240px;object-fit:contain;background:#fff;border-radius:12px;border:1px solid var(--line)}
 .hbinfo{display:grid;gap:6px;justify-items:start}
 .hchips{display:flex;flex-wrap:wrap;gap:6px}
+.hinfo{display:grid;gap:8px}
+.hbignum{font:800 clamp(22px,7vw,30px)/1.1 var(--display);letter-spacing:.02em}
+.hlist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.hlist li{display:grid;gap:2px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.hlist li .btn{justify-self:start;margin-top:4px}
+.hsteps{margin:0;padding-left:22px;display:grid;gap:6px}
+.hsteps li{line-height:1.35}
+.hsteps li::marker{font-weight:800;color:var(--accent)}
 .hmode{display:flex;flex-wrap:wrap;gap:6px}
 .hmode .matbtn{padding:4px 10px;font-size:12.5px}
 .hrow{align-items:flex-end}
@@ -1308,6 +1316,9 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <p class="note" style="margin:0">Dos muñequitos que atienden la tienda: tus clientes les hablan o les escriben (“mostrame perfumes”, “vitrina 2”, “¿qué ofertas hay?”) y ellos responden con voz y muestran los productos en grande. Van vestidos con el color que elijas y el nombre de tu tienda.</p>
       <div class="bgbar" id="helperBar" role="group" aria-label="Vendedores virtuales"></div>
       <div class="bgbar" id="helperColors" role="group" aria-label="Color de la ropa"></div>
+      <label for="b-faq">Preguntas y respuestas de tu tienda <small>Una por renglón, así: pregunta = respuesta. Los vendedores las responden tal cual. Ya saben solos tu WhatsApp, envíos, formas de pago, dirección y horarios.</small>
+        <textarea id="b-faq" rows="4" maxlength="1500" placeholder="¿Hacen factura? = Sí, hacemos factura A y B.&#10;¿Tienen garantía? = Sí, 6 meses en todos los productos.&#10;¿Venden por mayor? = Sí, desde 12 unidades hay precio especial."></textarea>
+      </label>
     </div>
     <div class="presets">
       <strong>Música de la tienda</strong>
@@ -4108,7 +4119,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     const open = $('brandPanel').hidden;
     $('brandPanel').hidden = !open; $('brandBtn').setAttribute('aria-expanded', String(open));
     $('brandBtn').textContent = open ? 'Listo' : 'Personalizar mi comercio';
-    if(open){ renderCatToggles(); renderShipPanel(); renderCenterBars(); $('b-name').value = brand.name; $('b-wa').value = brand.wa || ''; $('b-ig').value = brand.ig || ''; $('b-alias').value = brand.alias || ''; $('b-paylink').value = brand.paylink || ''; $('b-ball').value = brand.ball || ''; $('b-ads').value = brand.ads || ''; $('voiceFeat').setAttribute('aria-pressed', String(!!brand.voiceFeat)); $('b-adsEvery').value = String(brand.adsEvery || 2); $('b-name').focus(); }
+    if(open){ renderCatToggles(); renderShipPanel(); renderCenterBars(); $('b-name').value = brand.name; $('b-wa').value = brand.wa || ''; $('b-ig').value = brand.ig || ''; $('b-alias').value = brand.alias || ''; $('b-paylink').value = brand.paylink || ''; $('b-ball').value = brand.ball || ''; $('b-ads').value = brand.ads || ''; $('b-faq').value = brand.faq || ''; $('voiceFeat').setAttribute('aria-pressed', String(!!brand.voiceFeat)); $('b-adsEvery').value = String(brand.adsEvery || 2); $('b-name').focus(); }
   };
   $('b-ball').addEventListener('input', e => { brand.ball = e.target.value.slice(0, 400); save(); if(!currentCat) renderHome(); });
   $('b-name').addEventListener('input', e => { brand.name = e.target.value.trim(); applyBrand(); renderHelpers(); renderContact(); save(); renderStoreBar(); });
@@ -4444,6 +4455,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       rec._t = setTimeout(() => { if(rec.state === 'recording') rec.stop(); }, 30000);
     }catch(err){ $('adsMsg').textContent = 'No se pudo usar el micrófono. Revisá el permiso del navegador, o grabá el audio con el celular y subilo con “🎙 Subir audio de publicidad”.'; }
   };
+  $('b-faq').addEventListener('input', e => { brand.faq = e.target.value.slice(0, 1500); save(); });
   $('b-ads').addEventListener('input', e => { brand.ads = e.target.value.slice(0, 600); save(); adsSchedule(); });
   $('b-adsEvery').addEventListener('change', e => { brand.adsEvery = +e.target.value; save(); adsSchedule(); });
   $('adTest').onclick = () => { if(!playAd()) $('adsMsg').textContent = 'Escribí un anuncio arriba o subí un audio.'; else $('adsMsg').textContent = ''; };
@@ -4588,8 +4600,83 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     scrollTo({top: Math.max(0, scrollY + r.top + r.height / 2 - (innerHeight - 120) / 2), behavior: 'auto'});
     let n = 0; const wait = () => { if(visible() || ++n > 5) go(); else setTimeout(wait, 60); }; setTimeout(wait, 60);
   }
+  // ---- Lo que saben los vendedores sobre la tienda ----
+  const ballLines = () => String(brand.ball || '').split('\n').map(t => t.trim()).filter(Boolean);
+  const findLine = re => ballLines().find(l => re.test(norm(l)));
+  function hInfo(html){ $('hRes').innerHTML = `<div class="hinfo">${html}</div>`; }
+  function hFaq(n){
+    const words = t => norm(t).replace(/[^a-z0-9ñ ]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !STOP.has(w)).map(stem);
+    const qw = words(n); if(!qw.length) return null;
+    let best = null, bs = 0;
+    String(brand.faq || '').split('\n').forEach(l => {
+      const i = l.indexOf('='); if(i < 1) return;
+      const fw = words(l.slice(0, i)), sc = fw.filter(w => qw.includes(w)).length;
+      if(sc > bs && (sc >= 2 || sc === fw.length || (sc === 1 && qw.length <= 2))){ bs = sc; best = l.slice(i + 1).trim(); }
+    });
+    return best;
+  }
+  // pasos de cada forma de envío, explicados para cualquiera
+  const SHIP_STEPS = {
+    retiro: d => ['Elegí tus productos y tocá “Agregar al pedido”.', 'Tocá “Ver pedido” y mandalo por WhatsApp.', 'Esperá nuestro mensaje avisando que está listo.', `Pasá a retirarlo${d ? ': ' + d : ''}.`],
+    moto: d => ['Armá tu pedido y mandalo por WhatsApp con “Ver pedido”.', 'Pasanos tu dirección, entre qué calles y un horario en que estés.', `Te confirmamos el costo del envío${d ? ' (' + d + ')' : ''} y lo pagás.`, 'El cadete te lo lleva a tu casa.'],
+    correo: d => ['Mandanos tu pedido por WhatsApp con “Ver pedido”.', 'Pasanos: nombre completo, DNI, dirección con código postal, ciudad, provincia y teléfono.', `Te pasamos el costo del envío${d ? ' (' + d + ')' : ''} y pagás todo junto.`, 'Lo despachamos y te mandamos el número de seguimiento.', 'Con ese número, entrá a correoargentino.com.ar → “Seguimiento de envíos” y lo pegás para ver por dónde va.'],
+    andreani: d => ['Mandanos tu pedido por WhatsApp con “Ver pedido”.', 'Pasanos: nombre completo, DNI, dirección con código postal y teléfono.', `Te pasamos el costo${d ? ' (' + d + ')' : ''} y pagás.`, 'Lo despachamos y te mandamos el número de seguimiento.', 'Lo seguís en andreani.com (o oca.com.ar si va por OCA) → “Seguí tu envío”.'],
+    mercado: d => ['Escribinos por WhatsApp qué producto querés.', 'Te mandamos el link de la publicación en Mercado Libre.', 'Comprás ahí con tu cuenta, como cualquier compra.', `El envío lo hace Mercado Envíos${d ? ' (' + d + ')' : ''} y lo seguís en la app de Mercado Libre, en “Mis compras”.`],
+    coordinar: d => ['Mandanos tu pedido por WhatsApp con “Ver pedido”.', `Arreglamos juntos la entrega${d ? ': ' + d : ''}.`]
+  };
+  const SHIP_RX = [['correo', /correo/], ['andreani', /andreani|oca\b/], ['mercado', /mercado libre|mercado envio|mercadolibre|\bml\b/], ['moto', /moto|cadete|delivery|domicilio|a mi casa/], ['retiro', /retir|pasar a buscar|buscarlo|ir a buscar/]];
+  function hShipSteps(id){
+    const o = SHIP_OPTS.find(x => x.id === id), d = (brand.ship || {})[id] || '';
+    const steps = (SHIP_STEPS[id] || SHIP_STEPS.coordinar)(d);
+    hInfo(`<strong>${esc(o.name)}: así de fácil</strong><ol class="hsteps">${steps.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`);
+    hSpeak(`${o.name}. ${steps.map((t, i) => (i === 0 ? 'Primero, ' : i === steps.length - 1 ? 'Y por último, ' : 'Después, ') + t.charAt(0).toLowerCase() + t.slice(1)).join(' ')}`);
+  }
+  const sayPhone = w => { const d = w.replace(/\D/g, '').replace(/^54?9?/, ''); const loc = d.length === 10 ? [d.slice(0, 3), d.slice(3, 6), d.slice(6)] : d.match(/.{1,3}/g) || [d]; return loc.join(', '); };
+  function hStore(n){
+    const wa = String(brand.wa || '').trim(), ships = shipList();
+    const sm = SHIP_RX.find(([, rx]) => rx.test(n));
+    if(sm && /(envi|mand|como|se puede|hacen|llega|retir|compr|domicilio|delivery|cadete|moto|correo|andreani|mercado)/.test(n)){
+      const [id] = sm;
+      if(ships.some(o => o.id === id)){ hShipSteps(id); return true; }
+      if(ships.length){ hInfo(`<ul class="hlist">${ships.map(o => `<li><strong>${esc(o.name)}</strong>${o.detail ? `<span>${esc(o.detail)}</span>` : ''}<button class="btn" type="button" data-hship="${o.id}">¿Cómo es?</button></li>`).join('')}</ul>`); hSpeak(`Por ${SHIP_OPTS.find(x => x.id === id).name} no estamos enviando, pero tenés estas opciones: ${ships.map(o => o.name).join(', ')}.`); return true; }
+    }
+    if(/\b(gracias|genia|genio|grosa|groso|buenisimo|perfecto)\b/.test(n)){ hShow([]); hSpeak('¡De nada! Para eso estoy. Si necesitás algo más, preguntame.'); return true; }
+    if(/\b(chau|adios|hasta luego|nos vemos)\b/.test(n)){ hShow([]); hSpeak(`¡Chau! Gracias por visitar ${storeName()}.`); return true; }
+    if(/(numero|telefono|celular|whats|wpp|wsp|contacto|llamar|comunicarme|hablar con alguien)/.test(n)){
+      if(!wa){ hShow([]); hSpeak('Todavía no tenemos un número cargado, pero podés hacer tu pedido desde acá con “Agregar al pedido”.'); return true; }
+      hInfo(`<span class="hbignum">📱 ${esc(wa)}</span><span class="row">${waHref('Hola ' + storeName() + '!') ? `<a class="btn wa" href="${waHref('Hola ' + storeName() + '! Te escribo desde la vitrina.')}" target="_blank" rel="noopener">💬 Escribir por WhatsApp</a>` : ''}<button class="btn" type="button" data-hcopy="${esc(wa)}">📋 Copiar</button></span>`);
+      hSpeak(`¡Sí, tomá! Te lo dejo acá: ${sayPhone(wa)}. Podés escribirnos por WhatsApp con el botón, o copiarlo.`); return true;
+    }
+    if(/(envio|enviar|envian|mandan|llevan|delivery|domicilio|retir|buscar el pedido|pasar a buscar|entreg|mercado libre|mercado envio|correo|andreani|oca|cadete|moto)/.test(n)){
+      if(!ships.length){ hShow([]); hSpeak(`Eso lo coordinamos por WhatsApp${wa ? ', al ' + wa : ''}. Hacé tu pedido y te contamos las opciones.`); return true; }
+      hInfo(`<ul class="hlist">${ships.map(o => `<li><strong>${esc(o.name)}</strong>${o.detail ? `<span>${esc(o.detail)}</span>` : ''}<button class="btn" type="button" data-hship="${o.id}">¿Cómo es? Paso a paso</button></li>`).join('')}</ul>`);
+      hSpeak((ships.length === 1 ? `Podés recibirlo así: ${ships[0].name}${ships[0].detail ? ', ' + ships[0].detail : ''}.` : `Tenés ${ships.length} opciones: ${ships.map(o => o.name + (o.detail ? ', ' + o.detail : '')).join('; ')}.`) + ' Tocá “¿Cómo es?” y te explico paso a paso.'); return true;
+    }
+    if(/(pago|pagar|abono|abonar|transferencia|transferir|alias|cbu|mercado pago|tarjeta|efectivo|cuotas)/.test(n)){
+      const parts = [];
+      if(brand.alias) parts.push(`<li><strong>Transferencia</strong><span>Alias: ${esc(brand.alias)}</span><button class="btn" type="button" data-hcopy="${esc(brand.alias)}">📋 Copiar alias</button></li>`);
+      if(brand.paylink) parts.push(`<li><strong>Mercado Pago</strong><a class="btn" href="${esc(brand.paylink)}" target="_blank" rel="noopener">Pagar con link</a></li>`);
+      const extra = hFaq('pago') || findLine(/pago|efectivo|tarjeta/);
+      if(!parts.length && !extra){ hShow([]); hSpeak(`El pago lo coordinamos por WhatsApp${wa ? ', al ' + wa : ''}, cuando mandás tu pedido.`); return true; }
+      hInfo(`<ul class="hlist">${parts.join('')}${extra ? `<li><span>${esc(extra)}</span></li>` : ''}</ul>`);
+      hSpeak(`Podés pagar ${[brand.alias ? 'por transferencia, al alias ' + brand.alias : '', brand.paylink ? 'con el link de Mercado Pago' : '', extra || ''].filter(Boolean).join(', o ')}.`); return true;
+    }
+    if(/(direccion|donde estan|donde queda|ubicacion|ubicados|el local|como llego|mapa)/.test(n)){
+      const ad = findLine(/📍|direcc|calle|av\.|avenida/) || (brand.ship && brand.ship.retiro) || '';
+      hShow([]); hSpeak(ad ? `Estamos en ${ad.replace(/^📍\s*/, '')}.` : `La dirección te la pasamos por WhatsApp${wa ? ', al ' + wa : ''}.`); return true;
+    }
+    if(/(horario|abren|abierto|cierran|atienden|que hora|dias)/.test(n)){
+      const hr = findLine(/🕘|horario|lun|sab|a las| h\b|hs/);
+      hShow([]); hSpeak(hr ? `Atendemos ${hr.replace(/^🕘\s*/, '')}.` : `Por WhatsApp te respondemos${wa ? ' al ' + wa : ''}. Y por acá podés ver y pedir cuando quieras, a toda hora.`); return true;
+    }
+    if(/(instagram|insta|redes|facebook|tiktok)/.test(n) && brand.ig){ hInfo(`<a class="btn" href="https://instagram.com/${esc(String(brand.ig).replace(/^@/, ''))}" target="_blank" rel="noopener">📷 @${esc(String(brand.ig).replace(/^@/, ''))}</a>`); hSpeak(`Nos encontrás en Instagram como arroba ${String(brand.ig).replace(/^@/, '')}.`); return true; }
+    if(/(como compro|como pido|como hago (el|un|mi) pedido|como funciona|como se compra)/.test(n)){ hShow([]); hSpeak('Es muy fácil: tocá el producto, después “Agregar al pedido”, y cuando termines tocá “Ver pedido” para mandarlo por WhatsApp. ¡Y listo!'); return true; }
+    return false;
+  }
   function hAnswer(q){
     const n = norm(q);
+    const fa = hFaq(n); if(fa){ hShow([]); return hSpeak(fa); }
+    if(hStore(n)) return;
     if(/\b(lo quiero|agrega|sumalo|al pedido|comprar|lo llevo)\b/.test(n)){
       if(hLast){ addToCart(cartKey(hLast)); return hSpeak(`¡Listo! Agregué ${hLast.name} a tu pedido. Cuando quieras, tocá “Ver pedido” para enviarlo.`); }
       return hSpeak('¡Dale! Decime cuál: tocá el producto que querés y te lo agrego.');
@@ -4619,11 +4706,11 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       const p = found[0];
       return hSpeak(found.length === 1 ? `Acá tenés ${p.name}${p.promo ? ', ' + p.promo : ''}${curPrice(p) ? ', a ' + curPrice(p) : ''}. ¿Lo agrego a tu pedido?` : `Encontré ${found.length} opciones. La primera es ${p.name}${curPrice(p) ? ', a ' + curPrice(p) : ''}. Tocá la que quieras ver en grande.`);
     }
-    hShow([]); hSpeak(`Mmm, no encontré eso. Probá con “mostrame perfumes”, “vitrina 2” o “¿qué ofertas hay?”.`);
+    hShow([]); hSpeak(`Mmm, eso no lo sé todavía. Podés preguntarme por productos (“mostrame perfumes”), ofertas, envíos, formas de pago o nuestro WhatsApp${String(brand.wa || '').trim() ? ', y si querés, escribinos al ' + brand.wa : ''}.`);
   }
   function hOpen(id){
     hCur = id; $('hPanel').hidden = false;
-    $('hChips').innerHTML = [['🏬 Ver vitrinas', 'vitrinas'], ['🔥 Ofertas', 'ofertas'], ...visCats().slice(0, 4).map(c => [c.name, 'mostrame ' + c.name])].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${esc(q)}">${esc(t)}</button>`).join('');
+    $('hChips').innerHTML = [['🏬 Ver vitrinas', 'vitrinas'], ['🔥 Ofertas', 'ofertas'], ['📱 WhatsApp', 'me pasas el numero'], ['🚚 Envíos', 'como hacen los envios'], ['💳 Cómo pago', 'como pago'], ...visCats().slice(0, 4).map(c => [c.name, 'mostrame ' + c.name])].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${esc(q)}">${esc(t)}</button>`).join('');
     $('hRow').querySelectorAll('.hav').forEach(b => b.classList.toggle('on', b.dataset.hav === id));
     renderHMode(); hShow([]); hSpeak(`¡Hola! Soy ${HELPERS[id].name}. ¿Qué andás buscando? Te busco la vitrina y te muestro el producto.`);
   }
@@ -4641,6 +4728,9 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(pk){ const p = products.find(x => x.id === pk.dataset.hpick); if(p){ hLast = p; hShow([p], true); hWalk(p.cat); hSpeak(`${p.name}${p.promo ? ', ' + p.promo : ''}${curPrice(p) ? ', a ' + curPrice(p) : ''}. ¿Te lo agrego al pedido?`); } }
     if(ad){ const p = products.find(x => x.id === ad.dataset.hadd); if(p){ addToCart(cartKey(p)); ad.textContent = '✓ Agregado'; hSpeak('¡Listo, ya está en tu pedido!'); } }
     if(op){ $('hPanel').hidden = true; openModal(op.dataset.hopen); }
+    const hs = e.target.closest('[data-hship]'); if(hs){ hShipSteps(hs.dataset.hship); return; }
+    const cp = e.target.closest('[data-hcopy]');
+    if(cp){ const t = cp.dataset.hcopy; const ok = () => { cp.textContent = '✓ Copiado'; }; try{ navigator.clipboard.writeText(t).then(ok, () => { $('hIn').value = t; $('hIn').select(); }); }catch(err){ $('hIn').value = t; $('hIn').select(); } }
   });
   $('hMic').onclick = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition; if(!SR) return;
