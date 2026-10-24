@@ -1065,6 +1065,9 @@ body.clientmode .decoshop{display:none}
 .board:has(.neon){overflow:visible}
 @media (prefers-reduced-motion:no-preference){.neon{animation:neonflick 6s infinite}}
 @keyframes neonflick{0%,93%,100%{opacity:1}94%{opacity:.55}95%{opacity:1}96.5%{opacity:.7}}
+/* Frase de promo del destacado */
+.promobox{display:grid;gap:4px;margin-top:10px;font-weight:600}
+.promobox input{flex:1;min-width:0}
 /* Música */
 .musicfab{position:fixed;right:calc(16px + env(safe-area-inset-right, 0px));bottom:calc(74px + env(safe-area-inset-bottom, 0px));z-index:40;
   width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:20px;cursor:pointer;
@@ -1269,7 +1272,10 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
           <select id="b-adsEvery"><option value="1">1 minuto</option><option value="2">2 minutos</option><option value="3">3 minutos</option><option value="5">5 minutos</option><option value="10">10 minutos</option></select></label>
         <label class="btn" for="b-adFile" style="display:inline-flex">🎙 Subir audio de publicidad<input type="file" id="b-adFile" accept="audio/*" class="vh"></label>
         <button class="btn" type="button" id="adTest">▶ Escuchar un anuncio ahora</button>
+        <button class="btn" type="button" id="adRec">🎙 Grabar con mi voz</button>
       </div>
+      <button class="matbtn" type="button" id="voiceFeat" aria-pressed="false" style="justify-self:start">🗣 La voz anuncia los destacados</button>
+      <p class="note" style="margin:0">Cada producto destacado entra en la ronda de anuncios (“En Maquillaje tenés…”), y cuando un cliente abre esa vitrina, la voz lo anuncia. En la ficha del destacado le podés agregar la promo.</p>
       <p class="note" id="adsMsg" role="status" style="margin:0"></p>
     </div>
     <div class="presets">
@@ -1948,7 +1954,8 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   function openCat(id, tile){
     const from = tile ? tile.querySelector('.mstage').getBoundingClientRect() : null;
     const oldY = scrollY;
-    currentCat = id; selectedId = null; angle = 0; target = null; vel = 0; setZoom(catZoom(catOf(id))); setAuto(!reduce && !(catOf(id) || {}).still);
+    currentCat = id; selectedId = null; angle = 0; target = null; vel = 0; setZoom(catZoom(catOf(id)));
+    if(brand.voiceFeat && !saidCats.has(id)){ const fp = products.find(p => p.cat === id && p.featured); if(fp){ saidCats.add(id); setTimeout(() => playAd({t: featText(fp)}), 700); } } setAuto(!reduce && !(catOf(id) || {}).still);
     $('homeView').hidden = true; $('shopView').hidden = false;
     applyStageBg(); renderBgBars(); $('fixMsg').textContent = '';
     $('lede').textContent = 'Arrastrá la vitrina para girarla. Tocá un producto para ver su ficha, o dos veces para ver todas sus fotos.';
@@ -2074,6 +2081,8 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     paint();
   }
 
+  document.addEventListener('input', e => { if(e.target.id !== 'promoIn') return; const p = products.find(x => x.id === selectedId); if(p){ p.promo = e.target.value.trim().slice(0, 80); if(!p.promo) delete p.promo; save(); } });
+  document.addEventListener('click', e => { const b = e.target.closest('[data-act="hear"]'); if(!b) return; const p = products.find(x => x.id === selectedId); if(p) playAd({t: featText(p)}); });
   function renderDetail(){
     const el = $('detail');
     const item = layout.find(l => l.p.id === selectedId);
@@ -2094,6 +2103,8 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
           <span class="row"><button class="btn primary" type="button" data-act="rephoto">📷 ${L('Sacar foto de nuevo', 'Retake photo', 'Tirar foto de novo')}</button><button class="btn" type="button" data-act="edit">✏️ ${L('Escribirlo a mano', 'Type it in', 'Digitar à mão')}</button></span>
           <span class="note" id="rvMsg" role="status"></span></div>` : ''}
         ${modelsHTML(p, 'data-act', false)}
+        ${p.featured ? `<label class="ownerbtn promobox" for="promoIn">🗣 Lo que dice la voz de este destacado <small>Ej: “20% de descuento”, “2x1 hasta el domingo”. Se escucha si está prendido “La voz anuncia los destacados”.</small>
+          <span class="row" style="flex-wrap:nowrap"><input type="text" id="promoIn" maxlength="80" value="${esc(p.promo || '')}" placeholder="20% de descuento"><button class="btn" type="button" data-act="hear">▶</button></span></label>` : ''}
         ${feats ? `<ul class="feats">${feats}</ul>` : `<p class="nofeat">Sin características cargadas. Tocá “Editar” para agregarlas.</p>`}
         <div class="socialbox" id="socialBox" hidden></div>
         <div class="actions">
@@ -4035,7 +4046,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     const open = $('brandPanel').hidden;
     $('brandPanel').hidden = !open; $('brandBtn').setAttribute('aria-expanded', String(open));
     $('brandBtn').textContent = open ? 'Listo' : 'Personalizar mi comercio';
-    if(open){ renderCatToggles(); renderShipPanel(); renderCenterBars(); $('b-name').value = brand.name; $('b-wa').value = brand.wa || ''; $('b-ig').value = brand.ig || ''; $('b-alias').value = brand.alias || ''; $('b-paylink').value = brand.paylink || ''; $('b-ball').value = brand.ball || ''; $('b-ads').value = brand.ads || ''; $('b-adsEvery').value = String(brand.adsEvery || 2); $('b-name').focus(); }
+    if(open){ renderCatToggles(); renderShipPanel(); renderCenterBars(); $('b-name').value = brand.name; $('b-wa').value = brand.wa || ''; $('b-ig').value = brand.ig || ''; $('b-alias').value = brand.alias || ''; $('b-paylink').value = brand.paylink || ''; $('b-ball').value = brand.ball || ''; $('b-ads').value = brand.ads || ''; $('voiceFeat').setAttribute('aria-pressed', String(!!brand.voiceFeat)); $('b-adsEvery').value = String(brand.adsEvery || 2); $('b-name').focus(); }
   };
   $('b-ball').addEventListener('input', e => { brand.ball = e.target.value.slice(0, 400); save(); if(!currentCat) renderHome(); });
   $('b-name').addEventListener('input', e => { brand.name = e.target.value.trim(); applyBrand(); renderContact(); save(); renderStoreBar(); });
@@ -4312,16 +4323,22 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   });
   // ---- Anuncios: la música baja y suena la publicidad ----
   let adTimer = null, adIdx = 0, adAudio = null;
+  const saidCats = new Set();
   const adList = () => String(brand.ads || '').split('\n').map(t => t.trim()).filter(Boolean);
   function duck(on){
     if(music.master && music.ctx){ try{ music.master.gain.setTargetAtTime(on ? 0.12 : 0.55, music.ctx.currentTime, 0.3); }catch(e){} }
     if(music.audio) music.audio.volume = on ? 0.1 : 0.45;
   }
-  function playAd(){
+  function featText(p){
+    const c = catOf(p.cat), pr = curPrice(p);
+    return `${c ? 'En ' + trCat(c.name) + ' tenés' : 'Tenemos'} ${p.name}${p.promo ? ', ' + p.promo : ''}${pr ? ', a ' + pr : ''}.`;
+  }
+  const featAds = () => brand.voiceFeat ? products.filter(p => p.featured && !p.sample && !(catOf(p.cat) || {}).hidden).map(p => ({t: featText(p)})) : [];
+  function playAd(only){
     const texts = adList(), file = brand.adFile;
-    const items = [...texts.map(t => ({t})), ...(file ? [{f: file}] : [])];
+    const items = only ? [only] : [...texts.map(t => ({t})), ...featAds(), ...(file ? [{f: file}] : [])];
     if(!items.length) return false;
-    const it = items[adIdx++ % items.length];
+    const it = only || items[adIdx++ % items.length];
     duck(true);
     const done = () => setTimeout(() => duck(false), 400);
     if(it.f){
@@ -4339,9 +4356,32 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   }
   function adsSchedule(){
     clearInterval(adTimer); adTimer = null;
-    if(!music.on || !(adList().length || brand.adFile)) return;
+    if(!music.on || !(adList().length || brand.adFile || featAds().length)) return;
     adTimer = setInterval(() => { if(music.on && !document.hidden) playAd(); }, (+brand.adsEvery || 2) * 60000);
   }
+  $('voiceFeat').onclick = () => { brand.voiceFeat = !brand.voiceFeat; save(); $('voiceFeat').setAttribute('aria-pressed', String(!!brand.voiceFeat)); adsSchedule(); };
+  // grabar el anuncio con el micrófono (hasta 30 segundos)
+  let rec = null;
+  $('adRec').onclick = async () => {
+    if(rec && rec.state === 'recording'){ rec.stop(); return; }
+    try{
+      const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+      const chunks = []; rec = new MediaRecorder(stream);
+      rec.ondataavailable = e => { if(e.data.size) chunks.push(e.data); };
+      rec.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop()); clearTimeout(rec._t);
+        $('adRec').textContent = '🎙 Grabar con mi voz';
+        const blob = new Blob(chunks, {type: rec.mimeType || 'audio/webm'});
+        let url = null;
+        try{ if(assetsApi) url = (await assetsApi.upload(new File([blob], 'anuncio.' + (blob.type.includes('mp4') ? 'm4a' : 'webm'), {type: blob.type}))).url; }catch(err){}
+        if(!url){ url = URL.createObjectURL(blob); $('adsMsg').textContent = 'Grabado. Se escucha acá; para tus clientes, grabalo desde tu panel en la web.'; }
+        else $('adsMsg').textContent = 'Listo: tu anuncio grabado quedó cargado.';
+        brand.adFile = url; save(); adsSchedule(); playAd({f: url});
+      };
+      rec.start(); $('adRec').textContent = '⏹ Terminar grabación'; $('adsMsg').textContent = 'Grabando… hablá cerca del celular. Tocá “Terminar” cuando acabes (máximo 30 segundos).';
+      rec._t = setTimeout(() => { if(rec.state === 'recording') rec.stop(); }, 30000);
+    }catch(err){ $('adsMsg').textContent = 'No se pudo usar el micrófono. Revisá el permiso del navegador, o grabá el audio con el celular y subilo con “🎙 Subir audio de publicidad”.'; }
+  };
   $('b-ads').addEventListener('input', e => { brand.ads = e.target.value.slice(0, 600); save(); adsSchedule(); });
   $('b-adsEvery').addEventListener('change', e => { brand.adsEvery = +e.target.value; save(); adsSchedule(); });
   $('adTest').onclick = () => { if(!playAd()) $('adsMsg').textContent = 'Escribí un anuncio arriba o subí un audio.'; else $('adsMsg').textContent = ''; };
