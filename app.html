@@ -1099,6 +1099,9 @@ body.clientmode .decoshop{display:none}
 .hmode .matbtn{padding:4px 10px;font-size:12.5px}
 .hrow{align-items:flex-end}
 .helpers.many .hav,.helpers.many .hav svg{width:46px}
+.hpanel{transition:opacity .3s,transform .3s}
+.helpers.away .hpanel{opacity:0;transform:translateY(24px) scale(.96);pointer-events:none}
+.helpers.away .hhelp{opacity:0}
 .helpers.many .hname{font-size:9px;padding:1px 5px}
 .hpick{display:grid;justify-items:center;gap:2px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:4px 6px 6px;cursor:pointer;font:600 12px var(--body)}
 .hpick svg{width:46px;height:auto}
@@ -4555,30 +4558,35 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     $('hMode').innerHTML = `<button class="matbtn" type="button" data-hmode="1" aria-pressed="${on}">🚶 Que vayan a la vitrina</button><button class="matbtn" type="button" data-hmode="0" aria-pressed="${!on}">💬 Que me hablen desde acá</button>`;
   }
   function hWalk(catId){
-    if(!hWalkOn() || reduce || !catId) return;
+    if(!hWalkOn() || !catId) return;
     const av = $('hRow').querySelector(`[data-hav="${hCur}"]`); if(!av || !av.animate) return;
     const tile = document.querySelector(`#catStrip:not([hidden]) [data-cat="${catId}"] .mstage, #homeView:not([hidden]) #homegrid [data-cat="${catId}"] .mstage`);
     if(!tile) return;
+    const box = $('helpers');
+    hWalking && hWalking.cancel();
+    box.classList.add('away');                     // la charla se corre para que se vea caminar
+    const visible = () => { const r = tile.getBoundingClientRect(); return r.width && r.top >= 30 && r.bottom <= innerHeight - 10; };
     const go = () => {
       const a = av.getBoundingClientRect(), t = tile.getBoundingClientRect();
-      if(!t.width || t.bottom < 0 || t.top > innerHeight) return;
       const dx = t.left + t.width / 2 - (a.left + a.width / 2), dy = t.bottom - a.bottom + 6;
-      hWalking && hWalking.cancel();
       av.classList.add('walking');
       hWalking = av.animate([
-        {transform: 'translate(0,0)'},
+        {transform: 'translate(0,0)', easing: 'ease-in-out'},
         {transform: `translate(${dx}px, ${dy}px)`, offset: 0.35},
-        {transform: `translate(${dx}px, ${dy - 10}px) scale(1.05)`, offset: 0.42},
+        {transform: `translate(${dx}px, ${dy - 12}px) scale(1.06)`, offset: 0.42},
         {transform: `translate(${dx}px, ${dy}px)`, offset: 0.48},
-        {transform: `translate(${dx}px, ${dy}px)`, offset: 0.7},
+        {transform: `translate(${dx}px, ${dy}px)`, offset: 0.68, easing: 'ease-in-out'},
         {transform: 'translate(0,0)'}
-      ], {duration: 4200, easing: 'ease-in-out'});
-      setTimeout(() => { av.classList.remove('walking'); tile.classList.remove('touched'); void tile.offsetWidth; tile.classList.add('touched'); }, 1500);
-      setTimeout(() => av.classList.add('walking'), 2900);
-      hWalking.onfinish = hWalking.oncancel = () => { av.classList.remove('walking'); setTimeout(() => tile.classList.remove('touched'), 300); };
+      ], {duration: 4400, easing: 'linear'});
+      setTimeout(() => { av.classList.remove('walking'); tile.classList.remove('touched'); void tile.offsetWidth; tile.classList.add('touched'); }, 1550);
+      setTimeout(() => av.classList.add('walking'), 3000);
+      const end = () => { av.classList.remove('walking'); box.classList.remove('away'); setTimeout(() => tile.classList.remove('touched'), 300); };
+      hWalking.onfinish = end; hWalking.oncancel = end;
     };
+    if(visible()) return go();
     const r = tile.getBoundingClientRect();
-    if(r.top < 60 || r.bottom > innerHeight - 140){ tile.scrollIntoView({block: 'center', behavior: 'smooth'}); setTimeout(go, 600); } else go();
+    scrollTo({top: Math.max(0, scrollY + r.top + r.height / 2 - (innerHeight - 120) / 2), behavior: 'auto'});
+    let n = 0; const wait = () => { if(visible() || ++n > 5) go(); else setTimeout(wait, 60); }; setTimeout(wait, 60);
   }
   function hAnswer(q){
     const n = norm(q);
@@ -4589,7 +4597,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(/\b(hola|buenas|buen dia|buenas tardes)\b/.test(n) && n.length < 20){ hShow([]); return hSpeak(`¡Hola! Soy ${(HELPERS[hCur] || HELPERS.sofi).name}, de ${storeName()}. Decime qué buscás, o pedime ver una vitrina.`); }
     if(/\b(oferta|ofertas|promo|promocion|destacad|descuento)/.test(n)){
       const f = products.filter(p => p.featured && !(catOf(p.cat) || {}).hidden);
-      if(f.length){ hLast = f.length === 1 ? f[0] : null; hShow(f, true); return hSpeak(f.length === 1 ? `Hoy te recomiendo ${f[0].name}${f[0].promo ? ', ' + f[0].promo : ''}${curPrice(f[0]) ? ', a ' + curPrice(f[0]) : ''}.` : `Estas son las ofertas de hoy: ${f.map(p => p.name + (p.promo ? ', ' + p.promo : '')).join('; ')}.`); }
+      if(f.length){ hLast = f.length === 1 ? f[0] : null; hShow(f, true); hWalk(f[0].cat); return hSpeak(f.length === 1 ? `Hoy te recomiendo ${f[0].name}${f[0].promo ? ', ' + f[0].promo : ''}${curPrice(f[0]) ? ', a ' + curPrice(f[0]) : ''}.` : `Estas son las ofertas de hoy: ${f.map(p => p.name + (p.promo ? ', ' + p.promo : '')).join('; ')}.`); }
     }
     const vc = visCats();
     const num = n.match(/vitrina\s*(?:n(?:umero|°|ro)?\.?\s*)?(\d+|uno|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)/);
