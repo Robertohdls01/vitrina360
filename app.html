@@ -647,6 +647,13 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 .shiprow .nm{font-weight:600}
 .shiprow input[type=text]{grid-column:1/-1}
 .shipbox{display:grid;gap:6px}
+.bfield{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;background:var(--bg);color:inherit}
+.addrbox,.giftbox{display:grid;gap:6px}
+.addrbox[hidden],.giftbox[hidden]{display:none}
+.giftwho{display:flex;flex-wrap:wrap;gap:6px}
+.giftwho label{border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.giftwho label:has(input:checked){border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.giftwho input{accent-color:var(--accent)}
 .shipopt{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;align-items:start;border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer}
 .shipopt:has(input:checked){border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
 .shipopt input{margin-top:3px;accent-color:var(--accent)}
@@ -3976,6 +3983,10 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   ];
   const shipList = () => SHIP_OPTS.filter(o => brand.ship && typeof brand.ship[o.id] === 'string').map(o => ({...o, detail: brand.ship[o.id]}));
   let shipSel = null;
+  // Datos del cliente para la entrega y pedido para regalo (los pide la cajera; viajan en el pedido).
+  const buyer = {name:'', tel:'', dir:'', ref:''}, gift = {on:false, who:'', msg:''};
+  const GIFT_WHO = ['Mujer', 'Hombre', 'Niña', 'Niño', 'Otro'];
+  const needAddr = () => !!shipSel && shipSel !== 'retiro';
   function renderShipPanel(){
     const sh = brand.ship || {};
     $('shipGrid').innerHTML = SHIP_OPTS.map(o => `<div class="shiprow">
@@ -4024,7 +4035,11 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const so = shipList().find(o => o.id === shipSel);
     const ship = so ? `\n${L('Entrega', 'Delivery', 'Entrega')}: ${trCat(so.name)}${so.detail ? ' (' + so.detail + ')' : ''}` : '';
     const extra = unpriced ? L(' (más productos a consultar)', ' (plus items to confirm)', ' (mais itens a consultar)') : '';
-    return L(`Hola ${storeName()}! Quiero hacer este pedido:`, `Hi ${storeName()}! I'd like to place this order:`, `Olá ${storeName()}! Quero fazer este pedido:`) + `\n${lines.join('\n')}\n\nTotal: ${fmt(t)}${extra}${ship}\n\n` +
+    const g = gift.on ? `\n\n🎁 ${L('Es para regalo', 'It is a gift', 'É para presente')}${gift.who ? ' — ' + L('para ', 'for ', 'para ') + gift.who : ''}. ${L('Por favor, envolverlo.', 'Please gift-wrap it.', 'Por favor, embrulhar.')}${gift.msg.trim() ? '\n' + L('Mensaje para la tarjeta', 'Card message', 'Mensagem do cartão') + ': “' + gift.msg.trim() + '”' : ''}` : '';
+    const datos = [buyer.name.trim() && L('Nombre', 'Name', 'Nome') + ': ' + buyer.name.trim(), buyer.tel.trim() && L('Teléfono', 'Phone', 'Telefone') + ': ' + buyer.tel.trim(),
+      needAddr() && buyer.dir.trim() && L('Dirección', 'Address', 'Endereço') + ': ' + buyer.dir.trim(), needAddr() && buyer.ref.trim() && L('Referencias', 'Notes', 'Referências') + ': ' + buyer.ref.trim()].filter(Boolean);
+    const extras = g + (datos.length ? '\n\n' + datos.join('\n') : '');
+    return L(`Hola ${storeName()}! Quiero hacer este pedido:`, `Hi ${storeName()}! I'd like to place this order:`, `Olá ${storeName()}! Quero fazer este pedido:`) + `\n${lines.join('\n')}\n\nTotal: ${fmt(t)}${extra}${ship}${extras}\n\n` +
       (so ? L('¿Cómo coordinamos el pago?', 'How do we arrange payment?', 'Como combinamos o pagamento?') : L('¿Cómo coordinamos el pago y la entrega?', 'How do we arrange payment and delivery?', 'Como combinamos o pagamento e a entrega?'));
   }
   function updateFab(){
@@ -4238,6 +4253,23 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         <div class="carttotal"><span>Total</span><span class="v">${fmt(t)}</span></div>
         ${unpriced ? `<p class="note" style="margin:0">${unpriced} producto${unpriced===1?'':'s'} sin precio: el comercio te lo confirma.</p>` : ''}
         ${shipList().length ? `<div class="shipbox"><strong>¿Cómo lo recibís?</strong>${shipList().map(o => `<label class="shipopt"><input type="radio" name="ship" value="${o.id}" ${shipSel===o.id?'checked':''}><span>${esc(o.name)}</span>${o.detail ? `<small>${esc(o.detail)}</small>` : ''}</label>`).join('')}</div>` : ''}
+        <div class="shipbox"><strong>Tus datos</strong>
+          <input class="bfield" type="text" data-b="name" maxlength="80" autocomplete="name" placeholder="Nombre y apellido" value="${esc(buyer.name)}">
+          <input class="bfield" type="tel" data-b="tel" maxlength="30" autocomplete="tel" placeholder="Teléfono" value="${esc(buyer.tel)}">
+          <span class="addrbox" ${needAddr() ? '' : 'hidden'}>
+            <input class="bfield" type="text" data-b="dir" maxlength="160" autocomplete="street-address" placeholder="Dirección de entrega: calle, número, piso" value="${esc(buyer.dir)}">
+            <input class="bfield" type="text" data-b="ref" maxlength="160" placeholder="Localidad y referencias (entre calles, timbre)" value="${esc(buyer.ref)}">
+          </span>
+        </div>
+        <div class="shipbox"><strong>🎁 ¿Es para regalo?</strong>
+          <label class="shipopt"><input type="radio" name="gift" value="no" ${gift.on ? '' : 'checked'}><span>Pedido normal</span></label>
+          <label class="shipopt"><input type="radio" name="gift" value="si" ${gift.on ? 'checked' : ''}><span>Sí, es para regalo</span><small>El comercio te lo envuelve.</small></label>
+          <span class="giftbox" ${gift.on ? '' : 'hidden'}>
+            <span class="note">¿Para quién es?</span>
+            <span class="giftwho">${GIFT_WHO.map(w => `<label><input type="radio" name="giftwho" value="${w}" ${gift.who === w ? 'checked' : ''}>${w}</label>`).join('')}</span>
+            <input class="bfield" type="text" data-g="msg" maxlength="160" placeholder="Mensaje para la tarjeta (opcional)" value="${esc(gift.msg)}">
+          </span>
+        </div>
         ${(brand.alias || payOk || pp || ws.length) ? `<div class="paybox">
           <strong>Cómo pagar</strong>
           ${brand.alias ? `<div class="payrow"><span>Alias / CBU: <code id="aliasTxt">${esc(brand.alias)}</code></span><button class="btn" type="button" data-c="copyAlias">Copiar</button></div>` : ''}
@@ -4296,8 +4328,16 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     else if(c === 'copyAlias') copyText(brand.alias, $('cartMsg'), 'Alias copiado.');
     else if(c === 'copyPay') copyText(b.dataset.v, $('cartMsg'), 'Copiado. Pegalo en tu billetera para pagar.');
   });
+  const cartWa = () => { const a = $('cartSheet').querySelector('.btn.wa'); if(a) a.href = waHref(orderText(cartItems())); };
+  $('cartModal').addEventListener('input', e => {
+    const k = e.target.dataset && (e.target.dataset.b || e.target.dataset.g); if(!k) return;
+    if(e.target.dataset.b) buyer[k] = e.target.value; else gift[k] = e.target.value;
+    cartWa();
+  });
   $('cartModal').addEventListener('change', e => {
-    if(e.target.name === 'ship'){ shipSel = e.target.value; const a = $('cartSheet').querySelector('.btn.wa'); if(a) a.href = waHref(orderText(cartItems())); }
+    if(e.target.name === 'ship'){ shipSel = e.target.value; const ab = $('cartSheet').querySelector('.addrbox'); if(ab) ab.hidden = !needAddr(); cartWa(); }
+    if(e.target.name === 'gift'){ gift.on = e.target.value === 'si'; const gb = $('cartSheet').querySelector('.giftbox'); if(gb) gb.hidden = !gift.on; cartWa(); }
+    if(e.target.name === 'giftwho'){ gift.who = e.target.value; cartWa(); }
   });
   addEventListener('keydown', e => { if(!$('cartModal').hidden && e.key === 'Escape'){ e.preventDefault(); closeCart(); } });
   function renderContact(){
@@ -5055,7 +5095,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     const {t, unpriced} = cartTotal(items);
     const list = items.map(it => `${qtyWord(it.q)} ${it.name}`).join(', ');
     $('cashier').scrollIntoView({block: 'start', behavior: 'auto'}); scrollBy(0, -8);
-    cSpeak(`¡Hola! Soy Caro, la cajera. Llevás: ${list}. ${t ? 'Son ' + fmt(t) + ' en total' : 'El precio te lo confirmamos'}${unpriced && t ? ', más lo que falta cotizar' : ''}. Ahora elegí cómo lo querés recibir, y mandame el pedido.`, () => { $('hPanel').hidden = true; openCart(); });
+    cSpeak(`¡Hola! Soy Caro, la cajera. Llevás: ${list}. ${t ? 'Son ' + fmt(t) + ' en total' : 'El precio te lo confirmamos'}${unpriced && t ? ', más lo que falta cotizar' : ''}. Ahora elegí cómo lo querés recibir y dejame tus datos. ¿Es para regalo? Marcalo y te lo envolvemos.`, () => { $('hPanel').hidden = true; openCart(); });
   }
   function cIdle(){ const n = cartCount(); $('cBubble').textContent = n ? `Llevás ${n} producto${n === 1 ? '' : 's'} en el canastito. Cuando quieras, pasá por la caja.` : '¡Hola! Soy Caro, la cajera. Lo que agregues va a tu canastito.'; }
   $('cBtn').onclick = cajeraCobra;
