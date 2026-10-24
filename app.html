@@ -83,6 +83,7 @@
   if(slugM || !isPanel){
     window.VITRINA_PUBLIC = true;
     if(slugM){
+      window.VITRINA_SLUG = slugM[1];
       window.VITRINA_LOAD = async () => {
         let t = null;
         try{ const rows = await api('GET', `/rest/v1/tiendas?slug=eq.${slugM[1]}&select=nombre,data,activa,plan,prueba_hasta,pagada_hasta`); t = rows && rows[0]; }catch(e){}
@@ -113,6 +114,7 @@
     history.replaceState(null, '', location.pathname);
   }
   let refreshing = null;
+  window.VITRINA_TOKEN = () => token();
   async function token(){
     if(!ses) throw Object.assign(new Error('Sin sesión'), {code: 'not_granted'});
     if(ses.expires_at - 60 > Date.now() / 1000) return ses.access_token;
@@ -648,6 +650,27 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 .shiprow input[type=text]{grid-column:1/-1}
 .shipbox{display:grid;gap:6px}
 .riderbox{display:grid;gap:8px;margin-top:10px}
+.trk{position:fixed;left:calc(12px + env(safe-area-inset-left, 0px));bottom:calc(16px + env(safe-area-inset-bottom, 0px));z-index:45;display:flex;gap:10px;align-items:center;
+  background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:10px 12px;box-shadow:0 10px 24px -8px var(--shadow);max-width:min(330px, calc(100vw - 130px))}
+.trk[hidden]{display:none}
+.trk-clock{font-size:30px;line-height:1;animation:trkpulse 1s ease-in-out infinite alternate}
+.trk.done .trk-clock{animation:none}
+.trk-txt{display:grid;gap:1px;font-size:13px;min-width:0}
+.trk-t{font:600 20px var(--mono)}
+.trk-x{border:0;background:none;color:var(--muted);cursor:pointer;font-size:15px;align-self:flex-start;padding:2px}
+@keyframes trkpulse{to{transform:scale(1.12) rotate(-8deg)}}
+@media (prefers-reduced-motion:reduce){.trk-clock{animation:none}}
+.ordn{background:#e5484d;color:#fff;border-radius:999px;padding:0 7px;font:700 12px/18px system-ui,sans-serif;margin-left:4px}
+.ordn[hidden]{display:none}
+.ordsheet{max-width:720px}
+.ordlist{display:grid;gap:10px}
+.ordcard{border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:6px;font-size:14px}
+.ordcard.st-preparando{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.ordcard .oh{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline}
+.ordcard .ost{font-weight:700;font-size:13px}
+.ordcard ul{margin:0;padding-left:18px}
+.ordcard .oacts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ordcard select{font:inherit;border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--bg);color:inherit}
 .riderbox input,.riderbox select{font:inherit}
 .motogo{position:fixed;left:0;bottom:calc(96px + env(safe-area-inset-bottom, 0px));z-index:60;display:flex;flex-direction:column;align-items:center;gap:2px;pointer-events:none;animation:motogo 6s linear forwards}
 .mg-bike{font-size:56px;line-height:1;display:block;transform:scaleX(-1);animation:mgbump .35s ease-in-out infinite alternate}
@@ -1336,6 +1359,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <span class="row" style="gap:6px;justify-content:flex-end">
         <select id="langSel" class="langsel" aria-label="Idioma / Language / Idioma"><option value="es">🇦🇷 Español</option><option value="en">🇺🇸 English</option><option value="pt">🇧🇷 Português</option></select>
         <button class="btn primary" type="button" id="installBtn" hidden>📲 Instalar la app</button>
+        <button class="btn ownerbtn" type="button" id="ordersBtn" hidden>📋 Pedidos <span class="ordn" id="ordersN" hidden></span></button>
         <button class="btn" type="button" id="clientBtn">👁 Ver como cliente</button>
         <button class="btn ownerbtn" type="button" id="webBtn" hidden>🌐 Llevar a la web</button>
         <button class="btn" type="button" id="brandBtn" aria-expanded="false" aria-controls="brandPanel">Personalizar mi comercio</button>
@@ -1711,6 +1735,9 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
 <div class="modal" id="askModal" hidden role="alertdialog" aria-modal="true" aria-labelledby="askTitle">
   <div class="sheet asksheet"><h2 id="askTitle"></h2><p class="note" id="askText"></p>
     <div class="actions"><button class="btn danger strong" type="button" id="askYes"></button><button class="btn" type="button" id="askNo">No, cancelar</button></div></div>
+</div>
+<div class="modal" id="ordersModal" hidden role="dialog" aria-modal="true" aria-labelledby="ordersTitle">
+  <div class="sheet cartsheet ordsheet" id="ordersSheet"></div>
 </div>
 <div class="modal" id="cartModal" hidden role="dialog" aria-modal="true" aria-labelledby="cartTitle">
   <div class="sheet cartsheet" id="cartSheet"></div>
@@ -4008,10 +4035,10 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   const needAddr = () => !!shipSel && shipSel !== 'retiro';
   const ridersOf = () => String(brand.riders || '').split(',').map(x => x.trim()).filter(Boolean).slice(0, 8);
   // La motito del delivery propio cruza la pantalla con el nombre del equipo.
-  function motoGo(){
-    const rs = ridersOf(); if(!rs.length) return;
+  function motoGo(name){
+    const rs = ridersOf(); if(!name && !rs.length) return;
     const el = document.createElement('div'); el.className = 'motogo'; el.setAttribute('aria-hidden', 'true');
-    el.innerHTML = `<span class="mg-bike">🛵</span><span class="mg-tag">${esc(rs.length === 1 ? 'Delivery: ' + rs[0] : 'Nuestro delivery: ' + rs.join(', '))}</span>`;
+    el.innerHTML = `<span class="mg-bike">🛵</span><span class="mg-tag">${esc(name ? name + ' va para tu casa' : rs.length === 1 ? 'Delivery: ' + rs[0] : 'Nuestro delivery: ' + rs.join(', '))}</span>`;
     document.body.appendChild(el); setTimeout(() => el.remove(), 6500);
   }
   const deliveryLine = () => `Tu pedido ya está en preparación${brand.delay ? '. Demora aproximada: ' + brand.delay : ''}. Cuando esté listo, sale nuestro delivery para tu casa.`;
@@ -4319,6 +4346,121 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         <p class="note" id="cartMsg" role="status"></p>`
       : `<p class="nofeat">Tu pedido está vacío. Tocá “Agregar al pedido” en cualquier producto.</p>`}`;
   }
+  // ---- Pedidos: se guardan para el panel del comercio y el cliente ve un relojito hasta que sale el delivery ----
+  function sendOrder(o){
+    const slug = window.VITRINA_SLUG; if(!PUBLIC || !slug) return Promise.resolve(null);
+    const items = cartItems(); if(!items.length) return Promise.resolve(null);
+    const {t, unpriced} = cartTotal(items), na = needAddr();
+    const body = {slug, items: items.map(it => ({n: it.name, q: it.q, p: it.price || ''})), total: fmt(t) + (unpriced ? ' + a consultar' : ''),
+      envio: o ? o.name : '', envio_id: o ? o.id : '', demora: brand.delay || '',
+      comprador: {nombre: buyer.name, tel: buyer.tel, dir: na ? buyer.dir : '', ref: na ? buyer.ref : ''},
+      regalo: gift.on ? {si: true, para: gift.who, mensaje: gift.msg} : null};
+    return fetch('/api/pedidos', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body), keepalive: true})
+      .then(r => r.ok ? r.json() : null).catch(() => null);
+  }
+  const TRK = 'vitrina360-pedido'; let trkTick = null, trkPoll = null;
+  const trkSave = v => { try{ v ? localStorage.setItem(TRK, JSON.stringify(v)) : localStorage.removeItem(TRK); }catch(e){} };
+  function trackStart(info){ trkSave(info); trackShow(info); }
+  function trackShow(info){
+    let el = document.getElementById('trk');
+    if(!el){ el = document.createElement('div'); el.id = 'trk'; el.className = 'trk'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
+    el.className = 'trk';
+    el.innerHTML = `<span class="trk-clock" aria-hidden="true">⏱</span><span class="trk-txt"><strong>Tu pedido se está preparando</strong><span class="trk-t">0:00</span>${info.demora ? `<small>Demora estimada: ${esc(info.demora)}</small>` : ''}</span><button class="trk-x" type="button" aria-label="Ocultar">✕</button>`;
+    el.querySelector('.trk-x').onclick = () => { el.hidden = true; };
+    el.hidden = false;
+    const tick = () => { const sec = Math.max(0, Math.floor((Date.now() - info.start) / 1000)); const t = el.querySelector('.trk-t'); if(t) t.textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; };
+    tick(); clearInterval(trkTick); trkTick = setInterval(tick, 1000);
+    const poll = async () => {
+      if(Date.now() - info.start > 4 * 3600e3){ trackEnd(el, true); return; }
+      let st = null; try{ const r = await fetch(`/api/pedidos?ref=${encodeURIComponent(info.ref)}&k=${encodeURIComponent(info.k)}`, {cache: 'no-store'}); if(r.status === 404){ trackEnd(el, true); return; } if(r.ok) st = await r.json(); }catch(e){}
+      if(!st) return;
+      if(st.estado === 'salio'){
+        clearInterval(trkTick); clearInterval(trkPoll); el.classList.add('done');
+        const who = st.repartidor || '';
+        el.querySelector('.trk-clock').textContent = '🛵';
+        el.querySelector('.trk-txt strong').textContent = `¡${who || 'Nuestro delivery'} salió para la entrega de tu pedido!`;
+        motoGo(who || null);
+        if(typeof cajeraOn === 'function' && cajeraOn()) cSpeak(`¡Buenas noticias! ${who ? who + ' ya salió' : 'Ya salió nuestro delivery'} para la entrega de tu pedido. En un ratito llega a tu casa.`);
+        trkSave(null); setTimeout(() => trackEnd(el), 60000);
+      } else if(st.estado === 'listo'){
+        clearInterval(trkTick); clearInterval(trkPoll); el.classList.add('done');
+        el.querySelector('.trk-clock').textContent = '✅';
+        el.querySelector('.trk-txt strong').textContent = info.retiro ? '¡Tu pedido está listo! Ya podés pasar a retirarlo.' : '¡Tu pedido está listo!';
+        if(typeof cajeraOn === 'function' && cajeraOn()) cSpeak(info.retiro ? '¡Tu pedido está listo! Ya podés pasar a retirarlo.' : '¡Tu pedido está listo!');
+        trkSave(null); setTimeout(() => trackEnd(el), 60000);
+      } else if(st.estado === 'entregado' || st.estado === 'cancelado') trackEnd(el, true);
+    };
+    clearInterval(trkPoll); trkPoll = setInterval(poll, 15000); setTimeout(poll, 3000);
+  }
+  function trackEnd(el, clear){ clearInterval(trkTick); clearInterval(trkPoll); if(el) el.hidden = true; if(clear) trkSave(null); }
+  if(PUBLIC) setTimeout(() => { try{ const v = JSON.parse(localStorage.getItem(TRK) || 'null'); if(v && v.ref && v.slug === window.VITRINA_SLUG && Date.now() - v.start < 4 * 3600e3) trackShow(v); else if(v) trkSave(null); }catch(e){} }, 1500);
+
+  // ---- Panel del comercio: lista de pedidos y "Salió con…" ----
+  const ORD_ST = {preparando: '⏱ En preparación', salio: '🛵 Salió', listo: '✅ Listo', entregado: '📦 Entregado', cancelado: '✕ Cancelado'};
+  let ordList = [], ordSeen = 0, ordTimer = null;
+  try{ ordSeen = +localStorage.getItem('vitrina360-pedidos-vistos') || 0; }catch(e){}
+  async function ordFetch(){
+    if(PUBLIC || !window.VITRINA_TOKEN) return null;
+    try{ const r = await fetch('/api/pedidos', {headers: {Authorization: 'Bearer ' + await window.VITRINA_TOKEN()}, cache: 'no-store'}); if(!r.ok) return null; const j = await r.json(); ordList = j.pedidos || []; }catch(e){ return null; }
+    const nuevos = ordList.filter(p => p.estado === 'preparando' && Date.parse(p.creado) > ordSeen).length;
+    const n = $('ordersN'); if(n){ n.textContent = nuevos; n.hidden = !nuevos; }
+    if(!$('ordersModal').hidden) renderOrders();
+    return ordList;
+  }
+  function renderOrders(){
+    const rs = ridersOf(), hora = d => { try{ return new Date(d).toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit'}); }catch(e){ return ''; } };
+    $('ordersSheet').innerHTML = `<button class="close" type="button" data-o="close" aria-label="Cerrar">✕</button>
+      <h2 id="ordersTitle">📋 Pedidos</h2>
+      <p class="note" style="margin:0">Los pedidos que te mandan desde tu tienda. Cuando el delivery sale, tocá “Salió”: al cliente se le para el relojito y le sale la motito con el nombre del repartidor.</p>
+      ${ordList.length ? `<div class="ordlist">${ordList.map(p => {
+        const c = p.comprador || {}, moto = p.envio_id === 'moto', abierto = p.estado === 'preparando';
+        return `<div class="ordcard st-${esc(p.estado)}">
+          <div class="oh"><strong>${esc(c.nombre || 'Cliente')} · ${hora(p.creado)}</strong><span class="ost">${ORD_ST[p.estado] || esc(p.estado)}${p.estado === 'salio' && p.repartidor ? ' con ' + esc(p.repartidor) : ''}</span></div>
+          <ul>${(p.items || []).map(it => `<li>${it.q} x ${esc(it.n)}${it.p ? ' — ' + esc(it.p) : ''}</li>`).join('')}</ul>
+          <div><strong>Total:</strong> ${esc(p.total || '')}${p.envio ? ` · <strong>Entrega:</strong> ${esc(p.envio)}` : ''}</div>
+          ${c.dir ? `<div>📍 ${esc(c.dir)}${c.ref ? ' — ' + esc(c.ref) : ''}</div>` : ''}
+          ${c.tel ? `<div>📞 ${esc(c.tel)}</div>` : ''}
+          ${p.regalo ? `<div>🎁 Para regalo${p.regalo.para ? ' (' + esc(p.regalo.para) + ')' : ''}: bolsa especial y moño${p.regalo.mensaje ? ` · Tarjeta: “${esc(p.regalo.mensaje)}”` : ''}</div>` : ''}
+          ${abierto ? `<div class="oacts">
+            ${moto ? `${rs.length ? `<select data-orider="${esc(p.ref)}" aria-label="Repartidor">${rs.map(r => `<option>${esc(r)}</option>`).join('')}</select>` : ''}<button class="btn primary" type="button" data-o="salio" data-ref="${esc(p.ref)}">🛵 Salió</button>`
+              : `<button class="btn primary" type="button" data-o="listo" data-ref="${esc(p.ref)}">✅ Listo</button>`}
+            <button class="btn danger" type="button" data-o="cancelado" data-ref="${esc(p.ref)}">Cancelar</button>
+          </div>` : (p.estado === 'salio' || p.estado === 'listo') ? `<div class="oacts"><button class="btn" type="button" data-o="entregado" data-ref="${esc(p.ref)}">📦 Entregado</button></div>` : ''}
+        </div>`; }).join('')}</div>` : `<p class="nofeat">Todavía no hay pedidos. Cuando un cliente mande uno desde tu tienda, aparece acá.</p>`}
+      <p class="note" id="ordMsg" role="status"></p>`;
+  }
+  if($('ordersBtn') && !PUBLIC && window.VITRINA_TOKEN){
+    $('ordersBtn').hidden = false;
+    $('ordersBtn').onclick = async () => {
+      ordSeen = Date.now(); try{ localStorage.setItem('vitrina360-pedidos-vistos', String(ordSeen)); }catch(e){}
+      $('ordersN').hidden = true; renderOrders(); $('ordersModal').hidden = false; document.documentElement.style.overflow = 'hidden';
+      $('ordersSheet').querySelector('.close').focus(); await ordFetch();
+    };
+    $('ordersModal').addEventListener('click', async e => {
+      const closeO = () => { $('ordersModal').hidden = true; document.documentElement.style.overflow = ''; };
+      if(e.target === $('ordersModal')) return closeO();
+      const b = e.target.closest('[data-o]'); if(!b) return;
+      if(b.dataset.o === 'close') return closeO();
+      const ref = b.dataset.ref, estado = b.dataset.o; if(!ref) return;
+      const sel = $('ordersSheet').querySelector(`[data-orider="${CSS.escape(ref)}"]`);
+      b.disabled = true;
+      try{
+        const r = await fetch('/api/pedidos?accion=estado', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await window.VITRINA_TOKEN()}, body: JSON.stringify({ref, estado, repartidor: sel ? sel.value : ''})});
+        if(!r.ok) throw new Error();
+        const p = ordList.find(x => x.ref === ref); if(p){ p.estado = estado; if(estado === 'salio') p.repartidor = sel ? sel.value : ''; }
+        renderOrders();
+      }catch(err){ b.disabled = false; const m = $('ordMsg'); if(m) m.textContent = 'No se pudo cambiar el pedido. Revisá internet y probá de nuevo.'; }
+    });
+    $('ordersModal').addEventListener('keydown', e => { if(e.key === 'Escape'){ $('ordersModal').hidden = true; document.documentElement.style.overflow = ''; } });
+    setTimeout(ordFetch, 2500); ordTimer = setInterval(ordFetch, 45000);
+  }
+
+  // Cada pedido mandado por WhatsApp también queda guardado para el panel (tenga o no vendedores virtuales).
+  document.addEventListener('click', e => {
+    if(!e.target.closest('[data-c="sent"]')) return;
+    const o = SHIP_OPTS.find(x => x.id === shipSel);
+    sendOrder(o).then(r => { if(r && r.ref) trackStart({ref: r.ref, k: r.k, slug: window.VITRINA_SLUG, moto: !!(o && o.id === 'moto'), retiro: !!(o && o.id === 'retiro'), demora: brand.delay || '', start: Date.now()}); });
+  });
   let cartLastFocus = null;
   document.addEventListener('click', e => {
     if(!e.target.closest('[data-c="sent"]') || !hList().length) return;
@@ -4329,7 +4471,6 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       $('cartModal').hidden = true; document.documentElement.style.overflow = '';
       const thanks = `¡Gracias por tu compra en ${storeName()}!`;
       const moto = o && o.id === 'moto' && ridersOf().length;
-      if(moto) motoGo();
       if(cajeraOn()) cSpeak(moto ? `${thanks} ${deliveryLine()} Cualquier cosa, seguimos por WhatsApp.` : `${thanks} ${o ? 'Elegiste ' + o.name + '. ' : ''}Ahora seguimos por WhatsApp.`);
       $('hPanel').hidden = false;
       if(o){ hInfo(`<strong>${esc(thanks)} Lo que sigue (${esc(o.name)}):</strong><ol class="hsteps">${next.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`); if(!cajeraOn()) hSpeak(moto ? `${thanks} ${deliveryLine()}` : `${thanks} Elegiste ${o.name}. ${next.join(' ')}`); else $('hSay').textContent = thanks; }
