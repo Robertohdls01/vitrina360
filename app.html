@@ -979,14 +979,22 @@ body.clientmode .socialbox{display:none!important}
 .prod .refl.side img{max-width:100%;max-height:100%;object-fit:contain;filter:blur(.6px) saturate(.75)}
 #catNum{display:none!important}
 .shelf{overflow:clip;overflow-clip-margin:14px}
+/* Carteles flúor */
+.neon{position:relative;z-index:3;max-width:100%;padding:2px 9px 3px;border-radius:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:#0d0f12;color:var(--neon,#c6ff1a);font:800 clamp(12px,3.6vw,17px)/1.05 var(--display);text-transform:uppercase;letter-spacing:.03em;
+  text-shadow:0 0 4px var(--neon,#c6ff1a),0 0 10px var(--neon,#c6ff1a);box-shadow:0 0 0 1.5px color-mix(in srgb,var(--neon,#c6ff1a) 55%,transparent),0 0 12px -2px var(--neon,#c6ff1a);transform:translateY(-2px)}
+.neon.big{font-size:clamp(16px,5vw,26px);padding:4px 14px 5px}
+.board:has(.neon){overflow:visible}
+@media (prefers-reduced-motion:no-preference){.neon{animation:neonflick 6s infinite}}
+@keyframes neonflick{0%,93%,100%{opacity:1}94%{opacity:.55}95%{opacity:1}96.5%{opacity:.7}}
 /* Música */
-.musicfab{position:fixed;left:calc(16px + env(safe-area-inset-left, 0px));bottom:calc(16px + env(safe-area-inset-bottom, 0px));z-index:40;
+.musicfab{position:fixed;right:calc(16px + env(safe-area-inset-right, 0px));bottom:calc(74px + env(safe-area-inset-bottom, 0px));z-index:40;
   width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:20px;cursor:pointer;
   box-shadow:0 8px 20px -10px var(--shadow);display:grid;place-items:center}
 .musicfab[aria-pressed="false"]{opacity:.7;text-decoration:line-through}
 .musicfab[aria-pressed="true"]{animation:mpulse 2.4s ease-in-out infinite}
 @keyframes mpulse{50%{transform:scale(1.07)}}
-body:has(#shopView:not([hidden])) .musicfab{bottom:calc(76px + env(safe-area-inset-bottom, 0px))}
+body:has(#cartFab[hidden]) .musicfab{bottom:calc(16px + env(safe-area-inset-bottom, 0px))}
 /* Bola giratoria del centro */
 .ringcenter.ball{cursor:pointer;overflow:hidden;isolation:isolate;touch-action:pan-y;
   box-shadow:inset -14px -18px 34px rgba(0,0,0,.28),inset 10px 12px 26px rgba(255,255,255,.35),0 22px 38px -18px var(--shadow)}
@@ -1115,6 +1123,11 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <strong>Tipo de vitrina</strong>
       <p class="note" style="margin:0">Elegí de qué está hecho el mueble. Se aplica a todas tus vitrinas.</p>
       <div class="bgbar" id="matBar" role="group" aria-label="Tipo de vitrina"></div>
+    </div>
+    <div class="presets">
+      <strong>Carteles flúor de los productos</strong>
+      <p class="note" style="margin:0">Un cartelito con la marca o el nombre corto de cada producto, en letras flúor que se leen de lejos. Si cargás “Marca: …” en las características, usa la marca.</p>
+      <div class="bgbar" id="neonBar" role="group" aria-label="Color de los carteles"></div>
     </div>
     <div class="slot">
       <label for="b-name">Nombre del comercio
@@ -1777,6 +1790,24 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     if(t){ t.focus({preventScroll:true}); t.scrollIntoView({block:'center'}); }
   }
 
+  const NEONS = [{id:'verde', c:'#c6ff1a'}, {id:'rosa', c:'#ff4fd8'}, {id:'amarillo', c:'#ffe600'}, {id:'celeste', c:'#38e8ff'}, {id:'naranja', c:'#ff8a1f'}];
+  function shortName(p){
+    const m = (p.features || []).map(f => String(f)).find(f => /^marca\s*:/i.test(f));
+    if(m){ const b = m.split(':').slice(1).join(':').trim(); if(b && b.length <= 18) return b; }
+    const w = String(p.name || '').replace(/[()"]/g, '').split(/\s+/).filter(Boolean);
+    let out = w[0] || '';
+    if(w[1] && (out + ' ' + w[1]).length <= 16) out += ' ' + w[1];
+    return out;
+  }
+  const neonOn = () => brand.neon !== 'off';
+  function applyNeon(){
+    const n = NEONS.find(x => x.id === brand.neon) || NEONS[0];
+    document.documentElement.style.setProperty('--neon', n.c);
+    const bar = $('neonBar'); if(!bar) return;
+    const cur = neonOn() ? (NEONS.find(x => x.id === brand.neon) || NEONS[0]).id : 'off';
+    bar.innerHTML = NEONS.map(x => `<button class="matbtn" type="button" data-neon="${x.id}" aria-pressed="${cur === x.id}"><span class="matsw" style="background:${x.c};box-shadow:0 0 6px ${x.c}"></span>${x.id.charAt(0).toUpperCase() + x.id.slice(1)}</button>`).join('') + `<button class="matbtn" type="button" data-neon="off" aria-pressed="${cur === 'off'}">Sin carteles</button>`;
+  }
+  document.addEventListener('click', e => { const b = e.target.closest('[data-neon]'); if(!b) return; brand.neon = b.dataset.neon; applyNeon(); save(); render(); });
   function render(){
     if(!currentCat){ renderHome(); return; }
     measure();
@@ -1797,7 +1828,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       html += `<div class="col${feat && c === 0 ? ' feat' : ''}" data-col="${c}" style="width:${colW}px;height:${colH}px;left:${-colW/2}px;top:${-colH/2}px;transform:rotateY(${c*step}deg) translateZ(${radius}px)">
         <div class="wall"></div><div class="cap"></div><div class="base"></div><div class="num">${feat && c === 0 ? '★ DESTACADO' : 'MÓDULO ' + (c + 1)}</div>`;
       if(feat && c === 0){
-        html += `<div class="shelf bigshelf" style="top:0;height:${colH}px">${prodBtn(feat, colH - 60, ' big')}<div class="board"><span class="tag">${esc(feat.name)}</span></div></div></div>`;
+        html += `<div class="shelf bigshelf" style="top:0;height:${colH}px">${prodBtn(feat, colH - 60, ' big')}<div class="board"><span class="tag">${esc(feat.name)}</span>${neonOn() ? `<span class="neon big">${esc(shortName(feat))}</span>` : ''}</div></div></div>`;
         continue;
       }
       for(let s = 0; s < SHELVES; s++){
@@ -1806,7 +1837,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
         if(item){
           const p = item.p;
           html += prodBtn(p, sh - 38, '');
-          html += `<div class="board"><span class="tag">${esc(p.name)}</span></div>`;
+          html += `<div class="board"><span class="tag">${esc(p.name)}</span>${neonOn() ? `<span class="neon">${esc(shortName(p))}</span>` : ''}</div>`;
         } else html += `<div class="board"></div>`;
         html += `</div>`;
       }
@@ -3708,7 +3739,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     const pr = presetOf(brand.preset), r = document.documentElement.style;
     if(pr.id === 'general') ['--brass','--shelf','--shelf-edge'].forEach(k => r.removeProperty(k));
     else { r.setProperty('--brass', pr.frame); r.setProperty('--shelf', pr.shelf); r.setProperty('--shelf-edge', pr.edge); }
-    applyMaterial();
+    applyMaterial(); applyNeon();
   }
   // ---- Tipo de vitrina: madera, metal, vidrio o plástico ----
   const MATS = [
