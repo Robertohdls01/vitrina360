@@ -979,6 +979,35 @@ body.clientmode .socialbox{display:none!important}
 .prod .refl.side img{max-width:100%;max-height:100%;object-fit:contain;filter:blur(.6px) saturate(.75)}
 #catNum{display:none!important}
 .shelf{overflow:clip;overflow-clip-margin:14px}
+/* Música */
+.musicfab{position:fixed;left:calc(16px + env(safe-area-inset-left, 0px));bottom:calc(16px + env(safe-area-inset-bottom, 0px));z-index:40;
+  width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:20px;cursor:pointer;
+  box-shadow:0 8px 20px -10px var(--shadow);display:grid;place-items:center}
+.musicfab[aria-pressed="false"]{opacity:.7;text-decoration:line-through}
+.musicfab[aria-pressed="true"]{animation:mpulse 2.4s ease-in-out infinite}
+@keyframes mpulse{50%{transform:scale(1.07)}}
+body:has(#shopView:not([hidden])) .musicfab{bottom:calc(76px + env(safe-area-inset-bottom, 0px))}
+/* Bola giratoria del centro */
+.ringcenter.ball{cursor:pointer;overflow:hidden;isolation:isolate;touch-action:pan-y;
+  box-shadow:inset -14px -18px 34px rgba(0,0,0,.28),inset 10px 12px 26px rgba(255,255,255,.35),0 22px 38px -18px var(--shadow)}
+.ringcenter.ball::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:3;
+  background:radial-gradient(circle at 32% 26%,rgba(255,255,255,.75) 0,rgba(255,255,255,.18) 18%,transparent 34%),radial-gradient(circle at 70% 82%,rgba(0,0,0,.18),transparent 45%)}
+.ringcenter.ball::before{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:2;opacity:.18;
+  background:repeating-linear-gradient(90deg,transparent 0 16%,var(--ink) 16% 16.6%);background-size:200% 100%;
+  -webkit-mask-image:radial-gradient(circle,#000 55%,transparent 72%);mask-image:radial-gradient(circle,#000 55%,transparent 72%);transition:opacity .3s}
+.ringcenter.ball.spinning::before{opacity:.32;animation:ballmer .9s ease-out}
+@keyframes ballmer{from{background-position:0 0}to{background-position:-100% 0}}
+.ringcenter.ball{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 6px}
+.ringcenter.ball > img{justify-self:center}
+.bspin{position:relative;display:block;justify-self:stretch;width:100%;min-width:0;height:3.4em;perspective:420px}
+.bdrum{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .85s cubic-bezier(.3,1.4,.5,1)}
+.bface{position:absolute;inset:0;display:grid;place-items:center;text-align:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  transform:rotateY(calc(var(--i) * 360deg / var(--n))) translateZ(var(--r,60px));line-height:1.15;opacity:0;transition:opacity .45s}
+.bface.on{opacity:1}
+.bface strong{display:block}
+.binfo{font:700 clamp(10px,2.1vw,14px)/1.2 var(--body);width:max-content;max-width:92%;padding:3px 6px;border-radius:8px;background:color-mix(in srgb,var(--surface) 82%,transparent);color:var(--ink);overflow-wrap:anywhere}
+.ringcenter.cphoto .bspin{margin-bottom:0}
+@media (prefers-reduced-motion:reduce){.bdrum{transition:none}.ringcenter.ball.spinning::before{animation:none}}
 /* Tamaño de las vitrinas y folleto */
 .homegrid{grid-template-columns:repeat(var(--gcols,2),minmax(0,1fr))!important}
 .homegrid > .mini.sz-big{grid-column:span 2;--cw:calc(var(--cwb,90px) * 1.75)}
@@ -1121,6 +1150,9 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <p class="note" style="margin:0">Relleno: tu logo con un color, la foto de perfil del comercio, o transparente para que se vea el fondo. El nombre siempre aparece.</p>
       <div class="bgbar" id="centerBar" role="group" aria-label="Relleno del círculo"></div>
       <div class="bgbar" id="centerBorderBar" role="group" aria-label="Color del borde del círculo"></div>
+      <label for="b-ball">Datos de la bola giratoria <small>Uno por renglón: teléfono, dirección, horarios, ofertas… Al tocar la bola, gira y los muestra. Si lo dejás vacío, muestra tu WhatsApp e Instagram.</small>
+        <textarea id="b-ball" rows="4" maxlength="400" placeholder="📱 223 555-1234&#10;📍 Av. Colón 1234, Mar del Plata&#10;🕘 Lun a Sáb 9 a 20 h&#10;🚚 Envíos a domicilio"></textarea>
+      </label>
     </div>
     <div class="presets">
       <strong>Color de fondo de la página</strong>
@@ -1131,6 +1163,13 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <strong>Color de los botones flotantes</strong>
       <p class="note" style="margin:0">El de “← Vitrinas” (abajo a la izquierda de la vitrina) y el de “Ver pedido”.</p>
       <div class="bgbar" id="btnColorBar" role="group" aria-label="Color de los botones"></div>
+    </div>
+    <div class="presets">
+      <strong>Música de la tienda</strong>
+      <p class="note" style="margin:0">Suena de fondo mientras tus clientes miran, como en un local. La música de la app se crea en el momento: no tiene derechos de autor. También podés subir un MP3 tuyo, que tengas permiso de usar. Arranca cuando el cliente toca la pantalla, y tiene un botón 🎵 para silenciarla.</p>
+      <div class="bgbar" id="musicBar" role="group" aria-label="Música de la tienda"></div>
+      <div class="row"><label class="btn" for="b-music" style="display:inline-flex">🎵 Subir mi música (MP3)<input type="file" id="b-music" accept="audio/*" class="vh"></label></div>
+      <p class="note" id="musicMsg" role="status" style="margin:0"></p>
     </div>
     <div class="presets">
       <strong>Fondo general de las vitrinas</strong>
@@ -1308,6 +1347,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   </section>
 </div>
 
+<button class="musicfab" type="button" id="musicFab" hidden aria-pressed="false" aria-label="Música de la tienda">🎵</button>
 <button class="cartfab" type="button" id="cartFab" hidden>Ver pedido <span class="n" id="cartN">0</span></button>
 <div class="modal" id="askModal" hidden role="alertdialog" aria-modal="true" aria-labelledby="askTitle">
   <div class="sheet asksheet"><h2 id="askTitle"></h2><p class="note" id="askText"></p>
@@ -1525,6 +1565,22 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     </button>`;
   }
   let editMode = false;
+  // Datos que muestra la bola al girar: el nombre primero, después lo que cargó el comercio
+  function ballItems(){
+    const extra = String(brand.ball || '').split('\n').map(t => t.trim()).filter(Boolean);
+    if(!extra.length){
+      const wa = String(brand.wa || '').replace(/\D/g, '');
+      if(wa) extra.push('📱 ' + brand.wa);
+      if(brand.ig) extra.push('📷 @' + String(brand.ig).replace(/^@/, ''));
+    }
+    return extra.slice(0, 7);
+  }
+  function ballHTML(name){
+    const items = ballItems();
+    if(!items.length) return `<strong>${name}</strong>`;
+    const all = [`<strong>${name}</strong>`, ...items.map(t => `<span class="binfo">${esc(t)}</span>`)];
+    return `<span class="bspin"><span class="bdrum" style="--n:${all.length}">${all.map((h, i) => `<span class="bface" style="--i:${i}">${h}</span>`).join('')}</span></span>`;
+  }
   function centerHTML(){
     const ce = brand.center || {type:'auto'};
     let cls = 'ringcenter', st = '', inner = '';
@@ -1532,15 +1588,50 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     const border = HEXOK(ce.border) ? `border-color:${ce.border};` : '';
     if(ce.type === 'photo' && ce.photo){
       cls += ' cphoto'; st = `background-image:${cssUrl(ce.photo)};`;
-      inner = `<strong>${name}</strong>`;
+      inner = ballHTML(name);
     } else if(ce.type === 'clear'){
-      cls += ' cclear'; inner = `<strong>${name}</strong>`;
+      cls += ' cclear'; inner = ballHTML(name);
     } else {
       if(ce.type === 'color' && HEXOK(ce.color)){ const light = lum(ce.color) > 0.45; st = `background:${ce.color};color:${light ? '#1c2420' : '#ffffff'};`; }
-      inner = `${brand.logo ? `<img src="${brand.logo}" alt="">` : ''}<strong>${name}</strong><span class="note">Tocá una vitrina</span>`;
+      inner = `${brand.logo ? `<img src="${brand.logo}" alt="">` : ''}${ballHTML(name)}`;
     }
-    return `<div class="${cls}" style="${esc(st + border)}">${inner}</div>`;
+    return `<div class="${cls} ball" style="${esc(st + border)}" role="button" tabindex="0" aria-label="${name}: tocá para ver los datos de la tienda">${inner}</div>`;
   }
+  // ---- La bola gira: tocás o arrastrás y muestra el siguiente dato; sola vuelve al nombre ----
+  const ballState = new WeakMap();
+  function ballTurn(el, step){
+    const drum = el.querySelector('.bdrum'); if(!drum) return;
+    const n = +drum.style.getPropertyValue('--n') || drum.children.length;
+    const st = ballState.get(el) || {i: 0, t: 0};
+    st.i += step; ballState.set(el, st);
+    const w = drum.clientWidth || 100, r = n > 2 ? (w / 2) / Math.tan(Math.PI / n) : w / 2;
+    drum.style.setProperty('--r', r.toFixed(1) + 'px');
+    drum.style.transform = `translateZ(${-r}px) rotateY(${-st.i * 360 / n}deg)`;
+    const cur = ((st.i % n) + n) % n; [...drum.children].forEach((f, k) => f.classList.toggle('on', k === cur));
+    el.classList.add('spinning'); clearTimeout(st.s); st.s = setTimeout(() => el.classList.remove('spinning'), 900);
+    clearTimeout(st.t);
+    st.t = setTimeout(() => { const k = ((st.i % n) + n) % n; if(k){ ballTurn(el, k <= n / 2 ? -k : n - k); } }, 7000);
+  }
+  function ballInit(){
+    document.querySelectorAll('.ringcenter.ball .bdrum').forEach(d => {
+      const n = d.children.length, w = d.clientWidth || 100, r = n > 2 ? (w / 2) / Math.tan(Math.PI / n) : w / 2;
+      d.style.setProperty('--r', r.toFixed(1) + 'px'); d.style.transform = `translateZ(${-r}px) rotateY(0deg)`;
+      [...d.children].forEach((f, k) => f.classList.toggle('on', k === 0));
+    });
+  }
+  let ballDrag = null;
+  document.addEventListener('pointerdown', e => { const b = e.target.closest('.ringcenter.ball'); if(!b || editMode) return; ballDrag = {el: b, x: e.clientX, done: false}; });
+  document.addEventListener('pointermove', e => {
+    if(!ballDrag || ballDrag.done) return;
+    const dx = e.clientX - ballDrag.x;
+    if(Math.abs(dx) > 30){ ballTurn(ballDrag.el, dx < 0 ? 1 : -1); ballDrag.done = true; }
+  });
+  document.addEventListener('pointerup', e => {
+    if(!ballDrag) return;
+    const d = ballDrag; ballDrag = null;
+    if(!d.done && e.target.closest('.ringcenter.ball') === d.el) ballTurn(d.el, 1);
+  });
+  document.addEventListener('keydown', e => { const b = e.target.closest && e.target.closest('.ringcenter.ball'); if(b && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); ballTurn(b, 1); } });
   function renderHome(){
     const cp = capProds(), full = isFinite(cp) ? cats.filter(c => products.filter(p => p.cat === c.id).length > cp) : [];
     const wn = $('waNote'); if(wn) wn.hidden = PUBLIC || clientMode || !!String(brand.wa || '').replace(/\D/g, '');
@@ -1602,6 +1693,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
 
   function sizeMinis(){
     const g = $('homegrid'), rw = $('ringwrap'), fw = $('freewrap');
+    requestAnimationFrame(ballInit);
     const hs = (brand.homeSize | 0) + 2, f = SZF[hs], vw = innerWidth;
     const gcols = vw <= 700 ? [4, 3, 2, 2, 1][hs] : vw <= 999 ? [5, 4, 3, 2, 2][hs] : [7, 6, 5, 4, 3][hs];
     g.style.setProperty('--gcols', gcols);
@@ -1616,8 +1708,9 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     if(rw){
       const W = rw.clientWidth, n = rw.querySelectorAll('.ring:not(.ringlbl) > .rslot').length;
       // en círculo, el tamaño crece hasta donde entran sin pisarse
-      const tw = W * [0.65, 0.82, 1, 1.05, 1.1][hs] * Math.min(0.285, 3.0 / (n * 1.08 + 3.83));
-      const rc = rw.querySelector(':scope > .ringcenter'); if(rc) rc.style.width = (hs >= 3 ? 24 : n <= 8 ? 28 : 32) + '%';
+      // con aire entre vitrinas y alrededor de la bola, para que no se choquen
+      const tw = W * [0.6, 0.75, 0.9, 1, 1][hs] * Math.min(0.25, 3.0 / (n * 1.32 + 3.83));
+      const rc = rw.querySelector(':scope > .ringcenter'); if(rc) rc.style.width = '27%';
       const th = tw * 1.22;
       rw.style.setProperty('--tw', tw.toFixed(1) + 'px');
       rw.style.setProperty('--th', th.toFixed(1) + 'px');
@@ -3695,8 +3788,9 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     const open = $('brandPanel').hidden;
     $('brandPanel').hidden = !open; $('brandBtn').setAttribute('aria-expanded', String(open));
     $('brandBtn').textContent = open ? 'Listo' : 'Personalizar mi comercio';
-    if(open){ renderCatToggles(); renderShipPanel(); renderCenterBars(); $('b-name').value = brand.name; $('b-wa').value = brand.wa || ''; $('b-ig').value = brand.ig || ''; $('b-alias').value = brand.alias || ''; $('b-paylink').value = brand.paylink || ''; $('b-name').focus(); }
+    if(open){ renderCatToggles(); renderShipPanel(); renderCenterBars(); $('b-name').value = brand.name; $('b-wa').value = brand.wa || ''; $('b-ig').value = brand.ig || ''; $('b-alias').value = brand.alias || ''; $('b-paylink').value = brand.paylink || ''; $('b-ball').value = brand.ball || ''; $('b-name').focus(); }
   };
+  $('b-ball').addEventListener('input', e => { brand.ball = e.target.value.slice(0, 400); save(); if(!currentCat) renderHome(); });
   $('b-name').addEventListener('input', e => { brand.name = e.target.value.trim(); applyBrand(); renderContact(); save(); renderStoreBar(); });
   $('b-logo').addEventListener('change', async e => {
     const f = e.target.files[0]; e.target.value = ''; if(!f) return;
@@ -3766,6 +3860,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       (stores.length > 1 ? `<button type="button" class="storechip all" data-mall aria-pressed="${mall}">▣ Ver todas</button>` : '');
   }
   function afterStoreChange(){
+    renderMusic();
     currentCat = null; editMode = false; selectedId = null;
     $('shopView').hidden = true; $('mallView').hidden = true; $('homeView').hidden = false;
     if(!$('brandPanel').hidden) $('brandBtn').click();
@@ -3869,8 +3964,117 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     };
     addEventListener('appinstalled', () => { btn.hidden = true; });
   })();
+  // ---- Música de la tienda: se genera en el momento (sin derechos de autor) o un MP3 propio ----
+  const MUSIC = [
+    {id:'', name:'Sin música'},
+    {id:'lounge', name:'☕ Lounge', bpm:84, prog:[[48,52,55,59],[45,48,52,55],[50,53,57,60],[43,47,50,53]], beat:'soft', arp:true},
+    {id:'bossa', name:'🌴 Bossa', bpm:118, prog:[[50,53,57,60],[43,47,50,53],[48,52,55,59],[48,52,55,59]], beat:'bossa', arp:false},
+    {id:'ambiente', name:'🌙 Ambiente', bpm:64, prog:[[48,55,59,64],[45,52,55,60],[41,48,52,57],[43,50,55,59]], beat:'', arp:false},
+    {id:'pop', name:'✨ Pop suave', bpm:104, prog:[[48,52,55,60],[43,47,50,55],[45,48,52,57],[41,45,48,53]], beat:'pop', arp:true},
+    {id:'file', name:'🎵 Mi música'}
+  ];
+  const music = {ctx: null, master: null, timer: null, step: 0, next: 0, on: false, audio: null, style: null};
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+  function mNote(t, freq, dur, type, vol, cutoff){
+    const c = music.ctx, o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter();
+    o.type = type; o.frequency.value = freq; f.type = 'lowpass'; f.frequency.value = cutoff || 2400;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + Math.min(0.03, dur / 4));
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(f); f.connect(g); g.connect(music.master); o.start(t); o.stop(t + dur + 0.05);
+  }
+  function mNoise(t, dur, vol, hp){
+    const c = music.ctx, len = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+    for(let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const src = c.createBufferSource(), g = c.createGain(), f = c.createBiquadFilter();
+    src.buffer = buf; f.type = 'highpass'; f.frequency.value = hp || 6000; g.gain.value = vol;
+    src.connect(f); f.connect(g); g.connect(music.master); src.start(t);
+  }
+  function mKick(t, vol){
+    const c = music.ctx, o = c.createOscillator(), g = c.createGain();
+    o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.18);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+    o.connect(g); g.connect(music.master); o.start(t); o.stop(t + 0.32);
+  }
+  function mTick(){
+    const st = music.style, c = music.ctx; if(!st || !c) return;
+    const s16 = 60 / st.bpm / 4;
+    while(music.next < c.currentTime + 0.25){
+      const t = music.next, k = music.step, bar = Math.floor(k / 16) % st.prog.length, pos = k % 16, ch = st.prog[bar];
+      if(pos === 0){ ch.forEach(m => { mNote(t, mtof(m + 12), s16 * 15, 'triangle', 0.035, 1300); mNote(t, mtof(m + 12) * 1.004, s16 * 15, 'sawtooth', 0.012, 900); }); }
+      if(st.id === 'ambiente' && pos === 8) mNote(t, mtof(ch[3] + 24), s16 * 8, 'sine', 0.03, 3000);
+      // bajo
+      const bassAt = st.beat === 'bossa' ? [0, 3, 8, 11] : st.beat === 'pop' ? [0, 6, 8, 14] : st.beat ? [0, 8] : [];
+      if(bassAt.includes(pos)) mNote(t, mtof(ch[0] - 12 + (st.beat === 'bossa' && (pos === 3 || pos === 11) ? 7 : 0)), s16 * 3, 'sine', 0.12, 600);
+      // piano arpegiado
+      if(st.arp && pos % 2 === 0){ const seq = [0, 1, 2, 3, 2, 1, 3, 2]; mNote(t, mtof(ch[seq[(pos / 2) % 8]] + 24), s16 * 3, 'sine', 0.045, 3500); }
+      if(st.beat === 'bossa' && [2, 5, 10, 13].includes(pos)) mNote(t, mtof(ch[1 + pos % 3] + 12), s16 * 1.5, 'triangle', 0.03, 2000);
+      // ritmo suave
+      if(st.beat === 'pop'){ if(pos % 8 === 0) mKick(t, 0.22); if(pos % 4 === 2) mNoise(t, 0.05, 0.05); if(pos === 4 || pos === 12) mNoise(t, 0.14, 0.06, 1800); }
+      if(st.beat === 'soft'){ if(pos === 0) mKick(t, 0.13); if(pos % 4 === 2) mNoise(t, 0.04, 0.03); }
+      if(st.beat === 'bossa'){ if(pos % 4 === 0) mKick(t, 0.1); if(pos % 2 === 1) mNoise(t, 0.03, 0.025); if([3, 6, 10, 12].includes(pos)) mNoise(t, 0.03, 0.05, 2500); }
+      music.next += s16; music.step++;
+    }
+  }
+  function musicStop(){
+    clearInterval(music.timer); music.timer = null;
+    if(music.audio){ music.audio.pause(); }
+    if(music.master){ try{ music.master.gain.setTargetAtTime(0, music.ctx.currentTime, 0.15); }catch(e){} }
+    music.on = false; $('musicFab').setAttribute('aria-pressed', 'false');
+  }
+  function musicStart(){
+    const m = brand.music || {}; if(!m.style) return;
+    musicStop();
+    if(m.style === 'file'){
+      if(!m.url) return;
+      if(!music.audio){ music.audio = new Audio(); music.audio.loop = true; music.audio.volume = 0.45; }
+      if(music.audio.src !== m.url) music.audio.src = m.url;
+      music.audio.play().then(() => { music.on = true; $('musicFab').setAttribute('aria-pressed', 'true'); }).catch(() => {});
+      return;
+    }
+    try{
+      if(!music.ctx){ music.ctx = new (window.AudioContext || window.webkitAudioContext)(); music.master = music.ctx.createGain(); music.master.connect(music.ctx.destination); }
+      music.ctx.resume();
+      music.master.gain.cancelScheduledValues(music.ctx.currentTime); music.master.gain.setTargetAtTime(0.55, music.ctx.currentTime, 0.4);
+      music.style = MUSIC.find(x => x.id === m.style) || MUSIC[1]; music.step = 0; music.next = music.ctx.currentTime + 0.1;
+      music.timer = setInterval(mTick, 60); mTick();
+      music.on = true; $('musicFab').setAttribute('aria-pressed', 'true');
+    }catch(e){}
+  }
+  const musicMuted = () => { try{ return localStorage.getItem('vitrina360-mute') === '1'; }catch(e){ return false; } };
+  function renderMusic(){
+    const m = brand.music || {}, cur = m.style || '';
+    $('musicBar').innerHTML = MUSIC.filter(x => x.id !== 'file' || m.url).map(x => `<button class="matbtn" type="button" data-music="${x.id}" aria-pressed="${cur === x.id}">${x.name}</button>`).join('');
+    $('musicFab').hidden = !cur;
+    if(!cur) musicStop();
+  }
+  $('musicBar').addEventListener('click', e => {
+    const b = e.target.closest('[data-music]'); if(!b) return;
+    brand.music = {...(brand.music || {}), style: b.dataset.music}; save(); renderMusic();
+    if(b.dataset.music){ try{ localStorage.removeItem('vitrina360-mute'); }catch(e){} musicStart(); }
+  });
+  $('b-music').addEventListener('change', async e => {
+    const f = e.target.files[0]; e.target.value = ''; if(!f) return;
+    if(f.size > 15e6){ $('musicMsg').textContent = 'Ese archivo es muy pesado. Probá con un MP3 de menos de 15 MB.'; return; }
+    $('musicMsg').textContent = 'Subiendo tu música…';
+    let url = null;
+    try{ if(assetsApi) url = (await assetsApi.upload(f)).url; }catch(err){}
+    if(!url){ url = URL.createObjectURL(f); $('musicMsg').textContent = 'Lista para escuchar acá. Para que la escuchen tus clientes, subila desde tu panel en la web.'; }
+    else $('musicMsg').textContent = 'Listo: tu música quedó cargada.';
+    brand.music = {style: 'file', url}; save(); renderMusic(); musicStart();
+  });
+  $('musicFab').onclick = e => {
+    e.stopPropagation();
+    if(music.on){ musicStop(); try{ localStorage.setItem('vitrina360-mute', '1'); }catch(err){} }
+    else { try{ localStorage.removeItem('vitrina360-mute'); }catch(err){} musicStart(); }
+  };
+  // los celulares solo dejan sonar después de un toque: arranca con el primero
+  document.addEventListener('pointerdown', function first(e){
+    if(e.target.closest && e.target.closest('#musicFab, #musicBar')) return;
+    document.removeEventListener('pointerdown', first, true);
+    if((brand.music || {}).style && !musicMuted() && !music.on) musicStart();
+  }, true);
   function boot(){
-    load(); applyBrand(); applyTheme(); applyBtnColor(); applyBg(); renderPresets(); renderContact(); updateFab(); fillCatSelect(cats[0].id); setAuto(autoOn); renderHome(); renderStoreBar(); setLang(LANG); requestAnimationFrame(loop);
+    load(); applyBrand(); applyTheme(); applyBtnColor(); applyBg(); renderPresets(); renderContact(); updateFab(); renderMusic(); fillCatSelect(cats[0].id); setAuto(autoOn); renderHome(); renderStoreBar(); setLang(LANG); requestAnimationFrame(loop);
     if(PUBLIC){ document.body.classList.add('publicmode'); setClient(true); }
     else { window.VITRINA_SAVE_NOW = save; window.VITRINA_REFRESH = () => { if(!currentCat && $('mallView').hidden) renderHome(); }; }
   }
