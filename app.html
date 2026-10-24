@@ -979,6 +979,36 @@ body.clientmode .socialbox{display:none!important}
 .prod .refl.side img{max-width:100%;max-height:100%;object-fit:contain;filter:blur(.6px) saturate(.75)}
 #catNum{display:none!important}
 .shelf{overflow:clip;overflow-clip-margin:14px}
+/* Destello de luces */
+@keyframes glowc{0%{box-shadow:0 0 0 3px #ff2d55,0 0 22px 6px #ff2d55}20%{box-shadow:0 0 0 3px #ffcc00,0 0 22px 6px #ffcc00}40%{box-shadow:0 0 0 3px #34c759,0 0 22px 6px #34c759}60%{box-shadow:0 0 0 3px #00c7ff,0 0 22px 6px #00c7ff}80%{box-shadow:0 0 0 3px #af52de,0 0 22px 6px #af52de}100%{box-shadow:0 0 0 3px #ff2d55,0 0 22px 6px #ff2d55}}
+.mini.glow .mstage{animation:glowc 2.4s linear infinite;overflow:visible}
+.mini.glow.wiggle .mstage{animation:glowc 2.4s linear infinite,wiggle .3s ease-in-out infinite alternate}
+#stage.glow{animation:glowc 2.4s linear infinite}
+#stage.glow::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:5;border-radius:inherit;
+  background:conic-gradient(from var(--ga,0deg) at 50% 120%,transparent 0 40deg,rgba(255,255,255,.16) 48deg,transparent 56deg 150deg,rgba(255,220,120,.14) 160deg,transparent 170deg 250deg,rgba(120,220,255,.14) 262deg,transparent 272deg);
+  animation:beams 7s linear infinite}
+@property --ga{syntax:"<angle>";inherits:false;initial-value:0deg}
+@keyframes beams{to{--ga:360deg}}
+.glowbtn[aria-pressed="true"]{animation:glowc 2.4s linear infinite}
+/* Adornos arriba de las vitrinas */
+.deco{position:absolute;left:0;right:0;top:0;z-index:4;pointer-events:none;display:flex;flex-direction:column;align-items:stretch}
+.decoi{display:flex;justify-content:space-around;align-items:flex-start;font-size:calc(var(--cw,90px) * .26);line-height:1;padding:2px 4px 0}
+.decoi i{font-style:normal;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25));animation:decob 3s ease-in-out infinite;animation-delay:calc(var(--j) * -.6s)}
+@keyframes decob{50%{transform:translateY(-2px) rotate(-4deg)}}
+.bulbs{height:8px;margin:0 2px;background:radial-gradient(circle,#ff3b30 2.5px,transparent 3px) 0 0/16px 8px,radial-gradient(circle,#ffd60a 2.5px,transparent 3px) 8px 0/16px 8px;animation:bulbs 1s steps(2) infinite}
+@keyframes bulbs{50%{background:radial-gradient(circle,#34c759 2.5px,transparent 3px) 0 0/16px 8px,radial-gradient(circle,#0a84ff 2.5px,transparent 3px) 8px 0/16px 8px}}
+.stagedeco{position:absolute;inset:0 0 auto;z-index:5;pointer-events:none}
+.deco.big{position:absolute;inset:0;bottom:auto;height:100%}
+.deco.big .decoi{font-size:clamp(24px,7vw,40px);padding:6px 10px 0}
+.deco.big .bulbs{height:14px;background-size:26px 14px;background-position:0 0,13px 0}
+.deco.big .bulbs{background:radial-gradient(circle,#ff3b30 4px,transparent 5px) 0 0/26px 14px,radial-gradient(circle,#ffd60a 4px,transparent 5px) 13px 0/26px 14px}
+.snow{position:absolute;inset:0;height:100%;pointer-events:none;opacity:.85;
+  background:radial-gradient(circle,#fff 1.6px,transparent 2.2px) 0 0/60px 70px,radial-gradient(circle,#fff 1.1px,transparent 1.7px) 25px 30px/45px 55px;animation:snow 9s linear infinite}
+.snow.s2{opacity:.6;background-size:80px 90px,55px 65px;animation-duration:14s}
+@keyframes snow{from{background-position:0 -70px,25px -40px}to{background-position:30px 600px,0 560px}}
+.stage .stagedeco:has(.snow){height:100%}
+body.clientmode .decoshop{display:none}
+@media (prefers-reduced-motion:reduce){.mini.glow .mstage,#stage.glow,#stage.glow::after,.decoi i,.bulbs,.snow{animation:none}}
 /* Carteles flúor */
 .neon{position:relative;z-index:3;max-width:100%;padding:2px 9px 3px;border-radius:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   background:#0d0f12;color:var(--neon,#c6ff1a);font:800 clamp(12px,3.6vw,17px)/1.05 var(--display);text-transform:uppercase;letter-spacing:.03em;
@@ -1299,6 +1329,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     <div class="roomphoto" id="roomPhoto" hidden></div>
     <button class="backfab" type="button" id="backFab">← Vitrinas</button>
     <div class="stagelogo" id="stageLogo" hidden></div>
+    <div class="stagedeco" id="stageDeco"></div>
     <div class="floorplane" id="floorplane"></div>
     <div class="refl-outer" id="reflOuter" aria-hidden="true"><div class="refl-inner" id="reflInner"><div class="carousel" id="carouselRefl" inert></div></div></div>
     <div class="floor" id="floorShadow"></div>
@@ -1308,6 +1339,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
 
   <div class="bgbar" id="bgBarShop" role="group" aria-label="Fondo de la vitrina"></div>
   <div class="bgbar matshop" id="matBarShop" role="group" aria-label="Tipo de vitrina"></div>
+  <div class="bgbar decoshop" id="decoBar" role="group" aria-label="Adornos y luces de esta vitrina"></div>
   <div class="controls">
     <button class="btn" id="prev" type="button" aria-label="Girar a la izquierda">◀ Anterior</button>
     <button class="btn" id="next" type="button" aria-label="Girar a la derecha">Siguiente ▶</button>
@@ -1482,7 +1514,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   const priceNum = p => { const n = parseFloat(String(p||'').replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',', '.')); return isNaN(n) ? Infinity : n; };
 
   const samples = () => SAMPLES.map((s,i) => ({...s, id:'s'+i, sample:true, added:i}));
-  const catClean = c => ({id: c.id, name: c.name, hidden: !!c.hidden, still: !!c.still, ...(c.bg ? {bg: c.bg} : {}), ...(Number.isInteger(c.zoom) ? {zoom: c.zoom} : {}), ...(c.size ? {size: c.size} : {})});
+  const catClean = c => ({id: c.id, name: c.name, hidden: !!c.hidden, still: !!c.still, ...(c.bg ? {bg: c.bg} : {}), ...(Number.isInteger(c.zoom) ? {zoom: c.zoom} : {}), ...(c.size ? {size: c.size} : {}), ...(c.glow ? {glow: true} : {}), ...(c.deco ? {deco: c.deco} : {})});
   function applyData(d){
     cats = Array.isArray(d.cats) && d.cats.length ? d.cats.slice(0, MAX_CATS).map(catClean) : DEFAULT_CATS.map(c => ({...c}));
     const fallback = (cats.find(c => c.id === 'varios') || cats[cats.length - 1]).id;
@@ -1564,6 +1596,21 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   const countText = () => { const v = cats.filter(c => !c.hidden).length; return `${v} vitrina${v===1?'':'s'} a la vista · ${products.length} productos`; };
   const two = n => String(n).padStart(2, '0');
 
+  const DECOS = [
+    {id:'', name:'Sin adornos'},
+    {id:'navidad', name:'🎄 Navidad', items:['🎄','⭐','🎁','🔔','❄️'], bulbs:true, snow:true},
+    {id:'deportes', name:'⚽ Deportes', items:['⚽','🏀','🏆','🎾','🏐']},
+    {id:'fiesta', name:'🎈 Fiesta', items:['🎈','🎉','🎂','🎊','🎈'], bulbs:true},
+    {id:'madre', name:'💐 Día de la Madre', items:['💐','💖','🌷','🎀','🌸']},
+    {id:'halloween', name:'🎃 Halloween', items:['🎃','🦇','👻','🕸️','🍬']},
+    {id:'verano', name:'☀️ Verano', items:['☀️','🌴','🕶️','🏖️','🍉']},
+    {id:'pascua', name:'🐰 Pascua', items:['🐣','🥚','🐰','🍫','🌼']},
+    {id:'ofertas', name:'🔥 Ofertas', items:['🔥','🏷️','💥','⭐','🔥'], bulbs:true}
+  ];
+  function decoHTML(id, big){
+    const d = DECOS.find(x => x.id === id); if(!d || !d.items) return '';
+    return `<span class="deco${big ? ' big' : ''}" aria-hidden="true">${d.bulbs ? '<span class="bulbs"></span>' : ''}<span class="decoi">${d.items.map((e, i) => `<i style="--j:${i}">${e}</i>`).join('')}</span>${big && d.snow ? '<span class="snow"></span><span class="snow s2"></span>' : ''}</span>`;
+  }
   const SZF = [0.7, 0.85, 1, 1.25, 1.5]; const szK = v => SZF[Math.max(-2, Math.min(2, v | 0)) + 2];
   function tileHTML(c, idx, isHid, small){
     const items = products.filter(p => p.cat === c.id).sort((x,y) => (y.featured ? 1 : 0) - (x.featured ? 1 : 0) || x.added - y.added);
@@ -1575,9 +1622,9 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     if(fp) colsArr[0] = 'BIG';
     const priced = items.filter(p => priceNum(p.price) !== Infinity).sort((x,y) => priceNum(x.price) - priceNum(y.price));
     const ks = c.size | 0;
-    return `<button class="mini${ks > 0 ? ' sz-big' : ks < 0 ? ' sz-small' : ''}${isHid ? ' hiddencat' : ''}${n === 0 ? ' emptycat' : ''}${editMode && !isHid ? ' wiggle' : ''}" type="button" data-cat="${c.id}" aria-label="Abrir la vitrina ${esc(c.name)}${isHid ? ', oculta' : ''}, ${n} producto${n===1?'':'s'}">
+    return `<button class="mini${c.glow ? ' glow' : ''}${ks > 0 ? ' sz-big' : ks < 0 ? ' sz-small' : ''}${isHid ? ' hiddencat' : ''}${n === 0 ? ' emptycat' : ''}${editMode && !isHid ? ' wiggle' : ''}" type="button" data-cat="${c.id}" aria-label="Abrir la vitrina ${esc(c.name)}${isHid ? ', oculta' : ''}, ${n} producto${n===1?'':'s'}">
       <span class="plaque"><span class="mnum">${isHid ? 'OCULTA' : two(idx+1)}</span><span class="t">${esc(c.name)}</span></span>
-      <span class="mstage" style="${esc(varsStyle(bgVars(c.bg)))}">${effBg(c.id).type === 'photo' ? '<span class="roomphoto"></span>' : ''}<span class="delx" role="button" tabindex="0" data-delcat="${c.id}" aria-label="Borrar la vitrina ${esc(c.name)}" title="Borrar vitrina">✕</span><span class="szbar"><span role="button" tabindex="0" data-sz="-1" data-szcat="${c.id}" aria-label="Achicar ${esc(c.name)}">−</span><span role="button" tabindex="0" data-sz="1" data-szcat="${c.id}" aria-label="Agrandar ${esc(c.name)}">＋</span></span>
+      <span class="mstage" style="${esc(varsStyle(bgVars(c.bg)))}">${decoHTML(c.deco, false)}${effBg(c.id).type === 'photo' ? '<span class="roomphoto"></span>' : ''}<span class="delx" role="button" tabindex="0" data-delcat="${c.id}" aria-label="Borrar la vitrina ${esc(c.name)}" title="Borrar vitrina">✕</span><span class="szbar"><span role="button" tabindex="0" data-sz="-1" data-szcat="${c.id}" aria-label="Achicar ${esc(c.name)}">−</span><span role="button" tabindex="0" data-sz="1" data-szcat="${c.id}" aria-label="Agrandar ${esc(c.name)}">＋</span></span>
         <span class="mfloorp"></span><span class="mshadow"></span>
         <span class="mcar${c.still ? ' still' : ''}" style="--d:${(-idx * 4.3).toFixed(1)}s">
           ${colsArr.map((col, i) => col === 'BIG' ? `<span class="mcol mfeat" style="--i:${i}"><span class="mbig"><img src="${fp.img}" alt="" draggable="false"></span><span class="mboard"></span></span>` : `<span class="mcol" style="--i:${i}">${col.map(sh => `<span class="mshelf">${sh.map(p => `<img src="${p.img}" alt="" draggable="false">`).join('')}<span class="mboard"></span></span>`).join('')}</span>`).join('')}
@@ -1818,6 +1865,20 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     bar.innerHTML = NEONS.map(x => `<button class="matbtn" type="button" data-neon="${x.id}" aria-pressed="${cur === x.id}"><span class="matsw" style="background:${x.c};box-shadow:0 0 6px ${x.c}"></span>${x.id.charAt(0).toUpperCase() + x.id.slice(1)}</button>`).join('') + `<button class="matbtn" type="button" data-neon="off" aria-pressed="${cur === 'off'}">Sin carteles</button>`;
   }
   document.addEventListener('click', e => { const b = e.target.closest('[data-neon]'); if(!b) return; brand.neon = b.dataset.neon; applyNeon(); save(); render(); });
+  function renderDecoBar(c){
+    $('decoBar').innerHTML = `<button class="matbtn glowbtn" type="button" data-glow="1" aria-pressed="${!!c.glow}">✨ Destello de luces</button><span class="note" style="margin:0 2px">Adornos:</span>` +
+      DECOS.map(d => `<button class="matbtn" type="button" data-deco="${d.id}" aria-pressed="${(c.deco || '') === d.id}">${d.name}</button>`).join('') +
+      `<button class="linkbtn" type="button" data-decoall="1">Mismos adornos en todas</button>`;
+  }
+  $('decoBar').addEventListener('click', e => {
+    const c = catOf(currentCat); if(!c) return;
+    const g = e.target.closest('[data-glow]'), d = e.target.closest('[data-deco]'), a = e.target.closest('[data-decoall]');
+    if(g){ c.glow = !c.glow; if(!c.glow) delete c.glow; }
+    else if(d){ c.deco = d.dataset.deco; if(!c.deco) delete c.deco; }
+    else if(a){ cats.forEach(x => { if(c.deco) x.deco = c.deco; else delete x.deco; }); a.textContent = '✓ Listo'; }
+    else return;
+    save(); render(); renderStrip();
+  });
   function render(){
     if(!currentCat){ renderHome(); return; }
     measure();
@@ -1854,6 +1915,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       html += `</div>`;
     }
     carousel.innerHTML = html;
+    { const cc = catOf(currentCat) || {}; stage.classList.toggle('glow', !!cc.glow); $('stageDeco').innerHTML = decoHTML(cc.deco, true); renderDecoBar(cc); }
     carouselRefl.innerHTML = LITE ? '' : html;
     $('reflOuter').hidden = LITE;
     $('emptyStage').hidden = list.length > 0;
@@ -3771,7 +3833,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     ['matBar', 'matBarShop'].forEach(id => { const el = $(id); if(el) el.innerHTML = html; });
   }
   document.addEventListener('click', e => {
-    const b = e.target.closest('.matbtn'); if(!b) return;
+    const b = e.target.closest('.matbtn[data-mat]'); if(!b) return;
     brand.material = b.dataset.mat; applyTheme(); save(); render();
   });
   function renderPresets(){
