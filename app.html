@@ -1101,14 +1101,16 @@ body.clientmode .decoshop{display:none}
 .hlist li{display:grid;gap:2px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
 .hlist li .btn{justify-self:start;margin-top:4px}
 .hyn{display:flex;gap:8px;flex-wrap:wrap}
-.cashier{position:fixed;top:calc(8px + env(safe-area-inset-top, 0px));right:calc(8px + env(safe-area-inset-right, 0px));z-index:44;display:flex;align-items:flex-start;gap:6px}
+.cashier{display:flex;align-items:center;gap:10px;margin:10px 0 4px;padding:8px 12px 8px 22px;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 20px -16px var(--shadow)}
+.cside{display:grid;gap:6px;min-width:0;flex:1;justify-items:start}
+.cgo{font-weight:700}
 .cbtn{position:relative;border:0;background:none;padding:0;cursor:pointer;display:grid;justify-items:center;width:58px}
 .cav svg{width:54px;height:auto;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2))}
 .cbtn.talking .hmouth{animation:htalk .22s ease-in-out infinite alternate;transform-origin:40px 48px}
 .basket{position:absolute;left:-14px;bottom:10px;font-size:26px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.25))}
 .basket b{position:absolute;right:-6px;top:-6px;min-width:18px;height:18px;border-radius:9px;background:#e63946;color:#fff;font:800 11px/18px var(--body);text-align:center;padding:0 4px}
 .basket.bump{animation:bump .5s}
-.cbubble{max-width:min(260px,62vw);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px 4px 14px 14px;padding:8px 10px;font:600 13px/1.35 var(--body);box-shadow:0 10px 24px -12px var(--shadow)}
+.cbubble{background:var(--bg);color:var(--ink);border-radius:4px 14px 14px 14px;padding:7px 10px;font:600 13px/1.35 var(--body)}
 .hcaja{justify-self:start}
 .hcard{display:grid;gap:4px}
 .hplus{border:0;border-radius:8px;padding:6px 4px;background:var(--accent);color:var(--accent-ink,#fff);font:700 11.5px/1 var(--body);cursor:pointer}
@@ -1246,6 +1248,14 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   <div class="storebar" id="storeBar" role="group" aria-label="Mis tiendas"></div>
   <p class="note limitnote" id="limitNote" role="status" hidden></p>
   <p class="note limitnote wanote" id="waNote" hidden><span>📱 Todavía no cargaste tu WhatsApp: sin él, tus clientes no pueden mandarte pedidos.</span> <button class="btn primary" type="button" id="waSet">Cargar mi WhatsApp</button></p>
+
+  <div class="cashier" id="cashier" hidden>
+    <button class="cbtn" type="button" id="cBtn" aria-label="Caja: ver lo que llevás"><span class="cav" id="cAv"></span><span class="basket" aria-hidden="true">🧺<b id="cN">0</b></span></button>
+    <div class="cside">
+      <div class="cbubble" id="cBubble" aria-live="polite">¡Hola! Soy Caro, la cajera. Lo que agregues va a tu canastito.</div>
+      <button class="btn primary cgo" type="button" id="cGo">🧾 Ir a la caja</button>
+    </div>
+  </div>
 
   <div class="searchbar" id="searchbar">
     <div class="sbox">
@@ -1548,10 +1558,6 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   </section>
 </div>
 
-<div class="cashier" id="cashier" hidden>
-  <div class="cbubble" id="cBubble" hidden aria-live="polite"></div>
-  <button class="cbtn" type="button" id="cBtn" aria-label="Caja: ver lo que llevás"><span class="cav" id="cAv"></span><span class="basket" aria-hidden="true">🧺<b id="cN">0</b></span><span class="hname">Caja</span></button>
-</div>
 <div class="helpers" id="helpers" hidden>
   <div class="hpanel" id="hPanel" hidden role="dialog" aria-label="Vendedores virtuales">
     <button class="hclose" type="button" id="hClose" aria-label="Cerrar">✕</button>
@@ -3764,7 +3770,8 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     const n = cartItems().reduce((a, it) => a + it.q, 0);
     $('cartN').textContent = n; $('cartFab').hidden = n === 0;
     const cn = document.getElementById('cN');
-    if(cn){ const was = +cn.textContent; cn.textContent = n; cn.hidden = !n; if(n > was){ const bk = cn.parentElement; bk.classList.remove('bump'); void bk.offsetWidth; bk.classList.add('bump'); } }
+    const cg = document.getElementById('cGo'); if(cg) cg.textContent = n ? `🧾 Ir a la caja (${n})` : '🧾 Ir a la caja';
+    if(cn){ const was = +cn.textContent; cn.textContent = n; cn.hidden = !n; if(typeof cIdle === 'function' && !cBubbleT) cIdle(); if(n > was){ const bk = cn.parentElement; bk.classList.remove('bump'); void bk.offsetWidth; bk.classList.add('bump'); } }
   }
   function addToCart(id, srcImg){
     cart[id] = (cart[id] || 0) + 1; saveCart(); updateFab();
@@ -4546,7 +4553,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       ${brand.logo ? (st === 'cap' ? `<path d="M22 27q18-14 36 0v4H22z" fill="${shirt}"/><rect x="20" y="29" width="40" height="4" rx="2" fill="${shirt}"/><image href="${brand.logo}" x="31" y="17" width="18" height="11" preserveAspectRatio="xMidYMid meet"/>` : `<image href="${brand.logo}" x="50" y="73" width="11" height="11" preserveAspectRatio="xMidYMid meet"/>`) : (st === 'cap' ? `<path d="M22 27q18-14 36 0v4H22z" fill="${shirt}"/><rect x="20" y="29" width="40" height="4" rx="2" fill="${shirt}"/>` : '')}
     </svg>`;
   }
-  let hCur = null, hLast = null, hPending = null;
+  let hCur = null, hLast = null, hPending = null, hAskCaja = false;
   const hOn = () => hList().length > 0;
   const hShirt = () => brand.helperColor || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0e6a5b';
   function renderHelpers(){
@@ -4724,11 +4731,13 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(!cajeraOn()) return;
     $('cAv').innerHTML = helperSVG(CAJERA, hShirt());
     $('cN').textContent = cartCount(); $('cN').hidden = !cartCount();
+    $('cGo').textContent = cartCount() ? `🧾 Ir a la caja (${cartCount()})` : '🧾 Ir a la caja';
+    cIdle();
   }
   let cBubbleT = null;
   function cSpeak(text, then){
-    $('cBubble').textContent = text; $('cBubble').hidden = false;
-    clearTimeout(cBubbleT); cBubbleT = setTimeout(() => { $('cBubble').hidden = true; }, Math.max(5000, text.length * 75));
+    $('cBubble').textContent = text;
+    clearTimeout(cBubbleT); cBubbleT = setTimeout(cIdle, Math.max(7000, text.length * 80));
     const av = $('cBtn');
     if(!window.speechSynthesis){ then && setTimeout(then, 1200); return; }
     const u = new SpeechSynthesisUtterance(text);
@@ -4747,7 +4756,9 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     const list = items.map(it => `${qtyWord(it.q)} ${it.name}`).join(', ');
     cSpeak(`Llevás: ${list}. ${t ? 'Son ' + fmt(t) + ' en total' : 'El precio te lo confirmamos'}${unpriced && t ? ', más lo que falta cotizar' : ''}. Elegí cómo lo querés recibir, y mandame el pedido.`, () => { $('hPanel').hidden = true; openCart(); });
   }
+  function cIdle(){ const n = cartCount(); $('cBubble').textContent = n ? `Llevás ${n} producto${n === 1 ? '' : 's'} en el canastito. Cuando quieras, pasá por la caja.` : '¡Hola! Soy Caro, la cajera. Lo que agregues va a tu canastito.'; }
   $('cBtn').onclick = cajeraCobra;
+  $('cGo').onclick = cajeraCobra;
   function hToCaja(){
     if(!cartCount()){ hShow([]); return hSpeak('Tu pedido todavía está vacío. Decime qué te gustaría y te lo agrego.'); }
     if(cajeraOn()){ hSpeak('¡Perfecto! Te paso con Caro, la cajera.'); setTimeout(() => { $('hPanel').hidden = true; cajeraCobra(); }, 1500); return; }
@@ -4771,11 +4782,14 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(!p) return hSpeak('¡Dale! Decime cuál: tocá el producto que querés y te lo agrego.');
     addToCart(cartKey(p)); $('hRes').querySelectorAll('.hyn').forEach(x => x.remove());
     const b = $('hRes').querySelector(`[data-hadd="${p.id}"]`); if(b) b.textContent = '✓ Agregado';
-    hCajaChip();
-    hSpeak(`¡Listo! Agregué ${p.name} a tu pedido. ¿Querés algo más, o te llevo a la caja?`);
+    hCajaChip(); hAskCaja = true;
+    hSpeak(`¡Listo! Agregué ${p.name} a tu pedido. ¿Te llevo a la caja? Decime “sí”, o pedime algo más.`);
   }
   function hAnswer(q){
     const n = norm(q).trim();
+    if(hAskCaja && !hPending && /^(si|sii+|sip|dale|ok|okey|bueno|claro|de una|llevame|vamos|listo|a la caja|caja|por favor)\b/.test(n)){ hAskCaja = false; return hToCaja(); }
+    if(hAskCaja && !hPending && /^(no|nop|algo mas|quiero (ver )?algo mas|todavia no|seguir|sigo mirando)\b/.test(n)){ hAskCaja = false; return hSpeak('¡Dale! ¿Qué más querés ver? Decime un producto o una vitrina.'); }
+    hAskCaja = false;
     if(hPending && /^(si|sii+|sip|dale|ok|okey|okay|bueno|claro|obvio|de una|por favor|agregalo|sumalo|perfecto|listo|va|genial|me lo llevo)\b/.test(n)) return hAddPending();
     if(/(pagar|a la caja|ir a caja|la caja|terminar|termine|finalizar|eso es todo|nada mas|es todo|cerrar (el )?pedido|confirmar (el )?pedido|enviar (el )?pedido|mandar (el )?pedido)/.test(n)){ hPending = null; return hToCaja(); }
     if(!hPending && /^(si|sii+|sip|dale|ok|okey|bueno|claro|no|nop)$/.test(n)){ return hSpeak($('hRes').querySelector('.hgrid') ? '¿Cuál querés? Tocá “＋ Al pedido” en el que te guste.' : '¿Qué querés que te muestre? Decime un producto o una vitrina.'); }
