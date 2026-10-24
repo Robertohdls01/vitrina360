@@ -386,7 +386,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500&family=Bebas+Neue&family=Righteous&family=Permanent+Marker&family=Fredoka:wght@600&family=Pacifico&display=swap">
 <style>
 /* Layout: vitrina cilíndrica 3D arriba (se gira arrastrando), abajo ficha del producto + formulario de carga */
 :root{
@@ -1059,9 +1059,16 @@ body.clientmode .decoshop{display:none}
 @media (prefers-reduced-motion:reduce){.mini.glow .mstage,#stage.glow,#stage.glow::after,.decoi i,.bulbs,.snow{animation:none}}
 /* Carteles flúor */
 .neon{position:relative;z-index:3;max-width:100%;padding:2px 9px 3px;border-radius:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  background:#0d0f12;color:var(--neon,#c6ff1a);font:800 clamp(12px,3.6vw,17px)/1.05 var(--display);text-transform:uppercase;letter-spacing:.03em;
+  background:#0d0f12;color:var(--neon,#c6ff1a);font:800 calc(clamp(12px,3.6vw,17px) * var(--neon-scale,1))/1.15 var(--neon-font,var(--display));text-transform:var(--neon-case,uppercase);letter-spacing:.03em;
   text-shadow:0 0 4px var(--neon,#c6ff1a),0 0 10px var(--neon,#c6ff1a);box-shadow:0 0 0 1.5px color-mix(in srgb,var(--neon,#c6ff1a) 55%,transparent),0 0 12px -2px var(--neon,#c6ff1a);transform:translateY(-2px)}
-.neon.big{font-size:clamp(16px,5vw,26px);padding:4px 14px 5px}
+.neon.big{font-size:calc(clamp(16px,5vw,26px) * var(--neon-scale,1));padding:4px 14px 5px}
+.plaque .t,.fhead{font-family:var(--neon-font,var(--display))}
+.letrasbox{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:6px 10px}
+.letrasbox summary{cursor:pointer;font-weight:700;padding:4px 0}
+.letrasbar{display:grid;gap:8px;padding:6px 0}
+.lrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.lrow .lbl{font:600 12px var(--body);color:var(--muted);min-width:4.2em}
+.fontbtn{font-size:15px;font-weight:400}
 .board:has(.neon){overflow:visible}
 @media (prefers-reduced-motion:no-preference){.neon{animation:neonflick 6s infinite}}
 @keyframes neonflick{0%,93%,100%{opacity:1}94%{opacity:.55}95%{opacity:1}96.5%{opacity:.7}}
@@ -1286,7 +1293,8 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     <div class="presets">
       <strong>Carteles flúor de los productos</strong>
       <p class="note" style="margin:0">Un cartelito con la marca o el nombre corto de cada producto, en letras flúor que se leen de lejos. Si cargás “Marca: …” en las características, usa la marca.</p>
-      <div class="bgbar" id="neonBar" role="group" aria-label="Color de los carteles"></div>
+      <div class="letrasbar"></div>
+      <div class="bgbar" id="neonBar" role="group" aria-label="Color de los carteles" hidden></div>
     </div>
     <div class="slot">
       <label for="b-name">Nombre del comercio
@@ -1498,6 +1506,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   <div class="bgbar" id="bgBarShop" role="group" aria-label="Fondo de la vitrina"></div>
   <div class="bgbar matshop" id="matBarShop" role="group" aria-label="Tipo de vitrina"></div>
   <div class="bgbar decoshop" id="decoBar" role="group" aria-label="Adornos y luces de esta vitrina"></div>
+  <details class="letrasbox decoshop"><summary>🔤 Letras de los carteles y nombres</summary><div class="letrasbar"></div></details>
   <div class="controls">
     <button class="btn" id="prev" type="button" aria-label="Girar a la izquierda">◀ Anterior</button>
     <button class="btn" id="next" type="button" aria-label="Girar a la derecha">Siguiente ▶</button>
@@ -2097,7 +2106,13 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     if(t){ t.focus({preventScroll:true}); t.scrollIntoView({block:'center'}); }
   }
 
-  const NEONS = [{id:'verde', c:'#c6ff1a'}, {id:'rosa', c:'#ff4fd8'}, {id:'amarillo', c:'#ffe600'}, {id:'celeste', c:'#38e8ff'}, {id:'naranja', c:'#ff8a1f'}];
+  const NEONS = [{id:'verde', c:'#c6ff1a'}, {id:'rosa', c:'#ff4fd8'}, {id:'amarillo', c:'#ffe600'}, {id:'celeste', c:'#38e8ff'}, {id:'naranja', c:'#ff8a1f'}, {id:'violeta', c:'#b26bff'}, {id:'rojo', c:'#ff3b3b'}, {id:'blanco', c:'#ffffff'}];
+  const NFONTS = [
+    {id:'', name:'Moderna', f:'var(--display)'}, {id:'bebas', name:'Alta', f:'"Bebas Neue",Impact,sans-serif'},
+    {id:'righteous', name:'Cartel', f:'Righteous,var(--display)'}, {id:'marker', name:'A mano', f:'"Permanent Marker",cursive'},
+    {id:'fredoka', name:'Redonda', f:'Fredoka,var(--body)'}, {id:'pacifico', name:'Cursiva', f:'Pacifico,cursive'}
+  ];
+  const NSIZES = [0.8, 0.9, 1, 1.2, 1.45], NCASES = [['upper', 'ABC'], ['none', 'Abc'], ['lower', 'abc']];
   function shortName(p){
     const m = (p.features || []).map(f => String(f)).find(f => /^marca\s*:/i.test(f));
     if(m){ const b = m.split(':').slice(1).join(':').trim(); if(b && b.length <= 18) return b; }
@@ -2108,13 +2123,34 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   }
   const neonOn = () => brand.neon !== 'off';
   function applyNeon(){
-    const n = NEONS.find(x => x.id === brand.neon) || NEONS[0];
-    document.documentElement.style.setProperty('--neon', n.c);
+    const n = NEONS.find(x => x.id === brand.neon) || NEONS[0], r = document.documentElement.style;
+    r.setProperty('--neon', n.c);
+    r.setProperty('--neon-font', (NFONTS.find(x => x.id === (brand.neonFont || '')) || NFONTS[0]).f);
+    r.setProperty('--neon-scale', NSIZES[(brand.neonSize | 0) + 2]);
+    r.setProperty('--neon-case', brand.neonCase === 'lower' ? 'lowercase' : brand.neonCase === 'none' ? 'none' : 'uppercase');
+    renderLetras();
     const bar = $('neonBar'); if(!bar) return;
     const cur = neonOn() ? (NEONS.find(x => x.id === brand.neon) || NEONS[0]).id : 'off';
     bar.innerHTML = NEONS.map(x => `<button class="matbtn" type="button" data-neon="${x.id}" aria-pressed="${cur === x.id}"><span class="matsw" style="background:${x.c};box-shadow:0 0 6px ${x.c}"></span>${x.id.charAt(0).toUpperCase() + x.id.slice(1)}</button>`).join('') + `<button class="matbtn" type="button" data-neon="off" aria-pressed="${cur === 'off'}">Sin carteles</button>`;
   }
-  document.addEventListener('click', e => { const b = e.target.closest('[data-neon]'); if(!b) return; brand.neon = b.dataset.neon; applyNeon(); save(); render(); });
+  // fila "Letras": color, forma, tamaño y mayúsculas, a mano en cada vitrina y en Personalizar
+  function renderLetras(){
+    const cur = neonOn() ? (NEONS.find(x => x.id === brand.neon) || NEONS[0]).id : 'off', sz = brand.neonSize | 0, cs = brand.neonCase || 'upper';
+    const html = `<div class="lrow"><span class="lbl">Color</span>${NEONS.map(x => `<button class="sw" type="button" data-neon="${x.id}" style="--c:${x.c};box-shadow:0 0 6px ${x.c}" aria-pressed="${cur === x.id}" aria-label="Letras ${x.id}" title="${x.id}"></button>`).join('')}<button class="matbtn" type="button" data-neon="off" aria-pressed="${cur === 'off'}">Sin carteles</button></div>
+      <div class="lrow"><span class="lbl">Forma</span>${NFONTS.map(x => `<button class="matbtn fontbtn" type="button" data-nfont="${x.id}" aria-pressed="${(brand.neonFont || '') === x.id}" style="font-family:${x.f}">${x.name}</button>`).join('')}</div>
+      <div class="lrow"><span class="lbl">Tamaño</span><span class="zoom"><button type="button" data-nsize="-1" aria-label="Letra más chica" ${sz <= -2 ? 'disabled' : ''}>−</button><span>${['Muy chica', 'Chica', 'Normal', 'Grande', 'Muy grande'][sz + 2]}</span><button type="button" data-nsize="1" aria-label="Letra más grande" ${sz >= 2 ? 'disabled' : ''}>+</button></span>
+        <span class="lbl">Letras</span>${NCASES.map(([id, t]) => `<button class="matbtn" type="button" data-ncase="${id}" aria-pressed="${cs === id}">${t}</button>`).join('')}</div>`;
+    document.querySelectorAll('.letrasbar').forEach(el => { el.innerHTML = html; });
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-neon]'), f = e.target.closest('[data-nfont]'), z = e.target.closest('[data-nsize]'), c = e.target.closest('[data-ncase]');
+    if(b) brand.neon = b.dataset.neon;
+    else if(f){ brand.neonFont = f.dataset.nfont; if(!brand.neonFont) delete brand.neonFont; }
+    else if(z) brand.neonSize = Math.max(-2, Math.min(2, (brand.neonSize | 0) + (+z.dataset.nsize)));
+    else if(c) brand.neonCase = c.dataset.ncase;
+    else return;
+    applyNeon(); save(); render(); if(currentCat) renderStrip();
+  });
   function renderDecoBar(c){
     $('decoBar').innerHTML = `<button class="matbtn glowbtn" type="button" data-glow="1" aria-pressed="${!!c.glow}">✨ Destello de luces</button><span class="note" style="margin:0 2px">Adornos:</span>` +
       DECOS.map(d => `<button class="matbtn" type="button" data-deco="${d.id}" aria-pressed="${(c.deco || '') === d.id}">${d.name}</button>`).join('') +
