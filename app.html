@@ -621,6 +621,10 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 .carttotal{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;font-size:18px;padding-top:6px}
 .carttotal .v{font:500 22px var(--mono);color:var(--accent)}
 .paybox{display:grid;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px}
+.walletbox{grid-column:1/-1}
+.walletlist{display:grid;gap:8px}
+.walletrow{display:grid;grid-template-columns:minmax(0,170px) minmax(0,1fr) auto;gap:8px;align-items:center}
+@media (max-width:480px){.walletrow{grid-template-columns:1fr auto}.walletrow input{grid-column:1/-1;grid-row:2}}
 .paybox code{font:500 15px var(--mono);overflow-wrap:anywhere;user-select:all}
 .payrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
 .roomphoto{position:absolute;inset:0;background:var(--room-photo) center/cover no-repeat;pointer-events:none}
@@ -1470,6 +1474,12 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <label for="b-paypal">PayPal, para cobrar con tarjeta <small>Tu usuario de paypal.me. El cliente paga el total exacto de su pedido</small>
         <input type="text" id="b-paypal" maxlength="80" placeholder="sofibelleza">
       </label>
+    </div>
+    <div class="presets walletbox">
+      <strong>Billeteras y otras formas de cobro</strong>
+      <p class="note" style="margin:0">Agregá las que usás. En el pedido, tu cliente ve un botón para pagar con cada una, y la plata te llega directo a vos.</p>
+      <div id="walletList" class="walletlist"></div>
+      <button class="btn" type="button" id="walletAdd">+ Agregar billetera</button>
     </div>
   </section>
 
@@ -4003,6 +4013,10 @@ function paypalHref(t, unpriced){
   if(!u) return '';
   return 'https://www.paypal.com/paypalme/' + encodeURIComponent(u) + (t > 0 && !unpriced ? '/' + (Math.round(t * 100) / 100) : '');
 }
+// Billeteras: cada comerciante agrega las suyas (link para pagar, o usuario/alias para copiar).
+const WALLETS = ['Mercado Pago','AstroPay','Ualá','MODO','Naranja X','Cuenta DNI','Personal Pay','Prex','Brubank','Lemon','Binance Pay','Cripto (USDT)','Stripe','Zelle','Venmo','Cash App','PIX','Nequi','Yape','Otra forma de pago'];
+const walletsOf = () => (Array.isArray(brand.wallets) ? brand.wallets : []).filter(w => w && String(w.value || '').trim());
+const walletHref = v => { v = String(v || '').trim(); return /^https?:\/\//i.test(v) ? v.replace(/^http:/i, 'https:') : /^(www\.)?[\w-]+(\.[\w-]+)*\.[a-z]{2,}\/\S+$/i.test(v) ? 'https://' + v : ''; };
 function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const v = priceNum(it.price); if(v === Infinity) unpriced++; else t += v * it.q; }); return {t, unpriced}; }
   function orderText(items){
     const {t, unpriced} = cartTotal(items);
@@ -4212,7 +4226,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   });
   function renderCart(){
     const items = cartItems(), {t, unpriced} = cartTotal(items), wa = waHref(orderText(items));
-    const pay = String(brand.paylink || '').trim(), payOk = /^https:\/\//i.test(pay), pp = items.length ? paypalHref(t, unpriced) : '';
+    const pay = String(brand.paylink || '').trim(), payOk = /^https:\/\//i.test(pay), pp = items.length ? paypalHref(t, unpriced) : '', ws = walletsOf();
     $('cartSheet').innerHTML = `
       <button class="close" type="button" data-c="close" aria-label="Cerrar">✕</button>
       <h2 id="cartTitle">Tu pedido</h2>
@@ -4224,11 +4238,12 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         <div class="carttotal"><span>Total</span><span class="v">${fmt(t)}</span></div>
         ${unpriced ? `<p class="note" style="margin:0">${unpriced} producto${unpriced===1?'':'s'} sin precio: el comercio te lo confirma.</p>` : ''}
         ${shipList().length ? `<div class="shipbox"><strong>¿Cómo lo recibís?</strong>${shipList().map(o => `<label class="shipopt"><input type="radio" name="ship" value="${o.id}" ${shipSel===o.id?'checked':''}><span>${esc(o.name)}</span>${o.detail ? `<small>${esc(o.detail)}</small>` : ''}</label>`).join('')}</div>` : ''}
-        ${(brand.alias || payOk || pp) ? `<div class="paybox">
+        ${(brand.alias || payOk || pp || ws.length) ? `<div class="paybox">
           <strong>Cómo pagar</strong>
           ${brand.alias ? `<div class="payrow"><span>Alias / CBU: <code id="aliasTxt">${esc(brand.alias)}</code></span><button class="btn" type="button" data-c="copyAlias">Copiar</button></div>` : ''}
           ${pp ? `<a class="btn primary" href="${esc(pp)}" target="_blank" rel="noopener">💳 Pagar con tarjeta (PayPal)</a>${unpriced ? '' : `<span class="note">El total de tu pedido ya va cargado.</span>`}` : ''}
           ${payOk ? `<a class="btn ${pp ? '' : 'primary'}" href="${esc(pay)}" target="_blank" rel="noopener">${pp ? 'Pagar con link de pago' : 'Pagar con tarjeta o Mercado Pago'}</a>` : ''}
+          ${ws.map(w => { const h = walletHref(w.value); return h ? `<a class="btn" href="${esc(h)}" target="_blank" rel="noopener">Pagar con ${esc(w.name)}</a>` : `<div class="payrow"><span>${esc(w.name)}: <code>${esc(String(w.value).trim())}</code></span><button class="btn" type="button" data-c="copyPay" data-v="${esc(String(w.value).trim())}">Copiar</button></div>`; }).join('')}
           <span class="note">Después de pagar, mandá el comprobante por WhatsApp.</span>
         </div>` : ''}
         <div class="actions">
@@ -4279,6 +4294,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     }
     else if(c === 'copy') copyText(orderText(cartItems()), $('cartMsg'), 'Pedido copiado. Pegalo en WhatsApp o donde quieras.');
     else if(c === 'copyAlias') copyText(brand.alias, $('cartMsg'), 'Alias copiado.');
+    else if(c === 'copyPay') copyText(b.dataset.v, $('cartMsg'), 'Copiado. Pegalo en tu billetera para pagar.');
   });
   $('cartModal').addEventListener('change', e => {
     if(e.target.name === 'ship'){ shipSel = e.target.value; const a = $('cartSheet').querySelector('.btn.wa'); if(a) a.href = waHref(orderText(cartItems())); }
@@ -4294,6 +4310,22 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   [['b-wa','wa'],['b-ig','ig'],['b-alias','alias'],['b-paylink','paylink'],['b-paypal','paypal']].forEach(([id, key]) => {
     $(id).addEventListener('input', e => { brand[key] = e.target.value.trim(); renderContact(); save(); if(currentCat) renderDetail(); if(key === 'wa'){ const wn = $('waNote'); if(wn) wn.hidden = PUBLIC || clientMode || !!brand.wa.replace(/\D/g, ''); } });
   });
+
+  function renderWallets(){
+    const box = $('walletList'); if(!box) return;
+    const ws = Array.isArray(brand.wallets) ? brand.wallets : [];
+    box.innerHTML = ws.map((w, i) => `<div class="walletrow"><select data-wi="${i}" data-wk="name" aria-label="Billetera">${(WALLETS.includes(w.name) ? WALLETS : [w.name, ...WALLETS]).map(n => `<option ${n === w.name ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select><input type="text" data-wi="${i}" data-wk="value" maxlength="200" value="${esc(w.value || '')}" placeholder="Link de pago, usuario, alias o número" aria-label="Link o usuario de ${esc(w.name)}"><button class="btn" type="button" data-wdel="${i}" aria-label="Quitar ${esc(w.name)}">✕</button></div>`).join('');
+  }
+  if($('walletList')){
+    const upd = e => { const i = +e.target.dataset.wi, k = e.target.dataset.wk; if(!k || !Array.isArray(brand.wallets) || !brand.wallets[i]) return; brand.wallets[i][k] = e.target.value; save(); };
+    $('walletList').addEventListener('input', upd); $('walletList').addEventListener('change', upd);
+    $('walletList').addEventListener('click', e => { const d = e.target.closest('[data-wdel]'); if(!d) return; brand.wallets.splice(+d.dataset.wdel, 1); renderWallets(); save(); });
+    $('walletAdd').addEventListener('click', () => {
+      const ws = brand.wallets = Array.isArray(brand.wallets) ? brand.wallets : [];
+      ws.push({name: WALLETS.find(n => !ws.some(w => w.name === n)) || 'Otra forma de pago', value: ''});
+      renderWallets(); save(); const ins = $('walletList').querySelectorAll('input'); ins[ins.length - 1]?.focus();
+    });
+  }
 
   // ---- Plantillas por tipo de negocio ----
   const PRESETS = [
@@ -4408,7 +4440,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const open = $('brandPanel').hidden;
     $('brandPanel').hidden = !open; $('brandBtn').setAttribute('aria-expanded', String(open));
     $('brandBtn').textContent = open ? 'Listo' : 'Personalizar mi comercio';
-    if(open){ renderCatToggles(); renderShipPanel(); renderCenterBars(); $('b-name').value = brand.name; $('b-wa').value = brand.wa || ''; $('b-ig').value = brand.ig || ''; $('b-alias').value = brand.alias || ''; $('b-paylink').value = brand.paylink || ''; $('b-paypal').value = brand.paypal || ''; $('b-ball').value = brand.ball || ''; $('b-ads').value = brand.ads || ''; $('b-faq').value = brand.faq || ''; $('voiceFeat').setAttribute('aria-pressed', String(!!brand.voiceFeat)); $('b-adsEvery').value = String(brand.adsEvery || 2); $('b-name').focus(); }
+    if(open){ renderCatToggles(); renderShipPanel(); renderWallets(); renderCenterBars(); $('b-name').value = brand.name; $('b-wa').value = brand.wa || ''; $('b-ig').value = brand.ig || ''; $('b-alias').value = brand.alias || ''; $('b-paylink').value = brand.paylink || ''; $('b-paypal').value = brand.paypal || ''; $('b-ball').value = brand.ball || ''; $('b-ads').value = brand.ads || ''; $('b-faq').value = brand.faq || ''; $('voiceFeat').setAttribute('aria-pressed', String(!!brand.voiceFeat)); $('b-adsEvery').value = String(brand.adsEvery || 2); $('b-name').focus(); }
   };
   $('b-ball').addEventListener('input', e => { brand.ball = e.target.value.slice(0, 400); save(); if(!currentCat) renderHome(); });
   $('b-name').addEventListener('input', e => { brand.name = e.target.value.trim(); applyBrand(); renderHelpers(); renderContact(); save(); renderStoreBar(); });
@@ -4969,11 +5001,12 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       const parts = [];
       if(brand.alias) parts.push(`<li><strong>Transferencia</strong><span>Alias: ${esc(brand.alias)}</span><button class="btn" type="button" data-hcopy="${esc(brand.alias)}">📋 Copiar alias</button></li>`);
       if(brand.paylink) parts.push(`<li><strong>Link de pago</strong><a class="btn" href="${esc(brand.paylink)}" target="_blank" rel="noopener">Pagar con link</a></li>`);
+      walletsOf().forEach(w => { const h = walletHref(w.value); parts.push(`<li><strong>${esc(w.name)}</strong>${h ? `<a class="btn" href="${esc(h)}" target="_blank" rel="noopener">Pagar con ${esc(w.name)}</a>` : `<span>${esc(String(w.value).trim())}</span><button class="btn" type="button" data-hcopy="${esc(String(w.value).trim())}">📋 Copiar</button>`}</li>`); });
       const ppH = paypalHref(0, 1); if(ppH) parts.push(`<li><strong>Tarjeta (PayPal)</strong><span>Al terminar tu pedido, en la caja, pagás el total con tarjeta.</span></li>`);
       const extra = hFaq('pago') || findLine(/pago|efectivo|tarjeta/);
       if(!parts.length && !extra){ hShow([]); hSpeak(`El pago lo coordinamos por WhatsApp${wa ? ', al ' + wa : ''}, cuando mandás tu pedido.`); return true; }
       hInfo(`<ul class="hlist">${parts.join('')}${extra ? `<li><span>${esc(extra)}</span></li>` : ''}</ul>`);
-      hSpeak(`Podés pagar ${[brand.alias ? 'por transferencia, al alias ' + brand.alias : '', brand.paylink ? 'con el link de pago' : '', brand.paypal ? 'con tarjeta por PayPal, cuando terminás tu pedido en la caja' : '', extra || ''].filter(Boolean).join(', o ')}.`); return true;
+      hSpeak(`Podés pagar ${[brand.alias ? 'por transferencia, al alias ' + brand.alias : '', brand.paylink ? 'con el link de pago' : '', brand.paypal ? 'con tarjeta por PayPal, cuando terminás tu pedido en la caja' : '', walletsOf().length ? 'con ' + walletsOf().map(w => w.name).join(', ') : '', extra || ''].filter(Boolean).join(', o ')}.`); return true;
     }
     if(/(direccion|donde estan|donde queda|ubicacion|ubicados|el local|como llego|mapa)/.test(n)){
       const ad = findLine(/📍|direcc|calle|av\.|avenida/) || (brand.ship && brand.ship.retiro) || '';
