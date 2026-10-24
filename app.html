@@ -1464,8 +1464,11 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <label for="b-alias">Alias o CBU para cobrar <small>Se muestra en el pedido</small>
         <input type="text" id="b-alias" maxlength="40" placeholder="sofi.belleza.mp">
       </label>
-      <label for="b-paylink">Link de pago <small>Opcional, de Mercado Pago</small>
+      <label for="b-paylink">Link de pago <small>Opcional: Mercado Pago, Stripe u otro</small>
         <input type="text" id="b-paylink" maxlength="200" placeholder="https://mpago.la/...">
+      </label>
+      <label for="b-paypal">PayPal, para cobrar con tarjeta <small>Tu usuario de paypal.me. El cliente paga el total exacto de su pedido</small>
+        <input type="text" id="b-paypal" maxlength="80" placeholder="sofibelleza">
       </label>
     </div>
   </section>
@@ -1737,7 +1740,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   ];
 
   let cats = DEFAULT_CATS.map(c => ({...c})), currentCat = null;
-  let brand = {name:'', logo:null, banner:null, preset:'general', wa:'', ig:'', alias:'', paylink:''};
+  let brand = {name:'', logo:null, banner:null, preset:'general', wa:'', ig:'', alias:'', paylink:'', paypal:''};
   const BRAND0 = {...brand};
   const MAX_STORES = 4;
   // Límites del plan contratado en la versión web (en Claude no hay límites extra).
@@ -3990,7 +3993,13 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
       return {key, p, q, img: v ? v.img : p.img, name: p.name + (v ? ' — ' + v.name : ''), price: v && v.price ? v.price : p.price};
     }).filter(Boolean);
   }
-  function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const v = priceNum(it.price); if(v === Infinity) unpriced++; else t += v * it.q; }); return {t, unpriced}; }
+  // PayPal: con el usuario de paypal.me arma el link con el total exacto del pedido (si todos los productos tienen precio).
+function paypalHref(t, unpriced){
+  const u = String(brand.paypal || '').trim().replace(/^@/, '').replace(/^(https?:\/\/)?(www\.)?paypal\.(me|com\/paypalme)\//i, '').split(/[/?#]/)[0].replace(/[^\w.-]/g, '');
+  if(!u) return '';
+  return 'https://www.paypal.com/paypalme/' + encodeURIComponent(u) + (t > 0 && !unpriced ? '/' + (Math.round(t * 100) / 100) : '');
+}
+function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const v = priceNum(it.price); if(v === Infinity) unpriced++; else t += v * it.q; }); return {t, unpriced}; }
   function orderText(items){
     const {t, unpriced} = cartTotal(items);
     const lines = items.map(it => `• ${it.q} x ${it.name}${it.price ? ' — ' + it.price + L(' c/u', ' each', ' cada') : L(' — consultar precio', ' — ask for price', ' — consultar preço')}`);
@@ -4199,7 +4208,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   });
   function renderCart(){
     const items = cartItems(), {t, unpriced} = cartTotal(items), wa = waHref(orderText(items));
-    const pay = String(brand.paylink || '').trim(), payOk = /^https:\/\//i.test(pay);
+    const pay = String(brand.paylink || '').trim(), payOk = /^https:\/\//i.test(pay), pp = items.length ? paypalHref(t, unpriced) : '';
     $('cartSheet').innerHTML = `
       <button class="close" type="button" data-c="close" aria-label="Cerrar">✕</button>
       <h2 id="cartTitle">Tu pedido</h2>
@@ -4211,10 +4220,11 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
         <div class="carttotal"><span>Total</span><span class="v">${fmt(t)}</span></div>
         ${unpriced ? `<p class="note" style="margin:0">${unpriced} producto${unpriced===1?'':'s'} sin precio: el comercio te lo confirma.</p>` : ''}
         ${shipList().length ? `<div class="shipbox"><strong>¿Cómo lo recibís?</strong>${shipList().map(o => `<label class="shipopt"><input type="radio" name="ship" value="${o.id}" ${shipSel===o.id?'checked':''}><span>${esc(o.name)}</span>${o.detail ? `<small>${esc(o.detail)}</small>` : ''}</label>`).join('')}</div>` : ''}
-        ${(brand.alias || payOk) ? `<div class="paybox">
+        ${(brand.alias || payOk || pp) ? `<div class="paybox">
           <strong>Cómo pagar</strong>
           ${brand.alias ? `<div class="payrow"><span>Alias / CBU: <code id="aliasTxt">${esc(brand.alias)}</code></span><button class="btn" type="button" data-c="copyAlias">Copiar</button></div>` : ''}
-          ${payOk ? `<a class="btn primary" href="${esc(pay)}" target="_blank" rel="noopener">Pagar con tarjeta o Mercado Pago</a>` : ''}
+          ${pp ? `<a class="btn primary" href="${esc(pp)}" target="_blank" rel="noopener">💳 Pagar con tarjeta (PayPal)</a>${unpriced ? '' : `<span class="note">El total de tu pedido ya va cargado.</span>`}` : ''}
+          ${payOk ? `<a class="btn ${pp ? '' : 'primary'}" href="${esc(pay)}" target="_blank" rel="noopener">${pp ? 'Pagar con link de pago' : 'Pagar con tarjeta o Mercado Pago'}</a>` : ''}
           <span class="note">Después de pagar, mandá el comprobante por WhatsApp.</span>
         </div>` : ''}
         <div class="actions">
@@ -4277,7 +4287,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     row.innerHTML = (ig ? `<a class="ig" href="https://instagram.com/${encodeURIComponent(ig)}" target="_blank" rel="noopener">@${esc(ig)}</a>` : '') +
       (n ? `<a class="btn wa" href="${waHref(`Hola ${storeName()}! Vi tu vitrina y quiero hacer una consulta.`)}" target="_blank" rel="noopener">WhatsApp ${esc(brand.wa)}</a>` : '');
   }
-  [['b-wa','wa'],['b-ig','ig'],['b-alias','alias'],['b-paylink','paylink']].forEach(([id, key]) => {
+  [['b-wa','wa'],['b-ig','ig'],['b-alias','alias'],['b-paylink','paylink'],['b-paypal','paypal']].forEach(([id, key]) => {
     $(id).addEventListener('input', e => { brand[key] = e.target.value.trim(); renderContact(); save(); if(currentCat) renderDetail(); if(key === 'wa'){ const wn = $('waNote'); if(wn) wn.hidden = PUBLIC || clientMode || !!brand.wa.replace(/\D/g, ''); } });
   });
 
@@ -4394,7 +4404,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     const open = $('brandPanel').hidden;
     $('brandPanel').hidden = !open; $('brandBtn').setAttribute('aria-expanded', String(open));
     $('brandBtn').textContent = open ? 'Listo' : 'Personalizar mi comercio';
-    if(open){ renderCatToggles(); renderShipPanel(); renderCenterBars(); $('b-name').value = brand.name; $('b-wa').value = brand.wa || ''; $('b-ig').value = brand.ig || ''; $('b-alias').value = brand.alias || ''; $('b-paylink').value = brand.paylink || ''; $('b-ball').value = brand.ball || ''; $('b-ads').value = brand.ads || ''; $('b-faq').value = brand.faq || ''; $('voiceFeat').setAttribute('aria-pressed', String(!!brand.voiceFeat)); $('b-adsEvery').value = String(brand.adsEvery || 2); $('b-name').focus(); }
+    if(open){ renderCatToggles(); renderShipPanel(); renderCenterBars(); $('b-name').value = brand.name; $('b-wa').value = brand.wa || ''; $('b-ig').value = brand.ig || ''; $('b-alias').value = brand.alias || ''; $('b-paylink').value = brand.paylink || ''; $('b-paypal').value = brand.paypal || ''; $('b-ball').value = brand.ball || ''; $('b-ads').value = brand.ads || ''; $('b-faq').value = brand.faq || ''; $('voiceFeat').setAttribute('aria-pressed', String(!!brand.voiceFeat)); $('b-adsEvery').value = String(brand.adsEvery || 2); $('b-name').focus(); }
   };
   $('b-ball').addEventListener('input', e => { brand.ball = e.target.value.slice(0, 400); save(); if(!currentCat) renderHome(); });
   $('b-name').addEventListener('input', e => { brand.name = e.target.value.trim(); applyBrand(); renderHelpers(); renderContact(); save(); renderStoreBar(); });
@@ -4954,11 +4964,12 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(/(pago|pagar|abono|abonar|transferencia|transferir|alias|cbu|mercado pago|tarjeta|efectivo|cuotas)/.test(n)){
       const parts = [];
       if(brand.alias) parts.push(`<li><strong>Transferencia</strong><span>Alias: ${esc(brand.alias)}</span><button class="btn" type="button" data-hcopy="${esc(brand.alias)}">📋 Copiar alias</button></li>`);
-      if(brand.paylink) parts.push(`<li><strong>Mercado Pago</strong><a class="btn" href="${esc(brand.paylink)}" target="_blank" rel="noopener">Pagar con link</a></li>`);
+      if(brand.paylink) parts.push(`<li><strong>Link de pago</strong><a class="btn" href="${esc(brand.paylink)}" target="_blank" rel="noopener">Pagar con link</a></li>`);
+      const ppH = paypalHref(0, 1); if(ppH) parts.push(`<li><strong>Tarjeta (PayPal)</strong><span>Al terminar tu pedido, en la caja, pagás el total con tarjeta.</span></li>`);
       const extra = hFaq('pago') || findLine(/pago|efectivo|tarjeta/);
       if(!parts.length && !extra){ hShow([]); hSpeak(`El pago lo coordinamos por WhatsApp${wa ? ', al ' + wa : ''}, cuando mandás tu pedido.`); return true; }
       hInfo(`<ul class="hlist">${parts.join('')}${extra ? `<li><span>${esc(extra)}</span></li>` : ''}</ul>`);
-      hSpeak(`Podés pagar ${[brand.alias ? 'por transferencia, al alias ' + brand.alias : '', brand.paylink ? 'con el link de Mercado Pago' : '', extra || ''].filter(Boolean).join(', o ')}.`); return true;
+      hSpeak(`Podés pagar ${[brand.alias ? 'por transferencia, al alias ' + brand.alias : '', brand.paylink ? 'con el link de pago' : '', brand.paypal ? 'con tarjeta por PayPal, cuando terminás tu pedido en la caja' : '', extra || ''].filter(Boolean).join(', o ')}.`); return true;
     }
     if(/(direccion|donde estan|donde queda|ubicacion|ubicados|el local|como llego|mapa)/.test(n)){
       const ad = findLine(/📍|direcc|calle|av\.|avenida/) || (brand.ship && brand.ship.retiro) || '';
