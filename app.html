@@ -1108,6 +1108,43 @@ body.clientmode .decoshop{display:none}
 .hlist li{display:grid;gap:2px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
 .hlist li .btn{justify-self:start;margin-top:4px}
 .hyn{display:flex;gap:8px;flex-wrap:wrap}
+.viewtog{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.flyerper{display:flex;gap:6px;align-items:center;margin:0 0 0 6px}
+.qflyer{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.flyerbar{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.flyerbar:empty{display:none}
+.flyerview .flyerbar{margin-bottom:10px}
+.fgrid.f10{grid-template-columns:repeat(5,minmax(0,1fr))}
+.fgrid.f20{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (max-width:700px){.fgrid.f10{grid-template-columns:repeat(2,minmax(0,1fr))}.fgrid.f20{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.fbig.f20{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+@media (max-width:700px){.fbig.f20{grid-template-columns:repeat(3,minmax(0,1fr))}.fbig.f20 .fbname{font-size:12px}}
+.fpg{font:600 12px var(--body);color:var(--muted);text-transform:none;letter-spacing:0}
+.fpager{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+/* fondos de la hoja del folleto */
+.fbg-metal{background:linear-gradient(135deg,#f4f6f8,#c4ccd2 30%,#e9edf0 50%,#a7b0b7 75%,#e2e7ea)!important;border-color:#b9c2c8!important}
+.fbg-kraft{background:#d9b98c url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='80' height='80' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E")!important;border-color:#b8925f!important}
+.fbg-negro{background:#15181c!important;border-color:#2b3036!important}
+.fbg-negro .fhead,.fbg-negro .fbname,.fbg-negro .fname,.fbg-negro .fpg{color:#f5f5f5!important}.fbg-negro .fhead{border-color:#f5c518!important;color:#f5c518!important}
+.fbg-negro :is(.fcard,.fbcard){background:#22272d;border-color:#353b42;color:#f5f5f5}
+.fbg-oferta{background:repeating-linear-gradient(-45deg,#ffd60a 0 22px,#ffcc00 22px 44px)!important;border-color:#e63946!important}
+.fbg-oferta .fhead{color:#c1121f!important;border-color:#c1121f!important}
+.fbg-pastel{background:linear-gradient(135deg,#ffe4ef,#e5f0ff 50%,#e8ffe9)!important}
+:is(.fbg-metal,.fbg-kraft,.fbg-oferta,.fbg-pastel) :is(.fcard,.fbcard){background:rgba(255,255,255,.92)}
+#shopView.flyermode #stage,#shopView.flyermode #bgBarShop,#shopView.flyermode .controls{display:none}
+.flyerview{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px}
+.fbig{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+@media (max-width:700px){.fbig{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
+.fbcard{display:grid;gap:6px;align-content:start;border:1px solid var(--line);border-radius:14px;padding:8px;background:var(--bg);min-width:0}
+.fbcard.ffeat{border:2px solid var(--brass)}
+.fbimg{position:relative;display:grid;place-items:center;aspect-ratio:1;background:#fff;border:0;border-radius:10px;overflow:hidden;cursor:pointer;padding:0}
+.fbimg img{max-width:100%;max-height:100%;object-fit:contain}
+.fbimg .fstar{left:8px;top:8px;transform:none}
+.fbname{font:700 14px/1.25 var(--body);color:var(--ink)}
+.fbcard .fprice{justify-self:start;font-size:15px}
+.fbpromo{font:700 12px var(--body);color:#c2185b}
+.fstrip{grid-column:1/-1;margin:0}
+.fhint{grid-column:1/-1;margin:0}
 body.has-helpers .wrap{padding-bottom:170px}
 .homegrid > .addchip{grid-column:1/-1;justify-self:start;margin:4px 0 0}
 .hav.carrying::after{content:"🧺";position:absolute;right:-10px;bottom:22px;font-size:22px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
@@ -1448,6 +1485,8 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       </label>
       <label class="ctog" id="qAllWrap" style="justify-self:start" hidden><input type="checkbox" id="qAllStores"> Repartir entre todas mis tiendas <span class="pro">PRO</span></label>
       <label class="ctog" style="justify-self:start"><input type="checkbox" id="qAutoCats" checked> Armar vitrinas nuevas solas cuando un producto no tenga dónde ir</label>
+      <div class="qflyer"><label class="ctog"><input type="checkbox" id="qFlyer"> 📰 Mostrar en modo folleto</label>
+        <label class="note" for="qFlyerPer" style="display:flex;gap:6px;align-items:center;margin:0">Fotos por hoja <select id="qFlyerPer"><option value="10">10</option><option value="20">20</option></select></label></div>
       <p class="note" id="qMsg" role="status" style="margin:0"></p>
       <ul class="qlist" id="qList"></ul>
       <div class="bulkprices" id="qPrices" hidden></div>
@@ -1493,6 +1532,12 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     <span class="count" id="catCount"></span>
   </div>
 
+  <div class="viewtog" id="viewTog" role="group" aria-label="Cómo ver esta vitrina">
+    <button class="matbtn" type="button" data-view="spin">🔄 Girando</button>
+    <button class="matbtn" type="button" data-view="flyer">📰 Folleto</button>
+    <label class="note flyerper" for="flyerPerSel">Fotos por hoja <select id="flyerPerSel"><option value="0">Todas</option><option value="10">10</option><option value="20">20</option></select></label>
+  </div>
+  <div class="flyerview" id="flyerView" hidden></div>
   <div class="stage" id="stage" tabindex="0" aria-label="Vitrina giratoria. Usá las flechas para girar.">
     <div class="roomphoto" id="roomPhoto" hidden></div>
     <button class="backfab" type="button" id="backFab">← Vitrinas</button>
@@ -1695,7 +1740,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   const priceNum = p => { const n = parseFloat(String(p||'').replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',', '.')); return isNaN(n) ? Infinity : n; };
 
   const samples = () => SAMPLES.map((s,i) => ({...s, id:'s'+i, sample:true, added:i}));
-  const catClean = c => ({id: c.id, name: c.name, hidden: !!c.hidden, still: !!c.still, ...(c.bg ? {bg: c.bg} : {}), ...(Number.isInteger(c.zoom) ? {zoom: c.zoom} : {}), ...(c.size ? {size: c.size} : {}), ...(c.glow ? {glow: true} : {}), ...(c.deco ? {deco: c.deco} : {})});
+  const catClean = c => ({id: c.id, name: c.name, hidden: !!c.hidden, still: !!c.still, ...(c.bg ? {bg: c.bg} : {}), ...(Number.isInteger(c.zoom) ? {zoom: c.zoom} : {}), ...(c.size ? {size: c.size} : {}), ...(c.glow ? {glow: true} : {}), ...(c.deco ? {deco: c.deco} : {}), ...(c.flyer ? {flyer: true} : {})});
   function applyData(d){
     cats = Array.isArray(d.cats) && d.cats.length ? d.cats.slice(0, MAX_CATS).map(catClean) : DEFAULT_CATS.map(c => ({...c}));
     const fallback = (cats.find(c => c.id === 'varios') || cats[cats.length - 1]).id;
@@ -1973,11 +2018,13 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     const free = brand.layout === 'free', folleto = brand.layout === 'folleto';
     if(folleto){
       // Folleto: todos los productos como en una hoja, foto chica con nombre y precio, ordenados por rubro
-      html += `<div class="folleto">` + vis.map(c => {
+      html += `<div class="catstrip fstrip">${vis.filter(c => products.some(p => p.cat === c.id)).map((c, i) => tileHTML(c, i, false, true)).join('')}</div><p class="note fhint">Tocá una vitrina para verla como folleto, o mirá todo abajo.</p>` + `<div class="folleto">` + vis.map(c => {
         const items = products.filter(p => p.cat === c.id).sort((x, y) => (y.featured ? 1 : 0) - (x.featured ? 1 : 0) || x.added - y.added);
         if(!items.length) return '';
-        return `<section class="fsec"><h3 class="fhead">${esc(c.name)}</h3><div class="fgrid">${items.map(p => `<button class="fcard${p.featured ? ' ffeat' : ''}" type="button" data-pid="${p.id}" aria-label="${esc(p.name)}"><span class="fimg"><img src="${p.img}" alt="" loading="lazy" draggable="false"></span><span class="fname">${esc(p.name)}</span>${p.price ? `<span class="fprice">${esc(p.price)}</span>` : ''}</button>`).join('')}</div></section>`;
+        const per = brand.flyerPer || 0, pg = flyerPage[c.id] || 0, nP = per ? Math.ceil(items.length / per) : 1, shown = per ? items.slice(pg * per, pg * per + per) : items;
+        return `<section class="fsec"><h3 class="fhead">${esc(c.name)}${nP > 1 ? ` <small class="fpg">Hoja ${pg + 1} de ${nP}</small>` : ''}</h3><div class="fgrid${per === 10 ? ' f10' : per === 20 ? ' f20' : ''}">${shown.map(p => `<button class="fcard${p.featured ? ' ffeat' : ''}" type="button" data-pid="${p.id}" aria-label="${esc(p.name)}"><span class="fimg"><img src="${p.img}" alt="" loading="lazy" draggable="false"></span><span class="fname">${esc(p.name)}</span>${p.price ? `<span class="fprice">${esc(p.price)}</span>` : ''}</button>`).join('')}</div>${nP > 1 ? pagerHTML(c.id, pg, nP) : ''}</section>`;
       }).join('') + `</div>`;
+      html = html.replace('<div class="folleto">', `<div class="flyerbar">${flyerBgHTML()}</div><div class="folleto fbg-${brand.flyerBg || 'blanco'}">`);
     } else if(free){
       const nV = vis.length, fp = brand.freePos || {};
       // posición inicial: filas arriba y abajo, con tu comercio en el medio; después cada una queda donde la sueltes
@@ -2167,6 +2214,52 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     else return;
     save(); render(); renderStrip();
   });
+  // ---- Vitrina en modo folleto: todas sus fotos, grandes y fáciles de leer ----
+  let flyerSeen = {};
+  const FLYER_BGS = [['blanco', '📄 Blanco'], ['metal', '🔩 Metálico'], ['kraft', '📦 Papel madera'], ['negro', '⬛ Negro'], ['oferta', '🔥 Ofertas'], ['pastel', '🌸 Pastel']];
+  const flyerBgHTML = () => (clientMode || PUBLIC) ? '' : `<span class="note" style="margin:0">Fondo de la hoja:</span>${FLYER_BGS.map(([id, n]) => `<button class="matbtn" type="button" data-fbg="${id}" aria-pressed="${(brand.flyerBg || 'blanco') === id}">${n}</button>`).join('')}`;
+  document.addEventListener('click', e => { const b = e.target.closest('[data-fbg]'); if(!b) return; brand.flyerBg = b.dataset.fbg; save(); if(currentCat) render(); else renderHome(); });
+  const flyerPage = {};
+  const pagerHTML = (id, pg, nP) => `<div class="fpager"><button class="btn" type="button" data-fpg="${id}" data-d="-1" ${pg <= 0 ? 'disabled' : ''}>← Hoja anterior</button><span class="note">${pg + 1} / ${nP}</span><button class="btn" type="button" data-fpg="${id}" data-d="1" ${pg >= nP - 1 ? 'disabled' : ''}>Hoja siguiente →</button></div>`;
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-fpg]'); if(!b) return;
+    flyerPage[b.dataset.fpg] = Math.max(0, (flyerPage[b.dataset.fpg] || 0) + (+b.dataset.d));
+    const inShop = !!b.closest('#flyerView');
+    if(currentCat) render(); else renderHome();
+    const again = inShop ? $('flyerView') : [...document.querySelectorAll('.fsec')].find(x => x.querySelector(`[data-fpg="${b.dataset.fpg}"]`));
+    again && again.scrollIntoView({block: 'start', behavior: 'smooth'});
+  });
+  const isFlyer = c => !!c && (c.id in flyerSeen ? flyerSeen[c.id] : (c.flyer || brand.layout === 'folleto'));
+  function renderFlyer(){
+    const c = catOf(currentCat), on = isFlyer(c);
+    $('shopView').classList.toggle('flyermode', on);
+    $('flyerView').hidden = !on;
+    $('flyerPerSel').closest('label').hidden = !on || clientMode || PUBLIC; $('flyerPerSel').value = String(brand.flyerPer || 0);
+    $('viewTog').querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.view === 'flyer') === on)));
+    if(!on) return;
+    const all = sorted(), per = brand.flyerPer || 0, nP = per ? Math.ceil(all.length / per) : 1;
+    const pg = Math.min(flyerPage[c.id] || 0, Math.max(0, nP - 1)), items = per ? all.slice(pg * per, pg * per + per) : all;
+    $('flyerView').className = 'flyerview fbg-' + (brand.flyerBg || 'blanco');
+    $('flyerView').innerHTML = all.length ? `<div class="flyerbar">${flyerBgHTML()}</div>${nP > 1 ? `<div class="fpg" style="margin-bottom:8px">Hoja ${pg + 1} de ${nP}</div>` : ''}<div class="fbig${per === 20 ? ' f20' : ''}">${items.map(p => `<div class="fbcard${p.featured ? ' ffeat' : ''}">
+        <button class="fbimg" type="button" data-fpid="${p.id}" aria-label="Ver ${esc(p.name)}"><img src="${curImg(p)}" alt="" loading="lazy" draggable="false">${p.featured ? '<span class="fstar">★ Destacado</span>' : ''}</button>
+        <span class="fbname">${esc(p.name)}</span>
+        ${curPrice(p) ? `<span class="fprice">${esc(curPrice(p))}</span>` : ''}${p.promo ? `<span class="fbpromo">${esc(p.promo)}</span>` : ''}
+        <button class="hplus" type="button" data-fadd="${p.id}">＋ Al pedido</button>
+      </div>`).join('')}</div>${nP > 1 ? pagerHTML(c.id, pg, nP) : ''}` : `<p class="nofeat">Esta vitrina todavía no tiene productos.</p>`;
+  }
+  $('flyerPerSel').addEventListener('change', e => { brand.flyerPer = +e.target.value; save(); render(); });
+  $('viewTog').addEventListener('click', e => {
+    const b = e.target.closest('[data-view]'), c = catOf(currentCat); if(!b || !c) return;
+    const on = b.dataset.view === 'flyer';
+    if(!clientMode && !PUBLIC){ c.flyer = on; if(!on) delete c.flyer; delete flyerSeen[c.id]; save(); if(brand.layout === 'folleto' && !on) flyerSeen[c.id] = false; }
+    else flyerSeen[c.id] = on;
+    render();
+  });
+  $('flyerView').addEventListener('click', e => {
+    const a = e.target.closest('[data-fadd]'), im = e.target.closest('[data-fpid]');
+    if(a){ const p = products.find(x => x.id === a.dataset.fadd); if(p){ addToCart(cartKey(p), a.parentElement.querySelector('img')); a.textContent = '✓ Agregado'; a.classList.add('done'); } }
+    else if(im) openModal(im.dataset.fpid);
+  });
   function render(){
     if(!currentCat){ renderHome(); return; }
     measure();
@@ -2203,6 +2296,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       html += `</div>`;
     }
     carousel.innerHTML = html;
+    renderFlyer();
     { const cc = catOf(currentCat) || {}; stage.classList.toggle('glow', !!cc.glow); $('stageDeco').innerHTML = decoHTML(decoOf(cc), true); renderDecoBar(cc); }
     carouselRefl.innerHTML = LITE ? '' : html;
     $('reflOuter').hidden = LITE;
@@ -2693,6 +2787,8 @@ Respondé SOLO con JSON: {"name": "nombre corto del modelo, de 1 a 4 palabras, q
   $('layoutRing').onclick = () => { brand.layout = 'ring'; save(); renderHome(); };
   $('layoutFree').onclick = () => { brand.layout = 'free'; save(); renderHome(); };
   $('layoutFolleto').onclick = () => { brand.layout = 'folleto'; save(); renderHome(); };
+  $('qFlyer').addEventListener('change', e => { if(e.target.checked){ brand.flyerPer = +$('qFlyerPer').value; save(); } });
+  $('qFlyerPer').addEventListener('change', e => { brand.flyerPer = +e.target.value; save(); renderHome(); if(currentCat) render(); });
   $('homeSizeDn').onclick = () => { brand.homeSize = Math.max(-2, (brand.homeSize | 0) - 1); save(); renderHome(); };
   $('homeSizeUp').onclick = () => { brand.homeSize = Math.min(2, (brand.homeSize | 0) + 1); save(); renderHome(); };
   $('freeReset').onclick = () => { brand.freePos = {}; save(); renderHome(); };
@@ -3362,6 +3458,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     $('qMsg').textContent = `Listo: ${created.length} producto${created.length===1?'':'s'} repartido${created.length===1?'':'s'} en ${Object.keys(per).length} vitrina${Object.keys(per).length===1?'':'s'}. Ahora poné los precios.`;
     showBulkPrices(created, $('qPrices'), $('qMsg'));
     afterAutoCats();
+    if($('qFlyer').checked){ brand.layout = 'folleto'; brand.flyerPer = +$('qFlyerPer').value; save(); renderHome(); }
   }
   // ---- Foto de catálogo: una página con muchos productos ----
   function loadImg(file){
@@ -3540,6 +3637,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     $('qMsg').textContent = `Listo: encontré ${created.length} producto${created.length===1?'':'s'} y los repartí en ${nc} vitrina${nc===1?'':'s'}. ${priced ? priced + ' ya tienen el precio del catálogo. ' : ''}Revisá los precios y completá los que faltan.${toReview ? (toReview === 1 ? ' Uno no tenía el nombre legible en la página: está marcado con ⚠ para que lo revises.' : ` ${toReview} no tenían el nombre legible en la página: están marcados con ⚠ para que los revises.`) : ''} Si alguna foto quedó mal recortada, la cambiás con “Editar”.`;
     showBulkPrices(created, $('qPrices'), $('qMsg'));
     afterAutoCats();
+    if($('qFlyer').checked){ brand.layout = 'folleto'; brand.flyerPer = +$('qFlyerPer').value; save(); renderHome(); }
   }
   function afterAutoCats(){
     fillCatSelect(currentCat || cats[0].id); renderHome(); renderStoreBar();
