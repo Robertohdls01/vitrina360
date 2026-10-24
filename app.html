@@ -1078,6 +1078,11 @@ body.clientmode .decoshop{display:none}
 .hav.on svg{filter:drop-shadow(0 0 6px var(--accent)) drop-shadow(0 4px 6px rgba(0,0,0,.2))}
 .hname{font:700 10.5px/1 var(--body);background:var(--surface);color:var(--ink);border-radius:999px;padding:2px 7px;margin-top:-6px;box-shadow:0 2px 6px -2px var(--shadow)}
 @keyframes hbob{50%{transform:translateY(-3px)}}
+.hav.walking svg{animation:hstep .28s ease-in-out infinite alternate}
+@keyframes hstep{from{transform:translateY(0) rotate(-5deg)}to{transform:translateY(-5px) rotate(5deg)}}
+.hav{z-index:46}
+.mstage.touched{animation:htouch .7s ease-out}
+@keyframes htouch{0%{transform:scale(1)}30%{transform:scale(1.08);box-shadow:0 0 0 4px var(--accent),0 0 26px 6px var(--accent)}100%{transform:scale(1)}}
 .hav .heyes{animation:hblink 4.5s infinite;transform-origin:40px 39px}
 @keyframes hblink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
 .hav.talking .hmouth{animation:htalk .22s ease-in-out infinite alternate;transform-origin:40px 48px}
@@ -1090,6 +1095,10 @@ body.clientmode .decoshop{display:none}
 .hbig img{width:100%;max-height:240px;object-fit:contain;background:#fff;border-radius:12px;border:1px solid var(--line)}
 .hbinfo{display:grid;gap:6px;justify-items:start}
 .hchips{display:flex;flex-wrap:wrap;gap:6px}
+.hmode{display:flex;flex-wrap:wrap;gap:6px}
+.hmode .matbtn{padding:4px 10px;font-size:12.5px}
+.hrow{align-items:flex-end}
+.hhelp{order:9;align-self:center;margin-left:4px;border:0;border-radius:999px;padding:8px 12px;background:var(--accent);color:var(--accent-ink,#fff);font:700 13px/1 var(--body);cursor:pointer;box-shadow:0 6px 14px -6px var(--shadow);animation:mpulse 2.6s ease-in-out infinite}
 .hchips .matbtn{padding:4px 10px;font-size:12.5px}
 .hask{display:flex;gap:6px}
 .hask input{flex:1;min-width:0}
@@ -1510,6 +1519,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   <div class="hpanel" id="hPanel" hidden role="dialog" aria-label="Vendedores virtuales">
     <button class="hclose" type="button" id="hClose" aria-label="Cerrar">✕</button>
     <div class="hsay" id="hSay" aria-live="polite"></div>
+    <div class="hmode" id="hMode" role="group" aria-label="Cómo querés que te atiendan"></div>
     <div class="hres" id="hRes"></div>
     <div class="hchips" id="hChips"></div>
     <form class="hask" id="hAsk"><input type="text" id="hIn" placeholder="Ej: mostrame perfumes" aria-label="Escribile al vendedor" autocomplete="off"><button class="btn" type="button" id="hMic" aria-label="Hablar">🎤</button><button class="btn primary" type="submit">Enviar</button></form>
@@ -4475,15 +4485,17 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   function renderHelpers(){
     const which = brand.helpers || '', ids = which === 'ambos' ? ['sofi', 'tomas'] : which ? [which] : [];
     $('helpers').hidden = !ids.length;
-    $('hRow').innerHTML = ids.map(id => `<button class="hav" type="button" data-hav="${id}" aria-label="Hablar con ${HELPERS[id].name}">${helperSVG(HELPERS[id], hShirt())}<span class="hname">${HELPERS[id].name}</span></button>`).join('');
+    $('hRow').innerHTML = (ids.length ? `<button class="hhelp" type="button" id="hHelp">🙋 Pedí ayuda</button>` : '') + ids.map(id => `<button class="hav" type="button" data-hav="${id}" aria-label="Hablar con ${HELPERS[id].name}">${helperSVG(HELPERS[id], hShirt())}<span class="hname">${HELPERS[id].name}</span></button>`).join('');
     if(!ids.length) $('hPanel').hidden = true;
     const bar = $('helperBar'); if(bar) bar.innerHTML = [['', 'Sin vendedores'], ['sofi', '👩 Sofi'], ['tomas', '👨 Tomás'], ['ambos', '👩👨 Los dos']].map(([id, n]) => `<button class="matbtn" type="button" data-hset="${id}" aria-pressed="${which === id}">${n}</button>`).join('');
+    if(bar) bar.innerHTML += `<button class="matbtn" type="button" id="hWalkBtn" aria-pressed="${brand.helperWalk !== false}">🚶 Que caminen hasta la vitrina</button>`;
     const cb = $('helperColors'); if(cb) cb.innerHTML = `<span class="note" style="margin:0">Color de la ropa:</span>` + HCOLORS.map(c => `<button class="sw" type="button" data-hcol="${c}" style="--c:${c || 'var(--accent)'}" aria-pressed="${(brand.helperColor || '') === c}" aria-label="${c ? 'Color ' + c : 'Color de mi marca'}" title="${c ? '' : 'Color de mi marca'}"></button>`).join('') + `<label class="sw custom" title="Otro color"><input type="color" id="hColCustom" value="${brand.helperColor || '#0e6a5b'}" aria-label="Otro color"></label>`;
     $('hMic').hidden = !(window.SpeechRecognition || window.webkitSpeechRecognition);
   }
   document.addEventListener('click', e => {
     const a = e.target.closest('[data-hset]'), c = e.target.closest('[data-hcol]');
     if(a){ brand.helpers = a.dataset.hset; save(); renderHelpers(); }
+    if(e.target.closest('#hWalkBtn')){ brand.helperWalk = brand.helperWalk === false; save(); renderHelpers(); }
     if(c){ brand.helperColor = c.dataset.hcol; if(!brand.helperColor) delete brand.helperColor; save(); renderHelpers(); }
   });
   document.addEventListener('input', e => { if(e.target.id === 'hColCustom'){ brand.helperColor = e.target.value; save(); renderHelpers(); } });
@@ -4516,6 +4528,40 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       : `<div class="hgrid">${list.map(p => `<button class="fcard" type="button" data-hpick="${p.id}"><span class="fimg"><img src="${p.img}" alt=""></span><span class="fname">${esc(p.name)}</span>${p.price ? `<span class="fprice">${esc(p.price)}</span>` : ''}</button>`).join('')}</div>`;
   }
   const visCats = () => cats.filter(c => !c.hidden && products.some(p => p.cat === c.id));
+  // el muñequito camina hasta la vitrina, la toca y vuelve
+  let hWalking = null;
+  const hWalkPref = () => { try{ return localStorage.getItem('vitrina360-hwalk'); }catch(e){ return null; } };
+  const hWalkOn = () => { const v = hWalkPref(); return v === null ? brand.helperWalk !== false : v === '1'; };
+  function renderHMode(){
+    const on = hWalkOn();
+    $('hMode').innerHTML = `<button class="matbtn" type="button" data-hmode="1" aria-pressed="${on}">🚶 Que vayan a la vitrina</button><button class="matbtn" type="button" data-hmode="0" aria-pressed="${!on}">💬 Que me hablen desde acá</button>`;
+  }
+  function hWalk(catId){
+    if(!hWalkOn() || reduce || !catId) return;
+    const av = $('hRow').querySelector(`[data-hav="${hCur}"]`); if(!av || !av.animate) return;
+    const tile = document.querySelector(`#catStrip:not([hidden]) [data-cat="${catId}"] .mstage, #homeView:not([hidden]) #homegrid [data-cat="${catId}"] .mstage`);
+    if(!tile) return;
+    const go = () => {
+      const a = av.getBoundingClientRect(), t = tile.getBoundingClientRect();
+      if(!t.width || t.bottom < 0 || t.top > innerHeight) return;
+      const dx = t.left + t.width / 2 - (a.left + a.width / 2), dy = t.bottom - a.bottom + 6;
+      hWalking && hWalking.cancel();
+      av.classList.add('walking');
+      hWalking = av.animate([
+        {transform: 'translate(0,0)'},
+        {transform: `translate(${dx}px, ${dy}px)`, offset: 0.35},
+        {transform: `translate(${dx}px, ${dy - 10}px) scale(1.05)`, offset: 0.42},
+        {transform: `translate(${dx}px, ${dy}px)`, offset: 0.48},
+        {transform: `translate(${dx}px, ${dy}px)`, offset: 0.7},
+        {transform: 'translate(0,0)'}
+      ], {duration: 4200, easing: 'ease-in-out'});
+      setTimeout(() => { av.classList.remove('walking'); tile.classList.remove('touched'); void tile.offsetWidth; tile.classList.add('touched'); }, 1500);
+      setTimeout(() => av.classList.add('walking'), 2900);
+      hWalking.onfinish = hWalking.oncancel = () => { av.classList.remove('walking'); setTimeout(() => tile.classList.remove('touched'), 300); };
+    };
+    const r = tile.getBoundingClientRect();
+    if(r.top < 60 || r.bottom > innerHeight - 140){ tile.scrollIntoView({block: 'center', behavior: 'smooth'}); setTimeout(go, 600); } else go();
+  }
   function hAnswer(q){
     const n = norm(q);
     if(/\b(lo quiero|agrega|sumalo|al pedido|comprar|lo llevo)\b/.test(n)){
@@ -4538,12 +4584,12 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(cat && (num || !namedHit)){
       const inCat = new Set(found.filter(p => p.cat === cat.id).map(p => p.id));
       const items = products.filter(p => p.cat === cat.id).sort((a, b) => (inCat.has(b.id) ? 1 : 0) - (inCat.has(a.id) ? 1 : 0) || (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
-      hLast = null; hShow(items.slice(0, 6), false);
+      hLast = null; hShow(items.slice(0, 6), false); hWalk(cat.id);
       const fp = items.find(p => p.featured);
       return hSpeak(`En ${cat.name} tenés ${items.length} producto${items.length === 1 ? '' : 's'}${fp ? `. Te destaco ${fp.name}${fp.promo ? ', ' + fp.promo : ''}` : ''}. Tocá el que quieras ver.`);
     }
     if(found.length){
-      hLast = found.length === 1 ? found[0] : null; hShow(found, found.length === 1);
+      hLast = found.length === 1 ? found[0] : null; hShow(found, found.length === 1); hWalk(found[0].cat);
       const p = found[0];
       return hSpeak(found.length === 1 ? `Acá tenés ${p.name}${p.promo ? ', ' + p.promo : ''}${curPrice(p) ? ', a ' + curPrice(p) : ''}. ¿Lo agrego a tu pedido?` : `Encontré ${found.length} opciones. La primera es ${p.name}${curPrice(p) ? ', a ' + curPrice(p) : ''}. Tocá la que quieras ver en grande.`);
     }
@@ -4553,15 +4599,20 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     hCur = id; $('hPanel').hidden = false;
     $('hChips').innerHTML = [['🏬 Ver vitrinas', 'vitrinas'], ['🔥 Ofertas', 'ofertas'], ...visCats().slice(0, 4).map(c => [c.name, 'mostrame ' + c.name])].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${esc(q)}">${esc(t)}</button>`).join('');
     $('hRow').querySelectorAll('.hav').forEach(b => b.classList.toggle('on', b.dataset.hav === id));
-    hShow([]); hSpeak(`¡Hola! Soy ${HELPERS[id].name}. ¿Qué andás buscando?`);
+    renderHMode(); hShow([]); hSpeak(`¡Hola! Soy ${HELPERS[id].name}. ¿Qué andás buscando? Te busco la vitrina y te muestro el producto.`);
   }
-  $('hRow').addEventListener('click', e => { const b = e.target.closest('[data-hav]'); if(b) hOpen(b.dataset.hav); });
+  $('hRow').addEventListener('click', e => {
+    if(e.target.closest('#hHelp')){ const ids = (brand.helpers === 'ambos') ? ['sofi', 'tomas'] : [brand.helpers]; return hOpen(ids[Math.floor(Math.random() * ids.length)]); }
+    const b = e.target.closest('[data-hav]'); if(b) hOpen(b.dataset.hav);
+  });
   $('hClose').onclick = () => { $('hPanel').hidden = true; try{ speechSynthesis.cancel(); }catch(err){} duck(false); };
   $('hAsk').addEventListener('submit', e => { e.preventDefault(); const q = $('hIn').value.trim(); if(!q) return; $('hIn').value = ''; hAnswer(q); });
   $('hPanel').addEventListener('click', e => {
+    const md = e.target.closest('[data-hmode]');
+    if(md){ try{ localStorage.setItem('vitrina360-hwalk', md.dataset.hmode); }catch(err){} renderHMode(); hSpeak(md.dataset.hmode === '1' ? '¡Dale! Voy hasta la vitrina y te muestro.' : 'Perfecto, te muestro todo desde acá.'); return; }
     const q = e.target.closest('[data-hq]'), pk = e.target.closest('[data-hpick]'), ad = e.target.closest('[data-hadd]'), op = e.target.closest('[data-hopen]');
     if(q){ if(q.dataset.hq === 'vitrinas'){ const vc = visCats(); hShow([]); hSpeak(`Tenemos ${vc.length} vitrinas: ${vc.map((c, i) => (i + 1) + ', ' + c.name).join('; ')}. ¿Cuál querés ver?`); } else hAnswer(q.dataset.hq); }
-    if(pk){ const p = products.find(x => x.id === pk.dataset.hpick); if(p){ hLast = p; hShow([p], true); hSpeak(`${p.name}${p.promo ? ', ' + p.promo : ''}${curPrice(p) ? ', a ' + curPrice(p) : ''}. ¿Te lo agrego al pedido?`); } }
+    if(pk){ const p = products.find(x => x.id === pk.dataset.hpick); if(p){ hLast = p; hShow([p], true); hWalk(p.cat); hSpeak(`${p.name}${p.promo ? ', ' + p.promo : ''}${curPrice(p) ? ', a ' + curPrice(p) : ''}. ¿Te lo agrego al pedido?`); } }
     if(ad){ const p = products.find(x => x.id === ad.dataset.hadd); if(p){ addToCart(cartKey(p)); ad.textContent = '✓ Agregado'; hSpeak('¡Listo, ya está en tu pedido!'); } }
     if(op){ $('hPanel').hidden = true; openModal(op.dataset.hopen); }
   });
