@@ -1183,6 +1183,16 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <div class="bgbar" id="musicBar" role="group" aria-label="Música de la tienda"></div>
       <div class="row"><label class="btn" for="b-music" style="display:inline-flex">🎵 Subir mi música (MP3)<input type="file" id="b-music" accept="audio/*" class="vh"></label></div>
       <p class="note" id="musicMsg" role="status" style="margin:0"></p>
+      <strong style="margin-top:6px">📢 Anuncios entre la música</strong>
+      <p class="note" style="margin:0">Cada tanto la música baja y suena una publicidad tuya, como en el súper. Escribí los anuncios, uno por renglón, y el celular los lee en voz alta; o subí un audio grabado por vos.</p>
+      <textarea id="b-ads" rows="3" maxlength="600" placeholder="Hoy, bombones Felfort con 20% de descuento.&#10;Hacé tu pedido por WhatsApp y te lo llevamos a tu casa."></textarea>
+      <div class="row" style="align-items:center">
+        <label for="b-adsEvery" class="note" style="display:flex;gap:6px;align-items:center;margin:0">Cada
+          <select id="b-adsEvery"><option value="1">1 minuto</option><option value="2">2 minutos</option><option value="3">3 minutos</option><option value="5">5 minutos</option><option value="10">10 minutos</option></select></label>
+        <label class="btn" for="b-adFile" style="display:inline-flex">🎙 Subir audio de publicidad<input type="file" id="b-adFile" accept="audio/*" class="vh"></label>
+        <button class="btn" type="button" id="adTest">▶ Escuchar un anuncio ahora</button>
+      </div>
+      <p class="note" id="adsMsg" role="status" style="margin:0"></p>
     </div>
     <div class="presets">
       <strong>Fondo general de las vitrinas</strong>
@@ -3819,7 +3829,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     const open = $('brandPanel').hidden;
     $('brandPanel').hidden = !open; $('brandBtn').setAttribute('aria-expanded', String(open));
     $('brandBtn').textContent = open ? 'Listo' : 'Personalizar mi comercio';
-    if(open){ renderCatToggles(); renderShipPanel(); renderCenterBars(); $('b-name').value = brand.name; $('b-wa').value = brand.wa || ''; $('b-ig').value = brand.ig || ''; $('b-alias').value = brand.alias || ''; $('b-paylink').value = brand.paylink || ''; $('b-ball').value = brand.ball || ''; $('b-name').focus(); }
+    if(open){ renderCatToggles(); renderShipPanel(); renderCenterBars(); $('b-name').value = brand.name; $('b-wa').value = brand.wa || ''; $('b-ig').value = brand.ig || ''; $('b-alias').value = brand.alias || ''; $('b-paylink').value = brand.paylink || ''; $('b-ball').value = brand.ball || ''; $('b-ads').value = brand.ads || ''; $('b-adsEvery').value = String(brand.adsEvery || 2); $('b-name').focus(); }
   };
   $('b-ball').addEventListener('input', e => { brand.ball = e.target.value.slice(0, 400); save(); if(!currentCat) renderHome(); });
   $('b-name').addEventListener('input', e => { brand.name = e.target.value.trim(); applyBrand(); renderContact(); save(); renderStoreBar(); });
@@ -4051,6 +4061,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(music.audio){ music.audio.pause(); }
     if(music.master){ try{ music.master.gain.setTargetAtTime(0, music.ctx.currentTime, 0.15); }catch(e){} }
     music.on = false; $('musicFab').setAttribute('aria-pressed', 'false');
+    clearInterval(adTimer); adTimer = null; try{ window.speechSynthesis && speechSynthesis.cancel(); }catch(e){}
   }
   function musicStart(){
     const m = brand.music || {}; if(!m.style) return;
@@ -4059,7 +4070,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       if(!m.url) return;
       if(!music.audio){ music.audio = new Audio(); music.audio.loop = true; music.audio.volume = 0.45; }
       if(music.audio.src !== m.url) music.audio.src = m.url;
-      music.audio.play().then(() => { music.on = true; $('musicFab').setAttribute('aria-pressed', 'true'); }).catch(() => {});
+      music.audio.play().then(() => { music.on = true; $('musicFab').setAttribute('aria-pressed', 'true'); adsSchedule(); }).catch(() => {});
       return;
     }
     try{
@@ -4068,7 +4079,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       music.master.gain.cancelScheduledValues(music.ctx.currentTime); music.master.gain.setTargetAtTime(0.55, music.ctx.currentTime, 0.4);
       music.style = MUSIC.find(x => x.id === m.style) || MUSIC[1]; music.step = 0; music.next = music.ctx.currentTime + 0.1;
       music.timer = setInterval(mTick, 60); mTick();
-      music.on = true; $('musicFab').setAttribute('aria-pressed', 'true');
+      music.on = true; $('musicFab').setAttribute('aria-pressed', 'true'); adsSchedule();
     }catch(e){}
   }
   const musicMuted = () => { try{ return localStorage.getItem('vitrina360-mute') === '1'; }catch(e){ return false; } };
@@ -4092,6 +4103,51 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(!url){ url = URL.createObjectURL(f); $('musicMsg').textContent = 'Lista para escuchar acá. Para que la escuchen tus clientes, subila desde tu panel en la web.'; }
     else $('musicMsg').textContent = 'Listo: tu música quedó cargada.';
     brand.music = {style: 'file', url}; save(); renderMusic(); musicStart();
+  });
+  // ---- Anuncios: la música baja y suena la publicidad ----
+  let adTimer = null, adIdx = 0, adAudio = null;
+  const adList = () => String(brand.ads || '').split('\n').map(t => t.trim()).filter(Boolean);
+  function duck(on){
+    if(music.master && music.ctx){ try{ music.master.gain.setTargetAtTime(on ? 0.12 : 0.55, music.ctx.currentTime, 0.3); }catch(e){} }
+    if(music.audio) music.audio.volume = on ? 0.1 : 0.45;
+  }
+  function playAd(){
+    const texts = adList(), file = brand.adFile;
+    const items = [...texts.map(t => ({t})), ...(file ? [{f: file}] : [])];
+    if(!items.length) return false;
+    const it = items[adIdx++ % items.length];
+    duck(true);
+    const done = () => setTimeout(() => duck(false), 400);
+    if(it.f){
+      if(!adAudio) adAudio = new Audio();
+      adAudio.src = it.f; adAudio.volume = 1; adAudio.onended = done; adAudio.onerror = done;
+      adAudio.play().catch(done);
+    } else if(window.speechSynthesis){
+      const u = new SpeechSynthesisUtterance(it.t);
+      u.lang = LANG === 'pt' ? 'pt-BR' : LANG === 'en' ? 'en-US' : 'es-AR'; u.rate = 0.98; u.onend = done; u.onerror = done;
+      const v = speechSynthesis.getVoices().find(x => x.lang && x.lang.toLowerCase().startsWith(u.lang.slice(0, 2)));
+      if(v) u.voice = v;
+      speechSynthesis.cancel(); setTimeout(() => speechSynthesis.speak(u), 500);
+    } else done();
+    return true;
+  }
+  function adsSchedule(){
+    clearInterval(adTimer); adTimer = null;
+    if(!music.on || !(adList().length || brand.adFile)) return;
+    adTimer = setInterval(() => { if(music.on && !document.hidden) playAd(); }, (+brand.adsEvery || 2) * 60000);
+  }
+  $('b-ads').addEventListener('input', e => { brand.ads = e.target.value.slice(0, 600); save(); adsSchedule(); });
+  $('b-adsEvery').addEventListener('change', e => { brand.adsEvery = +e.target.value; save(); adsSchedule(); });
+  $('adTest').onclick = () => { if(!playAd()) $('adsMsg').textContent = 'Escribí un anuncio arriba o subí un audio.'; else $('adsMsg').textContent = ''; };
+  $('b-adFile').addEventListener('change', async e => {
+    const f = e.target.files[0]; e.target.value = ''; if(!f) return;
+    if(f.size > 8e6){ $('adsMsg').textContent = 'Ese audio es muy pesado. Probá con uno de menos de 8 MB.'; return; }
+    $('adsMsg').textContent = 'Subiendo el audio…';
+    let url = null;
+    try{ if(assetsApi) url = (await assetsApi.upload(f)).url; }catch(err){}
+    if(!url){ url = URL.createObjectURL(f); $('adsMsg').textContent = 'Listo para escuchar acá. Para que lo escuchen tus clientes, subilo desde tu panel en la web.'; }
+    else $('adsMsg').textContent = 'Listo: tu publicidad quedó cargada.';
+    brand.adFile = url; save(); adsSchedule();
   });
   $('musicFab').onclick = e => {
     e.stopPropagation();
