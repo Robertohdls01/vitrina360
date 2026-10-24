@@ -4480,7 +4480,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   const HIDS = Object.keys(HELPERS);
   // los vendedores elegidos de esta tienda (antes se guardaba 'sofi', 'tomas' o 'ambos')
   const hList = () => { const h = brand.helpers; if(Array.isArray(h)) return h.filter(id => HELPERS[id]); return h === 'ambos' ? ['sofi', 'tomas'] : HELPERS[h] ? [h] : []; };
-  const HCOLORS = ['', '#e63946', '#ff8c00', '#2a9d8f', '#1d4ed8', '#7c3aed', '#111827', '#db2777'];
+  const HCOLORS = ['', '#e63946', '#ff8c00', '#2a9d8f', '#1d4ed8', '#7c3aed', '#111827', '#db2777', '#ff2fd6', '#39ff14', '#00e5ff', '#ff6a00', '#f5ff00'];
   function helperSVG(h, shirt){
     const tag = esc((brand.name || 'Mi tienda').slice(0, 14));
     const st = h.style;
