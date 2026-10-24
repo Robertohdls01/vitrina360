@@ -1068,6 +1068,33 @@ body.clientmode .decoshop{display:none}
 /* Frase de promo del destacado */
 .promobox{display:grid;gap:4px;margin-top:10px;font-weight:600}
 .promobox input{flex:1;min-width:0}
+/* Vendedores virtuales */
+.helpers{position:fixed;left:calc(10px + env(safe-area-inset-left, 0px));bottom:calc(8px + env(safe-area-inset-bottom, 0px));z-index:45;display:flex;flex-direction:column;align-items:flex-start;gap:8px;pointer-events:none}
+.helpers > *{pointer-events:auto}
+.hrow{display:flex;gap:2px}
+.hav{position:relative;border:0;background:none;padding:0;width:62px;cursor:pointer;display:grid;justify-items:center}
+.hav svg{width:62px;height:auto;animation:hbob 3.2s ease-in-out infinite;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2))}
+.hav + .hav svg{animation-delay:-1.6s}
+.hav.on svg{filter:drop-shadow(0 0 6px var(--accent)) drop-shadow(0 4px 6px rgba(0,0,0,.2))}
+.hname{font:700 10.5px/1 var(--body);background:var(--surface);color:var(--ink);border-radius:999px;padding:2px 7px;margin-top:-6px;box-shadow:0 2px 6px -2px var(--shadow)}
+@keyframes hbob{50%{transform:translateY(-3px)}}
+.hav .heyes{animation:hblink 4.5s infinite;transform-origin:40px 39px}
+@keyframes hblink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.hav.talking .hmouth{animation:htalk .22s ease-in-out infinite alternate;transform-origin:40px 48px}
+@keyframes htalk{from{transform:scaleY(.6)}to{transform:scaleY(1.9)}}
+.hpanel{position:relative;width:min(340px,calc(100vw - 24px));max-height:min(70vh,560px);overflow:auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;gap:10px;box-shadow:0 18px 40px -16px var(--shadow)}
+.hclose{position:absolute;right:8px;top:8px;border:0;background:var(--bg);color:var(--ink);width:28px;height:28px;border-radius:50%;cursor:pointer}
+.hsay{font-weight:600;padding-right:30px;min-height:1.4em}
+.hgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.hbig{display:grid;gap:8px}
+.hbig img{width:100%;max-height:240px;object-fit:contain;background:#fff;border-radius:12px;border:1px solid var(--line)}
+.hbinfo{display:grid;gap:6px;justify-items:start}
+.hchips{display:flex;flex-wrap:wrap;gap:6px}
+.hchips .matbtn{padding:4px 10px;font-size:12.5px}
+.hask{display:flex;gap:6px}
+.hask input{flex:1;min-width:0}
+#hMic.rec{background:#e63946;color:#fff;animation:mpulse 1s infinite}
+@media (prefers-reduced-motion:reduce){.hav svg,.hav .heyes,.hav.talking .hmouth{animation:none}}
 /* Música */
 .musicfab{position:fixed;right:calc(16px + env(safe-area-inset-right, 0px));bottom:calc(74px + env(safe-area-inset-bottom, 0px));z-index:40;
   width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:20px;cursor:pointer;
@@ -1257,6 +1284,12 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <strong>Color de los botones flotantes</strong>
       <p class="note" style="margin:0">El de “← Vitrinas” (abajo a la izquierda de la vitrina) y el de “Ver pedido”.</p>
       <div class="bgbar" id="btnColorBar" role="group" aria-label="Color de los botones"></div>
+    </div>
+    <div class="presets">
+      <strong>Vendedores virtuales</strong>
+      <p class="note" style="margin:0">Dos muñequitos que atienden la tienda: tus clientes les hablan o les escriben (“mostrame perfumes”, “vitrina 2”, “¿qué ofertas hay?”) y ellos responden con voz y muestran los productos en grande. Van vestidos con el color que elijas y el nombre de tu tienda.</p>
+      <div class="bgbar" id="helperBar" role="group" aria-label="Vendedores virtuales"></div>
+      <div class="bgbar" id="helperColors" role="group" aria-label="Color de la ropa"></div>
     </div>
     <div class="presets">
       <strong>Música de la tienda</strong>
@@ -1473,6 +1506,16 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   </section>
 </div>
 
+<div class="helpers" id="helpers" hidden>
+  <div class="hpanel" id="hPanel" hidden role="dialog" aria-label="Vendedores virtuales">
+    <button class="hclose" type="button" id="hClose" aria-label="Cerrar">✕</button>
+    <div class="hsay" id="hSay" aria-live="polite"></div>
+    <div class="hres" id="hRes"></div>
+    <div class="hchips" id="hChips"></div>
+    <form class="hask" id="hAsk"><input type="text" id="hIn" placeholder="Ej: mostrame perfumes" aria-label="Escribile al vendedor" autocomplete="off"><button class="btn" type="button" id="hMic" aria-label="Hablar">🎤</button><button class="btn primary" type="submit">Enviar</button></form>
+  </div>
+  <div class="hrow" id="hRow"></div>
+</div>
 <button class="musicfab" type="button" id="musicFab" hidden aria-pressed="false" aria-label="Música de la tienda">🎵</button>
 <button class="cartfab" type="button" id="cartFab" hidden>Ver pedido <span class="n" id="cartN">0</span></button>
 <div class="modal" id="askModal" hidden role="alertdialog" aria-modal="true" aria-labelledby="askTitle">
@@ -4049,7 +4092,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     if(open){ renderCatToggles(); renderShipPanel(); renderCenterBars(); $('b-name').value = brand.name; $('b-wa').value = brand.wa || ''; $('b-ig').value = brand.ig || ''; $('b-alias').value = brand.alias || ''; $('b-paylink').value = brand.paylink || ''; $('b-ball').value = brand.ball || ''; $('b-ads').value = brand.ads || ''; $('voiceFeat').setAttribute('aria-pressed', String(!!brand.voiceFeat)); $('b-adsEvery').value = String(brand.adsEvery || 2); $('b-name').focus(); }
   };
   $('b-ball').addEventListener('input', e => { brand.ball = e.target.value.slice(0, 400); save(); if(!currentCat) renderHome(); });
-  $('b-name').addEventListener('input', e => { brand.name = e.target.value.trim(); applyBrand(); renderContact(); save(); renderStoreBar(); });
+  $('b-name').addEventListener('input', e => { brand.name = e.target.value.trim(); applyBrand(); renderHelpers(); renderContact(); save(); renderStoreBar(); });
   $('b-logo').addEventListener('change', async e => {
     const f = e.target.files[0]; e.target.value = ''; if(!f) return;
     try{ brand.logo = await shrinkTo(f, 400, 'image/png'); applyBrand(); save(); }catch(err){}
@@ -4118,7 +4161,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       (stores.length > 1 ? `<button type="button" class="storechip all" data-mall aria-pressed="${mall}">▣ Ver todas</button>` : '');
   }
   function afterStoreChange(){
-    renderMusic();
+    renderMusic(); renderHelpers();
     currentCat = null; editMode = false; selectedId = null;
     $('shopView').hidden = true; $('mallView').hidden = true; $('homeView').hidden = false;
     if(!$('brandPanel').hidden) $('brandBtn').click();
@@ -4406,8 +4449,134 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     document.removeEventListener('pointerdown', first, true);
     if((brand.music || {}).style && !musicMuted() && !music.on) musicStart();
   }, true);
+  // ---- Vendedores virtuales: Sofi y Tomás ----
+  const HELPERS = {sofi: {name: 'Sofi', pitch: 1.18, hair: '#5a3825', skin: '#f2c9a0', female: true}, tomas: {name: 'Tomás', pitch: 0.82, hair: '#2b2118', skin: '#d9a679', female: false}};
+  const HCOLORS = ['', '#e63946', '#ff8c00', '#2a9d8f', '#1d4ed8', '#7c3aed', '#111827', '#db2777'];
+  function helperSVG(h, shirt){
+    const tag = esc((brand.name || 'Mi tienda').slice(0, 14));
+    const hair = h.female
+      ? `<path d="M22 34c-2-15 8-25 18-25s21 9 18 25c3 6 3 16 0 22-2-9-4-14-4-22-8 2-20 1-28-6-1 9-3 18-6 28-2-8-1-14 2-22z" fill="${h.hair}"/>`
+      : `<path d="M23 32c-1-13 7-21 17-21s18 7 17 21c-4-6-9-9-17-9s-13 3-17 9z" fill="${h.hair}"/>`;
+    return `<svg viewBox="0 0 80 110" aria-hidden="true"><ellipse cx="40" cy="106" rx="22" ry="4" fill="rgba(0,0,0,.18)"/>
+      <path d="M14 104c0-22 11-36 26-36s26 14 26 36z" fill="${shirt}"/>
+      <path d="M33 68l7 9 7-9" fill="#fff" opacity=".9"/>
+      <rect x="22" y="84" width="36" height="11" rx="3" fill="#fff"/><text x="40" y="92.2" font-size="${Math.min(6.6, 52 / Math.max(1, tag.length)).toFixed(1)}" font-weight="800" text-anchor="middle" fill="${shirt}" font-family="system-ui,sans-serif">${tag}</text>
+      <rect x="35" y="56" width="10" height="13" rx="4" fill="${h.skin}"/>
+      <circle cx="40" cy="38" r="18" fill="${h.skin}"/>${hair}
+      <g class="heyes"><circle cx="33.5" cy="39" r="2.2" fill="#222"/><circle cx="46.5" cy="39" r="2.2" fill="#222"/></g>
+      <ellipse cx="29" cy="45" rx="3" ry="1.8" fill="#f08f8f" opacity=".45"/><ellipse cx="51" cy="45" rx="3" ry="1.8" fill="#f08f8f" opacity=".45"/>
+      <path class="hmouth" d="M35 47q5 4 10 0" stroke="#7a2e2e" stroke-width="2" fill="#a33" stroke-linecap="round"/>
+      ${brand.logo ? `<image href="${brand.logo}" x="${h.female ? 50 : 30}" y="${h.female ? 74 : 12}" width="${h.female ? 11 : 20}" height="${h.female ? 11 : 12}" preserveAspectRatio="xMidYMid meet"/>` : (h.female ? '' : `<path d="M22 27q18-14 36 0v4H22z" fill="${shirt}"/><rect x="20" y="29" width="40" height="4" rx="2" fill="${shirt}"/>`)}
+    </svg>`;
+  }
+  let hCur = null, hLast = null;
+  const hOn = () => (brand.helpers || '') !== '';
+  const hShirt = () => brand.helperColor || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0e6a5b';
+  function renderHelpers(){
+    const which = brand.helpers || '', ids = which === 'ambos' ? ['sofi', 'tomas'] : which ? [which] : [];
+    $('helpers').hidden = !ids.length;
+    $('hRow').innerHTML = ids.map(id => `<button class="hav" type="button" data-hav="${id}" aria-label="Hablar con ${HELPERS[id].name}">${helperSVG(HELPERS[id], hShirt())}<span class="hname">${HELPERS[id].name}</span></button>`).join('');
+    if(!ids.length) $('hPanel').hidden = true;
+    const bar = $('helperBar'); if(bar) bar.innerHTML = [['', 'Sin vendedores'], ['sofi', '👩 Sofi'], ['tomas', '👨 Tomás'], ['ambos', '👩👨 Los dos']].map(([id, n]) => `<button class="matbtn" type="button" data-hset="${id}" aria-pressed="${which === id}">${n}</button>`).join('');
+    const cb = $('helperColors'); if(cb) cb.innerHTML = `<span class="note" style="margin:0">Color de la ropa:</span>` + HCOLORS.map(c => `<button class="sw" type="button" data-hcol="${c}" style="--c:${c || 'var(--accent)'}" aria-pressed="${(brand.helperColor || '') === c}" aria-label="${c ? 'Color ' + c : 'Color de mi marca'}" title="${c ? '' : 'Color de mi marca'}"></button>`).join('') + `<label class="sw custom" title="Otro color"><input type="color" id="hColCustom" value="${brand.helperColor || '#0e6a5b'}" aria-label="Otro color"></label>`;
+    $('hMic').hidden = !(window.SpeechRecognition || window.webkitSpeechRecognition);
+  }
+  document.addEventListener('click', e => {
+    const a = e.target.closest('[data-hset]'), c = e.target.closest('[data-hcol]');
+    if(a){ brand.helpers = a.dataset.hset; save(); renderHelpers(); }
+    if(c){ brand.helperColor = c.dataset.hcol; if(!brand.helperColor) delete brand.helperColor; save(); renderHelpers(); }
+  });
+  document.addEventListener('input', e => { if(e.target.id === 'hColCustom'){ brand.helperColor = e.target.value; save(); renderHelpers(); } });
+  function hSpeak(text){
+    const av = $('hRow').querySelector(`[data-hav="${hCur}"]`) || $('hRow').querySelector('.hav');
+    $('hSay').textContent = text;
+    if(!window.speechSynthesis) return;
+    const h = HELPERS[hCur] || HELPERS.sofi, u = new SpeechSynthesisUtterance(text.replace(/[\u{1F300}-\u{1FAFF}]/gu, ''));
+    u.lang = LANG === 'pt' ? 'pt-BR' : LANG === 'en' ? 'en-US' : 'es-AR'; u.pitch = h.pitch; u.rate = 1.02;
+    const vs = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith(u.lang.slice(0, 2)));
+    const want = h.female ? /female|mujer|paulina|monica|helena|sabina|laura|luciana|google español/i : /male|hombre|jorge|diego|pablo|juan|carlos/i;
+    u.voice = vs.find(v => want.test(v.name)) || vs[0] || null;
+    u.onstart = () => av && av.classList.add('talking'); u.onend = u.onerror = () => { av && av.classList.remove('talking'); duck(false); };
+    duck(true); speechSynthesis.cancel(); speechSynthesis.speak(u);
+  }
+  const STOP = new Set('mostrame mostra mostrar muestrame quiero queres ver hay que el la los las lo de del un una unos unas me por favor busco buscar tenes tienen tiene algo dame con para en y o a al mi es son cuanto cuesta sale precio vitrina tienda ahi aca esto eso'.split(' '));
+  const stem = w => w.length > 4 ? w.replace(/(es|s)$/, '') : w;
+  function hFind(q){
+    const toks = norm(q).replace(/[^a-z0-9ñ ]/g, ' ').split(/\s+/).filter(w => w && !STOP.has(w)).map(stem);
+    if(!toks.length) return [];
+    return products.filter(p => !(catOf(p.cat) || {}).hidden).map(p => {
+      const hay = norm(p.name + ' ' + ((catOf(p.cat) || {}).name || '') + ' ' + (p.features || []).join(' '));
+      return {p, sc: toks.reduce((n, t) => n + (hay.includes(t) ? (norm(p.name).includes(t) ? 2 : 1) : 0), 0)};
+    }).filter(x => x.sc > 0).sort((a, b) => b.sc - a.sc || (b.p.featured ? 1 : 0) - (a.p.featured ? 1 : 0)).slice(0, 6).map(x => x.p);
+  }
+  function hShow(list, big){
+    $('hRes').innerHTML = !list.length ? '' : big && list.length === 1
+      ? (p => `<div class="hbig"><img src="${curImg(p)}" alt="Foto de ${esc(p.name)}"><div class="hbinfo"><strong>${esc(p.name)}</strong>${curPrice(p) ? `<span class="fprice">${esc(curPrice(p))}</span>` : ''}${p.promo ? `<span class="note">${esc(p.promo)}</span>` : ''}
+          <span class="row"><button class="btn primary" type="button" data-hadd="${p.id}">＋ Al pedido</button><button class="btn" type="button" data-hopen="${p.id}">Ver ficha</button>${waHref(productMsg(p)) ? `<a class="btn wa" href="${waHref(productMsg(p))}" target="_blank" rel="noopener">WhatsApp</a>` : ''}</span></div></div>`)(list[0])
+      : `<div class="hgrid">${list.map(p => `<button class="fcard" type="button" data-hpick="${p.id}"><span class="fimg"><img src="${p.img}" alt=""></span><span class="fname">${esc(p.name)}</span>${p.price ? `<span class="fprice">${esc(p.price)}</span>` : ''}</button>`).join('')}</div>`;
+  }
+  const visCats = () => cats.filter(c => !c.hidden && products.some(p => p.cat === c.id));
+  function hAnswer(q){
+    const n = norm(q);
+    if(/\b(lo quiero|agrega|sumalo|al pedido|comprar|lo llevo)\b/.test(n)){
+      if(hLast){ addToCart(cartKey(hLast)); return hSpeak(`¡Listo! Agregué ${hLast.name} a tu pedido. Cuando quieras, tocá “Ver pedido” para enviarlo.`); }
+      return hSpeak('¡Dale! Decime cuál: tocá el producto que querés y te lo agrego.');
+    }
+    if(/\b(hola|buenas|buen dia|buenas tardes)\b/.test(n) && n.length < 20){ hShow([]); return hSpeak(`¡Hola! Soy ${(HELPERS[hCur] || HELPERS.sofi).name}, de ${storeName()}. Decime qué buscás, o pedime ver una vitrina.`); }
+    if(/\b(oferta|ofertas|promo|promocion|destacad|descuento)/.test(n)){
+      const f = products.filter(p => p.featured && !(catOf(p.cat) || {}).hidden);
+      if(f.length){ hLast = f.length === 1 ? f[0] : null; hShow(f, true); return hSpeak(f.length === 1 ? `Hoy te recomiendo ${f[0].name}${f[0].promo ? ', ' + f[0].promo : ''}${curPrice(f[0]) ? ', a ' + curPrice(f[0]) : ''}.` : `Estas son las ofertas de hoy: ${f.map(p => p.name + (p.promo ? ', ' + p.promo : '')).join('; ')}.`); }
+    }
+    const vc = visCats();
+    const num = n.match(/vitrina\s*(?:n(?:umero|°|ro)?\.?\s*)?(\d+|uno|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)/);
+    const words = {uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10};
+    let cat = num ? vc[(+num[1] || words[num[1]]) - 1] : null;
+    const qt = n.replace(/[^a-z0-9ñ ]/g, ' ').split(/\s+/).filter(w => w.length > 3 && !STOP.has(w)).map(stem);
+    if(!cat) cat = vc.find(c => n.includes(norm(c.name)) || norm(c.name).split(/\s+/).some(w => w.length > 3 && qt.some(t => t.length > 3 && (w.startsWith(t) || t.startsWith(stem(w))))));
+    const found = hFind(q);
+    const namedHit = found.length && found.some(p => p.cat !== (cat && cat.id) && qt.some(t => norm(p.name).includes(t)));
+    if(cat && (num || !namedHit)){
+      const inCat = new Set(found.filter(p => p.cat === cat.id).map(p => p.id));
+      const items = products.filter(p => p.cat === cat.id).sort((a, b) => (inCat.has(b.id) ? 1 : 0) - (inCat.has(a.id) ? 1 : 0) || (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+      hLast = null; hShow(items.slice(0, 6), false);
+      const fp = items.find(p => p.featured);
+      return hSpeak(`En ${cat.name} tenés ${items.length} producto${items.length === 1 ? '' : 's'}${fp ? `. Te destaco ${fp.name}${fp.promo ? ', ' + fp.promo : ''}` : ''}. Tocá el que quieras ver.`);
+    }
+    if(found.length){
+      hLast = found.length === 1 ? found[0] : null; hShow(found, found.length === 1);
+      const p = found[0];
+      return hSpeak(found.length === 1 ? `Acá tenés ${p.name}${p.promo ? ', ' + p.promo : ''}${curPrice(p) ? ', a ' + curPrice(p) : ''}. ¿Lo agrego a tu pedido?` : `Encontré ${found.length} opciones. La primera es ${p.name}${curPrice(p) ? ', a ' + curPrice(p) : ''}. Tocá la que quieras ver en grande.`);
+    }
+    hShow([]); hSpeak(`Mmm, no encontré eso. Probá con “mostrame perfumes”, “vitrina 2” o “¿qué ofertas hay?”.`);
+  }
+  function hOpen(id){
+    hCur = id; $('hPanel').hidden = false;
+    $('hChips').innerHTML = [['🏬 Ver vitrinas', 'vitrinas'], ['🔥 Ofertas', 'ofertas'], ...visCats().slice(0, 4).map(c => [c.name, 'mostrame ' + c.name])].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${esc(q)}">${esc(t)}</button>`).join('');
+    $('hRow').querySelectorAll('.hav').forEach(b => b.classList.toggle('on', b.dataset.hav === id));
+    hShow([]); hSpeak(`¡Hola! Soy ${HELPERS[id].name}. ¿Qué andás buscando?`);
+  }
+  $('hRow').addEventListener('click', e => { const b = e.target.closest('[data-hav]'); if(b) hOpen(b.dataset.hav); });
+  $('hClose').onclick = () => { $('hPanel').hidden = true; try{ speechSynthesis.cancel(); }catch(err){} duck(false); };
+  $('hAsk').addEventListener('submit', e => { e.preventDefault(); const q = $('hIn').value.trim(); if(!q) return; $('hIn').value = ''; hAnswer(q); });
+  $('hPanel').addEventListener('click', e => {
+    const q = e.target.closest('[data-hq]'), pk = e.target.closest('[data-hpick]'), ad = e.target.closest('[data-hadd]'), op = e.target.closest('[data-hopen]');
+    if(q){ if(q.dataset.hq === 'vitrinas'){ const vc = visCats(); hShow([]); hSpeak(`Tenemos ${vc.length} vitrinas: ${vc.map((c, i) => (i + 1) + ', ' + c.name).join('; ')}. ¿Cuál querés ver?`); } else hAnswer(q.dataset.hq); }
+    if(pk){ const p = products.find(x => x.id === pk.dataset.hpick); if(p){ hLast = p; hShow([p], true); hSpeak(`${p.name}${p.promo ? ', ' + p.promo : ''}${curPrice(p) ? ', a ' + curPrice(p) : ''}. ¿Te lo agrego al pedido?`); } }
+    if(ad){ const p = products.find(x => x.id === ad.dataset.hadd); if(p){ addToCart(cartKey(p)); ad.textContent = '✓ Agregado'; hSpeak('¡Listo, ya está en tu pedido!'); } }
+    if(op){ $('hPanel').hidden = true; openModal(op.dataset.hopen); }
+  });
+  $('hMic').onclick = () => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition; if(!SR) return;
+    try{ speechSynthesis.cancel(); }catch(e){}
+    const r = new SR(); r.lang = LANG === 'pt' ? 'pt-BR' : LANG === 'en' ? 'en-US' : 'es-AR'; r.interimResults = false; r.maxAlternatives = 1;
+    $('hMic').classList.add('rec'); $('hSay').textContent = 'Te escucho…';
+    r.onresult = e => { const t = e.results[0][0].transcript; $('hIn').value = t; hAnswer(t); };
+    r.onerror = () => { $('hSay').textContent = 'No te escuché bien. Probá de nuevo o escribime.'; };
+    r.onend = () => $('hMic').classList.remove('rec');
+    try{ r.start(); }catch(e){ $('hMic').classList.remove('rec'); }
+  };
   function boot(){
-    load(); applyBrand(); applyTheme(); applyBtnColor(); applyBg(); renderPresets(); renderContact(); updateFab(); renderMusic(); fillCatSelect(cats[0].id); setAuto(autoOn); renderHome(); renderStoreBar(); setLang(LANG); requestAnimationFrame(loop);
+    load(); applyBrand(); applyTheme(); applyBtnColor(); applyBg(); renderPresets(); renderContact(); updateFab(); renderMusic(); renderHelpers(); fillCatSelect(cats[0].id); setAuto(autoOn); renderHome(); renderStoreBar(); setLang(LANG); requestAnimationFrame(loop);
     if(PUBLIC){ document.body.classList.add('publicmode'); setClient(true); }
     else { window.VITRINA_SAVE_NOW = save; window.VITRINA_REFRESH = () => { if(!currentCat && $('mallView').hidden) renderHome(); }; }
   }
