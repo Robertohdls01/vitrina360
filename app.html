@@ -159,6 +159,7 @@
         const j = await api('POST', '/auth/v1/verify', {body: {type: 'email', email: sentTo || o.querySelector('#v3mail').value.trim(), token}});
         if(!j || !j.access_token) throw new Error('sin sesión');
         keep({access_token: j.access_token, refresh_token: j.refresh_token, expires_at: Math.floor(Date.now() / 1000) + (+j.expires_in || 3600)});
+        try{ sessionStorage.setItem('v360-recien', '1'); }catch(e){}
         location.replace(location.origin + '/panel');
       }catch(e){
         cb.disabled = false; m.className = 'msg err';
@@ -4567,6 +4568,20 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       if(ios) ask('Instalar Vitrina 360', 'En el iPhone: tocá el botón Compartir (el cuadrado con la flecha hacia arriba) y elegí “Agregar a inicio”. Te queda el ícono de Vitrina 360 en la pantalla.', 'Entendido', () => {});
     };
     addEventListener('appinstalled', () => { btn.hidden = true; });
+    // Recién entró con el código del mail: se le ofrece poner el ícono en la pantalla con un solo toque.
+    let recien = false; try{ recien = sessionStorage.getItem('v360-recien') === '1'; sessionStorage.removeItem('v360-recien'); }catch(e){}
+    if(recien){
+      const ofrecer = async () => {
+        const ok = await ask(L('📲 ¿Poner Vitrina 360 en tu pantalla?', '📲 Add Vitrina 360 to your home screen?', '📲 Colocar a Vitrina 360 na sua tela?'),
+          ios ? L('Así la abrís con un toque desde el ícono, como cualquier app. En el iPhone: tocá Compartir (el cuadrado con la flecha hacia arriba) y elegí “Agregar a inicio”.', 'Open it with one tap from the icon, like any app. On iPhone: tap Share (the square with the arrow) and choose “Add to Home Screen”.', 'Assim você abre com um toque pelo ícone, como qualquer app. No iPhone: toque em Compartilhar (o quadrado com a seta) e escolha “Adicionar à Tela de Início”.')
+              : L('Así la abrís con un toque desde el ícono con el logo, como cualquier app, sin buscar el link.', 'Open it with one tap from the logo icon, like any app, without looking for the link.', 'Assim você abre com um toque pelo ícone com o logo, como qualquer app, sem procurar o link.'),
+          ios ? L('Entendido', 'OK', 'Entendi') : L('Sí, instalar', 'Yes, install', 'Sim, instalar'));
+        const ev = window.__v360Install;
+        if(ok && ev){ ev.prompt(); try{ const r = await ev.userChoice; if(r && r.outcome === 'accepted') btn.hidden = true; }catch(e){} window.__v360Install = null; }
+      };
+      if(ios || window.__v360Install) setTimeout(ofrecer, 800);
+      else { const t = setTimeout(() => document.removeEventListener('v360-installable', h), 8000); const h = () => { clearTimeout(t); setTimeout(ofrecer, 800); }; document.addEventListener('v360-installable', h, {once: true}); }
+    }
   })();
   // ---- Música de la tienda: se genera en el momento (sin derechos de autor) o un MP3 propio ----
   const MUSIC = [
