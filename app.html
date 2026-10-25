@@ -1449,6 +1449,15 @@ body.has-helpers .wrap{padding-bottom:170px}
 .helpers.away .hpanel{opacity:0;transform:translateY(24px) scale(.96);pointer-events:none}
 .helpers.away .hhelp{opacity:0}
 .helpers.many .hname{font-size:9px;padding:1px 5px}
+.hav,.hav svg{width:calc(62px * var(--hk, 1))!important}
+.helpers.many .hav,.helpers.many .hav svg{width:calc(46px * var(--hk, 1))!important}
+.hname{font-size:calc(10.5px * max(var(--hk, 1), .8))}
+.dlvp svg{width:calc(40px * var(--dk, 1))!important}
+.dlvp{font-size:calc(11.5px * max(var(--dk, 1), .8))}
+.szrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.szrow > span:first-child{flex:1 1 150px;font-weight:600}
+.szrow button{min-width:40px;height:36px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:inherit;font:800 18px/1 var(--body);cursor:pointer}
+.szrow b{min-width:48px;text-align:center}
 .hpick{display:grid;justify-items:center;gap:2px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:4px 6px 6px;cursor:pointer;font:600 12px var(--body)}
 .hpick svg{width:46px;height:auto}
 .hpick[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset;background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
@@ -1673,6 +1682,14 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <strong>Color de los botones flotantes</strong>
       <p class="note" style="margin:0">El de “← Vitrinas” (abajo a la izquierda de la vitrina) y el de “Ver pedido”.</p>
       <div class="bgbar" id="btnColorBar" role="group" aria-label="Color de los botones"></div>
+    </div>
+    <div class="presets">
+      <strong>📏 Tamaños en pantalla</strong>
+      <p class="note" style="margin:0">Achicá o agrandá cada cosa para que tus productos tengan más lugar. También podés tocar dos veces (o dejar apretado) la cajera, la pantalla o un vendedor.</p>
+      <div class="szrow"><span>🧑‍💼 Vendedores (muñequitos)</span><button type="button" data-szk="hlp" data-szd="-1" aria-label="Más chicos">−</button><b id="sz-hlp">100%</b><button type="button" data-szk="hlp" data-szd="1" aria-label="Más grandes">+</button></div>
+      <div class="szrow"><span>🧾 Cajera</span><button type="button" data-szk="cash" data-szd="-1" aria-label="Más chica">−</button><b id="sz-cash">100%</b><button type="button" data-szk="cash" data-szd="1" aria-label="Más grande">+</button></div>
+      <div class="szrow"><span>📺 Pantalla de ofertas</span><button type="button" data-szk="tv" data-szd="-1" aria-label="Más chica">−</button><b id="sz-tv">100%</b><button type="button" data-szk="tv" data-szd="1" aria-label="Más grande">+</button></div>
+      <div class="szrow"><span>🛵 Repartidores</span><button type="button" data-szk="dlv" data-szd="-1" aria-label="Más chicos">−</button><b id="sz-dlv">100%</b><button type="button" data-szk="dlv" data-szd="1" aria-label="Más grandes">+</button></div>
     </div>
     <div class="presets">
       <strong>Vendedores virtuales</strong>
@@ -4529,7 +4546,8 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
       b = document.createElement('div'); b.id = 'moveBar'; b.hidden = true; document.body.appendChild(b);
       b.addEventListener('click', e => {
         const t = e.target.closest('button'); if(!t) return;
-        if(t.dataset.mb === 'ok'){ if(tvMoving) tvMoveMode(false); if(cashMoving) cashMoveMode(false); save(); return; }
+        if(t.dataset.mb === 'ok'){ if(tvMoving) tvMoveMode(false); if(cashMoving) cashMoveMode(false); if(!tvMoving && !cashMoving) b.hidden = true; save(); return; }
+        if(b.dataset.kind === 'hlp' || b.dataset.kind === 'dlv'){ window.setSz(b.dataset.kind, t.dataset.mb === 'up' ? 1 : -1); return; }
         if(cashMoving && !tvMoving){ window.cashResize(t.dataset.mb === 'up' ? 0.1 : -0.1); return; }
         if(t.dataset.mb === 'sq'){ window.tvResize(0.3 - (+brand.tvSize || 1)); return; }
         const cur = +brand.tvSize || 1, step = cur > 0.6 ? 0.2 : 0.1;
@@ -4537,6 +4555,10 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
       });
     }
     if(!kind){ b.hidden = true; return; }
+    b.dataset.kind = kind;
+    if(kind === 'hlp' || kind === 'dlv'){ const key = kind === 'hlp' ? 'helperSize' : 'dlvSize';
+      b.innerHTML = `<span class="lbl" style="padding:0">${kind === 'hlp' ? '🧑‍💼' : '🛵'}</span><button type="button" data-mb="dn" aria-label="Más chicos">−</button><span class="lbl">${Math.round((+brand[key] || 1) * 100)}%</span><button type="button" data-mb="up" aria-label="Más grandes">+</button><button type="button" class="ok" data-mb="ok">✓ Listo</button>`;
+      b.hidden = false; return; }
     b.innerHTML = (kind === 'tv' ? `<button type="button" data-mb="dn" aria-label="Más chica">−</button><span class="lbl">${Math.round((+brand.tvSize || 1) * 100)}%</span><button type="button" data-mb="up" aria-label="Más grande">+</button><button type="button" data-mb="sq" style="font-size:13px">◻ Cuadradito</button>` : `<button type="button" data-mb="dn" aria-label="Más chica">−</button><span class="lbl">${Math.round((+brand.cashSize || 1) * 100)}%</span><button type="button" data-mb="up" aria-label="Más grande">+</button>`) + '<button type="button" class="ok" data-mb="ok">✓ Listo</button>';
     b.hidden = false;
   }
@@ -4598,6 +4620,22 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   window.cashResize = d => { brand.cashSize = Math.min(1.6, Math.max(0.5, Math.round(((+brand.cashSize || 1) + d) * 100) / 100)); applyCashSize(); if(brand.cashPos) applyCashPos();
     const l = document.querySelector('#moveBar .lbl'); if(l) l.textContent = Math.round(brand.cashSize * 100) + '%'; save(); };
   applyCashSize();
+  const SZ = {hlp: ['helperSize', 0.4, 1.5], cash: ['cashSize', 0.5, 1.6], tv: ['tvSize', 0.2, 1.8], dlv: ['dlvSize', 0.5, 1.5]};
+  function applySizes(){
+    const r = document.documentElement.style;
+    r.setProperty('--hk', String(Math.min(1.5, Math.max(0.4, +brand.helperSize || 1))));
+    r.setProperty('--dk', String(Math.min(1.5, Math.max(0.5, +brand.dlvSize || 1))));
+    Object.keys(SZ).forEach(k => { const el = document.getElementById('sz-' + k); if(el) el.textContent = Math.round((+brand[SZ[k][0]] || 1) * 100) + '%'; });
+  }
+  window.setSz = (k, d) => {
+    if(k === 'tv') return window.tvResize(d * ((+brand.tvSize || 1) > 0.6 ? 0.2 : 0.1)), applySizes();
+    if(k === 'cash') return window.cashResize(d * 0.1), applySizes();
+    const [key, mn, mx] = SZ[k]; brand[key] = Math.min(mx, Math.max(mn, Math.round(((+brand[key] || 1) + d * 0.1) * 100) / 100));
+    applySizes(); const l = document.querySelector('#moveBar .lbl'); if(l) l.textContent = Math.round(brand[key] * 100) + '%'; save();
+  };
+  document.addEventListener('click', e => { const z = e.target.closest('[data-szk]'); if(z) window.setSz(z.dataset.szk, +z.dataset.szd); });
+  if(document.getElementById('brandBtn')) $('brandBtn').addEventListener('click', () => setTimeout(applySizes, 0));
+  applySizes();
   function cashMoveMode(on){
     const w = document.getElementById('cashier'); if(!w) return;
     cashMoving = on; w.classList.toggle('cashmove', on); moveBar(on ? 'cash' : (tvMoving ? 'tv' : null));
@@ -4635,7 +4673,8 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     const hook = (id, isMoving, enter) => {
       const el = document.getElementById(id); if(!el) return;
       let t = null, sx = 0, sy = 0;
-      const go = () => { t = null; if(!canEdit() || isMoving()) return; try{ navigator.vibrate && navigator.vibrate(30); }catch(e){} enter(true); };
+      const go = () => { t = null; if(!canEdit() || isMoving()) return; try{ navigator.vibrate && navigator.vibrate(30); }catch(e){} el._lp = Date.now(); enter(true); };
+      el.addEventListener('click', e => { if(el._lp && Date.now() - el._lp < 900){ e.preventDefault(); e.stopPropagation(); } }, true);
       el.addEventListener('pointerdown', e => { if(!canEdit() || isMoving()) return; sx = e.clientX; sy = e.clientY; clearTimeout(t); t = setTimeout(go, 550); });
       el.addEventListener('pointermove', e => { if(t && Math.hypot(e.clientX - sx, e.clientY - sy) > 12){ clearTimeout(t); t = null; } });
       ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => el.addEventListener(ev, () => { clearTimeout(t); t = null; }));
@@ -4644,6 +4683,8 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     };
     hook('tvWrap', () => tvMoving, on => tvMoveMode(on));
     hook('cashier', () => cashMoving, on => cashMoveMode(on));
+    hook('hRow', () => false, () => moveBar('hlp'));
+    hook('dlvRow', () => false, () => moveBar('dlv'));
   })();
   const applyTvSize = () => { const w = document.getElementById('tvWrap'); if(!w) return; const k = Math.min(1.8, Math.max(0.2, +brand.tvSize || 1)); w.style.setProperty('--tvk', String(k)); w.classList.toggle('tvtiny', k < 0.6); w.classList.toggle('tvsq', k <= 0.4);
     if(!w.querySelector('.tvsz')){ w.insertAdjacentHTML('beforeend', '<button type="button" class="tvsz dn" data-tvsz="-1" aria-label="Más chica">−</button><button type="button" class="tvsz up" data-tvsz="1" aria-label="Más grande">+</button>'); } };
@@ -6023,7 +6064,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   const cajeraOn = () => hList().length > 0 && brand.cashier !== false;
   function renderCashier(){
     renderDelivery();
-    try{ applyCashSize(); applyCashPos(); }catch(e){}
+    try{ applyCashSize(); applyCashPos(); applySizes(); }catch(e){}
     $('cashier').hidden = !cajeraOn();
     if(!cajeraOn()) return;
     $('cAv').innerHTML = helperSVG(CAJERA, hShirt());
