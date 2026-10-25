@@ -1516,9 +1516,11 @@ body:has(#cartFab[hidden]) .musicfab{bottom:calc(16px + env(safe-area-inset-bott
 .ringcenter.cphoto .bspin{margin-bottom:0}
 @media (prefers-reduced-motion:reduce){.bdrum{transition:none}.ringcenter.ball.spinning::before{animation:none}}
 /* Tamaño de las vitrinas y folleto */
-.homegrid{grid-template-columns:repeat(var(--gcols,2),minmax(0,1fr))!important}
-.homegrid > .mini.sz-big{grid-column:span 2;--cw:calc(var(--cwb,90px) * 1.75)}
+.homegrid{grid-template-columns:repeat(var(--gcols,2),minmax(0,1fr))!important;grid-auto-flow:row dense}
+.homegrid > .mini.sz-big{grid-column:span 2;--cw:calc(var(--cwb,90px) * 1.22)}
 .homegrid > .mini.sz-big .mstage{aspect-ratio:16/11}
+.homegrid.one > .mini.sz-big{grid-column:auto;--cw:var(--cwb,90px)}
+.homegrid.one > .mini.sz-big .mstage{aspect-ratio:1/0.95}
 .homegrid > .mini.sz-small .mstage{width:72%;margin-inline:auto;--cw:calc(var(--cwb,90px) * .72)}
 .rslot{width:calc(var(--tw,120px) * var(--k,1));margin-left:calc(var(--tw,120px) * var(--k,1) / -2);margin-top:calc(var(--th,150px) * var(--k,1) / -2);--cw:calc(var(--cwb,60px) * var(--k,1))}
 .fitem{width:calc(var(--tw,140px) * var(--k,1));--cw:calc(var(--cwb,60px) * var(--k,1))}
@@ -2564,6 +2566,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
     const hs = (brand.homeSize | 0) + 2, f = SZF[hs], vw = innerWidth;
     const gcols = vw <= 700 ? [4, 3, 2, 2, 1][hs] : vw <= 999 ? [5, 4, 3, 2, 2][hs] : [7, 6, 5, 4, 3][hs];
     g.style.setProperty('--gcols', gcols);
+    g.classList.toggle('one', gcols === 1);
     g.style.setProperty('--fcols', vw <= 700 ? [6, 5, 4, 3, 2][hs] : vw <= 999 ? [8, 7, 6, 5, 4][hs] : [12, 10, 8, 6, 5][hs]);
     if(fw){
       const W = fw.clientWidth, nF = fw.querySelectorAll('.fitem').length - 1, tw = f * W * (W < 700 ? (nF <= 6 ? 0.27 : nF <= 10 ? 0.24 : 0.2) : (nF <= 6 ? 0.16 : 0.13));
