@@ -37,7 +37,7 @@ async function guardar(ref, p, otraVez) {
   }
 }
 // Lo que ve el cliente: sin los datos internos del comercio.
-const paraCliente = p => ({ estado: p.estado, repartidor: p.repartidor || '', salio_en: p.salio_en || null, creado: p.creado, envio: p.envio || '', demora: p.demora || '', digital: (p.items || []).some(it => it.d) });
+const paraCliente = p => ({ estado: p.estado, repartidor: p.repartidor || '', salio_en: p.salio_en || null, creado: p.creado, envio: p.envio || '', demora: p.demora || '', digital: (p.items || []).some(it => it.d), servicio: !!p.servicio });
 // Links de descarga que vencen en 3 días, solo cuando el comercio marcó el pedido como pagado/listo.
 async function descargas(p) {
   const out = [];
@@ -88,7 +88,7 @@ module.exports = async (req, res) => {
       const pedido = {
         id, k: crypto.randomBytes(12).toString('hex'), creado: new Date().toISOString(), estado: 'preparando',
         items, total: corto(b.total, 30), envio: corto(b.envio, 40), envio_id: corto(b.envio_id, 20), demora: corto(b.demora, 40),
-        comprador: { nombre: corto(c.nombre, 80), tel: corto(c.tel, 30), dir: corto(c.dir, 160), ref: corto(c.ref, 160) },
+        comprador: { nombre: corto(c.nombre, 80), tel: corto(c.tel, 30), dir: corto(c.dir, 160), ref: corto(c.ref, 160), turno: corto(c.turno, 120) }, servicio: !!b.servicio,
         regalo: g.si ? { para: corto(g.para, 20), mensaje: corto(g.mensaje, 160) } : null,
         repartidor: '', salio_en: null
       };

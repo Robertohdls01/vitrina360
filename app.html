@@ -1767,6 +1767,8 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
           <textarea id="f-feats" placeholder="Material: cuero vacuno&#10;Talles: S a XL&#10;Color: marrón tabaco&#10;Forro térmico desmontable"></textarea>
         </label>
         <div class="digbox">
+          <label class="digchk"><input type="checkbox" id="f-service"> <strong>🗓 Es un servicio</strong> <small>Corte de pelo, peluquería de mascotas, clases, turnos… El cliente elige día y horario en vez de envío.</small></label>
+          <label for="f-dur" id="durRow" hidden>Duración <small>Opcional. Ej: 1 hora</small><input type="text" id="f-dur" maxlength="40" placeholder="1 hora"></label>
           <label class="digchk"><input type="checkbox" id="f-digital"> <strong>📥 Producto digital</strong> <small>PDF, plantilla, ebook, curso, música, NFT… Se descarga en vez de enviarse.</small></label>
           <div class="digfields" id="digFields" hidden>
             <label class="btn" for="f-file" style="display:inline-flex;justify-self:start">📎 Subir el archivo<input type="file" id="f-file" class="vh"></label>
@@ -2248,7 +2250,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
         const items = products.filter(p => p.cat === c.id).sort((x, y) => (y.featured ? 1 : 0) - (x.featured ? 1 : 0) || x.added - y.added);
         if(!items.length) return '';
         const per = brand.flyerPer || 0, pg = flyerPage[c.id] || 0, nP = per ? Math.ceil(items.length / per) : 1, shown = per ? items.slice(pg * per, pg * per + per) : items;
-        return `<section class="fsec"><h3 class="fhead">${products.some(p => p.cat === c.id) && products.filter(p => p.cat === c.id).every(p => p.digital) ? '📥 ' : ''}${esc(c.name)}${nP > 1 ? ` <small class="fpg">Hoja ${pg + 1} de ${nP}</small>` : ''}</h3><div class="fgrid${per === 10 ? ' f10' : per === 20 ? ' f20' : ''}">${shown.map(p => `<button class="fcard${p.featured ? ' ffeat' : ''}" type="button" data-pid="${p.id}" aria-label="${esc(p.name)}"><span class="fimg"><img src="${p.img}" alt="" loading="lazy" draggable="false"></span><span class="fname">${esc(p.name)}</span>${p.price ? `<span class="fprice">${esc(p.price)}</span>` : ''}</button>`).join('')}</div>${nP > 1 ? pagerHTML(c.id, pg, nP) : ''}</section>`;
+        return `<section class="fsec"><h3 class="fhead">${products.some(p => p.cat === c.id) && products.filter(p => p.cat === c.id).every(p => p.digital) ? '📥 ' : products.some(p => p.cat === c.id) && products.filter(p => p.cat === c.id).every(p => p.service) ? '🗓 ' : ''}${esc(c.name)}${nP > 1 ? ` <small class="fpg">Hoja ${pg + 1} de ${nP}</small>` : ''}</h3><div class="fgrid${per === 10 ? ' f10' : per === 20 ? ' f20' : ''}">${shown.map(p => `<button class="fcard${p.featured ? ' ffeat' : ''}" type="button" data-pid="${p.id}" aria-label="${esc(p.name)}"><span class="fimg"><img src="${p.img}" alt="" loading="lazy" draggable="false"></span><span class="fname">${esc(p.name)}</span>${p.price ? `<span class="fprice">${esc(p.price)}</span>` : ''}</button>`).join('')}</div>${nP > 1 ? pagerHTML(c.id, pg, nP) : ''}</section>`;
       }).join('') + `</div>`;
       html = html.replace('<div class="folleto">', `<div class="flyerbar">${flyerBgHTML()}</div><div class="folleto fbg-${brand.flyerBg || 'blanco'}">`);
     } else if(free){
@@ -2267,7 +2269,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
         vis.map((c, i) => { const q = pos(c.id, i); return `<div class="fitem" data-fid="${c.id}" style="left:${q.x}%;top:${q.y}%;--k:${szK(c.size)}">${tileHTML(c, i, false, true)}</div>`; }).join('') + `</div>` + addTile;
     } else if(ring){
       const nV = vis.length;
-      html += `<div class="ringwrap" id="ringwrap"><div class="ring">${vis.map((c, i) => `<div class="rslot" style="--a:${(i * 360 / nV).toFixed(2)}deg;--k:${szK(c.size)}">${tileHTML(c, i, false, true)}</div>`).join('')}</div><div class="ring ringlbl" aria-hidden="true">${vis.map((c, i) => { const np = products.filter(p => p.cat === c.id).length; return `<div class="rslot" style="--a:${(i * 360 / nV).toFixed(2)}deg;--k:${szK(c.size)}"><span class="mini${c.hidden ? ' hiddencat' : ''}${np === 0 ? ' emptycat' : ''}"><span class="plaque"><span class="t">${products.some(p => p.cat === c.id) && products.filter(p => p.cat === c.id).every(p => p.digital) ? '📥 ' : ''}${esc(c.name)}</span></span><span class="mstage"></span></span></div>`; }).join('')}</div>
+      html += `<div class="ringwrap" id="ringwrap"><div class="ring">${vis.map((c, i) => `<div class="rslot" style="--a:${(i * 360 / nV).toFixed(2)}deg;--k:${szK(c.size)}">${tileHTML(c, i, false, true)}</div>`).join('')}</div><div class="ring ringlbl" aria-hidden="true">${vis.map((c, i) => { const np = products.filter(p => p.cat === c.id).length; return `<div class="rslot" style="--a:${(i * 360 / nV).toFixed(2)}deg;--k:${szK(c.size)}"><span class="mini${c.hidden ? ' hiddencat' : ''}${np === 0 ? ' emptycat' : ''}"><span class="plaque"><span class="t">${products.some(p => p.cat === c.id) && products.filter(p => p.cat === c.id).every(p => p.digital) ? '📥 ' : products.some(p => p.cat === c.id) && products.filter(p => p.cat === c.id).every(p => p.service) ? '🗓 ' : ''}${esc(c.name)}</span></span><span class="mstage"></span></span></div>`; }).join('')}</div>
         ${centerHTML()}</div>`;
       html += addTile;
     } else {
@@ -2726,7 +2728,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
       </div>
       <div style="min-width:0">
         <div class="eyebrow">${ph.length} foto${ph.length===1?'':'s'}${p.sample?' · Ejemplo':''}</div>
-        <h2 id="mTitle">${esc(p.name)}${p.digital ? '<span class="dbadge">📥 Digital</span>' : ''}</h2>
+        <h2 id="mTitle">${esc(p.name)}${p.digital ? '<span class="dbadge">📥 Digital</span>' : ''}${p.service ? `<span class="dbadge">🗓 ${esc(L('Servicio', 'Service', 'Serviço', 'Service', 'Dienstleistung', 'Servizio', '服务', 'サービス'))}${p.duration ? ' · ' + esc(p.duration) : ''}</span>` : ''}</h2>
         ${curPrice(p) ? `<div class="price">${esc(curPrice(p))}</div>` : ''}
         ${modelsHTML(p, 'data-m', true)}
         ${variantOf(p) ? `<div class="vedit"><input type="text" id="mv-name" maxlength="40" value="${esc(variantOf(p).name)}" aria-label="Nombre del modelo"><input type="text" id="mv-price" maxlength="20" value="${esc(variantOf(p).price || '')}" placeholder="Precio (si cambia)" aria-label="Precio del modelo"></div>
@@ -3529,9 +3531,11 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     formFile = p && p.file ? p.file : null;
     $('f-digital').checked = !!(p && p.digital); $('digFields').hidden = !$('f-digital').checked;
     $('f-link').value = (p && p.extLink) || '';
+    $('f-service').checked = !!(p && p.service); $('durRow').hidden = !$('f-service').checked; $('f-dur').value = (p && p.duration) || '';
     $('fileMsg').textContent = formFile ? `Archivo: ${formFile.name} (${fileSize(formFile.size || 0)})` : '';
   }
-  $('f-digital').addEventListener('change', e => { $('digFields').hidden = !e.target.checked; });
+  $('f-digital').addEventListener('change', e => { $('digFields').hidden = !e.target.checked; if(e.target.checked){ $('f-service').checked = false; $('durRow').hidden = true; } });
+  $('f-service').addEventListener('change', e => { $('durRow').hidden = !e.target.checked; if(e.target.checked){ $('f-digital').checked = false; $('digFields').hidden = true; } });
   $('f-file').addEventListener('change', async e => {
     const f = e.target.files[0]; e.target.value = ''; if(!f) return;
     if(f.size > 100 * 1024 * 1024){ $('fileMsg').textContent = 'El archivo pesa más de 100 MB. Probá comprimirlo o dividirlo.'; return; }
@@ -3564,6 +3568,8 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     const link = $('f-link').value.trim();
     if($('f-digital').checked){ p.digital = true; if(formFile) p.file = formFile; if(/^https?:\/\//i.test(link)) p.extLink = link; else delete p.extLink; }
     else { delete p.digital; delete p.file; delete p.extLink; }
+    if($('f-service').checked){ p.service = true; const d = $('f-dur').value.trim(); if(d) p.duration = d; else delete p.duration; }
+    else { delete p.service; delete p.duration; }
   }
   function resetForm(){
     aiCtl?.abort(); aiCtl = null;
@@ -4261,10 +4267,12 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   const shipList = () => SHIP_OPTS.filter(o => brand.ship && typeof brand.ship[o.id] === 'string').map(o => ({...o, detail: brand.ship[o.id]}));
   let shipSel = null;
   // Datos del cliente para la entrega y pedido para regalo (los pide la cajera; viajan en el pedido).
-  const buyer = {name:'', tel:'', dir:'', ref:''}, gift = {on:false, who:'', msg:''};
+  const buyer = {name:'', tel:'', dir:'', ref:'', turno:''}, gift = {on:false, who:'', msg:''};
   const GIFT_WHO = ['Mujer', 'Hombre', 'Niña', 'Niño', 'Otro'];
   const allDigital = () => { const it = cartItems(); return it.length > 0 && it.every(x => x.p && x.p.digital); };
-  const needAddr = () => !allDigital() && !!shipSel && shipSel !== 'retiro';
+  const allService = () => { const it = cartItems(); return it.length > 0 && it.every(x => x.p && x.p.service); };
+  const noShip = () => allDigital() || allService();
+  const needAddr = () => !noShip() && !!shipSel && shipSel !== 'retiro';
   // Repartidores: lista con nombre y chico/chica (antes era un texto con nombres separados por coma).
   const riderListOf = () => Array.isArray(brand.riderList) ? brand.riderList : String(brand.riders || '').split(',').map(x => x.trim()).filter(Boolean).map(n => ({name: n, f: false}));
   const ridersOf = () => riderListOf().map(r => String(r.name || '').trim()).filter(Boolean).slice(0, 8);
@@ -4424,7 +4432,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const ship = so ? `\n${L('Entrega', 'Delivery', 'Entrega')}: ${trCat(so.name)}${so.detail ? ' (' + so.detail + ')' : ''}` : '';
     const extra = unpriced ? L(' (más productos a consultar)', ' (plus items to confirm)', ' (mais itens a consultar)') : '';
     const g = gift.on ? `\n\n🎁 ${L('Es para regalo', 'It is a gift', 'É para presente')}${gift.who ? ' — ' + L('para ', 'for ', 'para ') + gift.who : ''}. ${L('Prepararlo para regalo (bolsa especial y moño).', 'Please prepare it as a gift (gift bag and bow).', 'Preparar para presente (sacola especial e laço).')}${gift.msg.trim() ? '\n' + L('Mensaje para la tarjeta', 'Card message', 'Mensagem do cartão') + ': “' + gift.msg.trim() + '”' : ''}` : '';
-    const datos = [buyer.name.trim() && L('Nombre', 'Name', 'Nome') + ': ' + buyer.name.trim(), buyer.tel.trim() && L('Teléfono', 'Phone', 'Telefone') + ': ' + buyer.tel.trim(),
+    const datos = [allService() && buyer.turno.trim() && '📅 ' + L('Turno deseado', 'Preferred time', 'Horário desejado') + ': ' + buyer.turno.trim(), buyer.name.trim() && L('Nombre', 'Name', 'Nome') + ': ' + buyer.name.trim(), buyer.tel.trim() && L('Teléfono', 'Phone', 'Telefone') + ': ' + buyer.tel.trim(),
       needAddr() && buyer.dir.trim() && L('Dirección', 'Address', 'Endereço') + ': ' + buyer.dir.trim(), needAddr() && buyer.ref.trim() && L('Referencias', 'Notes', 'Referências') + ': ' + buyer.ref.trim()].filter(Boolean);
     const extras = g + (datos.length ? '\n\n' + datos.join('\n') : '');
     return L(`Hola ${storeName()}! Quiero hacer este pedido:`, `Hi ${storeName()}! I'd like to place this order:`, `Olá ${storeName()}! Quero fazer este pedido:`) + `\n${lines.join('\n')}\n\nTotal: ${fmt(t)}${extra}${ship}${extras}\n\n` +
@@ -4641,7 +4649,10 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         <div class="carttotal"><span>Total</span><span class="v">${fmt(t)}</span></div>
         ${unpriced ? `<p class="note" style="margin:0">${unpriced} producto${unpriced===1?'':'s'} sin precio: el comercio te lo confirma.</p>` : ''}
         ${allDigital() ? `<p class="note" style="margin:0">📥 ${esc(L('Productos digitales: los descargás desde acá cuando el comercio confirme tu pago.', 'Digital products: you download them here once the store confirms your payment.', 'Produtos digitais: você baixa aqui quando a loja confirmar o pagamento.'))}</p>` : ''}
-        ${shipList().length && !allDigital() ? `<div class="shipbox"><strong>¿Cómo lo recibís?</strong>${shipList().map(o => `<label class="shipopt"><input type="radio" name="ship" value="${o.id}" ${shipSel===o.id?'checked':''}><span>${esc(o.name)}</span>${o.detail ? `<small>${esc(o.detail)}</small>` : ''}${o.id === 'moto' && brand.delay ? `<small>${esc(M('delay_now', {d: delayTr(brand.delay)}))}</small>` : ''}</label>`).join('')}</div>` : ''}
+        ${allService() ? `<div class="shipbox"><strong>📅 ${esc(L('¿Qué día y horario preferís?', 'Which day and time do you prefer?', 'Qual dia e horário você prefere?', 'Quel jour et quelle heure préférez-vous ?', 'Welcher Tag und welche Uhrzeit passen dir?', 'Che giorno e orario preferisci?', '你希望哪天什么时间？', 'ご希望の日時は？'))}</strong>
+          <input class="bfield" type="text" data-b="turno" maxlength="120" placeholder="${esc(L('Ej: sábado a la mañana, o martes 18 h', 'E.g.: Saturday morning, or Tuesday 6 pm', 'Ex: sábado de manhã, ou terça 18 h', 'Ex. : samedi matin, ou mardi 18 h', 'z. B.: Samstagvormittag oder Dienstag 18 Uhr', 'Es.: sabato mattina, o martedì alle 18', '例如：周六上午，或周二18点', '例：土曜の午前、または火曜18時'))}" value="${esc(buyer.turno || '')}">
+          <small class="note">${esc(L('El comercio te confirma el turno.', 'The store will confirm your appointment.', 'A loja confirma o horário.', 'Le commerce vous confirme le rendez-vous.', 'Das Geschäft bestätigt deinen Termin.', 'Il negozio ti conferma l\'appuntamento.', '商家会确认你的预约。', 'お店が予約を確定します。'))}</small></div>` : ''}
+        ${shipList().length && !noShip() ? `<div class="shipbox"><strong>¿Cómo lo recibís?</strong>${shipList().map(o => `<label class="shipopt"><input type="radio" name="ship" value="${o.id}" ${shipSel===o.id?'checked':''}><span>${esc(o.name)}</span>${o.detail ? `<small>${esc(o.detail)}</small>` : ''}${o.id === 'moto' && brand.delay ? `<small>${esc(M('delay_now', {d: delayTr(brand.delay)}))}</small>` : ''}</label>`).join('')}</div>` : ''}
         <div class="shipbox"><strong>Tus datos</strong>
           <input class="bfield" type="text" data-b="name" maxlength="80" autocomplete="name" placeholder="Nombre y apellido" value="${esc(buyer.name)}">
           <input class="bfield" type="tel" data-b="tel" maxlength="30" autocomplete="tel" placeholder="Teléfono" value="${esc(buyer.tel)}">
@@ -4682,7 +4693,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const {t, unpriced} = cartTotal(items), na = needAddr();
     const body = {slug, items: items.map(it => ({n: it.name, q: it.q, p: it.price || '', id: it.p ? it.p.id : ''})), total: fmt(t) + (unpriced ? ' + a consultar' : ''),
       envio: o ? o.name : '', envio_id: o ? o.id : '', demora: brand.delay || '',
-      comprador: {nombre: buyer.name, tel: buyer.tel, dir: na ? buyer.dir : '', ref: na ? buyer.ref : ''},
+      comprador: {nombre: buyer.name, tel: buyer.tel, dir: na ? buyer.dir : '', ref: na ? buyer.ref : '', turno: allService() ? buyer.turno : ''}, servicio: allService(),
       regalo: gift.on ? {si: true, para: gift.who, mensaje: gift.msg} : null};
     return fetch('/api/pedidos', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body), keepalive: true})
       .then(r => r.ok ? r.json() : null).catch(() => null);
@@ -4714,7 +4725,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       } else if(st.estado === 'listo'){
         clearInterval(trkTick); clearInterval(trkPoll); el.classList.add('done');
         el.querySelector('.trk-clock').textContent = '✅';
-        el.querySelector('.trk-txt strong').textContent = st.digital ? L('¡Pago confirmado! Descargá tus archivos:', 'Payment confirmed! Download your files:', 'Pagamento confirmado! Baixe seus arquivos:') : M(info.retiro ? 'trk_pick' : 'trk_ready');
+        el.querySelector('.trk-txt strong').textContent = st.servicio ? L('¡Tu turno está confirmado!', 'Your appointment is confirmed!', 'Seu horário está confirmado!', 'Votre rendez-vous est confirmé !', 'Dein Termin ist bestätigt!', 'Il tuo appuntamento è confermato!', '你的预约已确认！', 'ご予約が確定しました！') : st.digital ? L('¡Pago confirmado! Descargá tus archivos:', 'Payment confirmed! Download your files:', 'Pagamento confirmado! Baixe seus arquivos:') : M(info.retiro ? 'trk_pick' : 'trk_ready');
         if(st.digital && Array.isArray(st.descargas) && st.descargas.length){
           const dl = document.createElement('span'); dl.className = 'trk-dl';
           dl.innerHTML = st.descargas.map(d => `<a class="btn primary" href="${esc(d.url)}" target="_blank" rel="noopener">📥 ${esc(d.n)}</a>`).join('');
@@ -4755,11 +4766,12 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
           <ul>${(p.items || []).map(it => `<li>${it.d ? '📥 ' : ''}${it.q} x ${esc(it.n)}${it.p ? ' — ' + esc(it.p) : ''}</li>`).join('')}</ul>
           <div><strong>Total:</strong> ${esc(p.total || '')}${p.envio ? ` · <strong>Entrega:</strong> ${esc(p.envio)}` : ''}</div>
           ${c.dir ? `<div>📍 ${esc(c.dir)}${c.ref ? ' — ' + esc(c.ref) : ''}</div>` : ''}
+          ${c.turno ? `<div>📅 Turno deseado: ${esc(c.turno)}</div>` : ''}
           ${c.tel ? `<div>📞 ${esc(c.tel)}</div>` : ''}
           ${p.regalo ? `<div>🎁 Para regalo${p.regalo.para ? ' (' + esc(p.regalo.para) + ')' : ''}: bolsa especial y moño${p.regalo.mensaje ? ` · Tarjeta: “${esc(p.regalo.mensaje)}”` : ''}</div>` : ''}
           ${abierto ? `<div class="oacts">
             ${moto ? `${rs.length ? `<select data-orider="${esc(p.ref)}" aria-label="Repartidor">${rs.map(r => `<option>${esc(r)}</option>`).join('')}</select>` : ''}<button class="btn primary" type="button" data-o="salio" data-ref="${esc(p.ref)}">🛵 Salió</button>`
-              : `<button class="btn primary" type="button" data-o="listo" data-ref="${esc(p.ref)}">${(p.items || []).some(it => it.d) ? '✅ Pagado · habilitar descarga' : '✅ Listo'}</button>`}
+              : `<button class="btn primary" type="button" data-o="listo" data-ref="${esc(p.ref)}">${(p.items || []).some(it => it.d) ? '✅ Pagado · habilitar descarga' : p.servicio ? '✅ Confirmar turno' : '✅ Listo'}</button>`}
             <button class="btn danger" type="button" data-o="cancelado" data-ref="${esc(p.ref)}">Cancelar</button>
           </div>` : (p.estado === 'salio' || p.estado === 'listo') ? `<div class="oacts"><button class="btn" type="button" data-o="entregado" data-ref="${esc(p.ref)}">📦 Entregado</button></div>` : ''}
         </div>`; }).join('')}</div>` : `<p class="nofeat">Todavía no hay pedidos. Cuando un cliente mande uno desde tu tienda, aparece acá.</p>`}
