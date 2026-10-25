@@ -2109,7 +2109,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   let cats = DEFAULT_CATS.map(c => ({...c})), currentCat = null;
   const proOrig = new Map();          // foto profesional: la original de cada producto, para poder volver (solo mientras está abierta la página)
   const proKey = p => p.id || p.name;
-  let brand = {name:'', logo:null, banner:null, preset:'general', wa:'', ig:'', alias:'', paylink:'', paypal:''};
+  let brand = {name:'', logo:null, banner:null, preset:'general', wa:'', ig:'', alias:'', paylink:'', paypal:'', layout:'slide'};
   const BRAND0 = {...brand};
   const MAX_STORES = 4;
   // Límites del plan contratado en la versión web (en Claude no hay límites extra).
@@ -5628,7 +5628,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   function newStore(){
     if(stores.length >= capStores()) return;
     save();
-    stores.push({cats: DEFAULT_CATS.map(c => ({...c})), products: [], sort: 'added', brand: {...BRAND0, name: 'Tienda ' + (stores.length + 1), layout: 'ring'}});
+    stores.push({cats: DEFAULT_CATS.map(c => ({...c})), products: [], sort: 'added', brand: {...BRAND0, name: 'Tienda ' + (stores.length + 1), layout: 'slide'}});
     switchStore(stores.length - 1);
     $('brandBtn').click();
     $('presetMsg').textContent = 'Tienda nueva: elegí el tipo de negocio y ponele nombre.';
