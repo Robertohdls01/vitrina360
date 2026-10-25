@@ -4819,12 +4819,23 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       $('cartModal').hidden = true; document.documentElement.style.overflow = '';
       const thanks = M('thanks', {store: storeName()});
       const moto = o && o.id === 'moto' && ridersOf().length;
-      if(cajeraOn()) cSpeak(moto ? `${thanks} ${deliveryLine()} ${M('any_wa')}` : `${thanks} ${o ? M('chose', {x: trCat(o.name)}) + ' ' : ''}${M('go_wa')}`);
+      const cMsg = moto ? `${thanks} ${deliveryLine()} ${M('any_wa')}` : `${thanks} ${o ? M('chose', {x: trCat(o.name)}) + ' ' : ''}${M('go_wa')}`;
+      if(cajeraOn()){ $('cBubble').textContent = trSay(cMsg); sayWhenBack(() => cSpeak(cMsg)); }
       $('hPanel').hidden = false;
-      if(o){ hInfo(`<strong>${esc(thanks)} ${esc(M('next', {x: trCat(o.name)}))}</strong><ol class="hsteps">${next.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`); if(!cajeraOn()) hSpeak(moto ? `${thanks} ${deliveryLine()}` : `${thanks} ${M('chose', {x: trCat(o.name)})} ${LANG === 'es' ? next.join(' ') : ''}`); else $('hSay').textContent = thanks; }
-      else { hShow([]); hSpeak(`${thanks} ${M('msg_coming')}`); }
+      if(o){ hInfo(`<strong>${esc(thanks)} ${esc(M('next', {x: trCat(o.name)}))}</strong><ol class="hsteps">${next.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`); if(!cajeraOn()) sayWhenBack(() => hSpeak(moto ? `${thanks} ${deliveryLine()}` : `${thanks} ${M('chose', {x: trCat(o.name)})} ${LANG === 'es' ? next.join(' ') : ''}`)); else $('hSay').textContent = thanks; }
+      else { hShow([]); sayWhenBack(() => hSpeak(`${thanks} ${M('msg_coming')}`)); }
     }, 700);
   });
+  // Al mandar el pedido se abre WhatsApp y la tienda queda atrás: el celular corta la voz.
+  // Entonces la cajera/vendedor habla cuando el cliente vuelve a la tienda (o enseguida, si la tienda nunca quedó atrás).
+  function sayWhenBack(fn){
+    let done = false, wentAway = false;
+    const go = () => { if(done) return; done = true; document.removeEventListener('visibilitychange', onVis); setTimeout(fn, 700); };
+    const onVis = () => { if(document.visibilityState === 'hidden'){ wentAway = true; try{ speechSynthesis.cancel(); }catch(e){} } else if(wentAway) go(); };
+    document.addEventListener('visibilitychange', onVis);
+    setTimeout(() => { if(!wentAway && document.visibilityState === 'visible') go(); }, 2500);
+    setTimeout(() => { if(!done){ done = true; document.removeEventListener('visibilitychange', onVis); } }, 30 * 60e3);
+  }
   function openCart(){ cartLastFocus = document.activeElement; const sl = shipList(); if(!sl.find(o => o.id === shipSel)) shipSel = sl[0] ? sl[0].id : null; renderCart(); $('cartModal').hidden = false; document.documentElement.style.overflow = 'hidden'; $('cartSheet').querySelector('.close').focus(); }
   function closeCart(){ $('cartModal').hidden = true; document.documentElement.style.overflow = ''; try{ cartLastFocus && cartLastFocus.focus(); }catch(e){} }
   function copyText(text, msgEl, okMsg){
@@ -5615,7 +5626,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     let done = false; const fin = () => { if(done) return; done = true; av.classList.remove('talking'); duck(false); then && setTimeout(then, 300); };
     u.onstart = () => av.classList.add('talking'); u.onend = fin; u.onerror = fin;
     duck(true); speechSynthesis.cancel(); speechSynthesis.speak(u);
-    setTimeout(fin, Math.max(3500, text.length * 68));   // por si el celular no avisa que terminó
+    setTimeout(fin, Math.max(4500, text.length * 100));   // por si el celular no avisa que terminó
   }
   const qtyWord = q => LANG !== 'es' ? String(q) : ['', 'un', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez'][q] || String(q);
   function cajeraCobra(){
