@@ -667,6 +667,20 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 .dlvrow[hidden]{display:none}
 .tvwrap{display:grid;justify-items:center;margin:8px 0 6px}
 .tvwrap[hidden]{display:none}
+.cashrow{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin:10px 0 4px}
+.cashrow .cashier{flex:1;min-width:0;margin:0}
+.cashrow .tvwrap{flex:0 0 auto;width:clamp(120px,32vw,210px);margin:0}
+.cashrow .tv{width:100%;padding:5px 5px 3px;border-radius:10px}
+.cashrow .tv::after{right:7px;bottom:3px;width:4px;height:4px}
+.cashrow .tvleg{width:34px;height:6px}
+.cashrow .tvsl{display:block;padding:0}
+.cashrow .tvsl:not(.tvfull) img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:6px 6px 22px;box-sizing:border-box}
+.cashrow .tvsl:not(.tvfull) > div{position:absolute;left:4px;right:4px;bottom:3px;display:flex;align-items:center;gap:4px;min-width:0}
+.cashrow .tvsl .tvn{display:none}
+.cashrow .tvsl .tvp{font-size:clamp(12px,3.4vw,16px);margin:0;background:rgba(255,255,255,.9);border-radius:4px;padding:0 4px}
+.cashrow .tvsl .tvo{font-size:8px;padding:2px 4px;margin:0}
+.cashrow .tvtick{font-size:9px;line-height:15px}
+.cashrow .tvsnd{width:24px;height:24px;font-size:12px;right:4px;bottom:4px}
 .tv{width:min(460px,100%);background:#0b0b0f;border-radius:14px;padding:8px 8px 6px;box-shadow:0 0 0 2px #26262e inset,0 14px 30px -14px rgba(0,0,0,.6),0 0 22px -6px var(--accent);position:relative}
 .tv::after{content:"";position:absolute;right:12px;bottom:5px;width:5px;height:5px;border-radius:50%;background:#39ff14;box-shadow:0 0 6px #39ff14}
 .tvleg{width:70px;height:10px;background:linear-gradient(#2a2a32,#111);border-radius:0 0 8px 8px;margin-top:-1px}
@@ -1415,6 +1429,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   <p class="note limitnote" id="limitNote" role="status" hidden></p>
   <p class="note limitnote wanote" id="waNote" hidden><span>📱 Todavía no cargaste tu WhatsApp: sin él, tus clientes no pueden mandarte pedidos.</span> <button class="btn primary" type="button" id="waSet">Cargar mi WhatsApp</button></p>
 
+  <div class="cashrow">
   <div class="cashier" id="cashier" hidden>
     <button class="cbtn" type="button" id="cBtn" aria-label="Caja: ver lo que llevás"><span class="cav" id="cAv"></span><span class="basket" aria-hidden="true">🧺<b id="cN">0</b></span></button>
     <div class="cside">
@@ -1422,8 +1437,9 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <button class="btn primary cgo" type="button" id="cGo">🧾 Ir a la caja</button>
     </div>
   </div>
-  <div class="dlvrow" id="dlvRow" hidden></div>
   <div class="tvwrap" id="tvWrap" hidden><div class="tv" role="region" aria-label="Pantalla de ofertas"><div class="tvscr" id="tvScr"></div><div class="tvtick"><span id="tvTick"></span></div></div><span class="tvleg" aria-hidden="true"></span></div>
+  </div>
+  <div class="dlvrow" id="dlvRow" hidden></div>
 
   <div class="searchbar" id="searchbar">
     <div class="sbox">
