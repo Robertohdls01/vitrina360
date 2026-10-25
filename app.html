@@ -4120,6 +4120,18 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   const M = (k, v = {}) => { const a = MSG[k]; if(!a) return k; const t = a[LANGS.indexOf(LANG)] || a[1] || a[0]; return t.replace(/\{(\w+)\}/g, (_, x) => v[x] == null ? '' : v[x]); };
   const DELAYS = {"15 a 25 minutos": ["15–25 minutes", "15 a 25 minutos", "15 à 25 minutes", "15–25 Minuten", "15–25 minuti", "15–25分钟", "15〜25分"], "20 a 30 minutos": ["20–30 minutes", "20 a 30 minutos", "20 à 30 minutes", "20–30 Minuten", "20–30 minuti", "20–30分钟", "20〜30分"], "30 a 45 minutos": ["30–45 minutes", "30 a 45 minutos", "30 à 45 minutes", "30–45 Minuten", "30–45 minuti", "30–45分钟", "30〜45分"], "45 a 60 minutos": ["45–60 minutes", "45 a 60 minutos", "45 à 60 minutes", "45–60 Minuten", "45–60 minuti", "45–60分钟", "45〜60分"], "más de una hora": ["more than an hour", "mais de uma hora", "plus d'une heure", "mehr als eine Stunde", "più di un'ora", "一个多小时", "1時間以上"]};
   const delayTr = d => LANG === 'es' || !d ? d : ((DELAYS[d] || [])[LIDX[LANG]] || d);
+  // La voz lee "$" como "dólares": antes de hablar, el precio se dice con la moneda de la tienda ("40.000 pesos").
+  const MONEY_SAY = {
+    es: {ARS: 'pesos', USD: 'dólares', EUR: 'euros', BRL: 'reales', MXN: 'pesos', CLP: 'pesos', COP: 'pesos', PEN: 'soles', UYU: 'pesos', PYG: 'guaraníes', BOB: 'bolivianos', GBP: 'libras', CAD: 'dólares canadienses'},
+    pt: {ARS: 'pesos', USD: 'dólares', EUR: 'euros', BRL: 'reais', MXN: 'pesos', CLP: 'pesos', COP: 'pesos', PEN: 'soles', UYU: 'pesos', PYG: 'guaranis', BOB: 'bolivianos', GBP: 'libras', CAD: 'dólares canadenses'},
+    en: {ARS: 'pesos', USD: 'dollars', EUR: 'euros', BRL: 'reais', MXN: 'pesos', CLP: 'pesos', COP: 'pesos', PEN: 'soles', UYU: 'pesos', PYG: 'guaranies', BOB: 'bolivianos', GBP: 'pounds', CAD: 'Canadian dollars'}
+  };
+  const sayMoney = t => {
+    const c = (typeof curCode === 'function') ? curCode() : 'ARS';
+    const w = (MONEY_SAY[LANG] || MONEY_SAY.en)[c] || c;
+    return String(t).replace(/(?:US\$|CA\$|MX\$|R\$|S\/|\$U|£|€|₲|Bs\.?|\$)\s?(\d[\d.,]*)/g, (_, n) => n + ' ' + w)
+                    .replace(/(\d[\d.,]*)\s?(?:€|£)/g, (_, n) => n + ' ' + w);
+  };
   const trSay = t => { if(LANG === 'es') return t; const r = tr(t); return r == null ? t : r; };
   const pl = (n, one, many) => +n === 1 ? one : many;
   const deacc = t => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
@@ -5330,7 +5342,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       adAudio.src = it.f; adAudio.volume = 1; adAudio.onended = done; adAudio.onerror = done;
       adAudio.play().catch(done);
     } else if(window.speechSynthesis){
-      const u = new SpeechSynthesisUtterance(it.t);
+      const u = new SpeechSynthesisUtterance(sayMoney(it.t));
       u.lang = VLANG(); u.rate = 0.98; u.onend = done; u.onerror = done;
       const v = speechSynthesis.getVoices().find(x => x.lang && x.lang.toLowerCase().startsWith(u.lang.slice(0, 2)));
       if(v) u.voice = v;
@@ -5453,7 +5465,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     const av = $('hRow').querySelector(`[data-hav="${hCur}"]`) || $('hRow').querySelector('.hav');
     $('hSay').textContent = text;
     if(!window.speechSynthesis) return;
-    const h = HELPERS[hCur] || HELPERS.sofi, u = new SpeechSynthesisUtterance(text.replace(/[\u{1F300}-\u{1FAFF}]/gu, ''));
+    const h = HELPERS[hCur] || HELPERS.sofi, u = new SpeechSynthesisUtterance(sayMoney(text.replace(/[\u{1F300}-\u{1FAFF}]/gu, '')));
     u.lang = VLANG(); u.pitch = h.pitch; u.rate = 1.02;
     const vs = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith(u.lang.slice(0, 2)));
     const want = h.female ? /female|mujer|paulina|monica|helena|sabina|laura|luciana|google español/i : /male|hombre|jorge|diego|pablo|juan|carlos/i;
@@ -5617,7 +5629,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     clearTimeout(cBubbleT); cBubbleT = setTimeout(cIdle, Math.max(7000, text.length * 80));
     const av = $('cBtn');
     if(!window.speechSynthesis){ then && setTimeout(then, Math.max(2500, text.length * 60)); return; }
-    const u = new SpeechSynthesisUtterance(text);
+    const u = new SpeechSynthesisUtterance(sayMoney(text));
     u.lang = VLANG(); u.pitch = CAJERA.pitch; u.rate = 1.03;
     const vs = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith(u.lang.slice(0, 2)));
     // otra voz que la de los vendedores: la última femenina disponible, o la última de la lista
