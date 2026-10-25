@@ -85,4 +85,34 @@ function estado(row) {
   return con('pausa', 0, pagado);
 }
 
-module.exports = { cuerpo, usuario, db, mp, sincronizar, estado, PRECIO, PLANES };
+// ---- Hotmart: activaciones que llegaron antes de que el comprador creara su tienda ----
+// Se guardan como archivos en el almacenamiento privado de Supabase (carpeta "hotmart"), uno por mail.
+function stHeaders(extra) {
+  const k = process.env.SUPABASE_SERVICE_KEY, h = Object.assign({ apikey: k }, extra || {});
+  if (String(k).startsWith('eyJ')) h.Authorization = 'Bearer ' + k;
+  return h;
+}
+const stBase = () => SURL() + '/storage/v1';
+const mailKey = email => Buffer.from(String(email || '').trim().toLowerCase()).toString('hex');
+async function hmBucket() {
+  try { await fetch(stBase() + '/bucket', { method: 'POST', headers: stHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ id: 'hotmart', name: 'hotmart', public: false }) }); } catch (e) {}
+}
+async function hmPendiente(email) {
+  try { const r = await fetch(stBase() + '/object/hotmart/' + mailKey(email) + '.json', { headers: stHeaders() }); return r.ok ? await r.json() : null; } catch (e) { return null; }
+}
+async function hmGuardar(email, obj) {
+  const put = () => fetch(stBase() + '/object/hotmart/' + mailKey(email) + '.json', { method: 'POST', headers: stHeaders({ 'Content-Type': 'application/json', 'x-upsert': 'true' }), body: JSON.stringify(obj) });
+  let r = await put(); if (!r.ok) { await hmBucket(); r = await put(); }
+  return r.ok;
+}
+async function hmBorrar(email) {
+  try { await fetch(stBase() + '/object/hotmart/' + mailKey(email) + '.json', { method: 'DELETE', headers: stHeaders() }); } catch (e) {}
+}
+// Deja la tienda pagada hasta esa fecha, con ese plan (o la pausa si "hasta" ya pasó: reembolso o contracargo).
+async function aplicarPago(owner, plan, hasta) {
+  const cambio = { pagada_hasta: hasta };
+  if (plan && PLANES()[plan]) cambio.plan = plan;
+  return db('PATCH', '/rest/v1/tiendas?owner=eq.' + owner, cambio);
+}
+
+module.exports = { cuerpo, usuario, db, mp, sincronizar, estado, PRECIO, PLANES, hmPendiente, hmGuardar, hmBorrar, aplicarPago, stHeaders };
