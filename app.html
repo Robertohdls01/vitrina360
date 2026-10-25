@@ -697,16 +697,16 @@ body:not(.cartbig) .cartsheet .actions{gap:6px}
 .cashrow .cashier{flex:1;min-width:0;margin:0}
 .hcorner{display:flex;gap:8px;align-items:flex-start;justify-content:flex-end;width:100%}
 .hcorner .tvtop{margin:0}
-.hcorner .cashier{position:relative;flex:0 0 auto;margin:0;padding:6px 8px;gap:4px;border-radius:14px;display:flex;flex-direction:column;align-items:center}
-.hcorner .cside{display:contents}
-.hcorner .cbtn{width:52px}
-.hcorner .cav svg{width:46px}
-.hcorner .basket{left:-10px;bottom:6px;font-size:20px}
-.hcorner .cgo{font-size:11.5px;padding:4px 8px;white-space:nowrap}
-.hcorner .cbubble{display:none;position:absolute;right:0;top:calc(100% + 9px);width:min(270px,72vw);z-index:45;border:1px solid var(--line);
+.cashier.cmini{position:relative;flex:0 0 auto;margin:0;padding:6px 8px;gap:4px;border-radius:14px;display:flex;flex-direction:column;align-items:center}
+.cmini .cside{display:contents}
+.cmini .cbtn{width:52px}
+.cmini .cav svg{width:46px}
+.cmini .basket{left:-10px;bottom:6px;font-size:20px}
+.cmini .cgo{font-size:11.5px;padding:4px 8px;white-space:nowrap}
+.cmini .cbubble{display:none;position:absolute;right:0;top:calc(100% + 9px);width:min(270px,72vw);z-index:45;border:1px solid var(--line);
   border-radius:14px;box-shadow:0 14px 30px -12px var(--shadow);background:var(--surface);text-align:left}
-.hcorner .cbubble.show{display:block;animation:bubin .25s ease-out}
-.hcorner .cbubble::before{content:"";position:absolute;top:-8px;right:30px;border:8px solid transparent;border-top:0;border-bottom-color:var(--surface)}
+.cmini .cbubble.show{display:block;animation:bubin .25s ease-out}
+.cmini .cbubble::before{content:"";position:absolute;top:-8px;right:30px;border:8px solid transparent;border-top:0;border-bottom-color:var(--surface)}
 @keyframes bubin{from{opacity:0;transform:translateY(-4px)}}
 .tvtiny .tvtick,.tvtiny .tvleg,.tvtiny .tvo{display:none}
 .tvtiny .tv{padding:3px;border-radius:7px}
@@ -1535,7 +1535,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
         <button class="btn" type="button" id="brandBtn" aria-expanded="false" aria-controls="brandPanel">Personalizar mi comercio</button>
       </span>
       <div class="hcorner">
-      <div class="cashier" id="cashier" hidden>
+      <div class="cashier cmini" id="cashier" hidden>
         <button class="cbtn" type="button" id="cBtn" aria-label="Caja: ver lo que llevás"><span class="cav" id="cAv"></span><span class="basket" aria-hidden="true">🧺<b id="cN">0</b></span></button>
         <div class="cside">
           <div class="cbubble" id="cBubble" aria-live="polite">¡Hola! Soy Caro, la cajera. Lo que agregues va a tu canastito.</div>
