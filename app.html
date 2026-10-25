@@ -5195,9 +5195,10 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   (function(){
     const ht = document.querySelector('.hometools'); if(!ht || ht.classList.contains('hrowed')) return;
     const row = document.createElement('div'); row.className = 'hscroll';
-    const sb = document.getElementById('seasonBar');
-    [...ht.children].forEach(c => { if(c !== sb) row.appendChild(c); });
-    ht.insertBefore(row, ht.firstChild); if(sb) ht.appendChild(sb);
+    const sb = document.getElementById('seasonBar'), eh = document.getElementById('editHint');
+    [...ht.children].forEach(c => { if(c !== sb && c !== eh) row.appendChild(c); });
+    const qb = document.getElementById('quickBtn'); if(qb) row.insertBefore(qb, row.firstChild);   // lo más importante primero: cargar productos
+    ht.insertBefore(row, ht.firstChild); if(sb) ht.appendChild(sb); if(eh) ht.appendChild(eh);
     ht.classList.add('hrowed');
   })();
 
