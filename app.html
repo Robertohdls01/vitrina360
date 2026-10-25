@@ -927,6 +927,13 @@ body.pagephoto::before{content:"";position:fixed;inset:0;z-index:-1;pointer-even
 body.pagephoto .plaque,body.pagephoto .mfoot,body.pagephoto .hint{background:var(--surface);border-radius:10px;padding:4px 8px;box-shadow:0 4px 10px -6px var(--shadow)}
 .hometools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:14px}
 .hometools .btn{padding:7px 14px;font-size:14px}
+/* Herramientas del inicio en una sola fila que se desliza de costado; la barra de temporadas, cuando se abre, va debajo */
+.hometools.hrowed{display:grid;gap:8px}
+.hscroll{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;align-items:center;scrollbar-width:none;padding-bottom:2px}
+.hscroll::-webkit-scrollbar{display:none}
+.hscroll > *{flex:0 0 auto}
+.hscroll .btn{padding:5px 11px;font-size:13px;white-space:nowrap}
+.hscroll .scope button{white-space:nowrap}
 .ringwrap{grid-column:1/-1;position:relative;width:min(100%,780px);aspect-ratio:1;margin:0 auto}
 .ring{position:absolute;inset:0;animation:ringspin 140s linear infinite}
 .rslot{position:absolute;left:50%;top:50%;width:var(--tw,120px);margin-left:calc(var(--tw,120px) / -2);margin-top:calc(var(--th,150px) / -2);
@@ -5184,6 +5191,15 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       renderWallets(); save(); const ins = $('walletList').querySelectorAll('input'); ins[ins.length - 1]?.focus();
     });
   }
+
+  (function(){
+    const ht = document.querySelector('.hometools'); if(!ht || ht.classList.contains('hrowed')) return;
+    const row = document.createElement('div'); row.className = 'hscroll';
+    const sb = document.getElementById('seasonBar');
+    [...ht.children].forEach(c => { if(c !== sb) row.appendChild(c); });
+    ht.insertBefore(row, ht.firstChild); if(sb) ht.appendChild(sb);
+    ht.classList.add('hrowed');
+  })();
 
   // ---- "Personalizar mi comercio" como menú: se ven solo los títulos y se abre una sección por vez ----
   (function(){
