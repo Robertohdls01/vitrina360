@@ -828,6 +828,14 @@ select.field{border:1px solid var(--line);background:var(--bg);border-radius:10p
   background:var(--fab-bg, var(--surface));color:var(--fab-ink, var(--ink));padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;
   box-shadow:0 6px 14px -6px var(--shadow);display:flex;gap:6px;align-items:center;opacity:.92}
 .backfab:hover{opacity:1}
+#shopView .shopbar{position:sticky;top:0;z-index:25;background:var(--bg);padding:6px 0;box-shadow:0 8px 12px -12px var(--shadow)}
+.shoptools{border:1px solid var(--line);border-radius:12px;padding:8px 12px;display:grid;gap:8px}
+.shoptools > summary{cursor:pointer;font-weight:700;list-style:none}
+.shoptools > summary::-webkit-details-marker{display:none}
+.shoptools > summary::after{content:" ▾"}
+.shoptools[open] > summary::after{content:" ▴"}
+body.clientmode .shoptools,body.publicmode .shoptools{display:none!important}
+@media (max-width:640px){.controls .hint{display:none}}
 #shopView{padding-bottom:72px}
 body.pagephoto::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:linear-gradient(var(--veil),var(--veil)),var(--page-photo) center/cover no-repeat}
@@ -1703,7 +1711,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   <section id="shopView" hidden style="display:grid;gap:14px">
   <div class="catstrip" id="catStrip" role="group" aria-label="Otras vitrinas"></div>
   <div class="shopbar">
-    <button class="btn" type="button" id="back">← Todas las vitrinas</button>
+    <button class="btn primary" type="button" id="back">← Todas las vitrinas</button>
     <div class="shoptitle">
       <span class="mnum" id="catNum"></span>
       <h2 id="catTitle"></h2>
@@ -1742,10 +1750,13 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     <div class="empty-stage" id="emptyStage" hidden><div><h3>Esta vitrina está vacía</h3><p>Subí la primera foto con el formulario de abajo.</p></div></div>
   </div>
 
+  <details class="shoptools" id="shopTools">
+    <summary>🎨 Personalizar esta vitrina <small>(fondo, tipo, luces y letras)</small></summary>
   <div class="bgbar" id="bgBarShop" role="group" aria-label="Fondo de la vitrina"></div>
   <div class="bgbar matshop" id="matBarShop" role="group" aria-label="Tipo de vitrina"></div>
   <div class="bgbar decoshop" id="decoBar" role="group" aria-label="Adornos y luces de esta vitrina"></div>
   <details class="letrasbox decoshop"><summary>🔤 Letras de los carteles y nombres</summary><div class="letrasbar"></div></details>
+  </details>
   <div class="controls">
     <button class="btn" id="prev" type="button" aria-label="Girar a la izquierda">◀ Anterior</button>
     <button class="btn" id="next" type="button" aria-label="Girar a la derecha">Siguiente ▶</button>
