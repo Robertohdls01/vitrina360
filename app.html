@@ -657,6 +657,28 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 .rsex button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink,#fff)}
 .dlvrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:4px 0;padding:6px 12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;font:600 13px/1.3 var(--body)}
 .dlvrow[hidden]{display:none}
+.tvwrap{display:grid;justify-items:center;margin:8px 0 6px}
+.tvwrap[hidden]{display:none}
+.tv{width:min(460px,100%);background:#0b0b0f;border-radius:14px;padding:8px 8px 6px;box-shadow:0 0 0 2px #26262e inset,0 14px 30px -14px rgba(0,0,0,.6),0 0 22px -6px var(--accent);position:relative}
+.tv::after{content:"";position:absolute;right:12px;bottom:5px;width:5px;height:5px;border-radius:50%;background:#39ff14;box-shadow:0 0 6px #39ff14}
+.tvleg{width:70px;height:10px;background:linear-gradient(#2a2a32,#111);border-radius:0 0 8px 8px;margin-top:-1px}
+.tvscr{position:relative;aspect-ratio:16/9;border-radius:6px;overflow:hidden;background:#fff;cursor:pointer}
+.tvsl{position:absolute;inset:0;display:grid;grid-template-columns:48% 1fr;align-items:center;gap:10px;padding:10px 14px;opacity:0;transition:opacity .6s;background:radial-gradient(circle at 25% 50%,#fff 0,#f1f3f6 70%)}
+.tvsl.on{opacity:1}
+.tvsl.tvfull{display:block;padding:0;background:#000}
+.tvsl.tvfull img,.tvsl.tvfull video{width:100%;height:100%;object-fit:cover;display:block}
+.tvsl.tvfull img{animation:tvzoom 5s ease-out both}
+.tvsnd{position:absolute;right:8px;bottom:8px;border:0;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;width:34px;height:34px;font-size:16px;cursor:pointer}
+.tvsl img{width:100%;height:100%;max-height:100%;object-fit:contain;animation:tvzoom 4s ease-out both}
+.tvsl .tvn{font:800 clamp(14px,3.6vw,20px)/1.15 var(--body);color:#111;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.tvsl .tvp{font:900 clamp(20px,6vw,32px)/1 var(--body);color:#e63946;margin-top:6px}
+.tvsl .tvo{display:inline-block;background:#e63946;color:#fff;font:900 11px/1 var(--body);letter-spacing:.08em;padding:4px 8px;border-radius:6px;margin-bottom:6px;animation:tvblink 1s steps(2) infinite}
+.tvtick{overflow:hidden;white-space:nowrap;color:#ffd54a;font:700 12px/22px var(--body);text-shadow:0 0 6px rgba(255,213,74,.6)}
+.tvtick span{display:inline-block;padding-left:100%;animation:tvrun 16s linear infinite}
+@keyframes tvzoom{from{transform:scale(.92)}to{transform:scale(1.02)}}
+@keyframes tvblink{50%{opacity:.35}}
+@keyframes tvrun{to{transform:translateX(-100%)}}
+@media (prefers-reduced-motion:reduce){.tvsl img,.tvsl .tvo,.tvtick span{animation:none}.tvtick span{padding-left:0}}
 .dlvp{display:grid;justify-items:center;font-size:11.5px;font-weight:700}
 .dlvp svg{width:40px;height:auto;filter:drop-shadow(0 3px 4px rgba(0,0,0,.18))}
 .mg-ride{position:relative;display:block;width:96px;height:78px}
@@ -1393,6 +1415,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     </div>
   </div>
   <div class="dlvrow" id="dlvRow" hidden></div>
+  <div class="tvwrap" id="tvWrap" hidden><div class="tv" role="region" aria-label="Pantalla de ofertas"><div class="tvscr" id="tvScr"></div><div class="tvtick"><span id="tvTick"></span></div></div><span class="tvleg" aria-hidden="true"></span></div>
 
   <div class="searchbar" id="searchbar">
     <div class="sbox">
@@ -1505,6 +1528,18 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <strong>Fondo general de las vitrinas</strong>
       <p class="note" style="margin:0">Este es el fondo de todas. Para darle un color propio a una vitrina, entrá en ella y elegí “Solo esta vitrina”.</p>
       <div class="bgbar" id="bgBarPanel" role="group" aria-label="Fondo de las vitrinas"></div>
+    </div>
+    <div class="presets">
+      <strong>📺 Pantalla de ofertas</strong>
+      <p class="note" style="margin:0">Una pantalla tipo LED en la tienda. Pasa tu video (presentación de la tienda o el producto del día), tus fotos y tus productos destacados (★) con su precio. Si no marcaste destacados, pasa los productos con precio.</p>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <label class="btn" for="b-tvvideo" style="display:inline-flex">🎬 Subir video<input type="file" id="b-tvvideo" accept="video/*" class="vh"></label>
+        <label class="btn" for="b-tvphotos" style="display:inline-flex">🖼 Subir fotos<input type="file" id="b-tvphotos" accept="image/*" multiple class="vh"></label>
+        <button class="btn" type="button" id="tvClear">Quitar video y fotos</button>
+      </div>
+      <span class="note" id="tvMsg" role="status" style="margin:0"></span>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><button class="matbtn" type="button" id="tvBtn" aria-pressed="true">📺 Mostrar la pantalla</button>
+        <label class="note" style="display:inline-flex;gap:6px;align-items:center;margin:0">Texto que corre abajo <input type="text" id="b-tvtext" maxlength="80" placeholder="Ej: ¡Ofertas de hoy! Envíos gratis en la ciudad" style="border:1px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--bg);color:inherit;min-width:0"></label></div>
     </div>
     <div class="presets">
       <strong>Formas de entrega</strong>
@@ -2434,6 +2469,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
     else if(im) openModal(im.dataset.fpid);
   });
   function render(){
+    try{ renderTV(); }catch(e){}
     if(!currentCat){ renderHome(); return; }
     measure();
     const list = sorted();
@@ -4136,6 +4172,47 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   const riderChar = (name, i) => { const r = riderListOf().find(x => String(x.name || '').trim() === name) || {f: false}; const k = i == null ? Math.max(0, ridersOf().indexOf(name)) : i; const [hair, skin] = R_LOOK[k % R_LOOK.length]; return {name, female: !!r.f, hair, skin, style: 'helmet'}; };
   const MOTO_SVG = c => `<svg class="mg-moto" viewBox="0 0 100 60" aria-hidden="true"><circle cx="20" cy="48" r="10" fill="#222"/><circle cx="20" cy="48" r="4" fill="#bbb"/><circle cx="80" cy="48" r="10" fill="#222"/><circle cx="80" cy="48" r="4" fill="#bbb"/>
     <path d="M10 44h44l12-22h9l3 4h-7l-9 18h12c6 0 10 3 11 8H10z" fill="${c}"/><rect x="26" y="36" width="26" height="6" rx="3" fill="#111" opacity=".75"/><rect x="2" y="30" width="18" height="12" rx="3" fill="#e63946"/><path d="M73 22l6-8" stroke="#333" stroke-width="3" stroke-linecap="round"/><circle cx="90" cy="42" r="3" fill="#ffd54a"/></svg>`;
+  // ---- Pantalla LED de ofertas: va pasando los destacados (o los productos con precio) ----
+  let tvT = null, tvI = 0, tvSig = '';
+  function renderTV(){
+    const wrap = document.getElementById('tvWrap'); if(!wrap) return;
+    const vis = products.filter(p => !(catOf(p.cat) || {}).hidden && p.img);
+    let list = vis.filter(p => p.featured); const ofertas = !!list.length;
+    if(!list.length) list = vis.filter(p => p.price);
+    list = list.slice(0, 12);
+    const items = [...(brand.tvVideo ? [{t: 'video', src: brand.tvVideo}] : []), ...(Array.isArray(brand.tvPhotos) ? brand.tvPhotos : []).map(src => ({t: 'photo', src})), ...list.map(p => ({t: 'prod', p}))];
+    const on = brand.tv !== false && items.length > 0;
+    wrap.hidden = !on;
+    if(!on){ clearTimeout(tvT); tvT = null; tvSig = ''; $('tvScr').innerHTML = ''; return; }
+    const sig = items.map(it => it.t === 'prod' ? it.p.id + '|' + it.p.price + '|' + it.p.img.length : it.src.length + it.src.slice(-24)).join(',') + '|' + (brand.tvText || '');
+    if(sig === tvSig && tvT) return; tvSig = sig;
+    $('tvScr').innerHTML = items.map((it, i) => it.t === 'video'
+      ? `<div class="tvsl tvfull" data-tvi="${i}"><video src="${esc(it.src)}" muted playsinline preload="metadata"></video><button class="tvsnd" type="button" aria-label="Activar sonido">🔇</button></div>`
+      : it.t === 'photo' ? `<div class="tvsl tvfull" data-tvi="${i}"><img src="${it.src}" alt=""></div>`
+      : `<div class="tvsl" data-tvi="${i}" data-tvpid="${it.p.id}"><img src="${it.p.img}" alt="" loading="lazy"><div>${ofertas ? '<span class="tvo">OFERTA</span>' : ''}<div class="tvn">${esc(it.p.name)}</div>${it.p.price ? `<div class="tvp">${esc(it.p.price)}</div>` : ''}</div></div>`).join('');
+    $('tvTick').textContent = (brand.tvText || `${ofertas ? '¡Ofertas de hoy' : '¡Bienvenidos'} en ${storeName()}!`) + (list.length ? '   ★   ' + list.map(p => p.name + (p.price ? ' ' + p.price : '')).join('   ★   ') : '');
+    tvI = -1; clearTimeout(tvT); tvNext();
+  }
+  function tvNext(){
+    const sl = $('tvScr').querySelectorAll('.tvsl'); if(!sl.length) return;
+    const prev = sl[(tvI + sl.length) % sl.length]; if(prev && sl.length > 1){ prev.classList.remove('on'); const pv = prev.querySelector('video'); if(pv) pv.pause(); }
+    tvI = (tvI + 1) % sl.length; const cur = sl[tvI]; cur.classList.add('on');
+    const im = cur.querySelector('img'); if(im){ im.style.animation = 'none'; void im.offsetWidth; im.style.animation = ''; }
+    clearTimeout(tvT);
+    const v = cur.querySelector('video');
+    if(v){
+      try{ v.currentTime = 0; }catch(e){}
+      const go = () => { v.onended = null; clearTimeout(tvT); tvT = setTimeout(tvNext, 200); };
+      v.onended = sl.length > 1 ? go : null; v.loop = sl.length === 1;
+      v.play().catch(() => {}); tvT = setTimeout(sl.length > 1 ? go : () => {}, 90000);   // por si el video no avisa que terminó
+    } else tvT = setTimeout(tvNext, cur.classList.contains('tvfull') ? 5000 : 4000);
+  }
+  document.addEventListener('click', e => {
+    const snd = e.target.closest('.tvsnd'); if(!snd) return;
+    e.stopPropagation(); const v = snd.parentElement.querySelector('video'); if(!v) return;
+    v.muted = !v.muted; snd.textContent = v.muted ? '🔇' : '🔊'; if(!v.muted) v.play().catch(() => {});
+  }, true);
+  document.addEventListener('click', e => { const sl = e.target.closest('#tvScr .tvsl.on'); if(sl && sl.dataset.tvpid) goToProduct(sl.dataset.tvpid); });
   function renderDelivery(){
     const row = document.getElementById('dlvRow'); if(!row) return;
     const rs = ridersOf(), on = rs.length && shipList().some(o => o.id === 'moto');
@@ -4172,6 +4249,29 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     $('shipd-' + id).hidden = !e.target.checked; if(e.target.checked) $('shipd-' + id).focus();
     save(); renderDelivery();
   });
+  if($('tvBtn')){
+    const syncTv = () => { $('tvBtn').setAttribute('aria-pressed', String(brand.tv !== false)); $('b-tvtext').value = brand.tvText || ''; };
+    $('tvBtn').addEventListener('click', () => { brand.tv = brand.tv === false; save(); syncTv(); tvSig = ''; renderTV(); });
+    $('b-tvtext').addEventListener('input', e => { brand.tvText = e.target.value; save(); tvSig = ''; renderTV(); });
+    $('brandBtn').addEventListener('click', () => setTimeout(syncTv, 0));
+    const tvMsg = t => { $('tvMsg').textContent = t; };
+    $('b-tvvideo').addEventListener('change', async e => {
+      const f = e.target.files[0]; e.target.value = ''; if(!f) return;
+      if(f.size > 20 * 1024 * 1024) return tvMsg('El video pesa más de 20 MB. Probá con uno más corto (de 15 a 60 segundos va perfecto).');
+      if(!assetsApi) return tvMsg('El video se puede guardar cuando entrás a tu panel con tu cuenta. Probá de nuevo en un momento.');
+      tvMsg('Subiendo el video…');
+      try{ const r = await assetsApi.upload(f); brand.tvVideo = r.url; brand.tv = true; save(); syncTv(); tvSig = ''; renderTV(); tvMsg('Listo: tu video ya pasa en la pantalla. Arranca sin sonido; el cliente lo activa con 🔇.'); }
+      catch(err){ tvMsg('No se pudo subir el video' + (err && err.code === 'too_large' ? ': es muy pesado.' : '. Probá de nuevo más tarde.')); }
+    });
+    $('b-tvphotos').addEventListener('change', async e => {
+      const files = [...e.target.files].filter(f => f.type.startsWith('image/')).slice(0, 8); e.target.value = ''; if(!files.length) return;
+      tvMsg('Preparando las fotos…');
+      const out = []; for(const f of files){ try{ out.push(await shrinkTo(f, 960)); }catch(err){} }
+      brand.tvPhotos = [...(Array.isArray(brand.tvPhotos) ? brand.tvPhotos : []), ...out].slice(-8); brand.tv = true; save(); syncTv(); tvSig = ''; renderTV();
+      tvMsg(`Listo: ${brand.tvPhotos.length} foto${brand.tvPhotos.length === 1 ? '' : 's'} en la pantalla (hasta 8).`);
+    });
+    $('tvClear').addEventListener('click', () => { delete brand.tvVideo; delete brand.tvPhotos; save(); tvSig = ''; renderTV(); tvMsg('Saqué el video y las fotos. La pantalla sigue pasando tus productos.'); });
+  }
   if($('riderList')){
     const setRL = rl => { brand.riderList = rl; delete brand.riders; save(); renderDelivery(); };
     $('riderList').addEventListener('input', e => { const i = e.target.dataset.ri; if(i == null) return; const rl = riderListOf().slice(); rl[+i] = {...rl[+i], name: e.target.value}; setRL(rl); });
