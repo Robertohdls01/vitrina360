@@ -952,6 +952,21 @@ body.pagephoto .plaque,body.pagephoto .mfoot,body.pagephoto .hint{background:var
 .hscroll > *{flex:0 0 auto}
 .hscroll .btn{padding:5px 11px;font-size:13px;white-space:nowrap}
 .hscroll .scope button{white-space:nowrap}
+.slidewrap{grid-column:1/-1;position:relative;width:100%;max-width:780px;margin:0 auto}
+.strack{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:8px 16% 10px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.strack::-webkit-scrollbar{display:none}
+.sitem{flex:0 0 68%;scroll-snap-align:center;scroll-snap-stop:always;transition:transform .35s,opacity .35s;transform:scale(.8);opacity:.6}
+.sitem.on{transform:scale(1);opacity:1}
+.sitem .mini{width:100%}
+.sarrow{position:absolute;top:44%;transform:translateY(-50%);z-index:5;width:46px;height:46px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink,#fff);font:800 26px/1 var(--body);box-shadow:0 8px 18px -8px var(--shadow);cursor:pointer;display:grid;place-items:center;padding:0 0 3px}
+.sarrow.l{left:2px}.sarrow.r{right:2px}
+.sdots{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:2px}
+.sdots button{width:9px;height:9px;border-radius:50%;border:0;background:var(--line);padding:0;cursor:pointer}
+.sdots button.on{background:var(--accent);width:22px;border-radius:999px}
+.sdots.many button{display:none}
+.scount{display:none;font:700 13px var(--body);color:var(--muted)}
+.sdots.many .scount{display:block}
+@media (prefers-reduced-motion:reduce){.strack{scroll-behavior:auto}.sitem{transition:none}}
 .ringwrap{grid-column:1/-1;position:relative;width:min(100%,780px);aspect-ratio:1;margin:0 auto}
 .ring{position:absolute;inset:0;animation:ringspin 140s linear infinite}
 .rslot{position:absolute;left:50%;top:50%;width:var(--tw,120px);margin-left:calc(var(--tw,120px) / -2);margin-top:calc(var(--th,150px) / -2);
@@ -1819,6 +1834,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <span class="scope" role="group" aria-label="Forma de mostrar las vitrinas">
         <button type="button" id="layoutGrid" aria-pressed="true">▦ Grilla</button>
         <button type="button" id="layoutRing" aria-pressed="false">◎ Círculo</button>
+        <button type="button" id="layoutSlide" aria-pressed="false">⇆ Deslizar</button>
         <button type="button" id="layoutFree" aria-pressed="false">✋ Libre</button>
         <button type="button" id="layoutFolleto" aria-pressed="false">📰 Folleto</button>
       </span>
@@ -2447,6 +2463,34 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
     }
   });
   document.addEventListener('keydown', e => { const b = e.target.closest && e.target.closest('.ringcenter.ball'); if(b && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); ballTurn(b, 1); } });
+  let slideIdx = 0;
+  function slideInit(){
+    const tr = document.getElementById('strack'); if(!tr) return;
+    const items = [...tr.querySelectorAll('.sitem')], dots = [...document.querySelectorAll('#slidewrap [data-sdot]')];
+    if(slideIdx >= items.length) slideIdx = 0;
+    const mark = i => { slideIdx = i; items.forEach((x, k) => x.classList.toggle('on', k === i)); dots.forEach((x, k) => x.classList.toggle('on', k === i)); const sc = document.getElementById('scount'); if(sc) sc.textContent = (i + 1) + ' / ' + items.length; };
+    const go = (i, smooth) => { const it = items[i]; if(!it) return; tr.scrollTo({left: it.offsetLeft - (tr.clientWidth - it.clientWidth) / 2, behavior: smooth ? 'smooth' : 'auto'}); mark(i); };
+    tr._go = i => go((i + items.length) % items.length, true);
+    let raf = 0;
+    tr.addEventListener('scroll', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => {
+      const c = tr.scrollLeft + tr.clientWidth / 2; let best = 0, bd = Infinity;
+      items.forEach((x, k) => { const d = Math.abs(x.offsetLeft + x.clientWidth / 2 - c); if(d < bd){ bd = d; best = k; } });
+      if(best !== slideIdx || !items[best].classList.contains('on')) mark(best);
+    }); }, {passive: true});
+    requestAnimationFrame(() => go(slideIdx, false));
+  }
+  document.addEventListener('click', e => {
+    const a = e.target.closest('[data-slide]'), d = e.target.closest('[data-sdot]'), tr = document.getElementById('strack');
+    if(!tr || !tr._go || (!a && !d)) return;
+    e.preventDefault(); e.stopPropagation();
+    tr._go(a ? slideIdx + (+a.dataset.slide) : +d.dataset.sdot);
+  }, true);
+  // tocar una vitrina del costado la trae al centro (no la abre)
+  document.addEventListener('click', e => {
+    const it = e.target.closest('.sitem'); if(!it || it.classList.contains('on')) return;
+    const tr = document.getElementById('strack'); if(!tr || !tr._go) return;
+    e.preventDefault(); e.stopPropagation(); tr._go(+it.dataset.si);
+  }, true);
   function renderHome(){
     const cp = capProds(), full = isFinite(cp) ? cats.filter(c => products.filter(p => p.cat === c.id).length > cp) : [];
     const wn = $('waNote'); if(wn) wn.hidden = PUBLIC || clientMode || !!String(brand.wa || '').replace(/\D/g, '');
@@ -2480,6 +2524,8 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
       const c0 = pos('__center', 0);
       html += `<div class="freewrap" id="freewrap"><div class="fitem fcenter" data-fid="__center" style="left:${c0.x}%;top:${c0.y}%">${centerHTML()}</div>` +
         vis.map((c, i) => { const q = pos(c.id, i); return `<div class="fitem" data-fid="${c.id}" style="left:${q.x}%;top:${q.y}%;--k:${szK(c.size)}">${tileHTML(c, i, false, true)}</div>`; }).join('') + `</div>` + addTile;
+    } else if(brand.layout === 'slide' && vis.length){
+      html += `<div class="slidewrap" id="slidewrap"><button class="sarrow l" type="button" data-slide="-1" aria-label="Vitrina anterior">‹</button><div class="strack" id="strack">${vis.map((c, i) => `<div class="sitem" data-si="${i}">${tileHTML(c, i, false, false)}</div>`).join('')}</div><button class="sarrow r" type="button" data-slide="1" aria-label="Vitrina siguiente">›</button><div class="sdots${vis.length > 12 ? ' many' : ''}">${vis.map((c, i) => `<button type="button" data-sdot="${i}" aria-label="${esc(c.name)}"></button>`).join('')}<span class="scount" id="scount"></span></div></div>` + addTile;
     } else if(ring){
       const nV = vis.length;
       html += `<div class="ringwrap" id="ringwrap"><div class="ring">${vis.map((c, i) => `<div class="rslot" style="--a:${(i * 360 / nV).toFixed(2)}deg;--k:${szK(c.size)}">${tileHTML(c, i, false, true)}</div>`).join('')}</div><div class="ring ringlbl" aria-hidden="true">${vis.map((c, i) => { const np = products.filter(p => p.cat === c.id).length; return `<div class="rslot" style="--a:${(i * 360 / nV).toFixed(2)}deg;--k:${szK(c.size)}"><span class="mini${c.hidden ? ' hiddencat' : ''}${np === 0 ? ' emptycat' : ''}"><span class="plaque"><span class="t">${products.some(p => p.cat === c.id) && products.filter(p => p.cat === c.id).every(p => p.digital) ? '📥 ' : products.some(p => p.cat === c.id) && products.filter(p => p.cat === c.id).every(p => p.service) ? '🗓 ' : ''}${esc(c.name)}</span></span><span class="mstage"></span></span></div>`; }).join('')}</div>
@@ -2497,6 +2543,8 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
     $('sampleBanner').hidden = !products.some(p => p.sample);
     $('layoutGrid').setAttribute('aria-pressed', String(!brand.layout || brand.layout === 'grid'));
     $('layoutRing').setAttribute('aria-pressed', String(brand.layout === 'ring'));
+    $('layoutSlide').setAttribute('aria-pressed', String(brand.layout === 'slide'));
+    slideInit();
     $('layoutFree').setAttribute('aria-pressed', String(free));
     $('layoutFolleto').setAttribute('aria-pressed', String(folleto));
     $('ballBtn').hidden = !(ring || free);
@@ -2545,6 +2593,8 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
       rw.style.setProperty('--cw', (tw * 0.62).toFixed(1) + 'px'); rw.style.setProperty('--cwb', (tw * 0.62).toFixed(1) + 'px');
       rw.style.setProperty('--mp', Math.round(tw * 3.4) + 'px');
     }
+    const sw = $('slidewrap');
+    if(sw){ const s0 = sw.querySelector('.sitem .mstage'); if(s0 && s0.clientWidth){ const w = s0.clientWidth; sw.style.setProperty('--cw', (w * 0.6).toFixed(1) + 'px'); sw.style.setProperty('--cwb', (w * 0.6).toFixed(1) + 'px'); sw.style.setProperty('--mp', Math.round(w * 3.4) + 'px'); } }
     const t = g.querySelector('.homegrid > .mini .mstage, .homegrid > .mini.hiddencat .mstage');
     if(!t || !t.clientWidth) return;
     g.style.setProperty('--cw', (t.clientWidth * 0.6).toFixed(1) + 'px');
@@ -3254,6 +3304,7 @@ Respondé SOLO con JSON: {"name": "nombre corto del modelo, de 1 a 4 palabras, q
     const t = e.target.closest('.mini'); if(t) openCat(t.dataset.cat, t);
   });
   $('layoutGrid').onclick = () => { brand.layout = 'grid'; save(); renderHome(); };
+  $('layoutSlide').onclick = () => { brand.layout = 'slide'; save(); renderHome(); };
   $('layoutRing').onclick = () => { brand.layout = 'ring'; save(); renderHome(); };
   $('layoutFree').onclick = () => { brand.layout = 'free'; save(); renderHome(); };
   $('layoutFolleto').onclick = () => { brand.layout = 'folleto'; save(); renderHome(); };
