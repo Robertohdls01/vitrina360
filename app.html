@@ -838,7 +838,17 @@ select.field{border:1px solid var(--line);background:var(--bg);border-radius:10p
 .shoptools > summary::after{content:" ▾"}
 .shoptools[open] > summary::after{content:" ▴"}
 body.clientmode .shoptools,body.publicmode .shoptools{display:none!important}
-@media (max-width:640px){.controls .hint{display:none}}
+@media (max-width:640px){
+  .controls .hint{display:none}
+  /* en el celular, los controles de la vitrina en una sola fila compacta, para dejar lugar a la vitrina y al producto */
+  .controls{flex-wrap:nowrap;overflow-x:auto;gap:6px;scrollbar-width:none}
+  .controls::-webkit-scrollbar{display:none}
+  .controls > *{flex:0 0 auto}
+  .controls .btn,.controls select{padding:6px 10px;font-size:13px}
+  .viewtog{gap:4px}
+  .viewtog .matbtn{padding:4px 10px;font-size:12.5px}
+  #shopView{gap:8px!important}
+}
 #shopView{padding-bottom:72px}
 body.pagephoto::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:linear-gradient(var(--veil),var(--veil)),var(--page-photo) center/cover no-repeat}
