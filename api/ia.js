@@ -2,24 +2,39 @@
 const TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const { db, estado } = require('./_comun');
 
-// Cuenta las fotos reconocidas mientras la tienda está en prueba gratis (se guarda en la cuenta del comerciante, donde él no lo puede tocar).
-// LIMITE_FOTOS_PRUEBA en Vercel cambia el número; IA_SIN_LIMITE (mails separados por coma) deja sin límite, por ejemplo al dueño de Vitrina 360.
-async function cupoPrueba(user) {
+// Cupo de productos reconocidos con IA (se guarda en la cuenta del comerciante, donde él no lo puede tocar).
+// Prueba gratis o cuenta sin pagar: LIMITE_FOTOS_PRUEBA en total (10). Planes pagos: por mes, se renueva el día 1:
+// LIMITE_FOTOS_START (350), LIMITE_FOTOS_PLUS (700), LIMITE_FOTOS_PRO (2500); alcanza para llenar la tienda entera en un mes. IA_SIN_LIMITE (mails separados por coma) no tiene límite.
+const PLAN_CUPO = { emprendedora: ['LIMITE_FOTOS_START', 350, 'Start'], comercio: ['LIMITE_FOTOS_PLUS', 700, 'Plus'], pro: ['LIMITE_FOTOS_PRO', 2500, 'Pro'] };
+async function cupoIA(user) {
   const SK = process.env.SUPABASE_SERVICE_KEY, base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
   if (!SK || !user || !user.id) return null;
   const libres = String(process.env.IA_SIN_LIMITE || '').toLowerCase().split(',').map(x => x.trim()).filter(Boolean);
   if (user.email && libres.includes(String(user.email).toLowerCase())) return null;
-  try {
-    const rows = await db('GET', '/rest/v1/tiendas?owner=eq.' + user.id + '&select=owner,prueba_hasta,pagada_hasta,activa,plan');
-    if (rows && rows[0] && estado(rows[0]).estado === 'activa') return null; // ya paga: sin este límite
-  } catch (e) { return null; } // si la base no responde, no se le corta la IA a nadie
-  const limite = Math.max(0, Number(process.env.LIMITE_FOTOS_PRUEBA || 10));
-  const meta = user.app_metadata || {}, usadas = Number(meta.ia_prueba) || 0;
-  if (usadas >= limite) return { agotado: true, limite };
+  let row = null;
+  try { const rows = await db('GET', '/rest/v1/tiendas?owner=eq.' + user.id + '&select=owner,prueba_hasta,pagada_hasta,activa,plan'); row = rows && rows[0]; }
+  catch (e) { return null; } // si la base no responde, no se le corta la IA a nadie
+  const meta = user.app_metadata || {};
+  const paga = row && estado(row).estado === 'activa';
+  let limite, usadas, cambio, aviso;
+  if (paga) {
+    const [env, def, nombre] = PLAN_CUPO[row.plan] || PLAN_CUPO.emprendedora;
+    const mes = new Date().toISOString().slice(0, 7);
+    limite = Math.max(0, Number(process.env[env] || def));
+    usadas = meta.ia_mes === mes ? Number(meta.ia_usadas) || 0 : 0;
+    cambio = () => ({ ia_mes: mes, ia_usadas: usadas + 1 });
+    aviso = `Llegaste a los ${limite} productos reconocidos con IA de este mes en tu plan ${nombre}. Se renuevan el día 1; mientras, completá los datos a mano, o pasate a un plan más alto para tener más.`;
+  } else {
+    limite = Math.max(0, Number(process.env.LIMITE_FOTOS_PRUEBA || 10));
+    usadas = Number(meta.ia_prueba) || 0;
+    cambio = () => ({ ia_prueba: usadas + 1 });
+    aviso = `Usaste los ${limite} productos con IA de la prueba gratis. Elegí un plan para seguir reconociendo productos; mientras, completá los datos a mano.`;
+  }
+  if (usadas >= limite) return { agotado: true, limite, aviso };
   return { limite, sumar: async () => {
     const headers = { apikey: SK, 'Content-Type': 'application/json' };
     if (String(SK).startsWith('eyJ')) headers.Authorization = 'Bearer ' + SK;
-    try { await fetch(base + '/auth/v1/admin/users/' + user.id, { method: 'PUT', headers, body: JSON.stringify({ app_metadata: Object.assign({}, meta, { ia_prueba: usadas + 1 }) }) }); } catch (e) {}
+    try { await fetch(base + '/auth/v1/admin/users/' + user.id, { method: 'PUT', headers, body: JSON.stringify({ app_metadata: Object.assign({}, meta, cambio()) }) }); } catch (e) {}
   } };
 }
 module.exports = async (req, res) => {
@@ -49,9 +64,9 @@ module.exports = async (req, res) => {
     if (!im || typeof im.data !== 'string' || im.data.length > 5000000) return res.status(400).json({ error: 'Foto inválida o muy pesada.' });
     content.push({ type: 'image', source: { type: 'base64', media_type: TYPES.includes(im.type) ? im.type : 'image/jpeg', data: im.data } });
   }
-  // Prueba gratis: pocas fotos reconocidas con IA, para que vean que funciona sin que se gaste de más.
-  const cupo = images.length > 0 ? await cupoPrueba(user) : null;
-  if (cupo && cupo.agotado) return res.status(403).json({ error: `Usaste las ${cupo.limite} fotos con IA de la prueba gratis. Elegí un plan para seguir reconociendo productos; mientras, completá los datos a mano.`, limite: cupo.limite });
+  // Cupo de IA: pocas en la prueba gratis; en los planes, un cupo por mes.
+  const cupo = images.length > 0 ? await cupoIA(user) : null;
+  if (cupo && cupo.agotado) return res.status(403).json({ error: cupo.aviso, limite: cupo.limite });
   content.push({ type: 'text', text: prompt + (body.json ? '\n\nRespondé únicamente con JSON válido, sin texto antes ni después.' : '') });
 
   // Todo lo que lleva fotos (reconocer productos, catálogos, enderezar): el modelo más potente, Opus.
