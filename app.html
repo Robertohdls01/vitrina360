@@ -959,6 +959,7 @@ body.pagephoto .plaque,body.pagephoto .mfoot,body.pagephoto .hint{background:var
 .rslot .mini{animation:ringcounter 140s linear infinite;width:100%}
 .rslot .plaque{font-size:12px;justify-content:center;background:var(--surface);border-radius:999px;padding:2px 8px;box-shadow:0 3px 8px -5px var(--shadow)}
 .rslot .plaque .mnum{display:none}
+.ringwrap .rslot .plaque{max-width:max(5.5em, calc(var(--tw,120px) * var(--k,1) * 1.35))}
 .rslot .mini,.fitem .mini{overflow:visible}
 .ringlbl{pointer-events:none;z-index:3}.ringlbl .mstage{visibility:hidden;background:none;box-shadow:none}#ringwrap .ring:not(.ringlbl) .plaque{visibility:hidden}
 .editing .ringlbl{display:none}.editing #ringwrap .ring:not(.ringlbl) .plaque{visibility:visible}
@@ -2524,8 +2525,16 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
       const W = rw.clientWidth, n = rw.querySelectorAll('.ring:not(.ringlbl) > .rslot').length;
       // en círculo, el tamaño crece hasta donde entran sin pisarse
       // con aire entre vitrinas y alrededor de la bola, para que no se choquen
-      const tw = W * [0.6, 0.75, 0.9, 1, 1][hs] * Math.min(0.25, 3.0 / (n * 1.32 + 3.83));
-      const rc = rw.querySelector(':scope > .ringcenter'); if(rc) rc.style.width = Math.min(33, 27 * BALLK[(brand.ballSize | 0) + 2]).toFixed(1) + '%';
+      // Vitrinas separadas entre sí y lejos de la bola: si no entran, primero se achican las vitrinas y al final la bola.
+      const tw0 = W * [0.6, 0.75, 0.9, 1, 1][hs] * Math.min(0.25, 3.0 / (n * 1.32 + 3.83));
+      const kmax = Math.max(1, ...[...rw.querySelectorAll('.ring:not(.ringlbl) > .rslot')].map(el => +getComputedStyle(el).getPropertyValue('--k') || 1));
+      const gap = W * 0.03, b0 = Math.min(33, 27 * BALLK[(brand.ballSize | 0) + 2]);
+      const fits = (t, bp) => { const h = t * 1.22, R = W / 2 - h / 2 - 6, hd = Math.hypot(t, t) / 2 * kmax;
+        return R - hd >= W * bp / 200 + gap && (n < 2 || 2 * R * Math.sin(Math.PI / n) >= 2 * hd * 0.92 + gap); };
+      let tw = tw0, bp = b0;
+      while(!fits(tw, bp) && tw > tw0 * 0.62) tw *= 0.97;
+      while(!fits(tw, bp) && bp > b0 * 0.6) bp *= 0.96;
+      const rc = rw.querySelector(':scope > .ringcenter'); if(rc) rc.style.width = bp.toFixed(1) + '%';
       const th = tw * 1.22;
       rw.style.setProperty('--tw', tw.toFixed(1) + 'px');
       rw.style.setProperty('--th', th.toFixed(1) + 'px');
