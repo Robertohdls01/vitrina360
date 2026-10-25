@@ -37,7 +37,20 @@ async function guardar(ref, p, otraVez) {
   }
 }
 // Lo que ve el cliente: sin los datos internos del comercio.
-const paraCliente = p => ({ estado: p.estado, repartidor: p.repartidor || '', salio_en: p.salio_en || null, creado: p.creado, envio: p.envio || '', demora: p.demora || '' });
+const paraCliente = p => ({ estado: p.estado, repartidor: p.repartidor || '', salio_en: p.salio_en || null, creado: p.creado, envio: p.envio || '', demora: p.demora || '', digital: (p.items || []).some(it => it.d) });
+// Links de descarga que vencen en 3 días, solo cuando el comercio marcó el pedido como pagado/listo.
+async function descargas(p) {
+  const out = [];
+  for (const it of (p.items || []).filter(x => x.d && x.f)) {
+    try {
+      const r = await fetch(base() + '/object/sign/digitales/' + it.f, { method: 'POST', headers: headers({ 'Content-Type': 'application/json' }), body: JSON.stringify({ expiresIn: 3 * 86400 }) });
+      const j = await r.json().catch(() => ({}));
+      const u = j.signedURL || j.signedUrl;
+      if (r.ok && u) out.push({ n: it.n, url: base() + u + (u.includes('?') ? '&' : '?') + 'download=' + encodeURIComponent(it.fn || it.n) });
+    } catch (e) {}
+  }
+  return out;
+}
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
@@ -49,7 +62,9 @@ module.exports = async (req, res) => {
       if (!okRef(q.ref)) return res.status(400).json({ error: 'Pedido inválido.' });
       const p = await leer(q.ref);
       if (!p || !q.k || p.k !== String(q.k)) return res.status(404).json({ error: 'No encontramos ese pedido.' });
-      return res.status(200).json(paraCliente(p));
+      const c = paraCliente(p);
+      if (c.digital && (p.estado === 'listo' || p.estado === 'entregado')) c.descargas = await descargas(p);
+      return res.status(200).json(c);
     }
 
     // ---- Cliente: manda un pedido nuevo desde la tienda pública ----
@@ -57,11 +72,15 @@ module.exports = async (req, res) => {
       const b = cuerpo(req);
       const slug = String(b.slug || '');
       if (!/^[a-z0-9-]{3,40}$/.test(slug)) return res.status(400).json({ error: 'Tienda inválida.' });
-      const items = Array.isArray(b.items) ? b.items.slice(0, 60).map(it => ({ n: corto(it && it.n, 120), q: Math.max(1, Math.min(999, parseInt(it && it.q, 10) || 1)), p: corto(it && it.p, 30) })) : [];
+      const items = Array.isArray(b.items) ? b.items.slice(0, 60).map(it => ({ n: corto(it && it.n, 120), q: Math.max(1, Math.min(999, parseInt(it && it.q, 10) || 1)), p: corto(it && it.p, 30), id: corto(it && it.id, 40) })) : [];
       if (!items.length) return res.status(400).json({ error: 'El pedido está vacío.' });
-      const rows = await db('GET', '/rest/v1/tiendas?slug=eq.' + slug + '&select=owner,activa');
+      const rows = await db('GET', '/rest/v1/tiendas?slug=eq.' + slug + '&select=owner,activa,data');
       const t = rows && rows[0];
       if (!t || t.activa === false) return res.status(404).json({ error: 'Esta tienda no está disponible.' });
+      // productos digitales: el archivo sale del catálogo guardado del comercio (así nadie puede pedir un archivo ajeno)
+      const catalogo = {};
+      try { (((t.data || {}).stores) || []).forEach(st => (st.products || []).forEach(p => { if (p && p.id && p.digital && p.file && p.file.ref && String(p.file.ref).startsWith(t.owner + '/')) catalogo[p.id] = p.file; })); } catch (e) {}
+      items.forEach(it => { const f = catalogo[it.id]; if (f) { it.d = 1; it.f = String(f.ref); it.fn = corto(f.name, 120); } delete it.id; });
       await asegurarBucket();
       const id = Date.now().toString(36) + crypto.randomBytes(5).toString('hex');
       const ref = t.owner + '/' + id;

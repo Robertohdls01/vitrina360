@@ -649,6 +649,14 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 .shiprow .nm{font-weight:600}
 .shiprow input[type=text]{grid-column:1/-1}
 .shipbox{display:grid;gap:6px}
+.digbox{display:grid;gap:8px;border:1px dashed var(--line);border-radius:12px;padding:10px 12px}
+.digchk{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-weight:500}
+.digchk input{accent-color:var(--accent);width:18px;height:18px}
+.digfields{display:grid;gap:8px}
+.digfields[hidden]{display:none}
+.dbadge{display:inline-block;background:var(--accent);color:var(--accent-ink,#fff);font:700 12px/1 var(--body);padding:4px 8px;border-radius:999px;vertical-align:middle;margin-left:6px}
+.trk-dl{display:grid;gap:6px;margin-top:6px}
+.trk-dl a{font-size:13px;padding:6px 10px}
 .riderbox{display:grid;gap:8px;margin-top:10px}
 .riderrow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center}
 .riderrow input{border:1px solid var(--line);background:var(--bg);color:inherit;border-radius:10px;padding:8px 10px;min-width:0}
@@ -1758,6 +1766,16 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
         <label for="f-feats">Características <small>Se completan solas al subir la foto. Una por línea; “Clave: valor” se ve como ficha.</small>
           <textarea id="f-feats" placeholder="Material: cuero vacuno&#10;Talles: S a XL&#10;Color: marrón tabaco&#10;Forro térmico desmontable"></textarea>
         </label>
+        <div class="digbox">
+          <label class="digchk"><input type="checkbox" id="f-digital"> <strong>📥 Producto digital</strong> <small>PDF, plantilla, ebook, curso, música, NFT… Se descarga en vez de enviarse.</small></label>
+          <div class="digfields" id="digFields" hidden>
+            <label class="btn" for="f-file" style="display:inline-flex;justify-self:start">📎 Subir el archivo<input type="file" id="f-file" class="vh"></label>
+            <span class="note" id="fileMsg" role="status" style="margin:0"></span>
+            <label for="f-link">Link externo <small>Opcional. Por ejemplo, para un NFT: la página donde se compra (OpenSea u otra).</small>
+              <input type="url" id="f-link" maxlength="300" placeholder="https://opensea.io/...">
+            </label>
+          </div>
+        </div>
         <label for="f-cat">Vitrina
           <select class="field" id="f-cat"></select>
         </label>
@@ -2230,7 +2248,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
         const items = products.filter(p => p.cat === c.id).sort((x, y) => (y.featured ? 1 : 0) - (x.featured ? 1 : 0) || x.added - y.added);
         if(!items.length) return '';
         const per = brand.flyerPer || 0, pg = flyerPage[c.id] || 0, nP = per ? Math.ceil(items.length / per) : 1, shown = per ? items.slice(pg * per, pg * per + per) : items;
-        return `<section class="fsec"><h3 class="fhead">${esc(c.name)}${nP > 1 ? ` <small class="fpg">Hoja ${pg + 1} de ${nP}</small>` : ''}</h3><div class="fgrid${per === 10 ? ' f10' : per === 20 ? ' f20' : ''}">${shown.map(p => `<button class="fcard${p.featured ? ' ffeat' : ''}" type="button" data-pid="${p.id}" aria-label="${esc(p.name)}"><span class="fimg"><img src="${p.img}" alt="" loading="lazy" draggable="false"></span><span class="fname">${esc(p.name)}</span>${p.price ? `<span class="fprice">${esc(p.price)}</span>` : ''}</button>`).join('')}</div>${nP > 1 ? pagerHTML(c.id, pg, nP) : ''}</section>`;
+        return `<section class="fsec"><h3 class="fhead">${products.some(p => p.cat === c.id) && products.filter(p => p.cat === c.id).every(p => p.digital) ? '📥 ' : ''}${esc(c.name)}${nP > 1 ? ` <small class="fpg">Hoja ${pg + 1} de ${nP}</small>` : ''}</h3><div class="fgrid${per === 10 ? ' f10' : per === 20 ? ' f20' : ''}">${shown.map(p => `<button class="fcard${p.featured ? ' ffeat' : ''}" type="button" data-pid="${p.id}" aria-label="${esc(p.name)}"><span class="fimg"><img src="${p.img}" alt="" loading="lazy" draggable="false"></span><span class="fname">${esc(p.name)}</span>${p.price ? `<span class="fprice">${esc(p.price)}</span>` : ''}</button>`).join('')}</div>${nP > 1 ? pagerHTML(c.id, pg, nP) : ''}</section>`;
       }).join('') + `</div>`;
       html = html.replace('<div class="folleto">', `<div class="flyerbar">${flyerBgHTML()}</div><div class="folleto fbg-${brand.flyerBg || 'blanco'}">`);
     } else if(free){
@@ -2249,7 +2267,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
         vis.map((c, i) => { const q = pos(c.id, i); return `<div class="fitem" data-fid="${c.id}" style="left:${q.x}%;top:${q.y}%;--k:${szK(c.size)}">${tileHTML(c, i, false, true)}</div>`; }).join('') + `</div>` + addTile;
     } else if(ring){
       const nV = vis.length;
-      html += `<div class="ringwrap" id="ringwrap"><div class="ring">${vis.map((c, i) => `<div class="rslot" style="--a:${(i * 360 / nV).toFixed(2)}deg;--k:${szK(c.size)}">${tileHTML(c, i, false, true)}</div>`).join('')}</div><div class="ring ringlbl" aria-hidden="true">${vis.map((c, i) => { const np = products.filter(p => p.cat === c.id).length; return `<div class="rslot" style="--a:${(i * 360 / nV).toFixed(2)}deg;--k:${szK(c.size)}"><span class="mini${c.hidden ? ' hiddencat' : ''}${np === 0 ? ' emptycat' : ''}"><span class="plaque"><span class="t">${esc(c.name)}</span></span><span class="mstage"></span></span></div>`; }).join('')}</div>
+      html += `<div class="ringwrap" id="ringwrap"><div class="ring">${vis.map((c, i) => `<div class="rslot" style="--a:${(i * 360 / nV).toFixed(2)}deg;--k:${szK(c.size)}">${tileHTML(c, i, false, true)}</div>`).join('')}</div><div class="ring ringlbl" aria-hidden="true">${vis.map((c, i) => { const np = products.filter(p => p.cat === c.id).length; return `<div class="rslot" style="--a:${(i * 360 / nV).toFixed(2)}deg;--k:${szK(c.size)}"><span class="mini${c.hidden ? ' hiddencat' : ''}${np === 0 ? ' emptycat' : ''}"><span class="plaque"><span class="t">${products.some(p => p.cat === c.id) && products.filter(p => p.cat === c.id).every(p => p.digital) ? '📥 ' : ''}${esc(c.name)}</span></span><span class="mstage"></span></span></div>`; }).join('')}</div>
         ${centerHTML()}</div>`;
       html += addTile;
     } else {
@@ -2708,7 +2726,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
       </div>
       <div style="min-width:0">
         <div class="eyebrow">${ph.length} foto${ph.length===1?'':'s'}${p.sample?' · Ejemplo':''}</div>
-        <h2 id="mTitle">${esc(p.name)}</h2>
+        <h2 id="mTitle">${esc(p.name)}${p.digital ? '<span class="dbadge">📥 Digital</span>' : ''}</h2>
         ${curPrice(p) ? `<div class="price">${esc(curPrice(p))}</div>` : ''}
         ${modelsHTML(p, 'data-m', true)}
         ${variantOf(p) ? `<div class="vedit"><input type="text" id="mv-name" maxlength="40" value="${esc(variantOf(p).name)}" aria-label="Nombre del modelo"><input type="text" id="mv-price" maxlength="20" value="${esc(variantOf(p).price || '')}" placeholder="Precio (si cambia)" aria-label="Precio del modelo"></div>
@@ -2717,6 +2735,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
         ${feats ? `<ul class="feats">${feats}</ul>` : `<p class="nofeat">Este producto todavía no tiene características.</p>`}
         <div class="actions">
           <button class="btn primary" type="button" data-m="cart">＋ Agregar al pedido</button>
+          ${p.extLink ? `<a class="btn" href="${esc(p.extLink)}" target="_blank" rel="noopener">🔗 Ver en el sitio</a>` : ''}
           ${waHref(productMsg(p)) ? `<a class="btn wa" href="${waHref(productMsg(p))}" target="_blank" rel="noopener">Consultar por WhatsApp</a>` : ''}
           <button class="btn" type="button" data-m="add">Agregar más fotos</button>
           ${photoIdx > 0 ? `<button class="btn danger" type="button" data-m="del">${delArmed ? '¿Seguro? Tocá de nuevo' : 'Quitar esta foto'}</button>` : ''}
@@ -3503,7 +3522,33 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
   ['dragleave','drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
   drop.addEventListener('drop', e => takeFiles(e.dataTransfer.files));
 
+  // ---- Productos digitales: archivo privado + link externo opcional ----
+  let formFile = null;
+  const fileSize = n => n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+  function digForm(p){
+    formFile = p && p.file ? p.file : null;
+    $('f-digital').checked = !!(p && p.digital); $('digFields').hidden = !$('f-digital').checked;
+    $('f-link').value = (p && p.extLink) || '';
+    $('fileMsg').textContent = formFile ? `Archivo: ${formFile.name} (${fileSize(formFile.size || 0)})` : '';
+  }
+  $('f-digital').addEventListener('change', e => { $('digFields').hidden = !e.target.checked; });
+  $('f-file').addEventListener('change', async e => {
+    const f = e.target.files[0]; e.target.value = ''; if(!f) return;
+    if(f.size > 100 * 1024 * 1024){ $('fileMsg').textContent = 'El archivo pesa más de 100 MB. Probá comprimirlo o dividirlo.'; return; }
+    if(!window.VITRINA_TOKEN){ $('fileMsg').textContent = 'Para subir archivos entrá a tu panel con tu cuenta.'; return; }
+    $('fileMsg').textContent = `Subiendo ${f.name}…`; $('submitBtn').disabled = true;
+    try{
+      const r = await fetch('/api/digital', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await window.VITRINA_TOKEN()}, body: JSON.stringify({nombre: f.name, tipo: f.type})});
+      const j = await r.json(); if(!r.ok) throw new Error(j.error || 'subida');
+      const up = await fetch(j.url, {method: 'PUT', headers: {'Content-Type': f.type || 'application/octet-stream', 'x-upsert': 'true'}, body: f});
+      if(!up.ok) throw new Error('subida');
+      formFile = {ref: j.ref, name: f.name, size: f.size};
+      $('fileMsg').textContent = `✓ Archivo guardado en privado: ${f.name} (${fileSize(f.size)}). Tus clientes lo descargan cuando marques el pedido como pagado.`;
+    }catch(err){ $('fileMsg').textContent = 'No se pudo subir el archivo. Revisá internet y probá de nuevo.'; }
+    $('submitBtn').disabled = false;
+  });
   function startEdit(p){
+    digForm(p);
     editingId = p.id; pending = [];
     $('formTitle').textContent = 'Editar producto';
     $('submitBtn').textContent = 'Guardar cambios';
@@ -3515,8 +3560,14 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     $('dropTitle').textContent = 'Foto actual'; $('dropSub').textContent = 'Tocá acá si querés reemplazarla.';
     $('f-name').focus();
   }
+  function digApply(p){
+    const link = $('f-link').value.trim();
+    if($('f-digital').checked){ p.digital = true; if(formFile) p.file = formFile; if(/^https?:\/\//i.test(link)) p.extLink = link; else delete p.extLink; }
+    else { delete p.digital; delete p.file; delete p.extLink; }
+  }
   function resetForm(){
     aiCtl?.abort(); aiCtl = null;
+    try{ digForm(null); }catch(e){}
     editingId = null; pending = [];
     $('form').reset();
     $('f-name').dataset.auto = ''; $('f-feats').dataset.auto = '';
@@ -3546,6 +3597,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       if(!p){ resetForm(); return; }
       if(!name){ $('formMsg').textContent = 'Escribí el nombre del producto.'; $('f-name').focus(); return; }
       Object.assign(p, {name, price, features, cat, sample:false});
+      digApply(p);
       delete p.review;
       if(pending[0]) p.img = pending[0].src;
       newId = p.id;
@@ -3560,6 +3612,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
           name: pending.length === 1 ? (name || ai.name || ph.name) : (ai.name || ph.name),
           price: pending.length === 1 ? price : '',
           features: pending.length === 1 ? features : (ai.features || [])};
+        if(pending.length === 1) digApply(p);
         products.push(p); created.push(p); if(i === 0) newId = p.id;
       });
       const usedCats = [...new Set(created.map(p => p.cat))];
@@ -4210,7 +4263,8 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   // Datos del cliente para la entrega y pedido para regalo (los pide la cajera; viajan en el pedido).
   const buyer = {name:'', tel:'', dir:'', ref:''}, gift = {on:false, who:'', msg:''};
   const GIFT_WHO = ['Mujer', 'Hombre', 'Niña', 'Niño', 'Otro'];
-  const needAddr = () => !!shipSel && shipSel !== 'retiro';
+  const allDigital = () => { const it = cartItems(); return it.length > 0 && it.every(x => x.p && x.p.digital); };
+  const needAddr = () => !allDigital() && !!shipSel && shipSel !== 'retiro';
   // Repartidores: lista con nombre y chico/chica (antes era un texto con nombres separados por coma).
   const riderListOf = () => Array.isArray(brand.riderList) ? brand.riderList : String(brand.riders || '').split(',').map(x => x.trim()).filter(Boolean).map(n => ({name: n, f: false}));
   const ridersOf = () => riderListOf().map(r => String(r.name || '').trim()).filter(Boolean).slice(0, 8);
@@ -4365,7 +4419,7 @@ const walletHref = v => { v = String(v || '').trim(); return /^https?:\/\//i.tes
 function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const v = priceNum(it.price); if(v === Infinity) unpriced++; else t += v * it.q; }); return {t, unpriced}; }
   function orderText(items){
     const {t, unpriced} = cartTotal(items);
-    const lines = items.map(it => `• ${it.q} x ${it.name}${it.price ? ' — ' + it.price + L(' c/u', ' each', ' cada') : L(' — consultar precio', ' — ask for price', ' — consultar preço')}`);
+    const lines = items.map(it => `• ${it.q} x ${it.p && it.p.digital ? '📥 ' : ''}${it.name}${it.price ? ' — ' + it.price + L(' c/u', ' each', ' cada') : L(' — consultar precio', ' — ask for price', ' — consultar preço')}`);
     const so = shipList().find(o => o.id === shipSel);
     const ship = so ? `\n${L('Entrega', 'Delivery', 'Entrega')}: ${trCat(so.name)}${so.detail ? ' (' + so.detail + ')' : ''}` : '';
     const extra = unpriced ? L(' (más productos a consultar)', ' (plus items to confirm)', ' (mais itens a consultar)') : '';
@@ -4586,7 +4640,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         </li>`).join('')}</ul>
         <div class="carttotal"><span>Total</span><span class="v">${fmt(t)}</span></div>
         ${unpriced ? `<p class="note" style="margin:0">${unpriced} producto${unpriced===1?'':'s'} sin precio: el comercio te lo confirma.</p>` : ''}
-        ${shipList().length ? `<div class="shipbox"><strong>¿Cómo lo recibís?</strong>${shipList().map(o => `<label class="shipopt"><input type="radio" name="ship" value="${o.id}" ${shipSel===o.id?'checked':''}><span>${esc(o.name)}</span>${o.detail ? `<small>${esc(o.detail)}</small>` : ''}${o.id === 'moto' && brand.delay ? `<small>${esc(M('delay_now', {d: delayTr(brand.delay)}))}</small>` : ''}</label>`).join('')}</div>` : ''}
+        ${allDigital() ? `<p class="note" style="margin:0">📥 ${esc(L('Productos digitales: los descargás desde acá cuando el comercio confirme tu pago.', 'Digital products: you download them here once the store confirms your payment.', 'Produtos digitais: você baixa aqui quando a loja confirmar o pagamento.'))}</p>` : ''}
+        ${shipList().length && !allDigital() ? `<div class="shipbox"><strong>¿Cómo lo recibís?</strong>${shipList().map(o => `<label class="shipopt"><input type="radio" name="ship" value="${o.id}" ${shipSel===o.id?'checked':''}><span>${esc(o.name)}</span>${o.detail ? `<small>${esc(o.detail)}</small>` : ''}${o.id === 'moto' && brand.delay ? `<small>${esc(M('delay_now', {d: delayTr(brand.delay)}))}</small>` : ''}</label>`).join('')}</div>` : ''}
         <div class="shipbox"><strong>Tus datos</strong>
           <input class="bfield" type="text" data-b="name" maxlength="80" autocomplete="name" placeholder="Nombre y apellido" value="${esc(buyer.name)}">
           <input class="bfield" type="tel" data-b="tel" maxlength="30" autocomplete="tel" placeholder="Teléfono" value="${esc(buyer.tel)}">
@@ -4625,7 +4680,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const slug = window.VITRINA_SLUG; if(!PUBLIC || !slug) return Promise.resolve(null);
     const items = cartItems(); if(!items.length) return Promise.resolve(null);
     const {t, unpriced} = cartTotal(items), na = needAddr();
-    const body = {slug, items: items.map(it => ({n: it.name, q: it.q, p: it.price || ''})), total: fmt(t) + (unpriced ? ' + a consultar' : ''),
+    const body = {slug, items: items.map(it => ({n: it.name, q: it.q, p: it.price || '', id: it.p ? it.p.id : ''})), total: fmt(t) + (unpriced ? ' + a consultar' : ''),
       envio: o ? o.name : '', envio_id: o ? o.id : '', demora: brand.delay || '',
       comprador: {nombre: buyer.name, tel: buyer.tel, dir: na ? buyer.dir : '', ref: na ? buyer.ref : ''},
       regalo: gift.on ? {si: true, para: gift.who, mensaje: gift.msg} : null};
@@ -4659,7 +4714,14 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       } else if(st.estado === 'listo'){
         clearInterval(trkTick); clearInterval(trkPoll); el.classList.add('done');
         el.querySelector('.trk-clock').textContent = '✅';
-        el.querySelector('.trk-txt strong').textContent = M(info.retiro ? 'trk_pick' : 'trk_ready');
+        el.querySelector('.trk-txt strong').textContent = st.digital ? L('¡Pago confirmado! Descargá tus archivos:', 'Payment confirmed! Download your files:', 'Pagamento confirmado! Baixe seus arquivos:') : M(info.retiro ? 'trk_pick' : 'trk_ready');
+        if(st.digital && Array.isArray(st.descargas) && st.descargas.length){
+          const dl = document.createElement('span'); dl.className = 'trk-dl';
+          dl.innerHTML = st.descargas.map(d => `<a class="btn primary" href="${esc(d.url)}" target="_blank" rel="noopener">📥 ${esc(d.n)}</a>`).join('');
+          el.querySelector('.trk-txt').appendChild(dl);
+          el.querySelector('.trk-x').onclick = () => { el.hidden = true; trkSave(null); };
+          return;   // queda a la vista hasta que el cliente lo cierre
+        }
         if(typeof cajeraOn === 'function' && cajeraOn()) cSpeak(M(info.retiro ? 'trk_pick' : 'trk_ready'));
         trkSave(null); setTimeout(() => trackEnd(el), 60000);
       } else if(st.estado === 'entregado' || st.estado === 'cancelado') trackEnd(el, true);
@@ -4690,14 +4752,14 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         const c = p.comprador || {}, moto = p.envio_id === 'moto', abierto = p.estado === 'preparando';
         return `<div class="ordcard st-${esc(p.estado)}">
           <div class="oh"><strong>${esc(c.nombre || 'Cliente')} · ${hora(p.creado)}</strong><span class="ost">${ORD_ST[p.estado] || esc(p.estado)}${p.estado === 'salio' && p.repartidor ? ' con ' + esc(p.repartidor) : ''}</span></div>
-          <ul>${(p.items || []).map(it => `<li>${it.q} x ${esc(it.n)}${it.p ? ' — ' + esc(it.p) : ''}</li>`).join('')}</ul>
+          <ul>${(p.items || []).map(it => `<li>${it.d ? '📥 ' : ''}${it.q} x ${esc(it.n)}${it.p ? ' — ' + esc(it.p) : ''}</li>`).join('')}</ul>
           <div><strong>Total:</strong> ${esc(p.total || '')}${p.envio ? ` · <strong>Entrega:</strong> ${esc(p.envio)}` : ''}</div>
           ${c.dir ? `<div>📍 ${esc(c.dir)}${c.ref ? ' — ' + esc(c.ref) : ''}</div>` : ''}
           ${c.tel ? `<div>📞 ${esc(c.tel)}</div>` : ''}
           ${p.regalo ? `<div>🎁 Para regalo${p.regalo.para ? ' (' + esc(p.regalo.para) + ')' : ''}: bolsa especial y moño${p.regalo.mensaje ? ` · Tarjeta: “${esc(p.regalo.mensaje)}”` : ''}</div>` : ''}
           ${abierto ? `<div class="oacts">
             ${moto ? `${rs.length ? `<select data-orider="${esc(p.ref)}" aria-label="Repartidor">${rs.map(r => `<option>${esc(r)}</option>`).join('')}</select>` : ''}<button class="btn primary" type="button" data-o="salio" data-ref="${esc(p.ref)}">🛵 Salió</button>`
-              : `<button class="btn primary" type="button" data-o="listo" data-ref="${esc(p.ref)}">✅ Listo</button>`}
+              : `<button class="btn primary" type="button" data-o="listo" data-ref="${esc(p.ref)}">${(p.items || []).some(it => it.d) ? '✅ Pagado · habilitar descarga' : '✅ Listo'}</button>`}
             <button class="btn danger" type="button" data-o="cancelado" data-ref="${esc(p.ref)}">Cancelar</button>
           </div>` : (p.estado === 'salio' || p.estado === 'listo') ? `<div class="oacts"><button class="btn" type="button" data-o="entregado" data-ref="${esc(p.ref)}">📦 Entregado</button></div>` : ''}
         </div>`; }).join('')}</div>` : `<p class="nofeat">Todavía no hay pedidos. Cuando un cliente mande uno desde tu tienda, aparece acá.</p>`}
