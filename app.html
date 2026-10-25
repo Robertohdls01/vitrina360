@@ -1027,6 +1027,16 @@ body.clientmode .ringlbl .rslot:has(.emptycat),body.clientmode .ringlbl .rslot:h
 .nchip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:13.5px}
 .nchip:hover{border-color:var(--accent);color:var(--accent)}
 .searchbar{position:relative;z-index:30}
+.sbrow{display:flex;gap:8px;align-items:center;min-width:0}
+.sbrow > .searchbar{flex:1 1 auto;min-width:0}
+.sbrow > .storebar{flex:0 1 auto;max-width:45%;padding:8px 6px;margin:-8px -2px;min-width:0}
+.sbrow > .storebar:empty{display:none}
+@media (max-width:640px){
+  #catMenuBtn{font-size:0;padding:6px 11px}
+  #catMenuBtn::before{content:"☰";font-size:18px}
+  .sbrow > .storebar{max-width:40%}
+  .sbox input{font-size:14px}
+}
 .sbox{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 4px 4px 14px;box-shadow:0 6px 16px -12px var(--shadow)}
 .sbox:focus-within{border-color:var(--accent)}
 .sbox input{flex:1;min-width:0;border:0;background:transparent;padding:8px 2px;font-size:15px;outline:none}
@@ -1052,6 +1062,18 @@ body.clientmode .ringlbl .rslot:has(.emptycat),body.clientmode .ringlbl .rslot:h
 .storechip[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;font-weight:600}
 .storechip .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--bg);border:1px solid var(--line);font:800 13px var(--display);overflow:hidden}
 .storechip .av img{width:100%;height:100%;object-fit:cover}
+.storechip .nm{display:inline-block}
+.storechip.glow{--gg:linear-gradient(90deg,#ff2bd6,#ffe600,#00ff9c,#00d4ff,#b14bff,#ff2bd6);--gc:#ff2bd6;border:2px solid transparent;background:linear-gradient(var(--surface),var(--surface)) padding-box,var(--gg) border-box;background-size:100% 100%,300% 100%;animation:chipFlow 3s linear infinite,chipFlash 1.6s ease-in-out infinite;font-weight:800}
+.storechip.glow .nm{background:var(--gg);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:chipText 3s linear infinite;filter:drop-shadow(0 0 3px var(--gc))}
+.storechip.g-pink{--gg:linear-gradient(90deg,#ff2bd6,#ff8af0,#ff006e,#ff2bd6);--gc:#ff2bd6}
+.storechip.g-green{--gg:linear-gradient(90deg,#39ff14,#d4ff3b,#00ff9c,#39ff14);--gc:#39ff14}
+.storechip.g-cyan{--gg:linear-gradient(90deg,#00e5ff,#8af7ff,#0091ff,#00e5ff);--gc:#00e5ff}
+.storechip.g-gold{--gg:linear-gradient(90deg,#ffd400,#fff48a,#ff9d00,#ffd400);--gc:#ffb800}
+@keyframes chipFlow{to{background-position:0 0,300% 0}}
+@keyframes chipText{to{background-position:300% 0}}
+@keyframes chipFlash{0%,100%{box-shadow:0 0 5px var(--gc)}50%{box-shadow:0 0 16px var(--gc),0 0 4px #fff}}
+@media (prefers-reduced-motion:reduce){.storechip.glow,.storechip.glow .nm{animation:none}}
+.glowbar{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .storechip.add{padding:6px 14px;color:var(--accent);border-style:dashed}
 .storechip.all{padding:6px 14px}
 .pro{font:700 9.5px var(--mono);background:#f5c518;color:#2a2205;border-radius:4px;padding:1px 5px;margin-left:4px;letter-spacing:.04em}
@@ -1548,12 +1570,13 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     </div>
   </header>
 
-  <div class="storebar" id="storeBar" role="group" aria-label="Mis tiendas"></div>
   <p class="note limitnote" id="limitNote" role="status" hidden></p>
   <p class="note limitnote wanote" id="waNote" hidden><span>📱 Todavía no cargaste tu WhatsApp: sin él, tus clientes no pueden mandarte pedidos.</span> <button class="btn primary" type="button" id="waSet">Cargar mi WhatsApp</button></p>
 
   <div class="dlvrow" id="dlvRow" hidden></div>
 
+  <div class="sbrow">
+  <div class="storebar" id="storeBar" role="group" aria-label="Mis tiendas"></div>
   <div class="searchbar" id="searchbar">
     <div class="sbox">
       <span class="sicon" aria-hidden="true">🔎</span>
@@ -1562,6 +1585,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     </div>
     <div class="sresults" id="sResults" hidden role="listbox" aria-label="Resultados de la búsqueda"></div>
     <div class="catmenu" id="catMenu" hidden></div>
+  </div>
   </div>
 
   <section class="panel brandpanel" id="brandPanel" hidden>
@@ -1589,6 +1613,15 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
         <input type="text" id="b-name" maxlength="50" placeholder="Ej: Calzados Don Pedro">
       </label>
       <p class="note">Se guarda solo mientras escribís.</p>
+      <strong style="display:block;margin-top:10px">✨ Brillo del nombre (para que resalte)</strong>
+      <div class="glowbar" id="glowBar" role="group" aria-label="Brillo del nombre">
+        <button class="matbtn" type="button" data-glow="rgb">🌈 Arcoíris</button>
+        <button class="matbtn" type="button" data-glow="pink">💗 Rosa neón</button>
+        <button class="matbtn" type="button" data-glow="green">💚 Verde neón</button>
+        <button class="matbtn" type="button" data-glow="cyan">💎 Celeste</button>
+        <button class="matbtn" type="button" data-glow="gold">⭐ Dorado</button>
+        <button class="matbtn" type="button" data-glow="off">Sin brillo</button>
+      </div>
     </div>
     <div class="slot">
       <strong>Logo</strong>
@@ -5373,6 +5406,10 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(open){ renderCatToggles(); renderShipPanel(); renderWallets(); renderCenterBars(); $('b-name').value = brand.name; $('b-wa').value = brand.wa || ''; $('b-ig').value = brand.ig || ''; $('b-alias').value = brand.alias || ''; $('b-paylink').value = brand.paylink || ''; $('b-paypal').value = brand.paypal || ''; $('b-addr').value = brand.addr || ''; $('b-ball').value = brand.ball || ''; $('b-ads').value = brand.ads || ''; $('b-faq').value = brand.faq || ''; $('voiceFeat').setAttribute('aria-pressed', String(!!brand.voiceFeat)); $('b-adsEvery').value = String(brand.adsEvery || 2); $('b-name').focus(); }
   };
   $('b-ball').addEventListener('input', e => { brand.ball = e.target.value.slice(0, 400); save(); if(!currentCat) renderHome(); });
+  const markGlow = () => { const anyG = stores.some((st, i) => i !== active && st.brand && st.brand.glow); const g = brand.glow || (!anyG && active === 0 ? 'rgb' : 'off'); document.querySelectorAll('#glowBar [data-glow]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.glow === g))); };
+  $('glowBar').addEventListener('click', e => { const x = e.target.closest('[data-glow]'); if(!x) return; brand.glow = x.dataset.glow; save(); renderStoreBar(); markGlow(); });
+  $('brandBtn').addEventListener('click', () => setTimeout(markGlow, 0));
+  markGlow();
   $('b-name').addEventListener('input', e => { brand.name = e.target.value.trim(); applyBrand(); renderHelpers(); renderContact(); save(); renderStoreBar(); });
   $('b-logo').addEventListener('change', async e => {
     const f = e.target.files[0]; e.target.value = ''; if(!f) return;
@@ -5435,9 +5472,11 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   function renderStoreBar(){
     stores[active] = snapshot();
     const mall = !$('mallView').hidden;
+    const anyGlow = stores.some(st => st.brand && st.brand.glow);
     $('storeBar').innerHTML = stores.map((st, i) => {
       const b = {...BRAND0, ...(st.brand || {})};
-      return `<button type="button" class="storechip" data-store="${i}" aria-pressed="${!mall && i === active}">${avatarHTML(b)}${esc(b.name || 'Tienda ' + (i + 1))}</button>`;
+      const g = b.glow || (!anyGlow && i === 0 ? 'rgb' : 'off');
+      return `<button type="button" class="storechip${g !== 'off' ? ' glow g-' + g : ''}" data-store="${i}" aria-pressed="${!mall && i === active}">${avatarHTML(b)}<span class="nm">${esc(b.name || 'Tienda ' + (i + 1))}</span></button>`;
     }).join('') +
       (stores.length < capStores() ? `<button type="button" class="storechip add" data-newstore>＋ Otra tienda<span class="pro">PRO</span></button>` : '') +
       (stores.length > 1 ? `<button type="button" class="storechip all" data-mall aria-pressed="${mall}">▣ Ver todas</button>` : '');
