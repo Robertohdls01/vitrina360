@@ -6023,7 +6023,10 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     const on = hWalkOn();
     $('hMode').innerHTML = `<button class="matbtn" type="button" data-hmode="1" aria-pressed="${on}">🚶 Que vayan a la vitrina</button><button class="matbtn" type="button" data-hmode="0" aria-pressed="${!on}">💬 Que me hablen desde acá</button>`;
   }
-  function hWalk(catId){
+  function hWalk(catId, slid){
+    // en "Deslizar", el vendedor trae esa vitrina al medio rapidito y después camina hasta ella
+    if(!slid && catId && !$('homeView').hidden){ const tr = document.getElementById('strack'), it = tr && tr.querySelector(`.sitem [data-cat="${catId}"]`);
+      if(tr && tr._go && it){ const si = it.closest('.sitem'); const was = si.classList.contains('on'); tr._go(+si.dataset.si); $('slidewrap').scrollIntoView({block: 'center', behavior: 'smooth'}); if(!was) return void setTimeout(() => hWalk(catId, true), 650); } }
     if(!hWalkOn() || !catId) return;
     const av = $('hRow').querySelector(`[data-hav="${hCur}"]`); if(!av || !av.animate) return;
     const tile = document.querySelector(`#catStrip:not([hidden]) [data-cat="${catId}"] .mstage, #homeView:not([hidden]) #homegrid [data-cat="${catId}"] .mstage`);
