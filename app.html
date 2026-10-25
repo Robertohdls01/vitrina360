@@ -838,6 +838,25 @@ select.field{border:1px solid var(--line);background:var(--bg);border-radius:10p
   box-shadow:0 6px 14px -6px var(--shadow);display:flex;gap:6px;align-items:center;opacity:.92}
 .backfab:hover{opacity:1}
 #shopView .shopbar{position:sticky;top:0;z-index:25;background:var(--bg);padding:6px 0;box-shadow:0 8px 12px -12px var(--shadow)}
+.holo{display:grid;justify-items:center;gap:10px;margin:18px 0 8px;padding:16px;border-radius:18px;border:1px solid var(--line);
+  background:radial-gradient(circle at 50% 22%,rgba(0,229,255,.16),transparent 55%),var(--surface)}
+.holo h3{margin:0;font:700 16px var(--body)}
+.holo .addr{margin:0;color:var(--muted);text-align:center}
+.holostage{position:relative;width:160px;height:176px;perspective:700px}
+.holocoin{position:absolute;left:50%;top:4px;width:100px;height:100px;margin-left:-50px;transform-style:preserve-3d;animation:holospin 4.5s linear infinite}
+.holocoin .face{position:absolute;inset:0;border-radius:50%;display:grid;place-items:center;overflow:hidden;backface-visibility:hidden;
+  background:radial-gradient(circle,rgba(0,229,255,.28),rgba(0,229,255,.08));border:2px solid rgba(0,229,255,.85);box-shadow:0 0 20px rgba(0,229,255,.75),inset 0 0 20px rgba(0,229,255,.5)}
+.holocoin .face.back{transform:rotateY(180deg)}
+.holocoin img{width:68%;height:68%;object-fit:contain;filter:drop-shadow(0 0 6px #00e5ff) brightness(1.15);opacity:.92}
+.holocoin .ini{font:800 34px/1 var(--display,var(--body));color:#bff7ff;text-shadow:0 0 10px #00e5ff}
+.holocoin .face::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.16) 0 1px,transparent 1px 4px);animation:holoscan 1.6s linear infinite}
+.holobeam{position:absolute;left:50%;bottom:24px;width:120px;height:86px;margin-left:-60px;background:linear-gradient(to top,rgba(0,229,255,.5),transparent);clip-path:polygon(42% 100%,58% 100%,100% 0,0 0);animation:holoflick 3s infinite}
+.holopin{position:absolute;left:50%;bottom:0;transform:translateX(-50%);font-size:30px;filter:drop-shadow(0 0 8px rgba(0,229,255,.9))}
+.holomap{width:100%;max-width:560px;aspect-ratio:16/9;border:0;border-radius:12px}
+@keyframes holospin{to{transform:rotateY(360deg)}}
+@keyframes holoscan{to{background-position:0 8px}}
+@keyframes holoflick{0%,100%{opacity:.85}50%{opacity:.6}93%{opacity:.3}}
+@media (prefers-reduced-motion:reduce){.holocoin,.holocoin .face::after,.holobeam{animation:none}}
 .bsec{border:1px solid var(--line);border-radius:12px;background:var(--surface)}
 .bsec > summary{cursor:pointer;list-style:none;padding:12px 14px;font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .bsec > summary::-webkit-details-marker{display:none}
@@ -1641,6 +1660,11 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
         </label>
       </div>
     </div>
+    <div class="presets">
+      <strong>📍 Ubicación del negocio</strong>
+      <p class="note" style="margin:0">Escribí la dirección y en tu tienda aparece un holograma con tu logo girando sobre el mapa, con el botón “Cómo llegar”. Si vendés solo online, dejalo vacío.</p>
+      <input type="text" id="b-addr" maxlength="160" placeholder="Ej: Av. San Martín 1234, Ciudad" style="border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg);color:inherit">
+    </div>
     <div class="contactgrid">
       <label for="b-wa">WhatsApp <small>Con código de área, sin 0 ni 15. Ej: 223 5551234</small>
         <input type="text" id="b-wa" inputmode="tel" maxlength="20" placeholder="223 5551234">
@@ -1741,6 +1765,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <label for="q-ball"><strong>Mensajes</strong> <small class="note">Uno por renglón. Gira y los va mostrando: ofertas, teléfono, dirección, lo que quieras.</small>
         <textarea id="q-ball" rows="4" maxlength="400" placeholder="🔥 ¡Mirá esta oferta!&#10;🛒 Comprá esto hoy&#10;📱 223 555-1234&#10;📍 Av. Colón 1234"></textarea></label>
     </section>
+    <section class="holo" id="holoBox" hidden aria-label="Ubicación del negocio"></section>
   </section>
 
   <section id="shopView" hidden style="display:grid;gap:14px">
@@ -2568,6 +2593,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
   });
   function render(){
     try{ renderTV(); }catch(e){}
+    try{ renderHolo(); }catch(e){}
     if(!currentCat){ renderHome(); return; }
     measure();
     const list = sorted();
@@ -4365,6 +4391,24 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   const riderChar = (name, i) => { const r = riderListOf().find(x => String(x.name || '').trim() === name) || {f: false}; const k = i == null ? Math.max(0, ridersOf().indexOf(name)) : i; const [hair, skin] = R_LOOK[k % R_LOOK.length]; return {name, female: !!r.f, hair, skin, style: 'helmet'}; };
   const MOTO_SVG = c => `<svg class="mg-moto" viewBox="0 0 100 60" aria-hidden="true"><circle cx="20" cy="48" r="10" fill="#222"/><circle cx="20" cy="48" r="4" fill="#bbb"/><circle cx="80" cy="48" r="10" fill="#222"/><circle cx="80" cy="48" r="4" fill="#bbb"/>
     <path d="M10 44h44l12-22h9l3 4h-7l-9 18h12c6 0 10 3 11 8H10z" fill="${c}"/><rect x="26" y="36" width="26" height="6" rx="3" fill="#111" opacity=".75"/><rect x="2" y="30" width="18" height="12" rx="3" fill="#e63946"/><path d="M73 22l6-8" stroke="#333" stroke-width="3" stroke-linecap="round"/><circle cx="90" cy="42" r="3" fill="#ffd54a"/></svg>`;
+  // ---- Holograma de la ubicación: logo girando como moneda sobre un pin, y el mapa abajo ----
+  function renderHolo(){
+    const box = document.getElementById('holoBox'); if(!box) return;
+    const addr = String(brand.addr || '').trim();
+    box.hidden = !addr; if(!addr){ box.innerHTML = ''; box.dataset.addr = ''; return; }
+    if(box.dataset.addr === addr + '|' + (brand.logo ? brand.logo.length : 0)) return;
+    box.dataset.addr = addr + '|' + (brand.logo ? brand.logo.length : 0);
+    const q = encodeURIComponent(addr), ini = esc((brand.name || '').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '★');
+    const face = brand.logo ? `<img src="${brand.logo}" alt="">` : `<span class="ini">${ini}</span>`;
+    box.innerHTML = `<h3>📍 ${esc(L('Dónde estamos', 'Where to find us', 'Onde estamos', 'Où nous trouver', 'So findest du uns', 'Dove siamo', '我们的位置', 'アクセス'))}</h3>
+      <div class="holostage" aria-hidden="true"><div class="holocoin"><span class="face">${face}</span><span class="face back">${face}</span></div><div class="holobeam"></div><span class="holopin">📍</span></div>
+      <p class="addr">${esc(addr)}</p>
+      <iframe class="holomap" title="Mapa" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=${q}&z=15&output=embed"></iframe>
+      <a class="btn primary" href="https://www.google.com/maps/dir/?api=1&destination=${q}" target="_blank" rel="noopener">🧭 ${esc(L('Cómo llegar', 'Get directions', 'Como chegar', 'Itinéraire', 'Route planen', 'Come arrivare', '导航前往', '経路を見る'))}</a>`;
+  }
+  if(document.getElementById('b-addr')){ let t = null; document.getElementById('b-addr').addEventListener('input', e => { brand.addr = e.target.value; clearTimeout(t); t = setTimeout(() => { save(); renderHolo(); }, 600); }); }
+  window.addEventListener('v360-lang', () => { const b = document.getElementById('holoBox'); if(b) b.dataset.addr = ''; try{ renderHolo(); }catch(e){} });
+
   // ---- Pantalla LED de ofertas: va pasando los destacados (o los productos con precio) ----
   let tvT = null, tvI = 0, tvSig = '';
   // Lugar de la pantalla: en el encabezado, o donde el comerciante la arrastró (x en % del ancho, y en px desde arriba).
@@ -5178,7 +5222,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const open = $('brandPanel').hidden;
     $('brandPanel').hidden = !open; $('brandBtn').setAttribute('aria-expanded', String(open));
     $('brandBtn').textContent = open ? 'Listo' : 'Personalizar mi comercio';
-    if(open){ renderCatToggles(); renderShipPanel(); renderWallets(); renderCenterBars(); $('b-name').value = brand.name; $('b-wa').value = brand.wa || ''; $('b-ig').value = brand.ig || ''; $('b-alias').value = brand.alias || ''; $('b-paylink').value = brand.paylink || ''; $('b-paypal').value = brand.paypal || ''; $('b-ball').value = brand.ball || ''; $('b-ads').value = brand.ads || ''; $('b-faq').value = brand.faq || ''; $('voiceFeat').setAttribute('aria-pressed', String(!!brand.voiceFeat)); $('b-adsEvery').value = String(brand.adsEvery || 2); $('b-name').focus(); }
+    if(open){ renderCatToggles(); renderShipPanel(); renderWallets(); renderCenterBars(); $('b-name').value = brand.name; $('b-wa').value = brand.wa || ''; $('b-ig').value = brand.ig || ''; $('b-alias').value = brand.alias || ''; $('b-paylink').value = brand.paylink || ''; $('b-paypal').value = brand.paypal || ''; $('b-addr').value = brand.addr || ''; $('b-ball').value = brand.ball || ''; $('b-ads').value = brand.ads || ''; $('b-faq').value = brand.faq || ''; $('voiceFeat').setAttribute('aria-pressed', String(!!brand.voiceFeat)); $('b-adsEvery').value = String(brand.adsEvery || 2); $('b-name').focus(); }
   };
   $('b-ball').addEventListener('input', e => { brand.ball = e.target.value.slice(0, 400); save(); if(!currentCat) renderHome(); });
   $('b-name').addEventListener('input', e => { brand.name = e.target.value.trim(); applyBrand(); renderHelpers(); renderContact(); save(); renderStoreBar(); });
