@@ -848,6 +848,11 @@ select.field{border:1px solid var(--line);background:var(--bg);border-radius:10p
 .shoptools[open] > summary::after{content:" ▴"}
 body.clientmode .shoptools,body.publicmode .shoptools{display:none!important}
 @media (max-width:640px){
+  /* barra de herramientas de arriba: una sola fila fina que se desliza de costado */
+  .headtools > .row{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;width:100%;gap:5px!important;padding-bottom:2px}
+  .headtools > .row::-webkit-scrollbar{display:none}
+  .headtools > .row > *{flex:0 0 auto}
+  .headtools .btn,.headtools .langsel{padding:5px 10px;font-size:12.5px;white-space:nowrap}
   .controls .hint{display:none}
   /* en el celular, los controles de la vitrina en una sola fila compacta, para dejar lugar a la vitrina y al producto */
   .controls{flex-wrap:nowrap;overflow-x:auto;gap:6px;scrollbar-width:none}
