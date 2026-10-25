@@ -2595,11 +2595,14 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
     }
     const sw = $('slidewrap');
     if(sw){ const s0 = sw.querySelector('.sitem .mstage'); if(s0 && s0.clientWidth){ const w = s0.clientWidth; sw.style.setProperty('--cw', (w * 0.6).toFixed(1) + 'px'); sw.style.setProperty('--cwb', (w * 0.6).toFixed(1) + 'px'); sw.style.setProperty('--mp', Math.round(w * 3.4) + 'px'); } }
-    const t = g.querySelector('.homegrid > .mini .mstage, .homegrid > .mini.hiddencat .mstage');
+    // medir una vitrina de tamaño normal (si la primera es grande o chica, el resto se desacomodaba y se pisaban)
+    const t = g.querySelector('.homegrid > .mini:not(.sz-big):not(.sz-small) .mstage') || g.querySelector('.homegrid > .mini .mstage');
     if(!t || !t.clientWidth) return;
-    g.style.setProperty('--cw', (t.clientWidth * 0.6).toFixed(1) + 'px');
-    g.style.setProperty('--cwb', (t.clientWidth * 0.6).toFixed(1) + 'px');
-    g.style.setProperty('--mp', Math.round(t.clientWidth * 3.4) + 'px');
+    let tw = t.clientWidth;
+    if(t.closest('.sz-big, .sz-small')){ const gp = parseFloat(getComputedStyle(g).columnGap) || 10; tw = (g.clientWidth - gp * (gcols - 1)) / gcols; }
+    g.style.setProperty('--cw', (tw * 0.6).toFixed(1) + 'px');
+    g.style.setProperty('--cwb', (tw * 0.6).toFixed(1) + 'px');
+    g.style.setProperty('--mp', Math.round(tw * 3.4) + 'px');
   }
   addEventListener('resize', () => { if(!currentCat) sizeMinis(); });
 
