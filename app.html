@@ -831,6 +831,9 @@ select.field{border:1px solid var(--line);background:var(--bg);border-radius:10p
 #shopView .shopbar{position:sticky;top:0;z-index:25;background:var(--bg);padding:6px 0;box-shadow:0 8px 12px -12px var(--shadow)}
 .shoptools{border:1px solid var(--line);border-radius:12px;padding:8px 12px;display:grid;gap:8px}
 .shoptools > summary{cursor:pointer;font-weight:700;list-style:none}
+.subtool{border-top:1px solid var(--line);padding-top:6px}
+.subtool > summary{cursor:pointer;font-weight:600;padding:4px 0}
+.subtool > .bgbar{margin-top:6px}
 .shoptools > summary::-webkit-details-marker{display:none}
 .shoptools > summary::after{content:" ▾"}
 .shoptools[open] > summary::after{content:" ▴"}
@@ -1752,9 +1755,9 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
 
   <details class="shoptools" id="shopTools">
     <summary>🎨 Personalizar esta vitrina <small>(fondo, tipo, luces y letras)</small></summary>
-  <div class="bgbar" id="bgBarShop" role="group" aria-label="Fondo de la vitrina"></div>
-  <div class="bgbar matshop" id="matBarShop" role="group" aria-label="Tipo de vitrina"></div>
-  <div class="bgbar decoshop" id="decoBar" role="group" aria-label="Adornos y luces de esta vitrina"></div>
+  <details class="subtool"><summary>🖌 Fondo de la vitrina</summary><div class="bgbar" id="bgBarShop" role="group" aria-label="Fondo de la vitrina"></div></details>
+  <details class="subtool"><summary>🗄 Tipo de vitrina</summary><div class="bgbar matshop" id="matBarShop" role="group" aria-label="Tipo de vitrina"></div></details>
+  <details class="subtool decoshop"><summary>✨ Luces y adornos</summary><div class="bgbar decoshop" id="decoBar" role="group" aria-label="Adornos y luces de esta vitrina"></div></details>
   <details class="letrasbox decoshop"><summary>🔤 Letras de los carteles y nombres</summary><div class="letrasbar"></div></details>
   </details>
   <div class="controls">
