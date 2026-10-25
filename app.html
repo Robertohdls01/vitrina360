@@ -934,7 +934,7 @@ body.clientmode .ringlbl .rslot:has(.emptycat),body.clientmode .ringlbl .rslot:h
 .clientbar .btn{padding:5px 12px;font-size:13px;background:var(--bg);color:var(--ink)}
 body.clientmode :is(#fixTools,#brandBtn,#clientBtn,#sampleBanner,.hometools,#quickPanel,#brandPanel,.hidhead,.mini.hiddencat,.mini.emptycat,.rslot:has(.emptycat),.fitem:has(.emptycat),
   .addchip,.storechip.add,[data-delstore],#renameBtn,#hideCat,#delCat,#bgBarShop,#formPanel,[data-act="edit"],[data-act="remove"],[data-act="confirm"],[data-act="feature"],
-  [data-m="add"],[data-m="rot"],[data-m="luz"],[data-m="sombra"],[data-m="addvar"],[data-m="delvar"],[data-m="del"],[data-m="edit"],.vedit,.extras,#extraMsg,.ownernote,#varMsg,#lede,.count,#catCount,.hint){display:none!important}
+  [data-m="add"],[data-m="rot"],[data-m="luz"],[data-m="pro"],[data-m="proundo"],#proAll,[data-m="sombra"],[data-m="addvar"],[data-m="delvar"],[data-m="del"],[data-m="edit"],.vedit,.extras,#extraMsg,.ownernote,#varMsg,#lede,.count,#catCount,.hint){display:none!important}
 body.clientmode .grid{grid-template-columns:1fr}
 body.clientmode .storebar:not(:has(.storechip.all)){display:none}
 body.clientmode .editing{outline:none}
@@ -1634,7 +1634,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <h2 id="catTitle"></h2>
       <button class="linkbtn" type="button" id="renameBtn">Cambiar nombre</button>
       <button class="linkbtn" type="button" id="hideCat">Ocultar esta vitrina</button>
-      <span class="fixtools" id="fixTools"><button class="linkbtn" type="button" id="fixAI">✦ Enderezar fotos</button><button class="linkbtn" type="button" id="rotAll">↻ Girar todas</button><button class="linkbtn" type="button" id="lightAll">☀ Más luz a todas</button><span class="note" id="fixMsg" role="status"></span></span>
+      <span class="fixtools" id="fixTools"><button class="linkbtn" type="button" id="fixAI">✦ Enderezar fotos</button><button class="linkbtn" type="button" id="rotAll">↻ Girar todas</button><button class="linkbtn" type="button" id="proAll">✨ Foto profesional a todas</button><button class="linkbtn" type="button" id="lightAll">☀ Más luz a todas</button><span class="note" id="fixMsg" role="status"></span></span>
       <button class="linkbtn" type="button" id="delCat" hidden style="color:var(--danger)">Borrar esta vitrina</button>
       <form class="rename" id="renameForm" hidden>
         <input type="text" id="cat-name" maxlength="40" aria-label="Nombre de la vitrina">
@@ -1818,6 +1818,8 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   ];
 
   let cats = DEFAULT_CATS.map(c => ({...c})), currentCat = null;
+  const proOrig = new Map();          // foto profesional: la original de cada producto, para poder volver (solo mientras está abierta la página)
+  const proKey = p => p.id || p.name;
   let brand = {name:'', logo:null, banner:null, preset:'general', wa:'', ig:'', alias:'', paylink:'', paypal:''};
   const BRAND0 = {...brand};
   const MAX_STORES = 4;
@@ -2678,6 +2680,8 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
           <button class="btn" type="button" data-m="add">Agregar más fotos</button>
           ${photoIdx > 0 ? `<button class="btn danger" type="button" data-m="del">${delArmed ? '¿Seguro? Tocá de nuevo' : 'Quitar esta foto'}</button>` : ''}
           <button class="btn" type="button" data-m="rot">↻ Girar foto</button>
+          ${proOrig.has(proKey(p)) ? `<button class="btn" type="button" data-m="proundo">↩ Volver a la foto original</button>` : `<button class="btn primary" type="button" data-m="pro">✨ Foto profesional</button>`}
+          <span class="note" id="proMsg" role="status" style="flex-basis:100%;margin:0"></span>
           <button class="btn" type="button" data-m="luz">☀ Más luz</button>
           <button class="btn" type="button" data-m="sombra">Menos luz</button>
           <button class="btn" type="button" data-m="edit">Editar datos</button>
@@ -2713,6 +2717,17 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
     else if(m === 'add') $('m-photo').click();
     else if(m === 'addvar') $('m-var').click();
     else if(m === 'mode'){ modalMode = b.dataset.mode; spinIdx = 0; renderModal(); }
+    else if(m === 'pro' || m === 'proundo'){
+      const v = variantOf(p);
+      const cur = v ? v.img : (photoIdx === 0 ? p.img : p.photos[photoIdx - 1]);
+      const put = n => { if(v) v.img = n; else if(photoIdx === 0) p.img = n; else p.photos[photoIdx - 1] = n; };
+      const key = proKey(p);
+      if(m === 'proundo'){ const o = proOrig.get(key); if(o){ put(o); proOrig.delete(key); save(); render(); renderModal(); renderDetail(); } return; }
+      const msg = $('proMsg'); if(msg) msg.textContent = 'Preparando la foto profesional… la primera vez tarda un poco más.';
+      b.disabled = true;
+      proPhoto(cur).then(n => { proOrig.set(key, cur); put(n); save(); render(); renderModal(); renderDetail(); })
+        .catch(err => { b.disabled = false; const mm = $('proMsg'); if(mm) mm.textContent = err && err.userMsg ? err.userMsg : 'No se pudo preparar la foto. Revisá internet y probá de nuevo.'; });
+    }
     else if(m === 'luz' || m === 'sombra'){
       const v = variantOf(p);
       const cur = v ? v.img : (photoIdx === 0 ? p.img : p.photos[photoIdx - 1]);
@@ -3119,6 +3134,17 @@ Respondé solo con el texto de la publicación, sin comillas ni títulos.`;
     return dataUrlToBlob(c.toDataURL('image/jpeg', 0.85));
   }
   let fixing = false;
+  $('proAll').onclick = async () => {
+    if(fixing) return; fixing = true;
+    const list = products.filter(p => p.cat === currentCat && !proOrig.has(proKey(p)));
+    let ok = 0, bad = 0;
+    for(const [i, p] of list.entries()){
+      $('fixMsg').textContent = `✨ Foto profesional ${i + 1} de ${list.length}…${i === 0 ? ' (la primera vez tarda un poco más)' : ''}`;
+      try{ const n = await proPhoto(p.img); proOrig.set(proKey(p), p.img); p.img = n; ok++; render(); }catch(e){ bad++; if(e && e.fatal){ $('fixMsg').textContent = e.userMsg; break; } }
+    }
+    save(); render(); fixing = false;
+    if(ok || !bad) $('fixMsg').textContent = `Listo: ${ok} foto${ok === 1 ? '' : 's'} profesional${ok === 1 ? '' : 'es'}.${bad ? ` En ${bad} no encontré bien el producto: probá con una foto donde esté en el centro.` : ''} Si alguna no te gusta, abrila y tocá “Volver a la foto original”.`;
+  };
   $('lightAll').onclick = async () => {
     if(fixing) return; fixing = true;
     const list = products.filter(p => p.cat === currentCat);
@@ -3716,6 +3742,61 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       };
       im.onerror = rej; setSrc(im, src);
     });
+  }
+  // ---- Foto profesional: saca el fondo con IA dentro del celular (MediaPipe, gratis) y deja el producto sobre blanco con luz y sombra ----
+  const MP_VER = '0.10.14';
+  let segP = null;
+  function getSegmenter(){
+    if(!segP) segP = (async () => {
+      const V = await import(`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}/vision_bundle.mjs`);
+      const files = await V.FilesetResolver.forVisionTasks(`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}/wasm`);
+      return V.InteractiveSegmenter.createFromOptions(files, {
+        baseOptions: {modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/interactive_segmenter/magic_touch/float32/1/magic_touch.tflite', delegate: 'CPU'},
+        outputCategoryMask: false, outputConfidenceMasks: true
+      });
+    })().catch(e => { segP = null; throw Object.assign(new Error('seg'), {fatal: true, userMsg: 'No se pudo cargar la herramienta de fotos. Revisá internet y probá de nuevo.'}); });
+    return segP;
+  }
+  async function proPhoto(src){
+    const im = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(Object.assign(new Error('img'), {userMsg: 'No se pudo abrir esta foto.'})); setSrc(i, src); });
+    const k = Math.min(1, 1024 / Math.max(im.naturalWidth, im.naturalHeight));
+    const cw = Math.max(1, Math.round(im.naturalWidth * k)), ch = Math.max(1, Math.round(im.naturalHeight * k));
+    const base = document.createElement('canvas'); base.width = cw; base.height = ch;
+    const bg = base.getContext('2d'); bg.fillStyle = '#fff'; bg.fillRect(0, 0, cw, ch); bg.drawImage(im, 0, 0, cw, ch);
+    const seg = await getSegmenter();
+    let mask = null, mw = 0, mh = 0;
+    const take = r => { const m = r && r.confidenceMasks && r.confidenceMasks[0]; if(m && !mask){ mask = m.getAsFloat32Array().slice(); mw = m.width; mh = m.height; } };
+    const out = seg.segment(base, {keypoint: {x: 0.5, y: 0.5}}, take);
+    if(!mask && out){ take(out); try{ out.close && out.close(); }catch(e){} }
+    if(!mask) throw Object.assign(new Error('mask'), {userMsg: 'No encontré bien el producto. Probá con una foto donde el producto esté en el centro.'});
+    // máscara suave + caja del producto
+    const mc = document.createElement('canvas'); mc.width = mw; mc.height = mh;
+    const md = mc.getContext('2d').createImageData(mw, mh);
+    let x0 = mw, y0 = mh, x1 = -1, y1 = -1, on = 0;
+    for(let y = 0; y < mh; y++) for(let x = 0; x < mw; x++){
+      const i = y * mw + x, c = mask[i], a = c <= 0.3 ? 0 : c >= 0.7 ? 1 : (c - 0.3) / 0.4;
+      md.data[i * 4 + 3] = Math.round(a * a * (3 - 2 * a) * 255);
+      if(c > 0.5){ on++; if(x < x0) x0 = x; if(x > x1) x1 = x; if(y < y0) y0 = y; if(y > y1) y1 = y; }
+    }
+    const frac = on / (mw * mh);
+    if(frac < 0.015 || frac > 0.96 || x1 < 0) throw Object.assign(new Error('mask'), {userMsg: 'No encontré bien el producto. Probá con una foto donde el producto esté en el centro y se distinga del fondo.'});
+    mc.getContext('2d').putImageData(md, 0, 0);
+    const cut = document.createElement('canvas'); cut.width = cw; cut.height = ch;
+    const cg = cut.getContext('2d');
+    cg.filter = 'brightness(1.06) contrast(1.08) saturate(1.12)'; cg.drawImage(base, 0, 0); cg.filter = 'none';
+    cg.globalCompositeOperation = 'destination-in'; cg.imageSmoothingEnabled = true; cg.filter = 'blur(0.6px)'; cg.drawImage(mc, 0, 0, cw, ch);
+    const sx = cw / mw, sy = ch / mh, pad = 2;
+    const bx = Math.max(0, (x0 - pad) * sx), by = Math.max(0, (y0 - pad) * sy), bw = Math.min(cw - bx, (x1 - x0 + 1 + 2 * pad) * sx), bh = Math.min(ch - by, (y1 - y0 + 1 + 2 * pad) * sy);
+    // foto final: cuadrada, fondo blanco, producto grande y centrado, sombra suave abajo
+    const S = 1080, f = document.createElement('canvas'); f.width = S; f.height = S;
+    const g = f.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, S, S);
+    const sc = Math.min(S * 0.8 / bw, S * 0.78 / bh), dw = bw * sc, dh = bh * sc, dx = (S - dw) / 2, dy = S * 0.88 - dh;
+    const sh = g.createRadialGradient(S / 2, dy + dh, 1, S / 2, dy + dh, dw * 0.5);
+    sh.addColorStop(0, 'rgba(0,0,0,.22)'); sh.addColorStop(1, 'rgba(0,0,0,0)');
+    g.save(); g.translate(S / 2, dy + dh); g.scale(1, 0.12); g.translate(-S / 2, -(dy + dh)); g.fillStyle = sh; g.fillRect(S / 2 - dw * 0.55, dy + dh - dw * 0.55, dw * 1.1, dw * 1.1); g.restore();
+    g.imageSmoothingQuality = 'high'; g.drawImage(cut, bx, by, bw, bh, dx, dy, dw, dh);
+    let o = f.toDataURL('image/webp', 0.9); if(!o.startsWith('data:image/webp')) o = f.toDataURL('image/jpeg', 0.92);
+    return o;
   }
   function rotateSrc(src, deg){
     return new Promise((res, rej) => {
