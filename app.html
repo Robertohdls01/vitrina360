@@ -65,7 +65,10 @@
   .v3bar .st{font-size:12.5px;color:var(--muted,#666)}
   .v3bar .st.err{color:var(--danger,#a8392c)}
   .v3bar button{border:1px solid var(--line,#ddd);background:var(--bg,#fff);color:inherit;border-radius:999px;padding:5px 11px;font:600 13px/1.2 var(--body,system-ui,sans-serif);cursor:pointer}
-  .v3bar .grp{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;min-width:0}`;
+  .v3bar .grp{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;min-width:0}
+  .v3bar{padding:5px 10px}
+  .v3more{flex-basis:100%;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;border-top:1px solid var(--line,#ddd);padding-top:8px}
+  .v3more[hidden]{display:none}`;
   onReady(() => { const st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st); });
   function overlay(html){
     const d = document.createElement('div'); d.className = 'v3o'; d.innerHTML = `<div class="card">${html}</div>`;
@@ -360,17 +363,23 @@
   ready.then(() => onReady(() => setTimeout(() => {
     const link = `${location.origin}/t/${slug}`;
     const bar = document.createElement('div'); bar.className = 'v3bar';
-    bar.innerHTML = `<span class="grp">🌐 <span data-lbl>${T('Tu tienda', 'Your store', 'Sua loja')}</span>: <a href="${esc(link)}" target="_blank" rel="noopener">${esc(location.host + '/t/' + slug)}</a>
+    // Todo lo de la cuenta (link, plan, salir) va en un solo botón "Mi cuenta", para dejar lugar a la tienda.
+    bar.innerHTML = `<span class="grp"><button type="button" data-acct aria-expanded="false">👤 <span data-acctl>${T('Mi cuenta', 'My account', 'Minha conta')}</span> ▾</button><span class="st" aria-live="polite"></span></span>
+      <div class="v3more" hidden>
+      <span class="grp">🌐 <span data-lbl>${T('Tu tienda', 'Your store', 'Sua loja')}</span>: <a href="${esc(link)}" target="_blank" rel="noopener">${esc(location.host + '/t/' + slug)}</a>
       <button type="button" data-copy>${T('Copiar link', 'Copy link', 'Copiar link')}</button></span>
       <span class="grp" data-plan hidden></span>
-      <span class="grp"><span class="st" aria-live="polite"></span><button type="button" data-out>${T('Salir', 'Sign out', 'Sair')}</button></span>`;
+      <span class="grp"><button type="button" data-out>${T('Salir', 'Sign out', 'Sair')}</button></span>
+      </div>`;
     const wrap = document.querySelector('.wrap'); (wrap ? wrap.parentNode : document.body).insertBefore(bar, wrap || document.body.firstChild);
     statusEl = bar.querySelector('.st'); setStatus(T('Todo guardado en internet', 'Everything saved online', 'Tudo salvo na internet') + ' ✓');
+    bar.querySelector('[data-acct]').onclick = e => { const more = bar.querySelector('.v3more'); more.hidden = !more.hidden; e.currentTarget.setAttribute('aria-expanded', String(!more.hidden)); };
     bar.querySelector('[data-copy]').onclick = e => { const b = e.currentTarget; navigator.clipboard?.writeText(link).then(() => { b.textContent = T('¡Copiado!', 'Copied!', 'Copiado!'); }, () => { b.textContent = link; }); };
     bar.querySelector('[data-out]').onclick = async () => { if(latest || saving){ clearTimeout(timer); await flush(); } try{ await api('POST', '/auth/v1/logout', {tok: ses.access_token}); }catch(e){} keep(null); location.reload(); };
     plan(bar.querySelector('[data-plan]'));
     window.addEventListener('v360-lang', () => {
       bar.querySelector('[data-lbl]').textContent = T('Tu tienda', 'Your store', 'Sua loja');
+      bar.querySelector('[data-acctl]').textContent = T('Mi cuenta', 'My account', 'Minha conta');
       bar.querySelector('[data-copy]').textContent = T('Copiar link', 'Copy link', 'Copiar link');
       bar.querySelector('[data-out]').textContent = T('Salir', 'Sign out', 'Sair');
       setStatus(T('Todo guardado en internet', 'Everything saved online', 'Tudo salvo na internet') + ' ✓');
