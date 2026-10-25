@@ -1368,12 +1368,14 @@ body.clientmode .decoshop{display:none}
 @keyframes hblink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
 .hav.talking .hmouth{animation:htalk .22s ease-in-out infinite alternate;transform-origin:40px 48px}
 @keyframes htalk{from{transform:scaleY(.6)}to{transform:scaleY(1.9)}}
-.hpanel{position:relative;width:min(340px,calc(100vw - 24px));max-height:min(70vh,560px);overflow:auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;gap:10px;box-shadow:0 18px 40px -16px var(--shadow)}
+.hpanel{position:relative;width:min(calc(340px * var(--pk, .8)),calc(100vw - 24px));max-height:min(calc(70vh * var(--pk, .8)),560px);overflow:auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;gap:10px;box-shadow:0 18px 40px -16px var(--shadow)}
 .hclose{position:absolute;right:8px;top:8px;border:0;background:var(--bg);color:var(--ink);width:28px;height:28px;border-radius:50%;cursor:pointer}
-.hsay{font-weight:600;padding-right:30px;min-height:1.4em}
+.hsay{font-weight:600;padding-right:96px;min-height:1.4em}
+.hsz{position:absolute;right:42px;top:8px;display:flex;gap:4px;z-index:2}
+.hsz button{border:1px solid var(--line);background:var(--bg);color:var(--ink);width:28px;height:28px;border-radius:50%;cursor:pointer;font:800 16px/1 var(--body);padding:0}
 .hgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-.hbig{display:grid;gap:8px}
-.hbig img{width:100%;max-height:240px;object-fit:contain;background:#fff;border-radius:12px;border:1px solid var(--line)}
+.hbig{display:grid;gap:8px;grid-template-columns:minmax(0,46%) 1fr;align-items:center}
+.hbig img{width:100%;max-height:calc(220px * var(--pk, .8));object-fit:contain;background:#fff;border-radius:12px;border:1px solid var(--line)}
 .hbinfo{display:grid;gap:6px;justify-items:start}
 .hchips{display:flex;flex-wrap:wrap;gap:6px}
 .hinfo{display:grid;gap:8px}
@@ -2006,6 +2008,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
 <div class="helpers" id="helpers" hidden>
   <div class="hpanel" id="hPanel" hidden role="dialog" aria-label="Vendedores virtuales">
     <button class="hclose" type="button" id="hClose" aria-label="Cerrar">✕</button>
+    <div class="hsz" role="group" aria-label="Tamaño de la ventanita"><button type="button" data-hpk="-1" aria-label="Más chica">−</button><button type="button" data-hpk="1" aria-label="Más grande">+</button></div>
     <div class="hsay" id="hSay" aria-live="polite"></div>
     <div class="hmode" id="hMode" role="group" aria-label="Cómo querés que te atiendan"></div>
     <div class="hres" id="hRes"></div>
@@ -5917,6 +5920,13 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(e.target.closest('#hWalkBtn')){ brand.helperWalk = brand.helperWalk === false; save(); renderHelpers(); }
     if(c){ brand.helperColor = c.dataset.hcol; if(!brand.helperColor) delete brand.helperColor; save(); renderHelpers(); }
   });
+  (function(){
+    let k = 0.8; try{ const v = parseFloat(localStorage.getItem('v360_hpk')); if(v) k = v; }catch(e){}
+    const ap = () => { const el = document.getElementById('hPanel'); if(el) el.style.setProperty('--pk', String(k)); };
+    ap();
+    document.addEventListener('click', e => { const b = e.target.closest('[data-hpk]'); if(!b) return; e.stopPropagation();
+      k = Math.min(1.3, Math.max(0.55, Math.round((k + (+b.dataset.hpk) * 0.1) * 100) / 100)); ap(); try{ localStorage.setItem('v360_hpk', String(k)); }catch(err){} });
+  })();
   document.addEventListener('input', e => { if(e.target.id === 'hColCustom'){ brand.helperColor = e.target.value; save(); renderHelpers(); } });
   function hSpeak(text){
     text = trSay(text);
