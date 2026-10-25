@@ -2515,16 +2515,15 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
     } else if(free){
       const nV = vis.length, fp = brand.freePos || {};
       // posición inicial: filas arriba y abajo, con tu comercio en el medio; después cada una queda donde la sueltes
-      const perRow = innerWidth < 700 ? 3 : 5, rows = Math.ceil(nV / perRow), topRows = Math.ceil(rows / 2), botRows = rows - topRows;
-      const lin = (a, b, k, n) => n <= 1 ? (a + b) / 2 : a + (b - a) * k / (n - 1);
-      const defPos = i => {
-        const r = Math.floor(i / perRow), inRow = Math.min(perRow, nV - r * perRow), k = i % perRow;
-        const y = r < topRows ? lin(14, 34, r, topRows) : lin(66, 86, r - topRows, botRows);
-        return {x: lin(12, 88, k, inRow), y};
-      };
-      const pos = (id, i) => fp[id] || (id === '__center' ? {x:50, y:50} : defPos(i));
+      // posición inicial: una cuadrícula con tu comercio en el casillero del medio, cada vitrina en su casillero (sin pisarse)
+      const perRow = innerWidth < 700 ? 3 : 5, rows = Math.max(3, Math.ceil((nV + 1) / perRow)), midR = Math.floor(rows / 2), midC = Math.floor(perRow / 2);
+      const cells = []; for(let r = 0; r < rows; r++) for(let k = 0; k < perRow; k++) if(!(r === midR && k === midC)) cells.push([r, k]);
+      const cellPos = ([r, k]) => ({x: +((k + 0.5) / perRow * 100).toFixed(2), y: +((r + 0.5) / rows * 100).toFixed(2)});
+      const defPos = i => cellPos(cells[i] || cells[cells.length - 1]);
+      const pos = (id, i) => fp[id] || (id === '__center' ? cellPos([midR, midC]) : defPos(i));
+      var freeAspect = `${perRow}/${(rows * 1.3).toFixed(2)}`, freeCols = perRow;
       const c0 = pos('__center', 0);
-      html += `<div class="freewrap" id="freewrap"><div class="fitem fcenter" data-fid="__center" style="left:${c0.x}%;top:${c0.y}%">${centerHTML()}</div>` +
+      html += `<div class="freewrap" id="freewrap" style="aspect-ratio:${freeAspect}" data-cols="${freeCols}"><div class="fitem fcenter" data-fid="__center" style="left:${c0.x}%;top:${c0.y}%">${centerHTML()}</div>` +
         vis.map((c, i) => { const q = pos(c.id, i); return `<div class="fitem" data-fid="${c.id}" style="left:${q.x}%;top:${q.y}%;--k:${szK(c.size)}">${tileHTML(c, i, false, true)}</div>`; }).join('') + `</div>` + addTile;
     } else if(brand.layout === 'slide' && vis.length){
       html += `<div class="slidewrap" id="slidewrap"><button class="sarrow l" type="button" data-slide="-1" aria-label="Vitrina anterior">‹</button><div class="strack" id="strack">${vis.map((c, i) => `<div class="sitem" data-si="${i}">${tileHTML(c, i, false, false)}</div>`).join('')}</div><button class="sarrow r" type="button" data-slide="1" aria-label="Vitrina siguiente">›</button><div class="sdots${vis.length > 12 ? ' many' : ''}">${vis.map((c, i) => `<button type="button" data-sdot="${i}" aria-label="${esc(c.name)}"></button>`).join('')}<span class="scount" id="scount"></span></div></div>` + addTile;
@@ -2569,9 +2568,12 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
     g.classList.toggle('one', gcols === 1);
     g.style.setProperty('--fcols', vw <= 700 ? [6, 5, 4, 3, 2][hs] : vw <= 999 ? [8, 7, 6, 5, 4][hs] : [12, 10, 8, 6, 5][hs]);
     if(fw){
-      const W = fw.clientWidth, nF = fw.querySelectorAll('.fitem').length - 1, tw = f * W * (W < 700 ? (nF <= 6 ? 0.27 : nF <= 10 ? 0.24 : 0.2) : (nF <= 6 ? 0.16 : 0.13));
+      const W = fw.clientWidth, nF = fw.querySelectorAll('.fitem').length - 1, cellW = W / (+fw.dataset.cols || 3);
+      const kmax = Math.max(1, ...[...fw.querySelectorAll('.fitem:not(.fcenter)')].map(el => +getComputedStyle(el).getPropertyValue('--k') || 1));
+      // cada vitrina entra en su casillero aunque esté agrandada
+      const tw = Math.min(f * W * (W < 700 ? (nF <= 6 ? 0.27 : nF <= 10 ? 0.24 : 0.2) : (nF <= 6 ? 0.16 : 0.13)), cellW * 0.8 / kmax);
       fw.style.setProperty('--tw', tw.toFixed(1) + 'px');
-      fw.style.setProperty('--cwid', (tw * 1.4 * BALLK[(brand.ballSize | 0) + 2]).toFixed(1) + 'px');
+      fw.style.setProperty('--cwid', Math.min(tw * 1.4 * BALLK[(brand.ballSize | 0) + 2], cellW * 0.95).toFixed(1) + 'px');
       fw.style.setProperty('--cw', (tw * 0.62).toFixed(1) + 'px'); fw.style.setProperty('--cwb', (tw * 0.62).toFixed(1) + 'px');
       fw.style.setProperty('--mp', Math.round(tw * 3.4) + 'px');
     }
@@ -3344,8 +3346,9 @@ Respondé SOLO con JSON: {"name": "nombre corto del modelo, de 1 a 4 palabras, q
     if(!fdrag) return;
     if(fdrag.pending){ if(Math.hypot(e.clientX - fdrag.sx, e.clientY - fdrag.sy) < 8) return; fdrag.pending = false; fdrag.el.classList.add('lifting'); }
     const r = fdrag.r;
-    const x = Math.max(4, Math.min(96, (e.clientX - fdrag.ox - r.left) / r.width * 100));
-    const y = Math.max(6, Math.min(94, (e.clientY - fdrag.oy - r.top) / r.height * 100));
+    const hw = fdrag.el.offsetWidth / 2 / r.width * 100, hh = fdrag.el.offsetHeight / 2 / r.height * 100;
+    const x = Math.max(Math.min(50, hw), Math.min(100 - Math.min(50, hw), (e.clientX - fdrag.ox - r.left) / r.width * 100));
+    const y = Math.max(Math.min(50, hh), Math.min(100 - Math.min(50, hh), (e.clientY - fdrag.oy - r.top) / r.height * 100));
     fdrag.el.style.left = x + '%'; fdrag.el.style.top = y + '%'; fdrag.x = x; fdrag.y = y; fdrag.moved = true;
   });
   const endFree = () => {
