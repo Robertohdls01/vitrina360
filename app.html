@@ -718,6 +718,8 @@ body:not(.cartbig) .cartsheet .actions{gap:6px}
 .tvsz{display:none;position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:34px;height:34px;border-radius:50%;border:2px solid #fff;background:var(--accent);color:var(--accent-ink,#fff);font:900 20px/1 var(--body);box-shadow:0 4px 12px rgba(0,0,0,.35);pointer-events:auto!important;cursor:pointer;padding:0}
 .tvmove .tvsz{display:grid;place-items:center}
 .tvsz.dn{left:-40px}.tvsz.up{right:-40px}
+.cashier.cmini .cbtn,.cashier.cmini .cgo{zoom:var(--ck,1)}
+.cashmove .tvsz{display:grid;place-items:center}
 #moveBar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);z-index:70;display:flex;gap:8px;align-items:center;
   background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 8px;box-shadow:0 14px 30px -10px var(--shadow)}
 #moveBar[hidden]{display:none}
@@ -4528,13 +4530,14 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
       b.addEventListener('click', e => {
         const t = e.target.closest('button'); if(!t) return;
         if(t.dataset.mb === 'ok'){ if(tvMoving) tvMoveMode(false); if(cashMoving) cashMoveMode(false); save(); return; }
+        if(cashMoving && !tvMoving){ window.cashResize(t.dataset.mb === 'up' ? 0.1 : -0.1); return; }
         if(t.dataset.mb === 'sq'){ window.tvResize(0.3 - (+brand.tvSize || 1)); return; }
         const cur = +brand.tvSize || 1, step = cur > 0.6 ? 0.2 : 0.1;
         window.tvResize(t.dataset.mb === 'up' ? step : -step);
       });
     }
     if(!kind){ b.hidden = true; return; }
-    b.innerHTML = (kind === 'tv' ? `<button type="button" data-mb="dn" aria-label="Más chica">−</button><span class="lbl">${Math.round((+brand.tvSize || 1) * 100)}%</span><button type="button" data-mb="up" aria-label="Más grande">+</button><button type="button" data-mb="sq" style="font-size:13px">◻ Cuadradito</button>` : '<span class="lbl">Arrastrá la cajera</span>') + '<button type="button" class="ok" data-mb="ok">✓ Listo</button>';
+    b.innerHTML = (kind === 'tv' ? `<button type="button" data-mb="dn" aria-label="Más chica">−</button><span class="lbl">${Math.round((+brand.tvSize || 1) * 100)}%</span><button type="button" data-mb="up" aria-label="Más grande">+</button><button type="button" data-mb="sq" style="font-size:13px">◻ Cuadradito</button>` : `<button type="button" data-mb="dn" aria-label="Más chica">−</button><span class="lbl">${Math.round((+brand.cashSize || 1) * 100)}%</span><button type="button" data-mb="up" aria-label="Más grande">+</button>`) + '<button type="button" class="ok" data-mb="ok">✓ Listo</button>';
     b.hidden = false;
   }
   function tvMoveMode(on){
@@ -4587,6 +4590,14 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     }
   }
   addEventListener('resize', () => { if(brand.cashPos) applyCashPos(); });
+  function applyCashSize(){
+    const w = document.getElementById('cashier'); if(!w) return;
+    w.style.setProperty('--ck', String(Math.min(1.6, Math.max(0.5, +brand.cashSize || 1))));
+    if(!w.querySelector('.tvsz')) w.insertAdjacentHTML('beforeend', '<button type="button" class="tvsz dn" data-csz="-1" aria-label="Más chica">−</button><button type="button" class="tvsz up" data-csz="1" aria-label="Más grande">+</button>');
+  }
+  window.cashResize = d => { brand.cashSize = Math.min(1.6, Math.max(0.5, Math.round(((+brand.cashSize || 1) + d) * 100) / 100)); applyCashSize(); if(brand.cashPos) applyCashPos();
+    const l = document.querySelector('#moveBar .lbl'); if(l) l.textContent = Math.round(brand.cashSize * 100) + '%'; save(); };
+  applyCashSize();
   function cashMoveMode(on){
     const w = document.getElementById('cashier'); if(!w) return;
     cashMoving = on; w.classList.toggle('cashmove', on); moveBar(on ? 'cash' : (tvMoving ? 'tv' : null));
@@ -4597,7 +4608,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     const w = document.getElementById('cashier'); if(!w) return;
     let st = null;
     w.addEventListener('pointerdown', e => {
-      if(!cashMoving) return; e.preventDefault(); e.stopPropagation();
+      if(!cashMoving || e.target.closest('[data-csz]')) return; e.preventDefault(); e.stopPropagation();
       const r = w.getBoundingClientRect();
       if(!brand.cashPos){ brand.cashPos = {x: (r.left + scrollX) / document.documentElement.clientWidth, y: r.top + scrollY}; applyCashPos(); }
       const r2 = w.getBoundingClientRect();
@@ -4612,7 +4623,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     const end = () => { if(st){ st = null; save(); } };
     w.addEventListener('pointerup', end); w.addEventListener('pointercancel', end);
     // mientras se mueve, tocarla no abre la caja
-    w.addEventListener('click', e => { if(cashMoving){ e.stopPropagation(); e.preventDefault(); } }, true);
+    w.addEventListener('click', e => { if(cashMoving){ e.stopPropagation(); e.preventDefault(); const z = e.target.closest('[data-csz]'); if(z) window.cashResize(+z.dataset.csz * 0.1); } }, true);
   })();
   if(document.getElementById('cashMoveBtn')){
     $('cashMoveBtn').addEventListener('click', () => cashMoveMode(!cashMoving));
@@ -6012,7 +6023,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   const cajeraOn = () => hList().length > 0 && brand.cashier !== false;
   function renderCashier(){
     renderDelivery();
-    try{ applyCashPos(); }catch(e){}
+    try{ applyCashSize(); applyCashPos(); }catch(e){}
     $('cashier').hidden = !cajeraOn();
     if(!cajeraOn()) return;
     $('cAv').innerHTML = helperSVG(CAJERA, hShirt());
