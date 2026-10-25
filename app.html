@@ -1530,6 +1530,11 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <div class="bgbar" id="bgBarPanel" role="group" aria-label="Fondo de las vitrinas"></div>
     </div>
     <div class="presets">
+      <strong>💱 Moneda y país</strong>
+      <p class="note" style="margin:0">Elegí la moneda en la que vendés. Los totales del pedido se muestran en esa moneda y las formas de entrega se adaptan a tu país. Escribí los precios de tus productos en esa misma moneda.</p>
+      <select id="b-currency" aria-label="Moneda de la tienda" style="font:inherit;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg);color:inherit;max-width:320px"></select>
+    </div>
+    <div class="presets">
       <strong>📺 Pantalla de ofertas</strong>
       <p class="note" style="margin:0">Una pantalla tipo LED en la tienda. Pasa tu video (presentación de la tienda o el producto del día), tus fotos y tus productos destacados (★) con su precio. Si no marcaste destacados, pasa los productos con precio.</p>
       <div class="row" style="gap:8px;flex-wrap:wrap">
@@ -4150,15 +4155,38 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   const waHref = text => { const n = waNumber(); return n ? `https://wa.me/${n}?text=${encodeURIComponent(text)}` : ''; };
   const storeName = () => brand.name || 'tu tienda';
   const productMsg = p => { const v = variantOf(p), pr = curPrice(p), item = `${p.name}${v ? L(', modelo ', ', model ', ', modelo ') + v.name : ''}${pr ? ' (' + pr + ')' : ''}`; return L(`Hola ${storeName()}! Vi en tu vitrina: ${item}. ¿Está disponible?`, `Hi ${storeName()}! I saw this in your showcase: ${item}. Is it available?`, `Olá ${storeName()}! Vi na sua vitrine: ${item}. Está disponível?`); };
-  const fmt = n => '$' + Math.round(n).toLocaleString('es-AR');
+  // Moneda de la tienda: [locale, decimales, país, nombre]. Argentina queda como siempre ($1.500).
+  const CURRENCIES = {
+    ARS: ['es-AR', 0, 'Argentina', 'pesos argentinos'], USD: ['en-US', 2, 'Estados Unidos', 'dólares estadounidenses'], EUR: ['es-ES', 2, 'España / Europa', 'euros'],
+    BRL: ['pt-BR', 2, 'Brasil', 'reales'], MXN: ['es-MX', 2, 'México', 'pesos mexicanos'], CLP: ['es-CL', 0, 'Chile', 'pesos chilenos'],
+    COP: ['es-CO', 0, 'Colombia', 'pesos colombianos'], PEN: ['es-PE', 2, 'Perú', 'soles'], UYU: ['es-UY', 0, 'Uruguay', 'pesos uruguayos'],
+    PYG: ['es-PY', 0, 'Paraguay', 'guaraníes'], BOB: ['es-BO', 2, 'Bolivia', 'bolivianos'], GBP: ['en-GB', 2, 'Reino Unido', 'libras esterlinas'], CAD: ['en-CA', 2, 'Canadá', 'dólares canadienses']
+  };
+  const curCode = () => CURRENCIES[brand.currency] ? brand.currency : 'ARS';
+  const fmt = n => {
+    const c = curCode(), [loc, d] = CURRENCIES[c];
+    if(c === 'ARS') return '$' + Math.round(n).toLocaleString('es-AR');
+    try{ return new Intl.NumberFormat(loc, {style: 'currency', currency: c, currencyDisplay: 'narrowSymbol', minimumFractionDigits: d, maximumFractionDigits: d}).format(n); }
+    catch(e){ return c + ' ' + (d ? n.toFixed(2) : Math.round(n)); }
+  };
+  // Formas de entrega. "r": monedas (países) donde aparece esa opción; sin "r", en todos lados.
   const SHIP_OPTS = [
     {id:'retiro', name:'Retiro en el local', ph:'Dirección y horario. Ej: Av. Colón 1234, de 10 a 19 h'},
     {id:'moto', name:'Envío en moto (cadete)', ph:'Costo o zona. Ej: $2.500 dentro de la ciudad'},
-    {id:'correo', name:'Correo Argentino', ph:'Costo o aclaración. Ej: a todo el país, se cotiza'},
-    {id:'andreani', name:'Andreani u OCA', ph:'Costo o aclaración'},
-    {id:'mercado', name:'Mercado Envíos', ph:'Aclaración. Ej: comprando por Mercado Libre'},
-    {id:'coordinar', name:'A coordinar por WhatsApp', ph:'Ej: entregas en zona norte los sábados'}
+    {id:'apps', name:'Delivery por app (PedidosYa, Rappi, Uber, DoorDash…)', ph:'Ej: lo pedimos por app, el costo lo paga el cliente'},
+    {id:'domicilio', name:'Envío a domicilio (empresa de envíos)', ph:'Costo o zona. Ej: gratis en compras grandes'},
+    {id:'correo', name:'Correo Argentino', ph:'Costo o aclaración. Ej: a todo el país, se cotiza', r:['ARS']},
+    {id:'andreani', name:'Andreani u OCA', ph:'Costo o aclaración', r:['ARS']},
+    {id:'mercado', name:'Mercado Envíos', ph:'Aclaración. Ej: comprando por Mercado Libre', r:['ARS','BRL','MXN','CLP','COP','UYU','PEN']},
+    {id:'correos', name:'Correo nacional (Correos, Correios, Royal Mail, Canada Post…)', ph:'Costo o aclaración. Ej: a todo el país', r:['USD','EUR','BRL','MXN','CLP','COP','PEN','UYU','PYG','BOB','GBP','CAD']},
+    {id:'usps', name:'USPS', ph:'Costo o aclaración. Ej: Priority Mail, 2 a 3 días', r:['USD']},
+    {id:'ups', name:'UPS o FedEx', ph:'Costo o aclaración', r:['USD','CAD','GBP','EUR','MXN','BRL']},
+    {id:'dhl', name:'DHL, GLS o SEUR', ph:'Costo o aclaración', r:['EUR','GBP','MXN','CLP','COP','PEN','BRL','USD']},
+    {id:'puntos', name:'Retiro en punto de entrega (locker o sucursal)', ph:'Dónde. Ej: sucursal o locker más cercano'},
+    {id:'coordinar', name:'A coordinar por WhatsApp', ph:'Ej: entregas en zona norte los sábados'},
+    {id:'otra', name:'Otra forma de envío', ph:'Escribí cuál y el costo. Ej: Estafeta, $150'}
   ];
+
   const shipList = () => SHIP_OPTS.filter(o => brand.ship && typeof brand.ship[o.id] === 'string').map(o => ({...o, detail: brand.ship[o.id]}));
   let shipSel = null;
   // Datos del cliente para la entrega y pedido para regalo (los pide la cajera; viajan en el pedido).
@@ -4236,7 +4264,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   function renderShipPanel(){
     const sh = brand.ship || {};
     if($('b-delay')){ renderRiderPanel(); $('b-delay').value = brand.delay || ''; }
-    $('shipGrid').innerHTML = SHIP_OPTS.map(o => `<div class="shiprow">
+    $('shipGrid').innerHTML = SHIP_OPTS.filter(o => !o.r || o.r.includes(curCode()) || typeof sh[o.id] === 'string').map(o => `<div class="shiprow">
       <input type="checkbox" id="ship-${o.id}" data-ship="${o.id}" ${typeof sh[o.id]==='string'?'checked':''}>
       <label class="nm" for="ship-${o.id}">${o.name}</label>
       <input type="text" id="shipd-${o.id}" data-shipd="${o.id}" maxlength="80" placeholder="${o.ph}" value="${esc(sh[o.id] || '')}" ${typeof sh[o.id]==='string'?'':'hidden'} aria-label="Detalle de ${o.name}">
@@ -4249,6 +4277,12 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     $('shipd-' + id).hidden = !e.target.checked; if(e.target.checked) $('shipd-' + id).focus();
     save(); renderDelivery();
   });
+  if($('b-currency')){
+    $('b-currency').innerHTML = Object.entries(CURRENCIES).map(([c, v]) => `<option value="${c}">${v[2]} — ${v[3]} (${c})</option>`).join('');
+    $('b-currency').value = curCode();
+    $('b-currency').addEventListener('change', e => { brand.currency = e.target.value; save(); renderShipPanel(); render(); try{ tvSig = ''; renderTV(); }catch(err){} });
+    $('brandBtn').addEventListener('click', () => setTimeout(() => { $('b-currency').value = curCode(); }, 0));
+  }
   if($('tvBtn')){
     const syncTv = () => { $('tvBtn').setAttribute('aria-pressed', String(brand.tv !== false)); $('b-tvtext').value = brand.tvText || ''; };
     $('tvBtn').addEventListener('click', () => { brand.tv = brand.tv === false; save(); syncTv(); tvSig = ''; renderTV(); });
@@ -4897,19 +4931,20 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   function updateSuggestBtn(){
     $('suggestBtn').hidden = !(sampler && (pending.length === 1 || editingId || $('f-name').value.trim()));
   }
-  const ars = n => '$' + Math.round(n).toLocaleString('es-AR');
+  const ars = n => fmt(n);
   $('suggestBtn').onclick = async () => {
     if(!sampler) return;
     priceCtl?.abort(); priceCtl = new AbortController();
     const box = $('suggestBox'), btn = $('suggestBtn');
     const name = $('f-name').value.trim(), feats = $('f-feats').value.trim();
     box.hidden = false; box.textContent = 'Calculando un precio de referencia…'; btn.disabled = true;
-    const prompt = `Sos un asesor de precios para comercios de barrio en Argentina.
+    const [, , pais, moneda] = CURRENCIES[curCode()];
+    const prompt = `Sos un asesor de precios para comercios de barrio en ${pais}.
 Producto: ${name || '(ver foto)'}
 Características:
 ${feats || '(ver foto)'}
-Estimá un precio de venta al público en pesos argentinos para un comercio minorista, al día de hoy.
-Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}. Números enteros en pesos, sin símbolos ni puntos.`;
+Estimá un precio de venta al público en ${moneda} para un comercio minorista, al día de hoy.
+Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}. Números en ${moneda}, sin símbolos ni separadores de miles${CURRENCIES[curCode()][1] ? ' (podés usar punto para los centavos)' : ', enteros'}.`;
     try{
       const opts = {signal: priceCtl.signal};
       if(pending.length === 1 && pending[0].blob) opts.images = pending[0].blob;
