@@ -669,6 +669,10 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 .tvwrap[hidden]{display:none}
 .cashrow{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin:10px 0 4px}
 .cashrow .cashier{flex:1;min-width:0;margin:0}
+.tvfree{position:absolute;z-index:30;margin:0!important}
+.tvmove{outline:3px dashed var(--accent);outline-offset:4px;cursor:grab;touch-action:none}
+.tvmove *{pointer-events:none}
+.tvmove::before{content:"✋ Arrastrame";position:absolute;top:-26px;left:50%;transform:translateX(-50%);background:var(--accent);color:var(--accent-ink,#fff);font:700 12px/1 var(--body);padding:5px 9px;border-radius:999px;white-space:nowrap;z-index:2}
 .tvtop{flex:0 0 auto;width:min(100%, clamp(110px, calc(46vw * var(--tvk, 1)), calc(240px * var(--tvk, 1))));margin:2px 0 0 auto;align-self:flex-end}
 .tvtop .tv{width:100%;padding:5px 5px 3px;border-radius:10px}
 .tvtop .tv::after{right:7px;bottom:3px;width:4px;height:4px}
@@ -1569,6 +1573,10 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <label for="b-tvsize" style="display:grid;gap:4px;max-width:360px">Tamaño de la pantalla <small id="tvSizeTxt">100%</small>
         <input type="range" id="b-tvsize" min="60" max="180" step="10" value="100" aria-label="Tamaño de la pantalla de ofertas">
       </label>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <button class="matbtn" type="button" id="tvMoveBtn" aria-pressed="false">✋ Mover la pantalla</button>
+        <button class="btn" type="button" id="tvHomeBtn">Volver a su lugar</button>
+      </div>
       <span class="note" id="tvMsg" role="status" style="margin:0"></span>
       <div class="row" style="gap:8px;flex-wrap:wrap"><button class="matbtn" type="button" id="tvBtn" aria-pressed="true">📺 Mostrar la pantalla</button>
         <label class="note" style="display:inline-flex;gap:6px;align-items:center;margin:0">Texto que corre abajo <input type="text" id="b-tvtext" maxlength="80" placeholder="Ej: ¡Ofertas de hoy! Envíos gratis en la ciudad" style="border:1px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--bg);color:inherit;min-width:0"></label></div>
@@ -4313,10 +4321,54 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     <path d="M10 44h44l12-22h9l3 4h-7l-9 18h12c6 0 10 3 11 8H10z" fill="${c}"/><rect x="26" y="36" width="26" height="6" rx="3" fill="#111" opacity=".75"/><rect x="2" y="30" width="18" height="12" rx="3" fill="#e63946"/><path d="M73 22l6-8" stroke="#333" stroke-width="3" stroke-linecap="round"/><circle cx="90" cy="42" r="3" fill="#ffd54a"/></svg>`;
   // ---- Pantalla LED de ofertas: va pasando los destacados (o los productos con precio) ----
   let tvT = null, tvI = 0, tvSig = '';
+  // Lugar de la pantalla: en el encabezado, o donde el comerciante la arrastró (x en % del ancho, y en px desde arriba).
+  let tvHome = null, tvMoving = false;
+  function applyTvPos(){
+    const w = document.getElementById('tvWrap'); if(!w) return;
+    if(!tvHome) tvHome = {parent: w.parentNode, next: w.nextSibling};
+    const p = brand.tvPos;
+    if(p && isFinite(p.x) && isFinite(p.y)){
+      if(w.parentNode !== document.body) document.body.appendChild(w);
+      w.classList.add('tvfree');
+      const vw = document.documentElement.clientWidth, ww = w.offsetWidth || 180;
+      w.style.left = Math.max(4, Math.min(vw - ww - 4, p.x * vw)) + 'px';
+      w.style.top = Math.max(4, p.y) + 'px';
+    } else {
+      w.classList.remove('tvfree'); w.style.left = w.style.top = '';
+      if(tvHome && w.parentNode !== tvHome.parent) tvHome.parent.insertBefore(w, tvHome.next);
+    }
+  }
+  addEventListener('resize', () => { if(brand.tvPos) applyTvPos(); });
+  function tvMoveMode(on){
+    const w = document.getElementById('tvWrap'); if(!w) return;
+    tvMoving = on; w.classList.toggle('tvmove', on);
+    const b = document.getElementById('tvMoveBtn'); if(b){ b.setAttribute('aria-pressed', String(on)); b.textContent = on ? '✓ Listo, dejarla ahí' : '✋ Mover la pantalla'; }
+    if(on){ $('brandPanel').hidden = true; $('brandBtn').setAttribute('aria-expanded', 'false'); w.scrollIntoView({block: 'center', behavior: 'smooth'}); }
+  }
+  (function(){
+    const w = document.getElementById('tvWrap'); if(!w) return;
+    let st = null;
+    w.addEventListener('pointerdown', e => {
+      if(!tvMoving) return; e.preventDefault();
+      const r = w.getBoundingClientRect();
+      if(!brand.tvPos){ brand.tvPos = {x: (r.left + scrollX) / document.documentElement.clientWidth, y: r.top + scrollY}; applyTvPos(); }
+      const r2 = w.getBoundingClientRect();
+      st = {dx: e.pageX - (r2.left + scrollX), dy: e.pageY - (r2.top + scrollY)};
+      try{ w.setPointerCapture(e.pointerId); }catch(err){}
+    });
+    w.addEventListener('pointermove', e => {
+      if(!st) return;
+      const vw = document.documentElement.clientWidth;
+      brand.tvPos = {x: Math.max(0, (e.pageX - st.dx) / vw), y: Math.max(4, e.pageY - st.dy)};
+      applyTvPos();
+    });
+    const end = () => { if(st){ st = null; save(); tvMoveMode(false); } };   // después de soltarla queda fija; para moverla otra vez, se toca el botón de nuevo
+    w.addEventListener('pointerup', end); w.addEventListener('pointercancel', end);
+  })();
   const applyTvSize = () => { const w = document.getElementById('tvWrap'); if(w) w.style.setProperty('--tvk', String(Math.min(1.8, Math.max(0.6, +brand.tvSize || 1)))); };
   function renderTV(){
     const wrap = document.getElementById('tvWrap'); if(!wrap) return;
-    applyTvSize();
+    applyTvSize(); applyTvPos();
     const vis = products.filter(p => !(catOf(p.cat) || {}).hidden && p.img);
     let list = vis.filter(p => p.featured); const ofertas = !!list.length;
     if(!list.length) list = vis.filter(p => p.price);
@@ -4354,7 +4406,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     v.muted = !v.muted; snd.textContent = v.muted ? '🔇' : '🔊'; if(!v.muted) v.play().catch(() => {});
   }, true);
   window.addEventListener('v360-lang', () => { try{ if(typeof renderCashier === 'function') renderCashier(); tvSig = ''; renderTV(); renderDelivery(); }catch(e){} });
-  document.addEventListener('click', e => { const sl = e.target.closest('#tvScr .tvsl.on'); if(sl && sl.dataset.tvpid) goToProduct(sl.dataset.tvpid); });
+  document.addEventListener('click', e => { if(tvMoving) return; const sl = e.target.closest('#tvScr .tvsl.on'); if(sl && sl.dataset.tvpid) goToProduct(sl.dataset.tvpid); });
   function renderDelivery(){
     const row = document.getElementById('dlvRow'); if(!row) return;
     const rs = ridersOf(), on = rs.length && shipList().some(o => o.id === 'moto');
@@ -4399,6 +4451,8 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   }
   if($('tvBtn')){
     const syncTv = () => { $('tvBtn').setAttribute('aria-pressed', String(brand.tv !== false)); $('b-tvtext').value = brand.tvText || ''; const k = Math.round((brand.tvSize || 1) * 100); $('b-tvsize').value = k; $('tvSizeTxt').textContent = k + '%'; };
+    $('tvMoveBtn').addEventListener('click', () => tvMoveMode(!tvMoving));
+    $('tvHomeBtn').addEventListener('click', () => { delete brand.tvPos; tvMoveMode(false); applyTvPos(); save(); });
     $('b-tvsize').addEventListener('input', e => { brand.tvSize = (+e.target.value || 100) / 100; $('tvSizeTxt').textContent = e.target.value + '%'; applyTvSize(); save(); });
     $('tvBtn').addEventListener('click', () => { brand.tv = brand.tv === false; save(); syncTv(); tvSig = ''; renderTV(); });
     $('b-tvtext').addEventListener('input', e => { brand.tvText = e.target.value; save(); tvSig = ''; renderTV(); });
