@@ -678,6 +678,19 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 .tvwrap[hidden]{display:none}
 .cashrow{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin:10px 0 4px}
 .cashrow .cashier{flex:1;min-width:0;margin:0}
+.hcorner{display:flex;gap:8px;align-items:flex-start;justify-content:flex-end;width:100%}
+.hcorner .tvtop{margin:0}
+.hcorner .cashier{position:relative;flex:0 0 auto;margin:0;padding:6px 8px;gap:4px;border-radius:14px;display:flex;flex-direction:column;align-items:center}
+.hcorner .cside{display:contents}
+.hcorner .cbtn{width:52px}
+.hcorner .cav svg{width:46px}
+.hcorner .basket{left:-10px;bottom:6px;font-size:20px}
+.hcorner .cgo{font-size:11.5px;padding:4px 8px;white-space:nowrap}
+.hcorner .cbubble{display:none;position:absolute;right:0;top:calc(100% + 9px);width:min(270px,72vw);z-index:45;border:1px solid var(--line);
+  border-radius:14px;box-shadow:0 14px 30px -12px var(--shadow);background:var(--surface);text-align:left}
+.hcorner .cbubble.show{display:block;animation:bubin .25s ease-out}
+.hcorner .cbubble::before{content:"";position:absolute;top:-8px;right:30px;border:8px solid transparent;border-top:0;border-bottom-color:var(--surface)}
+@keyframes bubin{from{opacity:0;transform:translateY(-4px)}}
 .tvfree{position:absolute;z-index:30;margin:0!important}
 .tvmove{outline:3px dashed var(--accent);outline-offset:4px;cursor:grab;touch-action:none}
 .tvmove *{pointer-events:none}
@@ -1487,7 +1500,16 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
         <button class="btn ownerbtn" type="button" id="webBtn" hidden>🌐 Llevar a la web</button>
         <button class="btn" type="button" id="brandBtn" aria-expanded="false" aria-controls="brandPanel">Personalizar mi comercio</button>
       </span>
+      <div class="hcorner">
+      <div class="cashier" id="cashier" hidden>
+        <button class="cbtn" type="button" id="cBtn" aria-label="Caja: ver lo que llevás"><span class="cav" id="cAv"></span><span class="basket" aria-hidden="true">🧺<b id="cN">0</b></span></button>
+        <div class="cside">
+          <div class="cbubble" id="cBubble" aria-live="polite">¡Hola! Soy Caro, la cajera. Lo que agregues va a tu canastito.</div>
+          <button class="btn primary cgo" type="button" id="cGo">🧾 Ir a la caja</button>
+        </div>
+      </div>
       <div class="tvwrap tvtop" id="tvWrap" hidden><div class="tv" role="region" aria-label="Pantalla de ofertas"><div class="tvscr" id="tvScr"></div><div class="tvtick"><span id="tvTick"></span></div></div><span class="tvleg" aria-hidden="true"></span></div>
+      </div>
       <div class="count" id="count"></div>
     </div>
   </header>
@@ -1496,15 +1518,6 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
   <p class="note limitnote" id="limitNote" role="status" hidden></p>
   <p class="note limitnote wanote" id="waNote" hidden><span>📱 Todavía no cargaste tu WhatsApp: sin él, tus clientes no pueden mandarte pedidos.</span> <button class="btn primary" type="button" id="waSet">Cargar mi WhatsApp</button></p>
 
-  <div class="cashrow">
-  <div class="cashier" id="cashier" hidden>
-    <button class="cbtn" type="button" id="cBtn" aria-label="Caja: ver lo que llevás"><span class="cav" id="cAv"></span><span class="basket" aria-hidden="true">🧺<b id="cN">0</b></span></button>
-    <div class="cside">
-      <div class="cbubble" id="cBubble" aria-live="polite">¡Hola! Soy Caro, la cajera. Lo que agregues va a tu canastito.</div>
-      <button class="btn primary cgo" type="button" id="cGo">🧾 Ir a la caja</button>
-    </div>
-  </div>
-  </div>
   <div class="dlvrow" id="dlvRow" hidden></div>
 
   <div class="searchbar" id="searchbar">
@@ -4998,7 +5011,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       const thanks = M('thanks', {store: storeName()});
       const moto = o && o.id === 'moto' && ridersOf().length;
       const cMsg = moto ? `${thanks} ${deliveryLine()} ${M('any_wa')}` : `${thanks} ${o ? M('chose', {x: trCat(o.name)}) + ' ' : ''}${M('go_wa')}`;
-      if(cajeraOn()){ $('cBubble').textContent = trSay(cMsg); sayWhenBack(() => cSpeak(cMsg)); }
+      if(cajeraOn()){ $('cBubble').textContent = trSay(cMsg); $('cBubble').classList.add('show'); sayWhenBack(() => cSpeak(cMsg)); }
       $('hPanel').hidden = false;
       if(o){ hInfo(`<strong>${esc(thanks)} ${esc(M('next', {x: trCat(o.name)}))}</strong><ol class="hsteps">${next.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`); if(!cajeraOn()) sayWhenBack(() => hSpeak(moto ? `${thanks} ${deliveryLine()}` : `${thanks} ${M('chose', {x: trCat(o.name)})} ${LANG === 'es' ? next.join(' ') : ''}`)); else $('hSay').textContent = thanks; }
       else { hShow([]); sayWhenBack(() => hSpeak(`${thanks} ${M('msg_coming')}`)); }
@@ -5820,7 +5833,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   let cBubbleT = null;
   function cSpeak(text, then){
     text = trSay(text);
-    $('cBubble').textContent = text;
+    $('cBubble').textContent = text; $('cBubble').classList.add('show');
     clearTimeout(cBubbleT); cBubbleT = setTimeout(cIdle, Math.max(7000, text.length * 80));
     const av = $('cBtn');
     if(!window.speechSynthesis){ then && setTimeout(then, Math.max(2500, text.length * 60)); return; }
@@ -5844,7 +5857,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     $('cashier').scrollIntoView({block: 'start', behavior: 'auto'}); scrollBy(0, -8);
     cSpeak(M('cash_main', {list, tot: (t ? M('tot_is', {t: fmt(t)}) : M('tot_conf')) + (unpriced && t ? M('tot_more') : ''), delay: brand.delay && shipList().some(o => o.id === 'moto') ? M('delay_today', {d: delayTr(brand.delay)}) : ''}), () => { $('hPanel').hidden = true; openCart(); });
   }
-  function cIdle(){ const n = cartCount(); $('cBubble').textContent = n ? M('idle_n', {n}) : M('idle_0'); }
+  function cIdle(){ const n = cartCount(); $('cBubble').textContent = n ? M('idle_n', {n}) : M('idle_0'); $('cBubble').classList.remove('show'); }
   $('cBtn').onclick = cajeraCobra;
   $('cGo').onclick = cajeraCobra;
   function hToCaja(){
