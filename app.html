@@ -4540,6 +4540,22 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     $('cashMoveBtn').addEventListener('click', () => cashMoveMode(!cashMoving));
     $('cashHomeBtn').addEventListener('click', () => { delete brand.cashPos; cashMoveMode(false); applyCashPos(); save(); });
   }
+  // Como los íconos del celular: en el panel del dueño, mantener apretado (o tocar dos veces) el televisor o la cajera los pone en modo mover.
+  (function(){
+    const canEdit = () => !PUBLIC && !clientMode;
+    const hook = (id, isMoving, enter) => {
+      const el = document.getElementById(id); if(!el) return;
+      let t = null, sx = 0, sy = 0;
+      const go = () => { t = null; if(!canEdit() || isMoving()) return; try{ navigator.vibrate && navigator.vibrate(30); }catch(e){} enter(true); };
+      el.addEventListener('pointerdown', e => { if(!canEdit() || isMoving()) return; sx = e.clientX; sy = e.clientY; clearTimeout(t); t = setTimeout(go, 550); });
+      el.addEventListener('pointermove', e => { if(t && Math.hypot(e.clientX - sx, e.clientY - sy) > 12){ clearTimeout(t); t = null; } });
+      ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => el.addEventListener(ev, () => { clearTimeout(t); t = null; }));
+      el.addEventListener('dblclick', e => { if(!canEdit() || isMoving()) return; e.preventDefault(); go(); });
+      el.addEventListener('contextmenu', e => { if(canEdit()) e.preventDefault(); });
+    };
+    hook('tvWrap', () => tvMoving, on => tvMoveMode(on));
+    hook('cashier', () => cashMoving, on => cashMoveMode(on));
+  })();
   const applyTvSize = () => { const w = document.getElementById('tvWrap'); if(w) w.style.setProperty('--tvk', String(Math.min(1.8, Math.max(0.6, +brand.tvSize || 1)))); };
   function renderTV(){
     const wrap = document.getElementById('tvWrap'); if(!wrap) return;
