@@ -838,6 +838,14 @@ select.field{border:1px solid var(--line);background:var(--bg);border-radius:10p
   box-shadow:0 6px 14px -6px var(--shadow);display:flex;gap:6px;align-items:center;opacity:.92}
 .backfab:hover{opacity:1}
 #shopView .shopbar{position:sticky;top:0;z-index:25;background:var(--bg);padding:6px 0;box-shadow:0 8px 12px -12px var(--shadow)}
+.bsec{border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.bsec > summary{cursor:pointer;list-style:none;padding:12px 14px;font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.bsec > summary::-webkit-details-marker{display:none}
+.bsec > summary::after{content:"›";font-size:22px;line-height:1;transition:transform .2s;color:var(--muted)}
+.bsec[open] > summary::after{transform:rotate(90deg)}
+.bsec[open] > summary{border-bottom:1px solid var(--line)}
+.bsecbody{display:grid;gap:8px;padding:12px 14px}
+.bseccg{grid-column:1/-1}
 .shoptools{border:1px solid var(--line);border-radius:12px;padding:8px 12px;display:grid;gap:8px}
 .shoptools > summary{cursor:pointer;font-weight:700;list-style:none}
 .subtool{border-top:1px solid var(--line);padding-top:6px}
@@ -4970,7 +4978,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       navigator.clipboard.writeText(text).then(done, () => { if(msgEl) msgEl.textContent = 'No se pudo copiar automáticamente. Seleccioná el texto y copialo.'; });
     }catch(e){ if(msgEl) msgEl.textContent = 'No se pudo copiar automáticamente. Seleccioná el texto y copialo.'; }
   }
-  function goSetWa(){ if($('brandPanel').hidden) $('brandBtn').click(); setTimeout(() => { const i = $('b-wa'); if(i){ i.scrollIntoView({block: 'center', behavior: 'smooth'}); i.focus({preventScroll: true}); } }, 80); }
+  function goSetWa(){ if($('brandPanel').hidden) $('brandBtn').click(); setTimeout(() => { const i = $('b-wa'); const sec = i && i.closest('details'); if(sec) sec.open = true; if(i){ i.scrollIntoView({block: 'center', behavior: 'smooth'}); i.focus({preventScroll: true}); } }, 80); }
   $('waSet').onclick = goSetWa;
   $('cartFab').onclick = openCart;
   $('cartModal').addEventListener('click', e => {
@@ -5027,6 +5035,35 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       renderWallets(); save(); const ins = $('walletList').querySelectorAll('input'); ins[ins.length - 1]?.focus();
     });
   }
+
+  // ---- "Personalizar mi comercio" como menú: se ven solo los títulos y se abre una sección por vez ----
+  (function(){
+    const panel = document.getElementById('brandPanel'); if(!panel) return;
+    const wrapSec = (sec, title, extraClass) => {
+      const d = document.createElement('details'); d.className = 'bsec' + (extraClass ? ' ' + extraClass : '');
+      const sm = document.createElement('summary'); sm.textContent = title; d.appendChild(sm);
+      const body = document.createElement('div'); body.className = 'bsecbody'; d.appendChild(body);
+      return {d, body};
+    };
+    panel.querySelectorAll('.presets').forEach(sec => {
+      const head = sec.querySelector(':scope > strong'); if(!head || sec.dataset.acc) return;
+      sec.dataset.acc = '1';
+      const {d, body} = wrapSec(sec, head.textContent.trim());
+      [...sec.childNodes].forEach(n => { if(n !== head) body.appendChild(n); });
+      head.remove(); sec.appendChild(d);
+    });
+    const cg = panel.querySelector('.contactgrid');
+    if(cg && !cg.dataset.acc){
+      cg.dataset.acc = '1';
+      const {d, body} = wrapSec(cg, '📲 WhatsApp, Instagram y cobros', 'bseccg');
+      cg.parentNode.insertBefore(d, cg); body.appendChild(cg);
+    }
+    panel.addEventListener('toggle', e => {
+      const t = e.target; if(!t.classList || !t.classList.contains('bsec') || !t.open) return;
+      panel.querySelectorAll('details.bsec[open]').forEach(o => { if(o !== t) o.open = false; });
+      setTimeout(() => { try{ t.scrollIntoView({block: 'nearest', behavior: 'smooth'}); }catch(err){} }, 50);
+    }, true);
+  })();
 
   // ---- Plantillas por tipo de negocio ----
   const PRESETS = [
