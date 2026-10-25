@@ -620,23 +620,23 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 .cartfab{position:fixed;right:calc(16px + env(safe-area-inset-right, 0px));bottom:calc(16px + env(safe-area-inset-bottom, 0px));z-index:40;
   border:0;border-radius:999px;background:var(--fab-bg, var(--ink));color:var(--fab-ink, var(--bg));padding:12px 18px;font-weight:600;cursor:pointer;box-shadow:0 10px 24px -8px var(--shadow);display:flex;gap:10px;align-items:center}
 .cartfab .n{background:var(--price-bg);color:var(--price-ink);border-radius:999px;padding:1px 8px;font:500 13px var(--mono)}
-.cartsheet{max-width:460px;grid-template-columns:1fr;gap:12px;padding:18px;font-size:14.5px}
-.cartsheet h2{font-size:19px;margin:0}
-.cartsheet .shipbox,.cartsheet .paybox{gap:5px}
-.cartsheet .shipopt{padding:7px 10px;border-radius:10px}
-.cartsheet .bfield{padding:8px 10px}
-.cartsheet .actions{gap:6px}
+body:not(.cartbig) .cartsheet{max-width:460px;grid-template-columns:1fr;gap:12px;padding:18px;font-size:14.5px}
+body:not(.cartbig) .cartsheet h2{font-size:19px;margin:0}
+body:not(.cartbig) .cartsheet .shipbox,.cartsheet .paybox{gap:5px}
+body:not(.cartbig) .cartsheet .shipopt{padding:7px 10px;border-radius:10px}
+body:not(.cartbig) .cartsheet .bfield{padding:8px 10px}
+body:not(.cartbig) .cartsheet .actions{gap:6px}
 /* En el celular, el pedido sale desde abajo como una hoja más chica, sin tapar toda la pantalla */
 @media (max-width:640px){
-  #cartModal{place-items:end center;padding:0}
-  .cartsheet{max-height:86vh;border-radius:18px 18px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom, 0px));gap:10px;font-size:14px}
-  .cartsheet h2{font-size:17px}
-  .cartlist li{grid-template-columns:40px minmax(0,1fr) auto;gap:8px;padding:6px 0}
-  .cartlist img{width:40px;height:40px;padding:2px}
-  .carttotal{font-size:16px}
-  .carttotal .v{font-size:19px}
-  .cartsheet .shipopt small{font-size:12px}
-  .cartsheet .giftwho label{padding:4px 10px;font-size:13px}
+  body:not(.cartbig) #cartModal{place-items:end center;padding:0}
+  body:not(.cartbig) .cartsheet{max-height:86vh;border-radius:18px 18px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom, 0px));gap:10px;font-size:14px}
+  body:not(.cartbig) .cartsheet h2{font-size:17px}
+  body:not(.cartbig) .cartlist li{grid-template-columns:40px minmax(0,1fr) auto;gap:8px;padding:6px 0}
+  body:not(.cartbig) .cartlist img{width:40px;height:40px;padding:2px}
+  body:not(.cartbig) .carttotal{font-size:16px}
+  body:not(.cartbig) .carttotal .v{font-size:19px}
+  body:not(.cartbig) .cartsheet .shipopt small{font-size:12px}
+  body:not(.cartbig) .cartsheet .giftwho label{padding:4px 10px;font-size:13px}
 }
 .cartlist{list-style:none;margin:0;padding:0;display:grid;border-top:1px solid var(--line)}
 .cartlist li{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
@@ -1682,6 +1682,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <strong>Formas de entrega</strong>
       <p class="note" style="margin:0">Marcá las que ofrecés. Tus clientes eligen una cuando hacen el pedido.</p>
       <div class="shipgrid" id="shipGrid"></div>
+      <button class="matbtn" type="button" id="cartBigBtn" aria-pressed="false" style="justify-self:start">🧾 Pedido en pantalla grande</button>
       <div class="riderbox">
         <strong>🛵 Delivery propio</strong>
         <p class="note" style="margin:0">Si tenés repartidores, agregalos con su nombre y elegí si es chico o chica. Aparecen con casco al lado de la caja y, cuando marcás que salió un pedido, se van en la motito. Si no tenés delivery, dejalo vacío.</p>
@@ -4649,6 +4650,9 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     });
     $('tvClear').addEventListener('click', () => { delete brand.tvVideo; delete brand.tvPhotos; save(); tvSig = ''; renderTV(); tvMsg('Saqué el video y las fotos. La pantalla sigue pasando tus productos.'); });
   }
+  // Tamaño de la ventana del pedido: chica (normal) o grande, a gusto del comercio
+  const applyCartBig = () => { document.body.classList.toggle('cartbig', !!brand.cartBig); const b = document.getElementById('cartBigBtn'); if(b) b.setAttribute('aria-pressed', String(!!brand.cartBig)); };
+  if(document.getElementById('cartBigBtn')) $('cartBigBtn').addEventListener('click', () => { brand.cartBig = !brand.cartBig; applyCartBig(); save(); });
   if($('riderList')){
     const setRL = rl => { brand.riderList = rl; delete brand.riders; save(); renderDelivery(); };
     $('riderList').addEventListener('input', e => { const i = e.target.dataset.ri; if(i == null) return; const rl = riderListOf().slice(); rl[+i] = {...rl[+i], name: e.target.value}; setRL(rl); });
@@ -4898,6 +4902,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     });
   });
   function renderCart(){
+    try{ applyCartBig(); }catch(e){}
     const items = cartItems(), {t, unpriced} = cartTotal(items), wa = waHref(orderText(items));
     const pay = String(brand.paylink || '').trim(), payOk = /^https:\/\//i.test(pay), pp = items.length ? paypalHref(t, unpriced) : '', ws = walletsOf();
     $('cartSheet').innerHTML = `
