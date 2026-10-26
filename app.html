@@ -1462,7 +1462,15 @@ body.clientmode .decoshop{display:none}
 .hlive > div{display:grid;gap:6px}
 .hlph{width:44px;height:44px;border-radius:50%;background:var(--surface) center/cover no-repeat;border:2px solid var(--accent);display:grid;place-items:center;font-size:20px}
 .owprev{width:56px;height:56px;border-radius:50%;background:var(--bg) center/cover no-repeat;border:2px solid var(--accent);display:grid;place-items:center;font-size:24px}
-.owprev:empty::before{content:"🙂"}
+.owprev:not(.owpic):empty::before{content:"🙂"}
+.hface{display:flex;gap:12px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:10px;cursor:zoom-in;text-align:left;font:inherit;color:inherit;width:100%}
+.hface .owpic{width:96px;height:96px;border-radius:50%;border:3px solid var(--accent);flex:none}
+.owpic{background-repeat:no-repeat;background-color:var(--bg)}
+.hface b{display:block;font-size:17px}
+.owzoom{position:fixed;inset:0;z-index:300;background:rgba(10,8,20,.78);display:grid;place-items:center;padding:20px;animation:owin .25s ease-out}
+.owzoom figure{margin:0;display:grid;gap:10px;justify-items:center;color:#fff;text-align:center}
+.owzoom .owpic{width:min(78vw,340px);height:min(78vw,340px);border-radius:50%;border:5px solid #fff;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.owzoom b{font:800 22px var(--display,var(--body))}
 .hav.owner .hname::before{content:"★ ";color:var(--accent)}
 .hav.owner.talking .owring{animation:owtalk .5s ease-in-out infinite alternate}
 @keyframes owtalk{from{stroke-width:2.5;opacity:1}to{stroke-width:5;opacity:.55}}
@@ -1568,6 +1576,8 @@ body.has-helpers .wrap{padding-bottom:170px}
 .helpers.many .hname{font-size:9px;padding:1px 5px}
 .hav,.hav svg{width:calc(62px * var(--hk, 1))!important}
 .helpers.many .hav,.helpers.many .hav svg{width:calc(46px * var(--hk, 1))!important}
+.hav.owner,.hav.owner svg{width:calc(84px * var(--hk, 1))!important}
+.helpers.many .hav.owner,.helpers.many .hav.owner svg{width:calc(64px * var(--hk, 1))!important}
 .hname{font-size:calc(10.5px * max(var(--hk, 1), .8))}
 .dlvp svg{width:calc(40px * var(--dk, 1))!important}
 .dlvp{font-size:calc(11.5px * max(var(--dk, 1), .8))}
@@ -1868,6 +1878,10 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
         <span class="owprev" id="owPrev" aria-hidden="true"></span>
         <label class="btn" for="b-owphoto" style="display:inline-flex">📷 <span id="owPhotoLbl">Subir mi foto</span><input type="file" id="b-owphoto" accept="image/*" class="vh"></label>
         <button class="linkbtn" type="button" id="owDel" hidden>Quitar</button>
+      </div>
+      <div class="row" id="owAdj" style="gap:8px;flex-wrap:wrap" hidden>
+        <label for="b-owzoom" style="flex:1 1 150px">🔍 Acercar la cara <input type="range" id="b-owzoom" min="1" max="3" step="0.05" value="1"></label>
+        <label for="b-owdy" style="flex:1 1 150px">↕ Subir o bajar <input type="range" id="b-owdy" min="-0.45" max="0.45" step="0.01" value="0"></label>
       </div>
       <div class="row" style="gap:8px;flex-wrap:wrap">
         <label for="b-owname" style="flex:1 1 160px">Tu nombre <input type="text" id="b-owname" maxlength="20" placeholder="Ej: Marta"></label>
@@ -6622,6 +6636,9 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   const ownOn = () => !!(brand.owner && brand.owner.photo);
   const ownRole = () => brand.owner && brand.owner.male ? 'el dueño' : 'la dueña';
   const ownName = () => (brand.owner && brand.owner.name) || (brand.owner && brand.owner.male ? 'El dueño' : 'La dueña');
+  // la cara: acercar (zoom) y subir/bajar, para que en el muñequito se vea bien aunque la foto sea de cuerpo entero
+  const ownZ = () => Math.min(3, Math.max(1, +((brand.owner || {}).zoom) || 1)), ownDY = () => Math.min(0.45, Math.max(-0.45, +((brand.owner || {}).dy) || 0));
+  const ownPicStyle = () => `background-image:url('${brand.owner.photo}');background-size:${ownZ() * 100}%;background-position:50% ${ownZ() > 1.001 ? Math.round(Math.max(-200, Math.min(300, 50 + ownDY() * ownZ() / (ownZ() - 1) * 100))) : 50}%`;
   const ownGreet = () => (brand.owner && String(brand.owner.greet || '').trim()) || `¡Hola! Soy ${ownName()}, ${ownRole()} ${brand.name ? 'de ' + brand.name : 'de esta tienda'}. ¡Bienvenidos! Mirá las vitrinas con tranquilidad y, si necesitás algo, tocame y te ayudo.`;
   function syncOwner(){
     if(ownOn()) HELPERS.duena = {name: ownName(), pitch: brand.owner.male ? 0.9 : 1.12, female: !brand.owner.male, photo: brand.owner.photo, owner: true};
@@ -6642,7 +6659,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       <path d="M14 104c0-22 11-36 26-36s26 14 26 36z" fill="${shirt}"/>
       <path d="M33 68l7 9 7-9" fill="#fff" opacity=".9"/>
       <rect x="22" y="84" width="36" height="11" rx="3" fill="#fff"/><text x="40" y="92.2" font-size="${Math.min(6.6, 52 / Math.max(1, tag.length)).toFixed(1)}" font-weight="800" text-anchor="middle" fill="${shirt}" font-family="system-ui,sans-serif">${tag}</text>
-      ${h.photo ? (cid => `<defs><clipPath id="${cid}"><circle cx="40" cy="47" r="21"/></clipPath></defs><image href="${h.photo}" x="19" y="26" width="42" height="42" clip-path="url(#${cid})" preserveAspectRatio="xMidYMid slice"/><circle class="owring" cx="40" cy="47" r="21" fill="none" stroke="${shirt}" stroke-width="2.5"/>`)('ow' + Math.random().toString(36).slice(2, 8)) : `<rect x="35" y="56" width="10" height="13" rx="4" fill="${h.skin}"/>
+      ${h.photo ? (cid => `<defs><clipPath id="${cid}"><circle cx="40" cy="42" r="26"/></clipPath></defs><image href="${h.photo}" x="${40 - 26 * ownZ()}" y="${42 - 26 * ownZ() - ownDY() * 52 * ownZ()}" width="${52 * ownZ()}" height="${52 * ownZ()}" clip-path="url(#${cid})" preserveAspectRatio="xMidYMid slice"/><circle class="owring" cx="40" cy="42" r="26" fill="none" stroke="${shirt}" stroke-width="2.5"/>`)('ow' + Math.random().toString(36).slice(2, 8)) : `<rect x="35" y="56" width="10" height="13" rx="4" fill="${h.skin}"/>
       <circle cx="40" cy="38" r="18" fill="${h.skin}"/>${hair}
       <g class="heyes"><circle cx="33.5" cy="39" r="2.2" fill="#222"/><circle cx="46.5" cy="39" r="2.2" fill="#222"/></g>
       <ellipse cx="29" cy="45" rx="3" ry="1.8" fill="#f08f8f" opacity=".45"/><ellipse cx="51" cy="45" rx="3" ry="1.8" fill="#f08f8f" opacity=".45"/>
@@ -6670,26 +6687,58 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   function renderOwnerPanel(){
     if(!document.getElementById('ownerBox')) return;
     const o = brand.owner || {}, act = document.activeElement;
-    $('owPrev').style.backgroundImage = o.photo ? `url("${o.photo}")` : ''; $('owPrev').textContent = o.photo ? '' : '';
-    $('owPhotoLbl').textContent = o.photo ? 'Cambiar la foto' : 'Subir mi foto'; $('owDel').hidden = !o.photo;
+    $('owPrev').setAttribute('style', ''); $('owPrev').classList.remove('owpic');
+    $('owPhotoLbl').textContent = o.photo ? 'Cambiar la foto' : 'Subir mi foto'; $('owDel').hidden = !o.photo; $('owAdj').hidden = !o.photo;
+    if(o.photo){ $('owPrev').setAttribute('style', ownPicStyle()); $('owPrev').classList.add('owpic'); $('b-owzoom').value = ownZ(); $('b-owdy').value = ownDY(); }
     if(act !== $('b-owname')) $('b-owname').value = o.name || '';
     if(act !== $('b-owgreet')) $('b-owgreet').value = o.greet || '';
     $('b-owsex').value = o.male ? 'm' : 'f';
     $('owAuto').setAttribute('aria-pressed', String(o.auto !== false));
   }
   // la foto: recorte cuadrado (un poco hacia arriba, donde suele estar la cara), chiquita para que pese poco
-  function ownPhoto(file){
-    return new Promise((res, rej) => { const u = URL.createObjectURL(file), im = new Image();
-      im.onload = () => { const w = im.naturalWidth, h = im.naturalHeight, sz = Math.min(w, h), c = document.createElement('canvas'); c.width = c.height = 320;
-        c.getContext('2d').drawImage(im, (w - sz) / 2, h > w ? (h - sz) * 0.18 : 0, sz, sz, 0, 0, 320, 320); URL.revokeObjectURL(u); res(c.toDataURL('image/jpeg', 0.86)); };
-      im.onerror = e => { URL.revokeObjectURL(u); rej(e); }; im.src = u; });
+  // Busca la cara con IA dentro del celular (MediaPipe, gratis) y recorta justo alrededor de ella.
+  let faceP = null;
+  function getFaceDet(){
+    if(!faceP) faceP = (async () => {
+      const V = await import(`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}/vision_bundle.mjs`);
+      const files = await V.FilesetResolver.forVisionTasks(`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}/wasm`);
+      return V.FaceDetector.createFromOptions(files, {baseOptions: {modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite', delegate: 'CPU'}, runningMode: 'IMAGE'});
+    })().catch(e => { faceP = null; throw e; });
+    return faceP;
+  }
+  async function ownPhoto(file){
+    const u = URL.createObjectURL(file);
+    const im = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = u; }).finally(() => setTimeout(() => URL.revokeObjectURL(u), 1000));
+    const w = im.naturalWidth, h = im.naturalHeight;
+    let box = null;
+    try{
+      const k = Math.min(1, 1024 / Math.max(w, h)), c0 = document.createElement('canvas'); c0.width = Math.round(w * k); c0.height = Math.round(h * k);
+      c0.getContext('2d').drawImage(im, 0, 0, c0.width, c0.height);
+      const det = await Promise.race([getFaceDet(), new Promise((_, rej) => setTimeout(() => rej(new Error('lento')), 9000))]);
+      const r = det.detect(c0), d = r && r.detections && r.detections.sort((a, b) => b.boundingBox.width * b.boundingBox.height - a.boundingBox.width * a.boundingBox.height)[0];
+      if(d){ const bb = d.boundingBox; box = {x: (bb.originX + bb.width / 2) / k, y: (bb.originY + bb.height / 2) / k, s: Math.max(bb.width, bb.height) / k}; }
+    }catch(e){}
+    const c = document.createElement('canvas'); c.width = c.height = 320;
+    if(box){
+      // la cara ocupa más o menos la mitad del círculo, con pelo y un poquito de hombros
+      let sz = Math.min(Math.min(w, h), box.s * 2.3), sx = box.x - sz / 2, sy = box.y - sz * 0.46;
+      sx = Math.max(0, Math.min(w - sz, sx)); sy = Math.max(0, Math.min(h - sz, sy));
+      c.getContext('2d').drawImage(im, sx, sy, sz, sz, 0, 0, 320, 320);
+      return {src: c.toDataURL('image/jpeg', 0.88), face: true};
+    }
+    const sz = Math.min(w, h); c.getContext('2d').drawImage(im, (w - sz) / 2, h > w ? (h - sz) * 0.18 : 0, sz, sz, 0, 0, 320, 320);
+    return {src: c.toDataURL('image/jpeg', 0.88), face: false};
   }
   const ownSet = (k, v) => { brand.owner = Object.assign({}, brand.owner || {}, {[k]: v}); save(); };
   if(document.getElementById('ownerBox')){
     $('b-owphoto').addEventListener('change', async e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if(!f) return;
-      try{ ownSet('photo', await ownPhoto(f)); ownGreeted = false; renderHelpers(); $('owMsg').textContent = '¡Listo! Ya aparecés en tu tienda. Tocá “Ver como cliente” para ver cómo saludás.'; }catch(err){ $('owMsg').textContent = 'No pude abrir esa foto. Probá con otra.'; } });
+      $('owMsg').textContent = 'Buscando tu cara en la foto…';
+      try{ const r = await ownPhoto(f); ownSet('photo', r.src); ownSet('zoom', r.face ? 1 : 1.3); ownSet('dy', r.face ? 0 : -0.08); ownGreeted = false; renderHelpers();
+        $('owMsg').textContent = (r.face ? '¡Listo! Encontré tu cara y la centré. ' : '¡Listo! Si tu cara se ve chica, acercala con “🔍 Acercar la cara”. ') + 'Tocá “Ver como cliente” para ver cómo saludás.'; }catch(err){ $('owMsg').textContent = 'No pude abrir esa foto. Probá con otra.'; } });
     $('owDel').addEventListener('click', () => { if(brand.owner) delete brand.owner.photo; save(); renderHelpers(); $('owMsg').textContent = 'Listo, ya no aparecés en la tienda.'; });
     $('b-owname').addEventListener('input', e => { ownSet('name', e.target.value.trim()); renderHelpers(); });
+    $('b-owzoom').addEventListener('input', e => { ownSet('zoom', +e.target.value); renderHelpers(); });
+    $('b-owdy').addEventListener('input', e => { ownSet('dy', +e.target.value); renderHelpers(); });
     $('b-owgreet').addEventListener('input', e => ownSet('greet', e.target.value));
     $('b-owsex').addEventListener('change', e => { ownSet('male', e.target.value === 'm'); renderHelpers(); });
     $('owAuto').addEventListener('click', () => { ownSet('auto', !(brand.owner && brand.owner.auto !== false)); renderOwnerPanel(); });
@@ -7089,8 +7138,19 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     $('hChips').innerHTML = (cartCount() ? `<button class="matbtn" type="button" data-hcaja="1">🧾 Ir a la caja (${cartCount()})</button>` : '') + (waNumber() ? `<button class="matbtn" type="button" data-hlive="1">💬 ${ownOn() ? (id === 'duena' ? 'Hablar conmigo' : 'Hablar con ' + esc(ownName())) : 'Hablar con una persona'}</button>` : '') + [['🏬 Ver vitrinas', 'vitrinas'], ['🔥 Ofertas', 'ofertas'], ['📱 WhatsApp', 'me pasas el numero'], ['🚚 Envíos', 'como hacen los envios'], ['💳 Cómo pago', 'como pago'], ...visCats().slice(0, 4).map(c => [c.name, 'mostrame ' + c.name])].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${esc(q)}">${esc(t)}</button>`).join('');
     $('hRow').querySelectorAll('.hav').forEach(b => b.classList.toggle('on', b.dataset.hav === id));
     const ob = document.querySelector('.owbub'); if(ob) ob.remove();
-    renderHMode(); hShow([]); hSpeak(id === 'duena' ? ownGreet() : M('hello_pick', {name: HELPERS[id].name}));
+    renderHMode(); hShow([]);
+    if(id === 'duena') $('hRes').innerHTML = `<button class="hface" type="button" data-owzoom="1" aria-label="Ver la foto en grande"><span class="owpic" role="img" aria-label="Foto de ${esc(ownName())}" style="${ownPicStyle()}"></span><span><b>${esc(ownName())}</b><span class="note">${ownRole() === 'el dueño' ? 'Dueño' : 'Dueña'} de ${esc(brand.name || 'la tienda')} · tocá la foto para verla grande</span></span></button>`;
+    hSpeak(id === 'duena' ? ownGreet() : M('hello_pick', {name: HELPERS[id].name}));
   }
+  // la cara de la dueña en grande (desde su tarjeta, o tocando dos veces su muñequito)
+  function ownZoom(){
+    if(!ownOn()) return;
+    const z = document.createElement('div'); z.className = 'owzoom'; z.setAttribute('role', 'dialog'); z.setAttribute('aria-label', 'Foto de ' + ownName());
+    z.innerHTML = `<figure><span class="owpic" role="img" aria-label="Foto de ${esc(ownName())}" style="${ownPicStyle()}"></span><b>${esc(ownName())}</b><span>${ownRole() === 'el dueño' ? 'Dueño' : 'Dueña'} de ${esc(brand.name || 'la tienda')}</span><button class="btn" type="button">Cerrar</button></figure>`;
+    z.onclick = () => z.remove(); document.body.appendChild(z);
+  }
+  document.addEventListener('click', e => { if(e.target.closest('[data-owzoom]')) ownZoom(); });
+  $('hRow').addEventListener('dblclick', e => { if(e.target.closest('[data-hav="duena"]')) ownZoom(); });
   $('hRow').addEventListener('click', e => {
     const b = e.target.closest('[data-hav]'); if(b) hOpen(b.dataset.hav);
   });
