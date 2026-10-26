@@ -5208,9 +5208,12 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   if(PUBLIC && window.VITRINA_SLUG) fetch('/api/mpcobro?accion=disponible&slug=' + encodeURIComponent(window.VITRINA_SLUG)).then(r => r.json()).then(j => { mpLive = !!(j && j.ok); try{ if(!$('cartModal').hidden) renderCart(); }catch(e){} }).catch(() => { mpLive = false; });
   const mpAutoOk = () => (mpLive === true || (!PUBLIC && !!brand.mpAuto)) && curCode() === 'ARS';
   // la cajera también te dice cómo podés pagar
-  const payHint = () => { const ws = walletsOf().map(w => trCat(w.name)), any = brand.alias || /^https:\/\//i.test(String(brand.paylink || '')) || brand.paypal || ws.length; if(!any) return '';
+  const payHint = () => { const ws = walletsOf().map(w => trCat(w.name)), mp = mpAutoOk(), any = mp || brand.alias || /^https:\/\//i.test(String(brand.paylink || '')) || brand.paypal || ws.length; if(!any) return '';
     const list = [...(brand.alias ? [L('transferencia', 'bank transfer', 'transferência')] : []), ...ws].slice(0, 3).join(', ');
-    return ' ' + L(`¿Cómo pagás? Podés pagar ahora${list ? ' con ' + list : ''} y mandar el comprobante, o coordinarlo por WhatsApp.`, `How will you pay? You can pay now${list ? ' with ' + list : ''} and send the receipt, or arrange it on WhatsApp.`, `Como você vai pagar? Pode pagar agora${list ? ' com ' + list : ''} e mandar o comprovante, ou combinar pelo WhatsApp.`); };
+    const otros = list || brand.paylink || brand.paypal;
+    return ' ' + (mp
+      ? L(`Y elegí cómo pagás: podés pagar ya con Mercado Pago, con tarjeta, débito o saldo, y se confirma solo${otros ? `; pagar${list ? ' con ' + list : ''} y mandar el comprobante` : ''}; o coordinarlo por WhatsApp.`, `And choose how to pay: pay now with Mercado Pago and it's confirmed automatically${otros ? `, pay${list ? ' with ' + list : ''} and send the receipt` : ''}, or arrange it on WhatsApp.`, `E escolha como pagar: pague já com Mercado Pago e confirma sozinho${otros ? `, pague${list ? ' com ' + list : ''} e mande o comprovante` : ''}, ou combine pelo WhatsApp.`)
+      : L(`Y elegí cómo pagás: podés pagar ahora${list ? ' con ' + list : ''} y mandar el comprobante, o coordinarlo por WhatsApp.`, `And choose how to pay: you can pay now${list ? ' with ' + list : ''} and send the receipt, or arrange it on WhatsApp.`, `E escolha como pagar: pode pagar agora${list ? ' com ' + list : ''} e mandar o comprovante, ou combinar pelo WhatsApp.`)); };
   // "cuándo lo querés": lo antes posible, o día + horario (ej: "jueves 30/10 — de 18 a 20 h")
   const whenTxt = () => { if(buyer.cuando !== 'hora') return L('lo antes posible', 'as soon as possible', 'o quanto antes');
     let d = ''; if(buyer.dia){ try{ d = new Date(buyer.dia + 'T12:00').toLocaleDateString(LANG === 'es' ? 'es-AR' : LANG, {weekday: 'long', day: 'numeric', month: 'numeric'}); }catch(e){ d = buyer.dia; } }
