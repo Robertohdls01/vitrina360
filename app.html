@@ -696,6 +696,9 @@ body:not(.cartbig) .cartsheet .actions{gap:6px}
 .carttotal{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;font-size:18px;padding-top:6px}
 .carttotal .v{font:500 22px var(--mono);color:var(--accent)}
 .paybox[hidden]{display:none!important}
+.stockb{margin:2px 0;font:700 13px var(--body);color:var(--muted)}
+.stockb.low{color:#c2410c}
+.stockb.out{color:#b42318}
 .paybox{display:grid;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px}
 .walletbox{grid-column:1/-1}
 .walletlist{display:grid;gap:8px}
@@ -799,6 +802,10 @@ body:has(.tvmove,.cashmove) header .hcorner{outline:2px dashed var(--accent);out
 .tvtop .tvsnd{width:24px;height:24px;font-size:12px;right:4px;bottom:4px}
 .tv{width:min(460px,100%);background:#0b0b0f;border-radius:14px;padding:8px 8px 6px;box-shadow:0 0 0 2px #26262e inset,0 14px 30px -14px rgba(0,0,0,.6),0 0 22px -6px var(--accent);position:relative}
 .tv::after{content:"";position:absolute;right:12px;bottom:5px;width:5px;height:5px;border-radius:50%;background:#39ff14;box-shadow:0 0 6px #39ff14}
+.tv::after{display:none}
+.tvleg{display:none!important}
+.tv{border-radius:8px;padding:4px;background:#050507;box-shadow:0 0 0 1px #2c2c36 inset,0 0 18px -2px var(--accent),0 10px 24px -14px rgba(0,0,0,.6)}
+.tvtop .tv{padding:3px;border-radius:7px}
 .tvleg{width:70px;height:10px;background:linear-gradient(#2a2a32,#111);border-radius:0 0 8px 8px;margin-top:-1px}
 .tvscr{position:relative;aspect-ratio:16/9;border-radius:6px;overflow:hidden;background:#fff;cursor:pointer}
 .tvsl{position:absolute;inset:0;display:grid;grid-template-columns:48% 1fr;align-items:center;gap:10px;padding:10px 14px;opacity:0;transition:opacity .6s;background:radial-gradient(circle at 25% 50%,#fff 0,#f1f3f6 70%)}
@@ -1781,7 +1788,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <p class="note" style="margin:0">Achicá o agrandá cada cosa para que tus productos tengan más lugar. También podés tocar dos veces (o dejar apretado) la cajera, la pantalla o un vendedor.</p>
       <div class="szrow"><span>🧑‍💼 Vendedores (muñequitos)</span><button type="button" data-szk="hlp" data-szd="-1" aria-label="Más chicos">−</button><b id="sz-hlp">100%</b><button type="button" data-szk="hlp" data-szd="1" aria-label="Más grandes">+</button></div>
       <div class="szrow"><span>🧾 Cajera</span><button type="button" data-szk="cash" data-szd="-1" aria-label="Más chica">−</button><b id="sz-cash">100%</b><button type="button" data-szk="cash" data-szd="1" aria-label="Más grande">+</button></div>
-      <div class="szrow"><span>📺 Pantalla de ofertas</span><button type="button" data-szk="tv" data-szd="-1" aria-label="Más chica">−</button><b id="sz-tv">100%</b><button type="button" data-szk="tv" data-szd="1" aria-label="Más grande">+</button></div>
+      <div class="szrow"><span>📺 Pantalla LED de ofertas</span><button type="button" data-szk="tv" data-szd="-1" aria-label="Más chica">−</button><b id="sz-tv">100%</b><button type="button" data-szk="tv" data-szd="1" aria-label="Más grande">+</button></div>
       <div class="szrow"><span>🛵 Repartidores</span><button type="button" data-szk="dlv" data-szd="-1" aria-label="Más chicos">−</button><b id="sz-dlv">100%</b><button type="button" data-szk="dlv" data-szd="1" aria-label="Más grandes">+</button></div>
     </div>
     <div class="presets">
@@ -1828,7 +1835,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <select id="b-currency" aria-label="Moneda de la tienda" style="font:inherit;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg);color:inherit;max-width:320px"></select>
     </div>
     <div class="presets">
-      <strong>📺 Pantalla de ofertas</strong>
+      <strong>📺 Pantalla LED de ofertas</strong>
       <p class="note" style="margin:0">Una pantalla tipo LED en la tienda. Pasa tu video (presentación de la tienda o el producto del día), tus fotos y tus productos destacados (★) con su precio. Si no marcaste destacados, pasa los productos con precio.</p>
       <div class="row" style="gap:8px;flex-wrap:wrap">
         <label class="btn" for="b-tvvideo" style="display:inline-flex">🎬 Subir video<input type="file" id="b-tvvideo" accept="video/*" class="vh"></label>
@@ -1843,7 +1850,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
         <button class="btn" type="button" id="tvHomeBtn">Volver a su lugar</button>
       </div>
       <span class="note" id="tvMsg" role="status" style="margin:0"></span>
-      <div class="row" style="gap:8px;flex-wrap:wrap"><button class="matbtn" type="button" id="tvBtn" aria-pressed="true">📺 Mostrar la pantalla</button>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><button class="matbtn" type="button" id="tvBtn" aria-pressed="true">📺 Mostrar la pantalla LED</button>
         <label class="note" style="display:inline-flex;gap:6px;align-items:center;margin:0">Texto que corre abajo <input type="text" id="b-tvtext" maxlength="80" placeholder="Ej: ¡Ofertas de hoy! Envíos gratis en la ciudad" style="border:1px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--bg);color:inherit;min-width:0"></label></div>
     </div>
     <div class="presets">
@@ -1943,6 +1950,14 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       <label class="qbrand" for="qBrand">Marca del catálogo <small>(opcional, para “📖 Foto de catálogo”)</small>
         <input type="text" id="qBrand" maxlength="40" placeholder="Ej: Avon, Natura, Violetta Fabiani">
       </label>
+      <label class="qbrand" for="qMarkup">💰 Tu ganancia sobre el precio de la foto (%) <small>(opcional) Subí la <b>boleta o lista de precios del proveedor</b> con “📖 Foto de catálogo”: la IA carga cada producto, le suma este % al precio de costo y pone la cantidad como stock.</small>
+        <input type="number" id="qMarkup" min="0" max="500" step="1" inputmode="numeric" placeholder="Ej: 20">
+      </label>
+      <div class="qbrand" style="display:grid;gap:6px">
+        <span>📈 Subir o bajar <b>todos</b> los precios de esta tienda <small>(por ejemplo, por aumento del proveedor)</small></span>
+        <span class="row" style="gap:6px;flex-wrap:nowrap"><input type="number" id="qBulkPct" step="1" inputmode="numeric" placeholder="Ej: 10 o -5" style="max-width:120px"> <span>%</span> <button class="btn" type="button" id="qBulkGo">Aplicar a todos</button></span>
+        <span class="note" id="qBulkMsg" role="status"></span>
+      </div>
       <label class="ctog" id="qAllWrap" style="justify-self:start" hidden><input type="checkbox" id="qAllStores"> Repartir entre todas mis tiendas <span class="pro">PRO</span></label>
       <label class="ctog" style="justify-self:start"><input type="checkbox" id="qAutoCats" checked> Armar vitrinas nuevas solas cuando un producto no tenga dónde ir</label>
       <div class="qflyer"><label class="ctog"><input type="checkbox" id="qFlyer"> 📰 Mostrar en modo folleto</label>
@@ -2069,6 +2084,9 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
           </span>
         </label>
         <div class="suggest" id="suggestBox" hidden></div>
+        <label for="f-stock">Stock <small>(opcional: cuántas unidades tenés. Vacío = sin control de stock)</small>
+          <input type="number" id="f-stock" min="0" max="99999" step="1" inputmode="numeric" placeholder="Ej: 12">
+        </label>
         <label for="f-feats">Características <small>Se completan solas al subir la foto. Una por línea; “Clave: valor” se ve como ficha.</small>
           <textarea id="f-feats" placeholder="Material: cuero vacuno&#10;Talles: S a XL&#10;Color: marrón tabaco&#10;Forro térmico desmontable"></textarea>
         </label>
@@ -2932,6 +2950,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
         <div class="eyebrow">Producto ${idx+1} de ${layout.length} · ${item.big ? 'Producto destacado, al frente de la vitrina' : `Módulo ${item.col+1}, estante ${SHELF_NAMES[item.shelf]}`}</div>
         <h2>${esc(p.name)} ${p.sample?'<span class="chip">Ejemplo</span>':''}${p.featured?'<span class="chip star">★ Destacado</span>':''}</h2>
         ${curPrice(p) ? `<div class="price">${esc(curPrice(p))}</div>` : ''}
+        ${stockLine(p)}
         ${p.review ? `<div class="rvbox"><strong>⚠ ${L('Nombre sin identificar', 'Name not identified', 'Nome não identificado')}</strong>
           <span>${L('Claude no pudo leer el nombre en la foto. Sacale una foto más de cerca, con buena luz, o escribilo a mano.', "Claude couldn't read the name in the photo. Take a closer photo with good light, or type it in.", 'O Claude não conseguiu ler o nome na foto. Tire uma foto mais de perto, com boa luz, ou digite à mão.')}</span>
           <span class="row"><button class="btn primary" type="button" data-act="rephoto">📷 ${L('Sacar foto de nuevo', 'Retake photo', 'Tirar foto de novo')}</button><button class="btn" type="button" data-act="edit">✏️ ${L('Escribirlo a mano', 'Type it in', 'Digitar à mão')}</button></span>
@@ -2945,7 +2964,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
           <button class="btn primary" type="button" data-act="gallery">Ver fotos y detalles${(p.photos||[]).length ? ` (${(p.photos||[]).length + 1})` : ''}</button>
           ${p.spin && p.spin.length ? `<button class="btn" type="button" data-act="spin">↻ Ver en 360°</button>` : ''}
           ${p.video ? `<button class="btn" type="button" data-act="video">🎬 Ver video</button>` : ''}
-          <button class="btn" type="button" data-act="cart">＋ Agregar al pedido</button>
+          ${p.stock != null && +p.stock <= 0 ? `<button class="btn" type="button" disabled>${esc(L('Sin stock', 'Out of stock', 'Sem estoque'))}</button>` : `<button class="btn" type="button" data-act="cart">＋ Agregar al pedido</button>`}
           <button class="btn ownerbtn" type="button" data-act="social">✦ ${L('Texto para redes', 'Social media post', 'Texto para redes')}</button>
           ${waHref(productMsg(p)) ? `<a class="btn wa" href="${waHref(productMsg(p))}" target="_blank" rel="noopener">Consultar por WhatsApp</a>` : ''}
           <button class="btn${p.featured ? ' on' : ''}" type="button" data-act="feature">${p.featured ? '★ Quitar destacado' : '☆ Destacar'}</button>
@@ -3099,13 +3118,14 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
         <div class="eyebrow">${ph.length} foto${ph.length===1?'':'s'}${p.sample?' · Ejemplo':''}</div>
         <h2 id="mTitle">${esc(p.name)}${p.digital ? '<span class="dbadge">📥 Digital</span>' : ''}${p.service ? `<span class="dbadge">🗓 ${esc(L('Servicio', 'Service', 'Serviço', 'Service', 'Dienstleistung', 'Servizio', '服务', 'サービス'))}${p.duration ? ' · ' + esc(p.duration) : ''}</span>` : ''}</h2>
         ${curPrice(p) ? `<div class="price">${esc(curPrice(p))}</div>` : ''}
+        ${stockLine(p)}
         ${modelsHTML(p, 'data-m', true)}
         ${variantOf(p) ? `<div class="vedit"><input type="text" id="mv-name" maxlength="40" value="${esc(variantOf(p).name)}" aria-label="Nombre del modelo"><input type="text" id="mv-price" maxlength="20" value="${esc(variantOf(p).price || '')}" placeholder="Precio (si cambia)" aria-label="Precio del modelo"></div>
           <button class="linkbtn" type="button" data-m="delvar" style="color:var(--danger);justify-self:start">${delArmed ? '¿Seguro? Tocá de nuevo' : 'Quitar este modelo'}</button>` : ''}
         <p class="note" id="varMsg" role="status"></p>
         ${feats ? `<ul class="feats">${feats}</ul>` : `<p class="nofeat">Este producto todavía no tiene características.</p>`}
         <div class="actions">
-          <button class="btn primary" type="button" data-m="cart">＋ Agregar al pedido</button>
+          ${p.stock != null && +p.stock <= 0 ? `<button class="btn" type="button" disabled>${esc(L('Sin stock', 'Out of stock', 'Sem estoque'))}</button>` : `<button class="btn primary" type="button" data-m="cart">＋ Agregar al pedido</button>`}
           ${p.extLink ? `<a class="btn" href="${esc(p.extLink)}" target="_blank" rel="noopener">🔗 Ver en el sitio</a>` : ''}
           ${waHref(productMsg(p)) ? `<a class="btn wa" href="${waHref(productMsg(p))}" target="_blank" rel="noopener">Consultar por WhatsApp</a>` : ''}
           <button class="btn" type="button" data-m="add">Agregar más fotos</button>
@@ -3185,7 +3205,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
       p.variants = (p.variants || []).filter(v => v.id !== selVar[p.id]); selVar[p.id] = ''; delArmed = false;
       save(); render(); renderModal();
     }
-    else if(m === 'cart'){ addToCart(cartKey(p), $('sheet').querySelector('.viewer img')); b.textContent = '✓ Agregado al pedido'; }
+    else if(m === 'cart'){ if(addToCart(cartKey(p), $('sheet').querySelector('.viewer img')) !== false) b.textContent = '✓ Agregado al pedido'; else b.textContent = p.stock > 0 ? L('Ya tenés todo el stock en tu pedido', 'All stock already in your order', 'Todo o estoque já está no pedido') : L('Sin stock', 'Out of stock', 'Sem estoque'); }
     else if(m === 'edit'){ closeModal(); startEdit(p); $('form').scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block:'start'}); }
     else if(m === 'del'){
       if(!delArmed){ delArmed = true; renderModal(); return; }
@@ -3728,7 +3748,7 @@ Respondé SOLO con JSON: {"letras": [ ... ]} con ${n} letra${n === 1 ? '' : 's'}
       return;
     }
     if(act === 'var'){ const bb = e.target.closest('[data-v]'); selVar[p.id] = bb.dataset.v; renderDetail(); return; }
-    if(act === 'cart'){ addToCart(cartKey(p), (variantOf(p) ? null : prodImg(p.id)) || $('detail').querySelector('.pic img')); e.target.textContent = '✓ Agregado'; setTimeout(() => renderDetail(), 1200); }
+    if(act === 'cart'){ const okc = addToCart(cartKey(p), (variantOf(p) ? null : prodImg(p.id)) || $('detail').querySelector('.pic img')); e.target.textContent = okc === false ? (p.stock > 0 ? L('Ya tenés todo el stock', 'All stock in your order', 'Todo o estoque no pedido') : L('Sin stock', 'Out of stock', 'Sem estoque')) : '✓ Agregado'; setTimeout(() => renderDetail(), 1200); }
     if(act === 'edit') startEdit(p);
     if(act === 'remove'){ e.target.textContent = '¿Seguro? Tocá de nuevo'; e.target.dataset.act = 'confirm'; }
     else if(act === 'confirm'){ products = products.filter(x => x.id !== p.id); if(editingId === p.id) resetForm(); selectedId = null; save(); render(); }
@@ -3928,7 +3948,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     $('formTitle').textContent = 'Editar producto';
     $('submitBtn').textContent = 'Guardar cambios';
     $('cancelEdit').hidden = false;
-    $('f-name').value = p.name; $('f-price').value = p.price || ''; $('f-feats').value = (p.features||[]).join('\n');
+    $('f-name').value = p.name; $('f-price').value = p.price || ''; $('f-feats').value = (p.features||[]).join('\n'); $('f-stock').value = p.stock != null ? p.stock : '';
     fillCatSelect(p.cat);
     updateSuggestBtn(); $('suggestBox').hidden = true;
     $('thumb').innerHTML = `<img src="${p.img}" alt="">`;
@@ -3964,6 +3984,8 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     e.preventDefault();
     if(recognizing) return;
     const name =$('f-name').value.trim(), price = $('f-price').value.trim();
+    const stockTxt = String($('f-stock').value || '').trim(), stock = stockTxt === '' ? null : Math.max(0, parseInt(stockTxt, 10) || 0);
+    const setStock = p => { if(stock == null) delete p.stock; else p.stock = stock; };
     const features = $('f-feats').value.split('\n').map(s => s.trim()).filter(Boolean);
     let newId = null;
     let cat = $('f-cat').value || currentCat;
@@ -3974,6 +3996,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       if(!p){ resetForm(); return; }
       if(!name){ $('formMsg').textContent = 'Escribí el nombre del producto.'; $('f-name').focus(); return; }
       Object.assign(p, {name, price, features, cat, sample:false});
+      setStock(p);
       digApply(p);
       delete p.review;
       if(pending[0]) p.img = pending[0].src;
@@ -3989,7 +4012,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
           name: pending.length === 1 ? (name || ai.name || ph.name) : (ai.name || ph.name),
           price: pending.length === 1 ? price : '',
           features: pending.length === 1 ? features : (ai.features || [])};
-        if(pending.length === 1) digApply(p);
+        if(pending.length === 1){ digApply(p); setStock(p); }
         products.push(p); created.push(p); if(i === 0) newId = p.id;
       });
       const usedCats = [...new Set(created.map(p => p.cat))];
@@ -4033,9 +4056,24 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
   let qCtl = null;
   $('qAutoCats').addEventListener('change', e => { brand.autoCats = e.target.checked; save(); });
   $('qBrand').addEventListener('input', e => { brand.catBrand = e.target.value.trim(); save(); });
+  $('qMarkup').addEventListener('input', e => { const v = Math.max(0, Math.min(500, parseFloat(e.target.value) || 0)); if(v) brand.markup = v; else delete brand.markup; save(); });
+  // Subir o bajar todos los precios de la tienda un %
+  const roundPrice = n => n >= 1000 ? Math.round(n / 100) * 100 : n >= 100 ? Math.round(n / 10) * 10 : Math.round(n);
+  const pctPrice = (txt, pct) => { const n = priceNum(String(txt || '')); if(!isFinite(n) || n <= 0) return txt; return '$' + roundPrice(n * (1 + pct / 100)).toLocaleString('es-AR'); };
+  let bulkArmed = 0;
+  $('qBulkGo').addEventListener('click', () => {
+    const pct = parseFloat($('qBulkPct').value); if(!isFinite(pct) || !pct || pct < -90 || pct > 500){ $('qBulkMsg').textContent = 'Escribí un porcentaje, por ejemplo 10 para subir o -5 para bajar.'; return; }
+    const withPrice = products.filter(p => isFinite(priceNum(p.price || '')) && priceNum(p.price) > 0);
+    if(!withPrice.length){ $('qBulkMsg').textContent = 'Todavía no hay productos con precio en esta tienda.'; return; }
+    if(Date.now() - bulkArmed > 6000){ bulkArmed = Date.now(); $('qBulkMsg').textContent = `Vas a ${pct > 0 ? 'subir' : 'bajar'} un ${Math.abs(pct)}% el precio de ${withPrice.length} productos. Tocá “Aplicar a todos” otra vez para confirmar.`; return; }
+    bulkArmed = 0;
+    withPrice.forEach(p => { p.price = pctPrice(p.price, pct); (p.variants || []).forEach(v => { if(v.price) v.price = pctPrice(v.price, pct); }); });
+    save(); render(); renderHome();
+    $('qBulkMsg').textContent = `Listo: ${withPrice.length} precios ${pct > 0 ? 'subieron' : 'bajaron'} un ${Math.abs(pct)}%.`; $('qBulkPct').value = '';
+  });
   $('quickBtn').onclick = () => {
     const open = $('quickPanel').hidden;
-    $('qAutoCats').checked = autoCatsOn(); $('qBrand').value = brand.catBrand || '';
+    $('qAutoCats').checked = autoCatsOn(); $('qBrand').value = brand.catBrand || ''; $('qMarkup').value = brand.markup || '';
     $('qAllWrap').hidden = stores.length < 2; if(stores.length < 2) $('qAllStores').checked = false;
     $('quickPanel').hidden = !open; $('quickBtn').setAttribute('aria-expanded', String(open));
     if(open && !sampler) $('qMsg').textContent = 'Para que Claude reparta los productos solo, abrí la vitrina desde Claude y aceptá el permiso cuando lo pida. Sin eso, los productos van a “Varios”.';
@@ -4285,6 +4323,8 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       im.onerror = rej; setSrc(im, src);
     });
   }
+  // producto que vino de una boleta sin foto: tarjeta simple con la inicial, hasta que le saquen una foto
+  const noPhotoImg = name => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="18" fill="#eef2f0"/><text x="100" y="112" font-family="Arial" font-size="78" font-weight="700" text-anchor="middle" fill="#8aa39b">${String(name || '?').trim().charAt(0).toUpperCase().replace(/[<&>]/g, '')}</text><text x="100" y="165" font-family="Arial" font-size="15" text-anchor="middle" fill="#8aa39b">📷 Falta la foto</text></svg>`);
   const fmtPrice = v => { const t = String(v || '').trim(); if(!t) return ''; const n = priceNum(t.startsWith('$') ? t : '$' + t); return isFinite(n) && n > 0 ? '$' + Math.round(n).toLocaleString('es-AR') : ''; };
   async function catalogUpload(files){
     const imgs = [...files].filter(f => f.type.startsWith('image/')).slice(0, 10);
@@ -4317,6 +4357,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       try{
         res = await sampler.json(`Esta foto es una página de un catálogo de venta (por ejemplo de cosmética, perfumería o productos para el hogar) que usa una revendedora.
 ${cb ? `El catálogo es de la marca ${cb}.\n` : ''}Encontrá CADA producto que se ofrece en la página, hasta 24.
+Puede ser también una BOLETA, FACTURA, REMITO o LISTA DE PRECIOS del proveedor (texto en filas, a veces sin fotos). En ese caso devolvé cada renglón como un producto: en "price" el precio UNITARIO (no el subtotal del renglón), en "qty" la cantidad comprada si figura, y "box": null si no hay foto del producto.
 En los catálogos, el nombre, el precio y el código de cada producto suelen estar en el texto cerca de su foto, a veces en otra columna o al pie, unidos por un número de referencia, una letra o una flecha. Leé con atención todo el texto de la página y asociá cada producto con SU texto. Si un mismo precio o descripción vale para varios productos (por ejemplo varios tonos), ponelo en cada uno.
 Para cada uno devolvé:
 - "name": nombre del producto como figura en la página, con la línea o marca si aparece (máximo 7 palabras).
@@ -4324,6 +4365,7 @@ Para cada uno devolvé:
 - "features": de 2 a 5 características en español rioplatense, como "Clave: valor" (por ejemplo "Contenido: 50 ml", "Tono: rojo", "Tipo: labial mate"). Usá lo que dice la página; no inventes.
 - "price": el precio que figura impreso para ese producto, solo el número (sin $ ni puntos). Si hay precio de oferta, usá ese. Si no figura, "".
 - "code": el código del producto si figura, si no "".
+- "qty": la cantidad de unidades si es una boleta o remito, si no 0.
 - "vitrina": el número de la vitrina donde va, de esta lista:
 ${catList()}${newCatRule()}
 - "box": [x, y, ancho, alto] del recuadro que encierra SOLO la foto del producto (no el texto), en fracciones de 0 a 1 del ancho y alto de la imagen tal como la ves, con x,y en la esquina superior izquierda. Que el recuadro sea ajustado al producto.
@@ -4347,8 +4389,13 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
         const feats = Array.isArray(it.features) ? it.features.map(f => String(f).trim()).filter(Boolean).slice(0, 6) : [];
         if(it.code && String(it.code).trim()) feats.unshift('Código: ' + String(it.code).trim().slice(0, 20));
         if(cb && !norm(name).includes(norm(cb)) && !feats.some(f => /^marca\s*:/i.test(f))) feats.unshift('Marca: ' + cb);
-        const img = (Array.isArray(it.box) && it.box.length === 4 && cropBox(im, it.box, it.rotation)) || cropBox(im, [0, 0, 1, 1], 0);
-        const prod = {id: uid(), cat, added: base++, img, name, price: fmtPrice(it.price), features: feats};
+        const noPic = !(Array.isArray(it.box) && it.box.length === 4);
+        const img = (!noPic && cropBox(im, it.box, it.rotation)) || (noPic ? noPhotoImg(name) : cropBox(im, [0, 0, 1, 1], 0));
+        // ganancia: al precio de la boleta/catálogo se le suma el % que eligió (redondeado)
+        const mk = +brand.markup || 0, base0 = priceNum('$' + String(it.price || '').replace(/[^\d.,]/g, ''));
+        const price = mk && isFinite(base0) && base0 > 0 ? '$' + roundPrice(base0 * (1 + mk / 100)).toLocaleString('es-AR') : fmtPrice(it.price);
+        const prod = {id: uid(), cat, added: base++, img, name, price, features: feats};
+        const qty = parseInt(it.qty, 10); if(qty > 0 && qty < 100000) prod.stock = qty;
         if(it.name_read === false) prod.review = true;
         products.push(prod); created.push(prod); pageNew.push(prod);
         const li = document.createElement('li');
@@ -4369,7 +4416,8 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     $('qStop').hidden = true;
     if(!created.length){ if(!ctl.signal.aborted && !iaFail && !/límite|permiso|disponible|saldo|ocupad|sesión/.test($('qMsg').textContent)) $('qMsg').textContent = 'No pude separar productos en esa foto. Probá con la página derecha, con buena luz y sin reflejos.'; return; }
     const priced = created.filter(p => p.price).length, nc = new Set(created.map(p => p.cat)).size, toReview = created.filter(p => p.review).length;
-    $('qMsg').textContent = `Listo: encontré ${created.length} producto${created.length===1?'':'s'} y los repartí en ${nc} vitrina${nc===1?'':'s'}. ${priced ? priced + ' ya tienen el precio del catálogo. ' : ''}Revisá los precios y completá los que faltan.${toReview ? (toReview === 1 ? ' Uno no tenía el nombre legible en la página: está marcado con ⚠ para que lo revises.' : ` ${toReview} no tenían el nombre legible en la página: están marcados con ⚠ para que los revises.`) : ''} Si alguna foto quedó mal recortada, la cambiás con “Editar”.`;
+    const mkTxt = +brand.markup ? `Ya les sumé tu ${brand.markup}% de ganancia. ` : '', stTxt = created.some(p => p.stock != null) ? 'Cargué las cantidades como stock. ' : '', npTxt = created.some(p => /Falta la foto/.test(decodeURIComponent(p.img || ''))) ? 'A los que no tenían foto sacales una cuando puedas. ' : '';
+    $('qMsg').textContent = `Listo: encontré ${created.length} producto${created.length===1?'':'s'} y los repartí en ${nc} vitrina${nc===1?'':'s'}. ${priced ? priced + ' ya tienen precio. ' : ''}${mkTxt}${stTxt}${npTxt}Revisá los precios y completá los que faltan.${toReview ? (toReview === 1 ? ' Uno no tenía el nombre legible en la página: está marcado con ⚠ para que lo revises.' : ` ${toReview} no tenían el nombre legible en la página: están marcados con ⚠ para que los revises.`) : ''} Si alguna foto quedó mal recortada, la cambiás con “Editar”.`;
     showBulkPrices(created, $('qPrices'), $('qMsg'));
     afterAutoCats();
     if($('qFlyer').checked){ brand.layout = 'folleto'; brand.flyerPer = +$('qFlyerPer').value; save(); renderHome(); }
@@ -5082,7 +5130,13 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const cg = document.getElementById('cGo'); if(cg) cg.textContent = n ? `${M('go_cash')} (${n})` : M('go_cash');
     if(cn){ const was = +cn.textContent; cn.textContent = n; cn.hidden = !n; if(typeof cIdle === 'function' && !cBubbleT) cIdle(); if(n > was){ const bk = cn.parentElement; bk.classList.remove('bump'); void bk.offsetWidth; bk.classList.add('bump'); } }
   }
+  // Control de stock: si el producto tiene stock cargado, no se puede pedir más de lo que hay.
+  const stockOf = key => { const p = products.find(x => x.id === String(key).split('|')[0]); return p && p.stock != null ? +p.stock : null; };
+  const stockLine = p => p.stock == null ? '' : +p.stock <= 0 ? `<p class="stockb out">${esc(L('Sin stock por ahora', 'Out of stock', 'Sem estoque', 'Rupture de stock', 'Nicht vorrätig', 'Esaurito', '暂时缺货', '在庫切れ'))}</p>`
+    : +p.stock <= 3 ? `<p class="stockb low">${esc(L(`¡Últimas ${p.stock} unidades!`, `Only ${p.stock} left!`, `Últimas ${p.stock} unidades!`))}</p>` : (!PUBLIC && !clientMode ? `<p class="stockb">${esc('Stock: ' + p.stock)}</p>` : '');
   function addToCart(id, srcImg){
+    const stk = stockOf(id);
+    if(stk != null && (cart[id] || 0) + 1 > stk){ try{ cSpeak(stk <= 0 ? L('Uy, ese producto no tiene stock por ahora.', 'Sorry, that product is out of stock.', 'Ops, esse produto está sem estoque.') : L(`Tenemos ${stk} de ese producto y ya están en tu pedido.`, `We only have ${stk} of that product and they're already in your order.`, `Temos ${stk} desse produto e já estão no seu pedido.`)); }catch(e){} return false; }
     cart[id] = (cart[id] || 0) + 1; saveCart(); updateFab();
     const fab = $('cartFab');
     const bump = () => { fab.classList.remove('bump'); void fab.offsetWidth; fab.classList.add('bump'); };
@@ -5458,6 +5512,20 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         const r = await fetch('/api/pedidos?accion=estado', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await window.VITRINA_TOKEN()}, body: JSON.stringify({ref, estado, repartidor: sel ? sel.value : ''})});
         if(!r.ok) throw new Error();
         const p = ordList.find(x => x.ref === ref); if(p){ p.estado = estado; if(estado === 'salio') p.repartidor = sel ? sel.value : ''; }
+        // Control de stock: cuando el pedido sale (o queda listo), se descuentan las unidades una sola vez
+        if(p && ['salio', 'listo', 'entregado'].includes(estado)){
+          let done = []; try{ done = JSON.parse(localStorage.getItem('v360-stock-desc') || '[]'); }catch(e){}
+          if(!done.includes(ref)){
+            let changed = 0;
+            (p.items || []).forEach(it => {
+              const pid = String(it.pid || '').split('|')[0]; if(!pid) return;
+              const lists = stores.map((st, i) => i === active ? products : (st.products || []));
+              for(const list of lists){ const pr = list.find(x => x.id === pid); if(pr && pr.stock != null){ pr.stock = Math.max(0, +pr.stock - (+it.q || 1)); changed++; break; } }
+            });
+            done.push(ref); try{ localStorage.setItem('v360-stock-desc', JSON.stringify(done.slice(-500))); }catch(e){}
+            if(changed){ save(); try{ render(); }catch(e){} setTimeout(() => { const m = $('ordMsg'); if(m) m.textContent = 'Se descontó del stock lo que llevó este pedido.'; }, 60); }
+          }
+        }
         renderOrders();
       }catch(err){ b.disabled = false; const m = $('ordMsg'); if(m) m.textContent = 'No se pudo cambiar el pedido. Revisá internet y probá de nuevo.'; }
     });

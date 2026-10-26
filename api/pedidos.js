@@ -80,7 +80,7 @@ module.exports = async (req, res) => {
       // productos digitales: el archivo sale del catálogo guardado del comercio (así nadie puede pedir un archivo ajeno)
       const catalogo = {};
       try { (((t.data || {}).stores) || []).forEach(st => (st.products || []).forEach(p => { if (p && p.id && p.digital && p.file && p.file.ref && String(p.file.ref).startsWith(t.owner + '/')) catalogo[p.id] = p.file; })); } catch (e) {}
-      items.forEach(it => { const f = catalogo[it.id]; if (f) { it.d = 1; it.f = String(f.ref); it.fn = corto(f.name, 120); } delete it.id; });
+      items.forEach(it => { const f = catalogo[it.id]; if (f) { it.d = 1; it.f = String(f.ref); it.fn = corto(f.name, 120); } it.pid = it.id; delete it.id; });   // pid: para descontar el stock
       await asegurarBucket();
       const id = Date.now().toString(36) + crypto.randomBytes(5).toString('hex');
       const ref = t.owner + '/' + id;
