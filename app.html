@@ -705,10 +705,10 @@ body:not(.cartbig) .cartsheet .actions{gap:6px}
 .cmini .cav svg{width:46px}
 .cmini .basket{left:-10px;bottom:6px;font-size:20px}
 .cmini .cgo{font-size:11.5px;padding:4px 8px;white-space:nowrap}
-.cmini .cbubble{display:none;position:absolute;right:0;top:calc(100% + 9px);width:min(270px,72vw);z-index:45;border:1px solid var(--line);
+.cmini .cbubble{display:none;position:absolute;right:0;top:calc(100% + 9px);width:min(300px,calc(100vw - 24px));z-index:45;border:1px solid var(--line);
   border-radius:14px;box-shadow:0 14px 30px -12px var(--shadow);background:var(--surface);text-align:left}
 .cmini .cbubble.show{display:block;animation:bubin .25s ease-out}
-.cmini .cbubble::before{content:"";position:absolute;top:-8px;right:30px;border:8px solid transparent;border-top:0;border-bottom-color:var(--surface)}
+.cmini .cbubble::before{content:"";position:absolute;top:-8px;left:var(--ax,auto);right:var(--axr,30px);border:8px solid transparent;border-top:0;border-bottom-color:var(--surface)}
 @keyframes bubin{from{opacity:0;transform:translateY(-4px)}}
 .tvtiny .tvtick,.tvtiny .tvleg,.tvtiny .tvo{display:none}
 .tvtiny .tv{padding:3px;border-radius:7px}
@@ -5396,7 +5396,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       const thanks = M('thanks', {store: storeName()});
       const moto = o && o.id === 'moto' && ridersOf().length;
       const cMsg = moto ? `${thanks} ${deliveryLine()} ${M('any_wa')}` : `${thanks} ${o ? M('chose', {x: trCat(o.name)}) + ' ' : ''}${M('go_wa')}`;
-      if(cajeraOn()){ $('cBubble').textContent = trSay(cMsg); $('cBubble').classList.add('show'); sayWhenBack(() => cSpeak(cMsg)); }
+      if(cajeraOn()){ $('cBubble').textContent = trSay(cMsg); $('cBubble').classList.add('show'); placeBubble(); sayWhenBack(() => cSpeak(cMsg)); }
       $('hPanel').hidden = false;
       if(o){ hInfo(`<strong>${esc(thanks)} ${esc(M('next', {x: trCat(o.name)}))}</strong><ol class="hsteps">${next.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`); if(!cajeraOn()) sayWhenBack(() => hSpeak(moto ? `${thanks} ${deliveryLine()}` : `${thanks} ${M('chose', {x: trCat(o.name)})} ${LANG === 'es' ? next.join(' ') : ''}`)); else $('hSay').textContent = thanks; }
       else { hShow([]); sayWhenBack(() => hSpeak(`${thanks} ${M('msg_coming')}`)); }
@@ -6243,9 +6243,21 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     cIdle();
   }
   let cBubbleT = null;
+  // El globito de Caro se acomoda al medio de la pantalla para que se lea entero (antes se salía por un costado)
+  function placeBubble(){
+    const b = $('cBubble'), c = $('cashier'); if(!b || !c || !c.classList.contains('cmini')) return;
+    b.style.left = b.style.right = ''; b.style.removeProperty('--ax'); b.style.removeProperty('--axr');
+    const vw = document.documentElement.clientWidth, cr = c.getBoundingClientRect(), bw = b.offsetWidth;
+    if(!bw) return;
+    const want = Math.max(8, Math.min(vw - bw - 8, (vw - bw) / 2));
+    b.style.left = (want - cr.left) + 'px'; b.style.right = 'auto';
+    const ax = Math.max(14, Math.min(bw - 30, cr.left + cr.width / 2 - want - 8));
+    b.style.setProperty('--ax', ax + 'px'); b.style.setProperty('--axr', 'auto');
+  }
+  addEventListener('resize', () => { if($('cBubble').classList.contains('show')) placeBubble(); });
   function cSpeak(text, then){
     text = trSay(text);
-    $('cBubble').textContent = text; $('cBubble').classList.add('show');
+    $('cBubble').textContent = text; $('cBubble').classList.add('show'); placeBubble();
     clearTimeout(cBubbleT); cBubbleT = setTimeout(cIdle, Math.max(7000, text.length * 80));
     const av = $('cBtn');
     if(!window.speechSynthesis){ then && setTimeout(then, Math.max(2500, text.length * 60)); return; }
