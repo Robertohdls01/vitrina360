@@ -1901,6 +1901,12 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
       <div class="shipgrid" id="shipGrid"></div>
       <button class="matbtn" type="button" id="cartBigBtn" aria-pressed="false" style="justify-self:start">🧾 Pedido en pantalla grande</button>
       <div class="riderbox">
+        <strong>🏠 Servicios a domicilio</strong>
+        <p class="note" style="margin:0">Si das servicios con turno (peluquería, peluquería canina, manicura, técnico…) y también vas a la casa del cliente, prendelo: al sacar el turno va a poder elegir “En el local” o “A domicilio”.</p>
+        <span class="row" style="gap:8px;flex-wrap:wrap"><button class="matbtn" type="button" id="svcHomeBtn" aria-pressed="false">Ofrezco servicio a domicilio</button>
+        <label for="b-svccost" style="display:flex;gap:6px;align-items:center">Costo extra <input type="text" id="b-svccost" maxlength="12" inputmode="numeric" placeholder="Ej: 3000" style="max-width:110px"></label></span>
+      </div>
+      <div class="riderbox">
         <strong>🛵 Delivery propio</strong>
         <p class="note" style="margin:0">Si tenés repartidores, agregalos con su nombre y elegí si es chico o chica. Aparecen con casco al lado de la caja y, cuando marcás que salió un pedido, se van en la motito. Si no tenés delivery, dejalo vacío.</p>
         <div class="bgbar" id="dlvWordBar" role="group" aria-label="Cómo se llama"><span class="note" style="margin:0;flex-basis:100%">Cómo lo llamamos para tus clientes:</span><button class="matbtn" type="button" data-dlvw="repartidor">Repartidor</button><button class="matbtn" type="button" data-dlvw="cadete">Cadete</button><button class="matbtn" type="button" data-dlvw="mensajero">Mensajero</button><button class="matbtn" type="button" data-dlvw="delivery">Delivery (comida)</button></div>
@@ -4748,7 +4754,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   const shipList = () => SHIP_OPTS.filter(o => brand.ship && typeof brand.ship[o.id] === 'string').map(o => ({...o, detail: brand.ship[o.id]}));
   let shipSel = null;
   // Datos del cliente para la entrega y pedido para regalo (los pide la cajera; viajan en el pedido).
-  const buyer = {name:'', tel:'', dir:'', ref:'', turno:'', cuando:'ya', hora:'', dia:''}, gift = {on:false, who:'', msg:''};
+  const buyer = {name:'', tel:'', dir:'', ref:'', turno:'', cuando:'ya', hora:'', dia:'', lugar:'local'}, gift = {on:false, who:'', msg:''};
   // Cómo paga el cliente: ya mismo con billetera/transferencia (y manda el comprobante), o lo coordina por WhatsApp
   const payPick = {mode: '', with: ''};
   // la cajera también te dice cómo podés pagar
@@ -4764,7 +4770,9 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   const allDigital = () => { const it = cartItems(); return it.length > 0 && it.every(x => x.p && x.p.digital); };
   const allService = () => { const it = cartItems(); return it.length > 0 && it.every(x => x.p && x.p.service); };
   const noShip = () => allDigital() || allService();
-  const needAddr = () => !noShip() && !!shipSel && shipSel !== 'retiro';
+  // servicios a domicilio: si el comercio lo ofrece y el cliente lo elige, se pide la dirección
+  const svcHome = () => allService() && !!brand.svcHome && buyer.lugar === 'casa';
+  const needAddr = () => (!noShip() && !!shipSel && shipSel !== 'retiro') || svcHome();
   // Repartidores: lista con nombre y chico/chica (antes era un texto con nombres separados por coma).
   const riderListOf = () => Array.isArray(brand.riderList) ? brand.riderList : String(brand.riders || '').split(',').map(x => x.trim()).filter(Boolean).map(n => ({name: n, f: false}));
   const ridersOf = () => riderListOf().map(r => String(r.name || '').trim()).filter(Boolean).slice(0, 8);
@@ -5109,6 +5117,10 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   if(document.getElementById('cartBigBtn')) $('cartBigBtn').addEventListener('click', () => { brand.cartBig = !brand.cartBig; applyCartBig(); save(); });
   if($('riderList')){
     // si cargás un repartidor, se prende solo "Delivery propio" (si no, la motito no aparecía)
+    const markSH = () => { const b = $('svcHomeBtn'); b.setAttribute('aria-pressed', String(!!brand.svcHome)); b.textContent = brand.svcHome ? '✓ Ofrezco servicio a domicilio' : 'Ofrezco servicio a domicilio'; $('b-svccost').value = brand.svcCost || ''; };
+    $('svcHomeBtn').addEventListener('click', () => { brand.svcHome = !brand.svcHome; if(!brand.svcHome) delete brand.svcHome; save(); markSH(); });
+    $('b-svccost').addEventListener('input', e => { const v = String(e.target.value || '').replace(/[^\d]/g, ''); if(v) brand.svcCost = v; else delete brand.svcCost; save(); });
+    $('brandBtn').addEventListener('click', () => setTimeout(markSH, 0)); markSH();
     const markDW = () => document.querySelectorAll('[data-dlvw]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.dlvw === (brand.dlvWord || 'repartidor'))));
     $('dlvWordBar').addEventListener('click', e => { const b = e.target.closest('[data-dlvw]'); if(!b) return; brand.dlvWord = b.dataset.dlvw; save(); markDW(); renderDelivery(); try{ renderCashier(); }catch(err){} });
     $('brandBtn').addEventListener('click', () => setTimeout(markDW, 0)); markDW();
@@ -5160,7 +5172,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const g = gift.on ? `\n\n🎁 ${L('Es para regalo', 'It is a gift', 'É para presente')}${gift.who ? ' — ' + L('para ', 'for ', 'para ') + gift.who : ''}. ${L('Prepararlo para regalo (bolsa especial y moño).', 'Please prepare it as a gift (gift bag and bow).', 'Preparar para presente (sacola especial e laço).')}${gift.msg.trim() ? '\n' + L('Mensaje para la tarjeta', 'Card message', 'Mensagem do cartão') + ': “' + gift.msg.trim() + '”' : ''}` : '';
     const datos = [allService() && buyer.turno.trim() && '📅 ' + L('Turno deseado', 'Preferred time', 'Horário desejado') + ': ' + buyer.turno.trim(), buyer.name.trim() && L('Nombre', 'Name', 'Nome') + ': ' + buyer.name.trim(), buyer.tel.trim() && L('Teléfono', 'Phone', 'Telefone') + ': ' + buyer.tel.trim(),
       needAddr() && buyer.dir.trim() && L('Dirección', 'Address', 'Endereço') + ': ' + buyer.dir.trim(), needAddr() && buyer.ref.trim() && L('Referencias', 'Notes', 'Referências') + ': ' + buyer.ref.trim(),
-      needAddr() && '🕒 ' + L('Entrega', 'Delivery', 'Entrega') + ': ' + whenTxt()].filter(Boolean);
+      needAddr() && !allService() && '🕒 ' + L('Entrega', 'Delivery', 'Entrega') + ': ' + whenTxt(),
+      svcHome() && '🏠 ' + L('Servicio a domicilio', 'Home service', 'Serviço em domicílio') + (brand.svcCost ? ' (+' + fmt(priceNum('$' + brand.svcCost)) + ')' : '')].filter(Boolean);
     const extras = g + (datos.length ? '\n\n' + datos.join('\n') : '') + (payTxt() ? '\n\n💳 ' + payTxt() + '.' : '');
     return L(`Hola ${storeName()}! Quiero hacer este pedido:`, `Hi ${storeName()}! I'd like to place this order:`, `Olá ${storeName()}! Quero fazer este pedido:`) + `\n${lines.join('\n')}\n\nTotal: ${fmt(t)}${extra}${ship}${extras}\n\n` +
       (payPick.mode === 'ahora' ? L('Ya pagué: te adjunto el comprobante 👇 Revisá que te haya llegado y despachá el pedido 🙌', 'Already paid: receipt attached 👇 Please check it arrived and send the order 🙌', 'Já paguei: segue o comprovante 👇 Confira se chegou e despache o pedido 🙌') : so ? L('¿Cómo coordinamos el pago?', 'How do we arrange payment?', 'Como combinamos o pagamento?') : L('¿Cómo coordinamos el pago y la entrega?', 'How do we arrange payment and delivery?', 'Como combinamos o pagamento e a entrega?'));
@@ -5385,7 +5398,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         ${allDigital() ? `<p class="note" style="margin:0">📥 ${esc(L('Productos digitales: los descargás desde acá cuando el comercio confirme tu pago.', 'Digital products: you download them here once the store confirms your payment.', 'Produtos digitais: você baixa aqui quando a loja confirmar o pagamento.'))}</p>` : ''}
         ${allService() ? `<div class="shipbox"><strong>📅 ${esc(L('¿Qué día y horario preferís?', 'Which day and time do you prefer?', 'Qual dia e horário você prefere?', 'Quel jour et quelle heure préférez-vous ?', 'Welcher Tag und welche Uhrzeit passen dir?', 'Che giorno e orario preferisci?', '你希望哪天什么时间？', 'ご希望の日時は？'))}</strong>
           <input class="bfield" type="text" data-b="turno" maxlength="120" placeholder="${esc(L('Ej: sábado a la mañana, o martes 18 h', 'E.g.: Saturday morning, or Tuesday 6 pm', 'Ex: sábado de manhã, ou terça 18 h', 'Ex. : samedi matin, ou mardi 18 h', 'z. B.: Samstagvormittag oder Dienstag 18 Uhr', 'Es.: sabato mattina, o martedì alle 18', '例如：周六上午，或周二18点', '例：土曜の午前、または火曜18時'))}" value="${esc(buyer.turno || '')}">
-          <small class="note">${esc(L('El comercio te confirma el turno.', 'The store will confirm your appointment.', 'A loja confirma o horário.', 'Le commerce vous confirme le rendez-vous.', 'Das Geschäft bestätigt deinen Termin.', 'Il negozio ti conferma l\'appuntamento.', '商家会确认你的预约。', 'お店が予約を確定します。'))}</small></div>` : ''}
+          <small class="note">${esc(L('El comercio te confirma el turno.', 'The store will confirm your appointment.', 'A loja confirma o horário.', 'Le commerce vous confirme le rendez-vous.', 'Das Geschäft bestätigt deinen Termin.', 'Il negozio ti conferma l\'appuntamento.', '商家会确认你的预约。', 'お店が予約を確定します。'))}</small>${brand.svcHome ? `<span class="note" style="flex-basis:100%;margin:4px 0 0">📍 ${esc(L('¿Dónde?', 'Where?', 'Onde?'))}</span><label class="shipopt"><input type="radio" name="lugar" value="local" ${buyer.lugar !== 'casa' ? 'checked' : ''}><span>${esc(L('En el local', 'At the shop', 'No local'))}</span></label><label class="shipopt"><input type="radio" name="lugar" value="casa" ${buyer.lugar === 'casa' ? 'checked' : ''}><span>🏠 ${esc(L('A domicilio', 'At my home', 'Em domicílio'))}</span>${brand.svcCost ? `<small>+ ${esc(fmt(priceNum('$' + brand.svcCost)))}</small>` : ''}</label>` : ''}</div>` : ''}
         ${shipList().length && !noShip() ? `<div class="shipbox"><strong>¿Cómo lo recibís?</strong>${shipList().map(o => `<label class="shipopt"><input type="radio" name="ship" value="${o.id}" ${shipSel===o.id?'checked':''}><span>${esc(o.name)}</span>${o.detail ? `<small>${esc(o.detail)}</small>` : ''}${o.id === 'moto' && brand.delay ? `<small>${esc(M('delay_now', {d: delayTr(brand.delay)}))}</small>` : ''}</label>`).join('')}</div>` : ''}
         <div class="shipbox"><strong>Tus datos</strong>
           <input class="bfield" type="text" data-b="name" maxlength="80" autocomplete="name" placeholder="Nombre y apellido" value="${esc(buyer.name)}">
@@ -5393,13 +5406,13 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
           <span class="addrbox" ${needAddr() ? '' : 'hidden'}>
             <input class="bfield" type="text" data-b="dir" maxlength="160" autocomplete="street-address" placeholder="Dirección de entrega: calle, número, piso" value="${esc(buyer.dir)}">
             <input class="bfield" type="text" data-b="ref" maxlength="160" placeholder="Localidad y referencias (entre calles, timbre)" value="${esc(buyer.ref)}">
-            <span class="note" style="flex-basis:100%;margin:2px 0 0">🕒 ${esc(L('¿Cuándo lo querés?', 'When do you want it?', 'Quando você quer?'))}</span>
+            ${allService() ? '' : `<span class="note" style="flex-basis:100%;margin:2px 0 0">🕒 ${esc(L('¿Cuándo lo querés?', 'When do you want it?', 'Quando você quer?'))}</span>
             <label class="shipopt"><input type="radio" name="cuando" value="ya" ${buyer.cuando !== 'hora' ? 'checked' : ''}><span>${esc(L('Lo antes posible', 'As soon as possible', 'O quanto antes'))}</span></label>
             <label class="shipopt"><input type="radio" name="cuando" value="hora" ${buyer.cuando === 'hora' ? 'checked' : ''}><span>${esc(L('Elegir día y horario', 'Pick day and time', 'Escolher dia e horário'))}</span></label>
             <span class="whenbox" style="display:${buyer.cuando === 'hora' ? 'flex' : 'none'};flex-basis:100%;gap:5px;flex-wrap:wrap">
               <input class="bfield" type="date" data-b="dia" min="${new Date().toISOString().slice(0, 10)}" value="${esc(buyer.dia)}" aria-label="${esc(L('Día de entrega', 'Delivery day', 'Dia da entrega'))}">
               <input class="bfield" type="text" data-b="hora" maxlength="80" placeholder="${esc(L('Horario. Ej: de 18 a 20 h', 'Time. E.g.: 6–8 pm', 'Horário. Ex: das 18 às 20 h'))}" value="${esc(buyer.hora)}">
-            </span>
+            </span>`}
           </span>
         </div>
         <div class="shipbox"><strong>🎁 ¿Es para regalo?</strong>
@@ -5437,7 +5450,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const {t, unpriced} = cartTotal(items), na = needAddr();
     const body = {slug, items: items.map(it => ({n: it.name, q: it.q, p: it.price || '', id: it.p ? it.p.id : ''})), total: fmt(t) + (unpriced ? ' + a consultar' : ''),
       envio: o ? o.name : '', envio_id: o ? o.id : '', demora: brand.delay || '',
-      comprador: {nombre: buyer.name, tel: buyer.tel, dir: na ? buyer.dir : '', ref: na ? buyer.ref : '', turno: allService() ? buyer.turno : '', horario: na ? whenTxt() : ''}, servicio: allService(),
+      comprador: {nombre: buyer.name, tel: buyer.tel, dir: na ? buyer.dir : '', ref: na ? buyer.ref : '', turno: allService() ? buyer.turno : '', horario: na && !allService() ? whenTxt() : '', lugar: svcHome() ? 'A domicilio' + (brand.svcCost ? ' (+' + fmt(priceNum('$' + brand.svcCost)) + ')' : '') : ''}, servicio: allService(),
       regalo: gift.on ? {si: true, para: gift.who, mensaje: gift.msg} : null, pago: payTxt()};
     return fetch('/api/pedidos', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body), keepalive: true})
       .then(r => r.ok ? r.json() : null).catch(() => null);
@@ -5523,6 +5536,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
           ${c.dir ? `<div>📍 ${esc(c.dir)}${c.ref ? ' — ' + esc(c.ref) : ''}</div>` : ''}
           ${c.turno ? `<div>📅 Turno deseado: ${esc(c.turno)}</div>` : ''}
           ${c.horario ? `<div>🕒 Entregar: ${esc(c.horario)}</div>` : ''}
+          ${c.lugar ? `<div>🏠 ${esc(c.lugar)}</div>` : ''}
           ${c.tel ? `<div>📞 ${esc(c.tel)}</div>` : ''}
           ${p.pago ? `<div>💳 ${esc(p.pago)}</div>` : ''}
           ${ordWa(p) ? `<div><a class="btn wa" href="${esc(ordWa(p))}" target="_blank" rel="noopener" style="padding:5px 12px;font-size:13px">💬 ${p.estado === 'salio' ? 'Avisarle que va en camino' : p.estado === 'listo' ? 'Avisarle que está listo' : p.estado === 'entregado' ? 'Agradecerle' : 'Avisarle que lo recibiste'}</a></div>` : ''}
@@ -5651,6 +5665,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   $('cartModal').addEventListener('click', e => { const a = e.target.closest('.paybox a.btn, .paybox [data-c="copyPay"], .paybox [data-c="copyAlias"]'); if(!a) return;
     payPick.with = a.matches('[data-c="copyAlias"]') ? L('transferencia', 'bank transfer', 'transferência') : (a.closest('.payrow') ? (a.closest('.payrow').querySelector('span') || {}).textContent.split(':')[0].trim() : a.textContent.replace(/^💳\s*/, '').trim()); cartWa(); });
   $('cartModal').addEventListener('change', e => {
+    if(e.target.name === 'lugar'){ buyer.lugar = e.target.value; const ab = $('cartSheet').querySelector('.addrbox'); if(ab) ab.hidden = !needAddr(); cartWa(); }
     if(e.target.name === 'cuando'){ buyer.cuando = e.target.value; const h = $('cartSheet').querySelector('.whenbox'); if(h) h.style.display = buyer.cuando === 'hora' ? 'flex' : 'none'; cartWa(); }
     if(e.target.name === 'paymode'){ payPick.mode = e.target.value; const pb = $('cartSheet').querySelector('.paybox'); if(pb) pb.hidden = payPick.mode !== 'ahora'; cartWa(); }
     if(e.target.name === 'ship'){ shipSel = e.target.value; const ab = $('cartSheet').querySelector('.addrbox'); if(ab) ab.hidden = !needAddr(); cartWa(); }
