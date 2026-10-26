@@ -1220,10 +1220,11 @@ body.clientmode .socialbox{display:none!important}
   .langsel{padding:5px 8px;font-size:12.5px}
   label[for="q-folder"],label[for="f-folder"]{display:none!important}
   #clientBtn{padding:5px 10px;font-size:12.5px}
-  .headtools{display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:6px!important}
-  .headtools > .contactrow,.headtools > .count{grid-column:1/-1}
-  .headtools > .row{grid-column:1;flex-wrap:wrap!important;overflow:visible!important;width:auto!important;align-content:flex-start}
-  .headtools > .hcorner{grid-column:2;grid-row:1 / span 2}
+  .headtools{display:grid!important;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:6px!important}
+  .headtools > .count{grid-column:1/-1}
+  .headtools > .hcorner{grid-column:1;grid-row:1 / span 2;margin-left:0!important;justify-content:flex-start!important}
+  .headtools > .contactrow{grid-column:2;grid-row:1;justify-content:flex-end}
+  .headtools > .row{grid-column:2;grid-row:2;flex-wrap:wrap!important;overflow:visible!important;width:auto!important;align-content:flex-start;justify-content:flex-end!important}
   .headtools .langsel{max-width:96px}
   .storechip{padding:3px 10px 3px 3px;font-size:12.5px;gap:6px}
   .storechip .av{width:22px;height:22px;font-size:11px}
@@ -1487,6 +1488,13 @@ body.has-helpers .wrap{padding-bottom:170px}
 .hname{font-size:calc(10.5px * max(var(--hk, 1), .8))}
 .dlvp svg{width:calc(40px * var(--dk, 1))!important}
 .dlvp{font-size:calc(11.5px * max(var(--dk, 1), .8))}
+.hline{display:flex;align-items:flex-end;gap:4px}
+.hriders{display:flex;align-items:flex-end;gap:2px;pointer-events:auto}
+.hriders:empty{display:none}
+.hrd{position:relative;display:grid;justify-items:center;width:calc(44px * var(--dk, 1));cursor:default}
+.hrd svg{width:calc(44px * var(--dk, 1));height:auto;filter:drop-shadow(0 3px 4px rgba(0,0,0,.2));animation:hbob 3.6s ease-in-out infinite}
+.hrd .hmoto{position:absolute;right:calc(-12px * var(--dk, 1));bottom:calc(12px * var(--dk, 1));font-size:calc(20px * var(--dk, 1));filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
+.hrd .hname{font-size:calc(9.5px * max(var(--dk, 1), .8))}
 .szrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .szrow > span:first-child{flex:1 1 150px;font-weight:600}
 .szrow button{min-width:40px;height:36px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:inherit;font:800 18px/1 var(--body);cursor:pointer}
@@ -2049,7 +2057,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
     <form class="hask" id="hAsk"><input type="text" id="hIn" placeholder="Ej: mostrame perfumes" aria-label="Escribile al vendedor" autocomplete="off"><button class="btn" type="button" id="hMic" aria-label="Hablar">🎤</button><button class="btn primary" type="submit">Enviar</button></form>
   </div>
   <button class="hhelp" type="button" id="hHelp" hidden>🙋 Pedí ayuda</button>
-  <div class="hrow" id="hRow"></div>
+  <div class="hline"><div class="hrow" id="hRow"></div><div class="hriders" id="hRiders"></div></div>
 </div>
 <button class="musicfab" type="button" id="musicFab" hidden aria-pressed="false" aria-label="Música de la tienda">🎵</button>
 <button class="cartfab" type="button" id="cartFab" hidden>Ver pedido <span class="n" id="cartN">0</span></button>
@@ -4779,7 +4787,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     hook('tvWrap', () => tvMoving, on => tvMoveMode(on));
     hook('cashier', () => cashMoving, on => cashMoveMode(on));
     hook('hRow', () => false, () => moveBar('hlp'));
-    hook('dlvRow', () => false, () => moveBar('dlv'));
+    hook('hRiders', () => false, () => moveBar('dlv'));
   })();
   const applyTvSize = () => { const w = document.getElementById('tvWrap'); if(!w) return; const k = Math.min(1.8, Math.max(0.2, +brand.tvSize || 1)); w.style.setProperty('--tvk', String(k)); w.classList.toggle('tvtiny', k < 0.6); w.classList.toggle('tvsq', k <= 0.4);
     if(!w.querySelector('.tvsz')){ w.insertAdjacentHTML('beforeend', '<button type="button" class="tvsz dn" data-tvsz="-1" aria-label="Más chica">−</button><button type="button" class="tvsz up" data-tvsz="1" aria-label="Más grande">+</button>'); } };
@@ -4830,8 +4838,12 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     const row = document.getElementById('dlvRow'); if(!row) return;
     if(ridersOf().length && !PUBLIC && !(brand.ship && typeof brand.ship.moto === 'string')){ brand.ship = brand.ship || {}; brand.ship.moto = ''; save(); }
     const rs = ridersOf(), on = rs.length && shipList().some(o => o.id === 'moto');
-    row.hidden = !on; if(!on){ row.innerHTML = ''; return; }
-    row.innerHTML = `<span>🛵 ${M('our_delivery')}${brand.delay ? ` · ⏱ ${esc(delayTr(brand.delay))}` : ''}</span>` + rs.map((n, i) => `<span class="dlvp">${helperSVG(riderChar(n, i), hShirt())}${esc(n)}</span>`).join('');
+    row.hidden = true; row.innerHTML = '';
+    // los repartidores van chiquitos, con su motito, al lado de los vendedores de abajo
+    const hr = document.getElementById('hRiders');
+    if(hr) hr.innerHTML = !on ? '' : rs.map((n, i) => `<span class="hrd" title="🛵 ${esc(M('our_delivery'))}${brand.delay ? ' · ⏱ ' + esc(delayTr(brand.delay)) : ''}">${helperSVG(riderChar(n, i), hShirt())}<span class="hmoto" aria-hidden="true">🛵</span><span class="hname">${esc(n)}</span></span>`).join('');
+    const hb = document.getElementById('helpers'); if(hb) hb.hidden = !hList().length && !on;
+    if(!on) return;
   }
   function renderRiderPanel(){
     const box = document.getElementById('riderList'); if(!box) return;
@@ -5990,7 +6002,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   function renderHelpers(){
     const ids = hList();
     setTimeout(renderCashier, 0);
-    $('helpers').hidden = !ids.length; $('helpers').classList.toggle('many', ids.length > 3);
+    $('helpers').hidden = !ids.length && !(document.getElementById('hRiders') || {}).childElementCount; $('helpers').classList.toggle('many', ids.length > 3);
     document.body.classList.toggle('has-helpers', ids.length > 0);
     $('hHelp').hidden = !ids.length;
     $('hRow').innerHTML = ids.map(id => `<button class="hav" type="button" data-hav="${id}" aria-label="Hablar con ${HELPERS[id].name}">${helperSVG(HELPERS[id], hShirt())}<span class="hname">${HELPERS[id].name}</span></button>`).join('');
