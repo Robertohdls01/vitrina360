@@ -402,7 +402,13 @@
         try{ const {ok, j} = await asignar(c); if(!ok) msg.textContent = j.error || T('No se pudo.', 'Could not save.', 'Não foi possível.'); }catch(e){ msg.textContent = T('No se pudo.', 'Could not save.', 'Não foi possível.'); }
       });
       // el dueño de Vitrina 360 ve el acceso a la pantalla de vendedores
-      fetch('/api/vendedores?accion=admin', {headers: {Authorization: 'Bearer ' + ses.access_token}}).then(r => { if(r.ok) bar.querySelector('[data-admin]').hidden = false; }).catch(() => {});
+      // con un aviso de cuántas novedades hay (clientes nuevos que trajeron y comisiones para pagar)
+      fetch('/api/vendedores?accion=admin', {headers: {Authorization: 'Bearer ' + ses.access_token}}).then(r => r.ok ? r.json() : null).then(j => { if(!j) return;
+        const el = bar.querySelector('[data-admin]'); el.hidden = false;
+        let visto = 0; try{ visto = +localStorage.getItem('v360-vend-visto') || 0; }catch(e){}
+        const nuevos = (j.vendedores || []).reduce((n, v) => n + (v.clientes || []).filter(c => Date.parse(c.desde || 0) > visto).length, 0), deben = (j.vendedores || []).filter(v => v.total > 0).length;
+        if(nuevos || deben) el.querySelector('a').textContent += ` (${nuevos ? '🔔 ' + nuevos : ''}${nuevos && deben ? ' · ' : ''}${deben ? '💰 ' + deben : ''})`;
+      }).catch(() => {});
     })();
     // "Ver como cliente" va al lado de "Mi cuenta": deja libre el cuadrado de la cajera y la pantalla
     const cbtn = document.getElementById('clientBtn'); if(cbtn){ const g = bar.querySelector('.grp'); g.insertBefore(cbtn, g.querySelector('.st')); }
