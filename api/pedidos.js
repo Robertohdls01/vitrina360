@@ -37,7 +37,7 @@ async function guardar(ref, p, otraVez) {
   }
 }
 // Lo que ve el cliente: sin los datos internos del comercio.
-const paraCliente = p => ({ estado: p.estado, repartidor: p.repartidor || '', salio_en: p.salio_en || null, creado: p.creado, envio: p.envio || '', demora: p.demora || '', digital: (p.items || []).some(it => it.d), servicio: !!p.servicio });
+const paraCliente = p => ({ estado: p.estado, paga_ahora: !!p.paga_ahora, pagado: !!p.pagado, repartidor: p.repartidor || '', salio_en: p.salio_en || null, creado: p.creado, envio: p.envio || '', demora: p.demora || '', digital: (p.items || []).some(it => it.d), servicio: !!p.servicio });
 // Links de descarga que vencen en 3 días, solo cuando el comercio marcó el pedido como pagado/listo.
 async function descargas(p) {
   const out = [];
@@ -90,7 +90,7 @@ module.exports = async (req, res) => {
         items, total: corto(b.total, 30), envio: corto(b.envio, 40), envio_id: corto(b.envio_id, 20), demora: corto(b.demora, 40),
         comprador: { nombre: corto(c.nombre, 80), tel: corto(c.tel, 30), dir: corto(c.dir, 160), ref: corto(c.ref, 160), turno: corto(c.turno, 120), horario: corto(c.horario, 80), lugar: corto(c.lugar, 60) }, servicio: !!b.servicio,
         regalo: g.si ? { para: corto(g.para, 20), mensaje: corto(g.mensaje, 160) } : null,
-        pago: corto(b.pago, 120),
+        pago: corto(b.pago, 120), paga_ahora: !!b.paga_ahora, pagado: false,
         repartidor: '', salio_en: null
       };
       await guardar(ref, pedido);
@@ -115,9 +115,11 @@ module.exports = async (req, res) => {
     if (req.method === 'POST' && q.accion === 'estado') {
       const b = cuerpo(req);
       if (!okRef(b.ref) || String(b.ref).split('/')[0] !== u.id) return res.status(403).json({ error: 'Ese pedido no es de tu tienda.' });
-      if (!ESTADOS.includes(b.estado)) return res.status(400).json({ error: 'Estado inválido.' });
+      if (!ESTADOS.includes(b.estado) && b.estado !== 'pagado') return res.status(400).json({ error: 'Estado inválido.' });
       const p = await leer(b.ref);
       if (!p) return res.status(404).json({ error: 'No encontramos ese pedido.' });
+      // "Pago recibido": el comercio confirma que le llegó la plata; el pedido sigue en preparación y al cliente se le avisa solo
+      if (b.estado === 'pagado') { p.pagado = true; p.pagado_en = new Date().toISOString(); await guardar(b.ref, p); return res.status(200).json({ ok: true, estado: p.estado, pagado: true }); }
       p.estado = b.estado;
       if (b.estado === 'salio') { p.repartidor = corto(b.repartidor, 40); p.salio_en = new Date().toISOString(); }
       await guardar(b.ref, p);

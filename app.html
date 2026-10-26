@@ -5995,7 +5995,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const body = {slug, items: items.map(it => ({n: it.name, q: it.q, p: it.price || '', id: it.p ? it.p.id : ''})), total: fmt(t + shipFee().n) + (unpriced ? ' + a consultar' : ''),
       envio: o ? o.name : '', envio_id: o ? o.id : '', demora: brand.delay || '',
       comprador: {nombre: buyer.name, tel: buyer.tel, dir: na ? buyer.dir : '', ref: na ? buyer.ref : '', turno: allService() ? buyer.turno : '', horario: na && !allService() ? whenTxt() : '', lugar: svcHome() ? 'A domicilio' + (brand.svcCost ? ' (+' + fmt(priceNum('$' + brand.svcCost)) + ')' : '') : ''}, servicio: allService(),
-      regalo: gift.on ? {si: true, para: gift.who, mensaje: gift.msg} : null, pago: payTxt()};
+      regalo: gift.on ? {si: true, para: gift.who, mensaje: gift.msg} : null, pago: payTxt(), paga_ahora: payPick.mode === 'ahora'};
     return fetch('/api/pedidos', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body), keepalive: true})
       .then(r => r.ok ? r.json() : null).catch(() => null);
   }
@@ -6006,7 +6006,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     let el = document.getElementById('trk');
     if(!el){ el = document.createElement('div'); el.id = 'trk'; el.className = 'trk'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
     el.className = 'trk';
-    el.innerHTML = `<span class="trk-clock" aria-hidden="true">⏱</span><span class="trk-txt"><strong>${esc(M('trk_prep'))}</strong><span class="trk-t">0:00</span>${info.demora ? `<small>${esc(M('trk_est', {d: delayTr(info.demora)}))}</small>` : ''}</span><button class="trk-x" type="button" aria-label="Ocultar">✕</button>`;
+    const waitPay = info.paid && !info.pagoOk;   // pagó con billetera: primero esperamos que el comercio confirme el pago
+    el.innerHTML = `<span class="trk-clock" aria-hidden="true">${waitPay ? '💳' : '⏱'}</span><span class="trk-txt"><strong>${esc(waitPay ? L('Esperando que el comercio confirme tu pago…', 'Waiting for the store to confirm your payment…', 'Aguardando a loja confirmar seu pagamento…') : info.pagoOk ? L('¡Pago recibido! Tu pedido está en preparación', 'Payment received! Your order is being prepared', 'Pagamento recebido! Seu pedido está em preparação') : M('trk_prep'))}</strong><span class="trk-t">0:00</span>${info.demora ? `<small>${esc(M('trk_est', {d: delayTr(info.demora)}))}</small>` : ''}</span><button class="trk-x" type="button" aria-label="Ocultar">✕</button>`;
     el.querySelector('.trk-x').onclick = () => { el.hidden = true; };
     el.hidden = false;
     const tick = () => { const sec = Math.max(0, Math.floor((Date.now() - info.start) / 1000)); const t = el.querySelector('.trk-t'); if(t) t.textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; };
@@ -6015,6 +6016,13 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       if(Date.now() - info.start > 4 * 3600e3){ trackEnd(el, true); return; }
       let st = null; try{ const r = await fetch(`/api/pedidos?ref=${encodeURIComponent(info.ref)}&k=${encodeURIComponent(info.k)}`, {cache: 'no-store'}); if(r.status === 404){ trackEnd(el, true); return; } if(r.ok) st = await r.json(); }catch(e){}
       if(!st) return;
+      if(st.pagado && info.paid && !info.pagoOk){
+        info.pagoOk = true; trkSave(info);
+        el.querySelector('.trk-clock').textContent = '⏱';
+        el.querySelector('.trk-txt strong').textContent = L('¡Pago recibido! Tu pedido está en preparación', 'Payment received! Your order is being prepared', 'Pagamento recebido! Seu pedido está em preparação');
+        const dm = info.demora || brand.delay;
+        if(typeof cajeraOn === 'function' && cajeraOn()) cSpeak(L(`¡Recibimos tu pago! Tu pedido ya está en preparación${dm ? '. Demora más o menos ' + delayTr(dm) : ''}. ¡Gracias!`, `We got your payment! Your order is being prepared${dm ? '. It takes about ' + delayTr(dm) : ''}. Thanks!`, `Recebemos seu pagamento! Seu pedido já está em preparação${dm ? '. Leva mais ou menos ' + delayTr(dm) : ''}. Obrigado!`));
+      }
       if(st.estado === 'salio'){
         clearInterval(trkTick); clearInterval(trkPoll); el.classList.add('done');
         const who = st.repartidor || '';
@@ -6063,6 +6071,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const txt = p.estado === 'salio' ? `${hi}Tu pedido de ${st} ya está en camino${p.repartidor ? ' con ' + p.repartidor : ''} 🛵. ¡En un ratito llega!`
       : p.estado === 'listo' ? (p.envio_id === 'retiro' || /retir/i.test(p.envio || '') ? `${hi}Tu pedido de ${st} ya está listo para retirar. ¡Te esperamos!` : `${hi}Tu pedido de ${st} ya está listo.`)
       : p.estado === 'entregado' ? `${hi}¡Gracias por tu compra en ${st}! Cualquier cosa, escribinos.`
+      : p.pagado ? `${hi}¡Recibimos tu pago! 🙌 Tu pedido de ${st} ya está en preparación${brand.delay ? ' (demora aproximada: ' + brand.delay + ')' : ''}. Te avisamos cuando salga.`
       : `${hi}Recibimos tu pedido en ${st} y ya lo estamos preparando${brand.delay ? ' (demora aproximada: ' + brand.delay + ')' : ''}. Te avisamos cuando salga.`;
     return `https://wa.me/${n}?text=${encodeURIComponent(txt)}`;
   }
@@ -6082,10 +6091,11 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
           ${c.horario ? `<div>🕒 Entregar: ${esc(c.horario)}</div>` : ''}
           ${c.lugar ? `<div>🏠 ${esc(c.lugar)}</div>` : ''}
           ${c.tel ? `<div>📞 ${esc(c.tel)}</div>` : ''}
-          ${p.pago ? `<div>💳 ${esc(p.pago)}</div>` : ''}
+          ${p.pago ? `<div>💳 ${esc(p.pago)}${p.paga_ahora ? (p.pagado ? ' · <strong style="color:#1a8d4f">💰 Pago confirmado</strong>' : ' · <strong style="color:#9a5b00">revisá que te haya llegado</strong>') : ''}</div>` : ''}
           ${ordWa(p) ? `<div><a class="btn wa" href="${esc(ordWa(p))}" target="_blank" rel="noopener" style="padding:5px 12px;font-size:13px">💬 ${p.estado === 'salio' ? 'Avisarle que va en camino' : p.estado === 'listo' ? 'Avisarle que está listo' : p.estado === 'entregado' ? 'Agradecerle' : 'Avisarle que lo recibiste'}</a></div>` : ''}
           ${p.regalo ? `<div>🎁 Para regalo${p.regalo.para ? ' (' + esc(p.regalo.para) + ')' : ''}: bolsa especial y moño${p.regalo.mensaje ? ` · Tarjeta: “${esc(p.regalo.mensaje)}”` : ''}</div>` : ''}
           ${abierto ? `<div class="oacts">
+            ${p.paga_ahora && !p.pagado ? `<button class="btn primary" type="button" data-o="pagado" data-ref="${esc(p.ref)}" title="Al cliente le aparece solo que su pago llegó y que el pedido está en preparación">💰 Pago recibido</button>` : ''}
             ${moto ? `${rs.length ? `<select data-orider="${esc(p.ref)}" aria-label="Repartidor">${rs.map(r => `<option>${esc(r)}</option>`).join('')}</select>` : ''}<button class="btn primary" type="button" data-o="salio" data-ref="${esc(p.ref)}">🛵 Salió</button>`
               : `<button class="btn primary" type="button" data-o="listo" data-ref="${esc(p.ref)}">${(p.items || []).some(it => it.d) ? '✅ Pagado · habilitar descarga' : p.servicio ? '✅ Confirmar turno' : '✅ Listo'}</button>`}
             <button class="btn danger" type="button" data-o="cancelado" data-ref="${esc(p.ref)}">Cancelar</button>
@@ -6111,7 +6121,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       try{
         const r = await fetch('/api/pedidos?accion=estado', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await window.VITRINA_TOKEN()}, body: JSON.stringify({ref, estado, repartidor: sel ? sel.value : ''})});
         if(!r.ok) throw new Error();
-        const p = ordList.find(x => x.ref === ref); if(p){ p.estado = estado; if(estado === 'salio') p.repartidor = sel ? sel.value : ''; }
+        const p = ordList.find(x => x.ref === ref); if(p){ if(estado === 'pagado') p.pagado = true; else p.estado = estado; if(estado === 'salio') p.repartidor = sel ? sel.value : ''; }
         // Control de stock: cuando el pedido sale (o queda listo), se descuentan las unidades una sola vez
         if(p && ['salio', 'listo', 'entregado'].includes(estado)){
           let done = []; try{ done = JSON.parse(localStorage.getItem('v360-stock-desc') || '[]'); }catch(e){}
@@ -6139,7 +6149,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   document.addEventListener('click', e => {
     const a = e.target.closest('[data-c="sent"]'); if(!a) return;
     const o = SHIP_OPTS.find(x => x.id === shipSel), url = a.href;
-    sendOrder(o).then(r => { if(r && r.ref) trackStart({ref: r.ref, k: r.k, slug: window.VITRINA_SLUG, moto: !!(o && o.id === 'moto'), retiro: !!(o && o.id === 'retiro'), demora: brand.delay || '', start: Date.now()}); });
+    const paidNow = payPick.mode === 'ahora';
+    sendOrder(o).then(r => { if(r && r.ref) trackStart({ref: r.ref, k: r.k, slug: window.VITRINA_SLUG, paid: paidNow, moto: !!(o && o.id === 'moto'), retiro: !!(o && o.id === 'retiro'), demora: brand.delay || '', start: Date.now()}); });
     cart = {}; saveCart(); updateFab(); setTimeout(closeCart, 50);
     const talk = (typeof cajeraOn === 'function' && cajeraOn()) || hList().length;
     if(!talk || !url) return;                      // sin nadie que hable: WhatsApp se abre al toque, como siempre
@@ -6148,7 +6159,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     let bye = `${M('thanks', {store: storeName()})} ${L(paid ? 'Ahora te abro WhatsApp: mandá el mensaje con tu comprobante y listo.' : 'Ahora te abro WhatsApp: tocá enviar y listo.', paid ? "Now I'm opening WhatsApp: send the message with your receipt and you're done." : "Now I'm opening WhatsApp: just tap send.", paid ? 'Agora vou abrir o WhatsApp: envie a mensagem com o comprovante e pronto.' : 'Agora vou abrir o WhatsApp: toque em enviar e pronto.')}`;
     // qué pasa después: el comercio le avisa por WhatsApp cuando el pedido está listo para salir (o para retirar, o el turno)
     const who = attName() || L('el comercio', 'the store', 'a loja');
-    bye += ' ' + (allService() ? L(`${who} te confirma el turno por WhatsApp.`, `${who} will confirm your appointment on WhatsApp.`, `${who} confirma seu horário pelo WhatsApp.`)
+    bye += ' ' + (paid ? L(`Apenas ${who} confirme tu pago, te aviso acá y tu pedido entra en preparación.`, `As soon as ${who} confirms your payment, I'll let you know here and your order goes into preparation.`, `Assim que ${who} confirmar seu pagamento, aviso aqui e seu pedido entra em preparação.`) : allService() ? L(`${who} te confirma el turno por WhatsApp.`, `${who} will confirm your appointment on WhatsApp.`, `${who} confirma seu horário pelo WhatsApp.`)
       : o && o.id === 'retiro' ? L(`Cuando esté listo para retirar, ${who} te avisa por WhatsApp.`, `When it's ready for pickup, ${who} will let you know on WhatsApp.`, `Quando estiver pronto para retirar, ${who} avisa pelo WhatsApp.`)
       : L(`Cuando tu pedido esté listo para salir, ${who} te avisa por WhatsApp.`, `When your order is ready to go out, ${who} will let you know on WhatsApp.`, `Quando seu pedido estiver pronto para sair, ${who} avisa pelo WhatsApp.`));
     if(!isOpenNow()) bye += ` ${L(`Ahora estamos fuera de horario: ${attName() ? attName() + ' te responde' : 'te respondemos'} ${nextOpenTxt()}.`, `We're closed right now: we'll reply ${nextOpenTxt()}.`, `Agora estamos fora do horário: respondemos ${nextOpenTxt()}.`)}`;
@@ -6168,11 +6179,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       const moto = o && o.id === 'moto' && ridersOf().length;
       // Pagó ahora: la cajera le confirma solita que su pedido va en camino y cuánto tarda
       const paid = payPick.mode === 'ahora', dl = delayTr(brand.delay || '20 a 30 minutos');
-      const paidMsg = !paid ? '' : needAddr() && buyer.cuando === 'hora'
-        ? `${thanks} ${L(`¡Listo! Tu pedido queda agendado para ${whenTxt()}. El comercio ya recibió tu pedido y tu comprobante por WhatsApp.`, `Done! Your order is scheduled for ${whenTxt()}. The store already got your order and receipt on WhatsApp.`, `Pronto! Seu pedido fica agendado para ${whenTxt()}. A loja já recebeu seu pedido e comprovante pelo WhatsApp.`)}`
-        : o && /moto|envio|delivery|cadete/.test(o.id) || moto
-        ? `${thanks} ${L(`¡Tu pedido ya está en camino! 🛵 Tarda más o menos ${dl}, y puede demorar un poquito más. El comercio ya recibió tu pedido y tu comprobante por WhatsApp.`, `Your order is on its way! 🛵 It takes about ${dl}, maybe a little longer. The store already got your order and receipt on WhatsApp.`, `Seu pedido já está a caminho! 🛵 Leva mais ou menos ${dl}, pode demorar um pouquinho mais. A loja já recebeu seu pedido e comprovante pelo WhatsApp.`)}`
-        : `${thanks} ${L('¡Listo! El comercio ya recibió tu pedido y tu comprobante por WhatsApp. Te avisan cuando esté listo.', 'Done! The store got your order and receipt on WhatsApp. They\'ll let you know when it\'s ready.', 'Pronto! A loja recebeu seu pedido e comprovante pelo WhatsApp. Eles avisam quando estiver pronto.')}`;
+      // pagó con billetera: el pedido entra en preparación cuando el comercio confirma el pago (lo marca en Pedidos y acá se avisa solo)
+      const paidMsg = !paid ? '' : `${thanks} ${L(`Apenas ${attName() || 'el comercio'} confirme tu pago, te aviso acá y tu pedido entra en preparación${needAddr() && buyer.cuando === 'hora' ? ', para ' + whenTxt() : brand.delay ? ' (demora aproximada: ' + dl + ')' : ''}.`, `As soon as the store confirms your payment, I'll let you know here and your order goes into preparation.`, `Assim que a loja confirmar seu pagamento, aviso aqui e seu pedido entra em preparação.`)}`;
       const cMsg = paid ? paidMsg : moto ? `${thanks} ${deliveryLine()} ${M('any_wa')}` : `${thanks} ${o ? M('chose', {x: trCat(o.name)}) + ' ' : ''}${M('go_wa')}`;
       if(cajeraOn()){ sayWhenBack(() => { $('cBubble').textContent = trSay(cMsg); $('cBubble').classList.add('show'); placeBubble(); }); }
       $('hPanel').hidden = false;
