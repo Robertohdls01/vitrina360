@@ -97,6 +97,8 @@
         }
         if(t.nombre) document.title = t.nombre;
         window.VITRINA_LIMITS = limitsFor(t);
+        // desde el Shopping se puede entrar directo a una de sus tiendas (?tienda=2)
+        try{ const ti = parseInt(new URLSearchParams(location.search).get('tienda'), 10); if(ti >= 0 && ti < t.data.stores.length) t.data.active = ti; }catch(e){}
         return t.data;
       };
     }
@@ -1740,6 +1742,9 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
         <button class="matbtn" type="button" data-glow="gold">⭐ Dorado</button>
         <button class="matbtn" type="button" data-glow="off">Sin brillo</button>
       </div>
+      <strong style="display:block;margin-top:12px">🏬 Shopping Vitrina 360</strong>
+      <button class="matbtn" type="button" id="shopJoin" aria-pressed="false" style="justify-self:start">Aparecer en el Shopping</button>
+      <p class="note" style="margin:4px 0 0">Tu tienda aparece junto a las demás tiendas en un solo link, para que te encuentren clientes nuevos. Incluido en los planes Plus y Pro. <a href="/shopping.html" target="_blank" rel="noopener">Ver el Shopping</a></p>
     </div>
     <div class="slot">
       <strong>Logo</strong>
@@ -5799,6 +5804,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(open){ renderCatToggles(); renderShipPanel(); renderWallets(); renderCenterBars(); $('b-name').value = brand.name; $('b-wa').value = brand.wa || ''; $('b-ig').value = brand.ig || ''; $('b-alias').value = brand.alias || ''; $('b-paylink').value = brand.paylink || ''; $('b-paypal').value = brand.paypal || ''; $('b-addr').value = brand.addr || ''; $('b-ball').value = brand.ball || ''; $('b-ads').value = brand.ads || ''; $('b-faq').value = brand.faq || ''; $('voiceFeat').setAttribute('aria-pressed', String(!!brand.voiceFeat)); $('b-adsEvery').value = String(brand.adsEvery || 2); $('b-name').focus(); }
   };
   $('b-ball').addEventListener('input', e => { brand.ball = e.target.value.slice(0, 400); save(); if(!currentCat) renderHome(); });
+  const markShop = () => { const b = document.getElementById('shopJoin'); if(b){ b.setAttribute('aria-pressed', String(brand.shopping === true)); b.textContent = brand.shopping === true ? '✓ Estoy en el Shopping' : 'Aparecer en el Shopping'; } };
+  if(document.getElementById('shopJoin')){ $('shopJoin').addEventListener('click', () => { if(brand.shopping === true) delete brand.shopping; else brand.shopping = true; save(); markShop(); }); $('brandBtn').addEventListener('click', () => setTimeout(markShop, 0)); markShop(); }
   const markGlow = () => { const anyG = stores.some((st, i) => i !== active && st.brand && st.brand.glow); const g = brand.glow || (!anyG && active === 0 ? 'rgb' : 'off'); document.querySelectorAll('#glowBar [data-glow]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.glow === g))); };
   $('glowBar').addEventListener('click', e => { const x = e.target.closest('[data-glow]'); if(!x) return; brand.glow = x.dataset.glow; save(); renderStoreBar(); markGlow(); });
   $('brandBtn').addEventListener('click', () => setTimeout(markGlow, 0));

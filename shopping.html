@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shopping Vitrina 360</title>
+<meta name="description" content="Todas las tiendas de Vitrina 360 en un solo lugar: buscá por rubro o por nombre y entrá a sus vitrinas 360°.">
+<meta property="og:title" content="Shopping Vitrina 360">
+<meta property="og:description" content="Todas las tiendas en un solo lugar. Entrá, mirá sus vitrinas y pedí por WhatsApp.">
+<meta property="og:image" content="/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="/vend.css">
+<style>
+.hero{display:grid;gap:8px}
+.search{display:flex;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 6px 4px 14px}
+.search input{border:0;background:transparent;padding:8px 2px}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--surface);color:inherit;border-radius:999px;padding:7px 13px;font:600 13.5px var(--body);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.shops{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:640px){.shops{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:900px){.shops{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.shop{display:grid;gap:6px;justify-items:center;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 10px;color:inherit;text-decoration:none;position:relative}
+.shop:hover{border-color:var(--accent)}
+.shop .lg{width:72px;height:72px;border-radius:18px;background:var(--bg);border:1px solid var(--line);display:grid;place-items:center;overflow:hidden;font:800 30px var(--display);color:var(--accent)}
+.shop .lg img{width:100%;height:100%;object-fit:contain}
+.shop b{font:700 15px/1.2 var(--body)}
+.shop small{color:var(--muted);font-size:12px;line-height:1.3}
+.shop .go{margin-top:2px;font:600 12.5px var(--body);color:var(--accent)}
+.star{position:absolute;top:8px;right:8px;font-size:11px;font-weight:800;background:#fff3c4;color:#7a5600;border-radius:999px;padding:2px 7px}
+.more{justify-self:center}
+.cta{display:grid;gap:8px;text-align:center;justify-items:center}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="top"><a href="/">Vitrina 360</a> · <span style="font-weight:600">Shopping</span></div>
+  <section class="hero">
+    <h1>Shopping Vitrina 360</h1>
+    <p class="lead">Todas las tiendas en un solo lugar. Entrá, mirá sus vitrinas que giran y pedí directo por WhatsApp.</p>
+    <label class="search" for="q"><span aria-hidden="true">🔎</span><input type="search" id="q" placeholder="Buscar una tienda, un rubro o una zona" autocomplete="off"></label>
+    <div class="chips" id="chips" role="group" aria-label="Rubros"></div>
+  </section>
+  <p class="msg" id="msg" role="status">Cargando tiendas…</p>
+  <section class="shops" id="shops" aria-label="Tiendas"></section>
+  <button class="btn more" type="button" id="more" hidden>Ver más tiendas</button>
+  <section class="card cta">
+    <h2>¿Tenés un emprendimiento o un local?</h2>
+    <p class="lead">Armá tu tienda con vitrinas 360° y sumala al Shopping. Probala 7 días gratis.</p>
+    <a class="btn primary" href="/">Quiero mi tienda</a>
+  </section>
+</main>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const PAGE = 12;
+  let all = [], rubro = '', shown = PAGE;
+  function draw(){
+    const q = norm($('q').value.trim());
+    const list = all.filter(t => (!rubro || t.rubro === rubro) && (!q || norm(t.nombre + ' ' + t.rubro + ' ' + t.zona).includes(q)));
+    $('msg').textContent = !all.length ? 'Todavía no hay tiendas en el Shopping. ¡La tuya puede ser la primera!' : list.length ? '' : 'No encontramos tiendas con esa búsqueda.';
+    $('shops').innerHTML = list.slice(0, shown).map(t => `<a class="shop" href="/t/${encodeURIComponent(t.slug)}${t.tienda ? '?tienda=' + t.tienda : ''}">
+      ${t.destacada ? '<span class="star">★ Destacada</span>' : ''}
+      <span class="lg">${t.logo ? `<img src="${esc(t.logo)}" alt="" loading="lazy">` : esc(t.nombre.charAt(0).toUpperCase())}</span>
+      <b>${esc(t.nombre)}</b><small>${esc(t.rubro)}${t.zona ? ' · ' + esc(t.zona) : ''}</small><span class="go">Entrar a la tienda →</span></a>`).join('');
+    $('more').hidden = list.length <= shown;
+  }
+  function chips(){
+    const rubros = [...new Set(all.map(t => t.rubro))].sort();
+    $('chips').innerHTML = ['', ...rubros].map(r => `<button class="chip" type="button" data-r="${esc(r)}" aria-pressed="${r === rubro}">${r ? esc(r) : 'Todas'}</button>`).join('');
+  }
+  $('chips').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if(!b) return; rubro = b.dataset.r; shown = PAGE; chips(); draw(); });
+  $('q').addEventListener('input', () => { shown = PAGE; draw(); });
+  $('more').addEventListener('click', () => { shown += PAGE; draw(); });
+  fetch('/api/shopping').then(r => r.json()).then(j => { all = j.tiendas || []; chips(); draw(); }).catch(() => { $('msg').textContent = 'No se pudo cargar el Shopping. Probá de nuevo en un ratito.'; });
+})();
+</script>
+</body>
+</html>
