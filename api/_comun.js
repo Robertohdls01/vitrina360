@@ -1,8 +1,8 @@
 // Ayudas compartidas por las funciones de Vitrina 360 (este archivo no es una dirección pública).
 const SURL = () => String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const PLANES = () => ({
-  emprendedora: { nombre: 'Start', precio: Number(process.env.PRECIO_EMPRENDEDORA || process.env.PRECIO_ARS || 11900), vitrinas: 10, tiendas: 1, productos: 30, fotos: 5, videos: 10 },
-  comercio: { nombre: 'Plus', precio: Number(process.env.PRECIO_COMERCIO || 19900), vitrinas: 20, tiendas: 1, productos: 30, fotos: 8, videos: 30 },
+  emprendedora: { nombre: 'Start', precio: Number(process.env.PRECIO_START || process.env.PRECIO_EMPRENDEDORA || process.env.PRECIO_ARS || 11900), vitrinas: 10, tiendas: 1, productos: 30, fotos: 5, videos: 10 },
+  comercio: { nombre: 'Plus', precio: Number(process.env.PRECIO_PLUS || process.env.PRECIO_COMERCIO || 19900), vitrinas: 20, tiendas: 1, productos: 30, fotos: 8, videos: 30 },
   pro: { nombre: 'Pro', precio: Number(process.env.PRECIO_PRO || 29900), vitrinas: 20, tiendas: 4, productos: 30, fotos: 8, videos: 60 }
 });
 const PRECIO = () => PLANES().emprendedora.precio;
