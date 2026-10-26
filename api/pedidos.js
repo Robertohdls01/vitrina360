@@ -90,6 +90,7 @@ module.exports = async (req, res) => {
         items, total: corto(b.total, 30), envio: corto(b.envio, 40), envio_id: corto(b.envio_id, 20), demora: corto(b.demora, 40),
         comprador: { nombre: corto(c.nombre, 80), tel: corto(c.tel, 30), dir: corto(c.dir, 160), ref: corto(c.ref, 160), turno: corto(c.turno, 120) }, servicio: !!b.servicio,
         regalo: g.si ? { para: corto(g.para, 20), mensaje: corto(g.mensaje, 160) } : null,
+        pago: corto(b.pago, 120),
         repartidor: '', salio_en: null
       };
       await guardar(ref, pedido);

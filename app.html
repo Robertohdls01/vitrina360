@@ -669,6 +669,7 @@ body:not(.cartbig) .cartsheet .actions{gap:6px}
 .qty span{min-width:24px;text-align:center;font:500 14px var(--mono)}
 .carttotal{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;font-size:18px;padding-top:6px}
 .carttotal .v{font:500 22px var(--mono);color:var(--accent)}
+.paybox[hidden]{display:none!important}
 .paybox{display:grid;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px}
 .walletbox{grid-column:1/-1}
 .walletlist{display:grid;gap:8px}
@@ -4628,6 +4629,13 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   let shipSel = null;
   // Datos del cliente para la entrega y pedido para regalo (los pide la cajera; viajan en el pedido).
   const buyer = {name:'', tel:'', dir:'', ref:'', turno:''}, gift = {on:false, who:'', msg:''};
+  // Cómo paga el cliente: ya mismo con billetera/transferencia (y manda el comprobante), o lo coordina por WhatsApp
+  const payPick = {mode: '', with: ''};
+  // la cajera también te dice cómo podés pagar
+  const payHint = () => { const ws = walletsOf().map(w => trCat(w.name)), any = brand.alias || /^https:\/\//i.test(String(brand.paylink || '')) || brand.paypal || ws.length; if(!any) return '';
+    const list = [...(brand.alias ? [L('transferencia', 'bank transfer', 'transferência')] : []), ...ws].slice(0, 3).join(', ');
+    return ' ' + L(`¿Cómo pagás? Podés pagar ahora${list ? ' con ' + list : ''} y mandar el comprobante, o coordinarlo por WhatsApp.`, `How will you pay? You can pay now${list ? ' with ' + list : ''} and send the receipt, or arrange it on WhatsApp.`, `Como você vai pagar? Pode pagar agora${list ? ' com ' + list : ''} e mandar o comprovante, ou combinar pelo WhatsApp.`); };
+  const payTxt = () => payPick.mode === 'ahora' ? L('Pago ahora', 'Paying now', 'Pago agora') + (payPick.with ? ' ' + L('con', 'with', 'com') + ' ' + payPick.with : '') + ' — ' + L('te mando el comprobante', 'I\'ll send you the receipt', 'te mando o comprovante') : payPick.mode === 'wa' ? L('Coordinamos el pago por WhatsApp', 'Let\'s arrange payment on WhatsApp', 'Combinamos o pagamento pelo WhatsApp') : '';
   const GIFT_WHO = ['Mujer', 'Hombre', 'Niña', 'Niño', 'Otro'];
   const allDigital = () => { const it = cartItems(); return it.length > 0 && it.every(x => x.p && x.p.digital); };
   const allService = () => { const it = cartItems(); return it.length > 0 && it.every(x => x.p && x.p.service); };
@@ -5028,9 +5036,9 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const g = gift.on ? `\n\n🎁 ${L('Es para regalo', 'It is a gift', 'É para presente')}${gift.who ? ' — ' + L('para ', 'for ', 'para ') + gift.who : ''}. ${L('Prepararlo para regalo (bolsa especial y moño).', 'Please prepare it as a gift (gift bag and bow).', 'Preparar para presente (sacola especial e laço).')}${gift.msg.trim() ? '\n' + L('Mensaje para la tarjeta', 'Card message', 'Mensagem do cartão') + ': “' + gift.msg.trim() + '”' : ''}` : '';
     const datos = [allService() && buyer.turno.trim() && '📅 ' + L('Turno deseado', 'Preferred time', 'Horário desejado') + ': ' + buyer.turno.trim(), buyer.name.trim() && L('Nombre', 'Name', 'Nome') + ': ' + buyer.name.trim(), buyer.tel.trim() && L('Teléfono', 'Phone', 'Telefone') + ': ' + buyer.tel.trim(),
       needAddr() && buyer.dir.trim() && L('Dirección', 'Address', 'Endereço') + ': ' + buyer.dir.trim(), needAddr() && buyer.ref.trim() && L('Referencias', 'Notes', 'Referências') + ': ' + buyer.ref.trim()].filter(Boolean);
-    const extras = g + (datos.length ? '\n\n' + datos.join('\n') : '');
+    const extras = g + (datos.length ? '\n\n' + datos.join('\n') : '') + (payTxt() ? '\n\n💳 ' + payTxt() + '.' : '');
     return L(`Hola ${storeName()}! Quiero hacer este pedido:`, `Hi ${storeName()}! I'd like to place this order:`, `Olá ${storeName()}! Quero fazer este pedido:`) + `\n${lines.join('\n')}\n\nTotal: ${fmt(t)}${extra}${ship}${extras}\n\n` +
-      (so ? L('¿Cómo coordinamos el pago?', 'How do we arrange payment?', 'Como combinamos o pagamento?') : L('¿Cómo coordinamos el pago y la entrega?', 'How do we arrange payment and delivery?', 'Como combinamos o pagamento e a entrega?'));
+      (payPick.mode === 'ahora' ? L('Te adjunto el comprobante 👇', 'Receipt attached 👇', 'Segue o comprovante 👇') : so ? L('¿Cómo coordinamos el pago?', 'How do we arrange payment?', 'Como combinamos o pagamento?') : L('¿Cómo coordinamos el pago y la entrega?', 'How do we arrange payment and delivery?', 'Como combinamos o pagamento e a entrega?'));
   }
   function updateFab(){
     const n = cartItems().reduce((a, it) => a + it.q, 0);
@@ -5265,13 +5273,16 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
             <input class="bfield" type="text" data-g="msg" maxlength="160" placeholder="Mensaje para la tarjeta (opcional)" value="${esc(gift.msg)}">
           </span>
         </div>
-        ${(brand.alias || payOk || pp || ws.length) ? `<div class="paybox">
+        ${(brand.alias || payOk || pp || ws.length) ? `<div class="shipbox"><strong>💳 ${esc(L('¿Cómo pagás?', 'How will you pay?', 'Como você vai pagar?'))}</strong>
+          <label class="shipopt"><input type="radio" name="paymode" value="ahora" ${payPick.mode === 'ahora' ? 'checked' : ''}><span>${esc(L('Pago ahora (billetera o transferencia)', 'Pay now (wallet or transfer)', 'Pago agora (carteira ou transferência)'))}</span></label>
+          <label class="shipopt"><input type="radio" name="paymode" value="wa" ${payPick.mode === 'wa' ? 'checked' : ''}><span>${esc(L('Lo coordino por WhatsApp', 'Arrange it on WhatsApp', 'Combino pelo WhatsApp'))}</span></label></div>
+        <div class="paybox" ${payPick.mode === 'ahora' ? '' : 'hidden'}>
           <strong>Cómo pagar</strong>
           ${brand.alias ? `<div class="payrow"><span>Alias / CBU: <code id="aliasTxt">${esc(brand.alias)}</code></span><button class="btn" type="button" data-c="copyAlias">Copiar</button></div>` : ''}
           ${pp ? `<a class="btn primary" href="${esc(pp)}" target="_blank" rel="noopener">💳 Pagar con tarjeta (PayPal)</a>${unpriced ? '' : `<span class="note">El total de tu pedido ya va cargado.</span>`}` : ''}
           ${payOk ? `<a class="btn ${pp ? '' : 'primary'}" href="${esc(pay)}" target="_blank" rel="noopener">${pp ? 'Pagar con link de pago' : 'Pagar con tarjeta o Mercado Pago'}</a>` : ''}
           ${ws.map(w => { const h = walletHref(w.value); return h ? `<a class="btn" href="${esc(h)}" target="_blank" rel="noopener">${esc(M('pay_btn', {w: trCat(w.name)}))}</a>` : `<div class="payrow"><span>${esc(w.name)}: <code>${esc(String(w.value).trim())}</code></span><button class="btn" type="button" data-c="copyPay" data-v="${esc(String(w.value).trim())}">Copiar</button></div>`; }).join('')}
-          <span class="note">Después de pagar, mandá el comprobante por WhatsApp.</span>
+          <span class="note">${esc(L('Cuando termines de pagar, tocá “Enviar pedido por WhatsApp” y en el chat adjuntá la captura del comprobante. Con eso el comercio prepara tu pedido y lo manda.', 'When you finish paying, tap “Send order via WhatsApp” and attach a screenshot of the receipt in the chat. The store then prepares and sends your order.', 'Quando terminar de pagar, toque “Enviar pedido pelo WhatsApp” e anexe a captura do comprovante no chat. Assim a loja prepara e envia seu pedido.'))}</span>
         </div>` : ''}
         <div class="actions">
           ${wa ? `<a class="btn wa" href="${wa}" target="_blank" rel="noopener" data-c="sent">Enviar pedido por WhatsApp</a>` : (!PUBLIC && !clientMode ? `<button class="btn primary" type="button" data-c="setwa">Cargá tu WhatsApp para recibir pedidos</button>` : `<span class="note">Este comercio todavía no cargó su WhatsApp. Copiá el pedido y mandáselo.</span>`)}
@@ -5289,7 +5300,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const body = {slug, items: items.map(it => ({n: it.name, q: it.q, p: it.price || '', id: it.p ? it.p.id : ''})), total: fmt(t) + (unpriced ? ' + a consultar' : ''),
       envio: o ? o.name : '', envio_id: o ? o.id : '', demora: brand.delay || '',
       comprador: {nombre: buyer.name, tel: buyer.tel, dir: na ? buyer.dir : '', ref: na ? buyer.ref : '', turno: allService() ? buyer.turno : ''}, servicio: allService(),
-      regalo: gift.on ? {si: true, para: gift.who, mensaje: gift.msg} : null};
+      regalo: gift.on ? {si: true, para: gift.who, mensaje: gift.msg} : null, pago: payTxt()};
     return fetch('/api/pedidos', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body), keepalive: true})
       .then(r => r.ok ? r.json() : null).catch(() => null);
   }
@@ -5363,6 +5374,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
           ${c.dir ? `<div>📍 ${esc(c.dir)}${c.ref ? ' — ' + esc(c.ref) : ''}</div>` : ''}
           ${c.turno ? `<div>📅 Turno deseado: ${esc(c.turno)}</div>` : ''}
           ${c.tel ? `<div>📞 ${esc(c.tel)}</div>` : ''}
+          ${p.pago ? `<div>💳 ${esc(p.pago)}</div>` : ''}
           ${p.regalo ? `<div>🎁 Para regalo${p.regalo.para ? ' (' + esc(p.regalo.para) + ')' : ''}: bolsa especial y moño${p.regalo.mensaje ? ` · Tarjeta: “${esc(p.regalo.mensaje)}”` : ''}</div>` : ''}
           ${abierto ? `<div class="oacts">
             ${moto ? `${rs.length ? `<select data-orider="${esc(p.ref)}" aria-label="Repartidor">${rs.map(r => `<option>${esc(r)}</option>`).join('')}</select>` : ''}<button class="btn primary" type="button" data-o="salio" data-ref="${esc(p.ref)}">🛵 Salió</button>`
@@ -5464,7 +5476,10 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(e.target.dataset.b) buyer[k] = e.target.value; else gift[k] = e.target.value;
     cartWa();
   });
+  $('cartModal').addEventListener('click', e => { const a = e.target.closest('.paybox a.btn, .paybox [data-c="copyPay"], .paybox [data-c="copyAlias"]'); if(!a) return;
+    payPick.with = a.matches('[data-c="copyAlias"]') ? L('transferencia', 'bank transfer', 'transferência') : (a.closest('.payrow') ? (a.closest('.payrow').querySelector('span') || {}).textContent.split(':')[0].trim() : a.textContent.replace(/^💳\s*/, '').trim()); cartWa(); });
   $('cartModal').addEventListener('change', e => {
+    if(e.target.name === 'paymode'){ payPick.mode = e.target.value; const pb = $('cartSheet').querySelector('.paybox'); if(pb) pb.hidden = payPick.mode !== 'ahora'; cartWa(); }
     if(e.target.name === 'ship'){ shipSel = e.target.value; const ab = $('cartSheet').querySelector('.addrbox'); if(ab) ab.hidden = !needAddr(); cartWa(); }
     if(e.target.name === 'gift'){ gift.on = e.target.value === 'si'; const gb = $('cartSheet').querySelector('.giftbox'); if(gb) gb.hidden = !gift.on; cartWa(); }
     if(e.target.name === 'giftwho'){ gift.who = e.target.value; cartWa(); }
@@ -6298,7 +6313,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     const {t, unpriced} = cartTotal(items);
     const list = items.map(it => `${qtyWord(it.q)} ${it.name}`).join(', ');
     $('cashier').scrollIntoView({block: 'start', behavior: 'auto'}); scrollBy(0, -8);
-    cSpeak(M('cash_main', {list, tot: (t ? M('tot_is', {t: fmt(t)}) : M('tot_conf')) + (unpriced && t ? M('tot_more') : ''), delay: brand.delay && shipList().some(o => o.id === 'moto') ? M('delay_today', {d: delayTr(brand.delay)}) : ''}), () => { $('hPanel').hidden = true; openCart(); });
+    cSpeak(M('cash_main', {list, tot: (t ? M('tot_is', {t: fmt(t)}) : M('tot_conf')) + (unpriced && t ? M('tot_more') : ''), delay: brand.delay && shipList().some(o => o.id === 'moto') ? M('delay_today', {d: delayTr(brand.delay)}) : ''}) + payHint(), () => { $('hPanel').hidden = true; openCart(); });
   }
   function cIdle(){ const n = cartCount(); $('cBubble').textContent = n ? M('idle_n', {n}) : M('idle_0'); $('cBubble').classList.remove('show'); }
   $('cBtn').onclick = cajeraCobra;
