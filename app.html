@@ -1994,6 +1994,9 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
         <label class="btn" for="q-photos" style="display:inline-flex">Elegir fotos sueltas<input type="file" id="q-photos" accept="image/*" multiple class="vh"></label>
         <label class="btn" for="q-folder" style="display:inline-flex">📁 Subir una carpeta<input type="file" id="q-folder" webkitdirectory directory multiple class="vh"></label>
         <button class="btn" type="button" id="qStop" hidden>Detener</button>
+        <span class="row" style="gap:6px;flex-basis:100%;flex-wrap:wrap;margin-top:4px"><span>✂️ ¿Das servicios? Cargá los conocidos y solo ponés los precios:</span>
+          <select id="qSvcKind" aria-label="Tipo de servicios"><option value="canina">🐶 Peluquería canina</option><option value="pelu">💇 Peluquería</option><option value="barber">💈 Barbería</option><option value="unas">💅 Uñas y estética</option></select>
+          <button class="btn" type="button" id="qSvcGo">Cargar servicios</button></span>
       </div>
       <label class="qbrand" for="qBrand">Marca del catálogo <small>(opcional, para “📖 Foto de catálogo”)</small>
         <input type="text" id="qBrand" maxlength="40" placeholder="Ej: Avon, Natura, Violetta Fabiani">
@@ -4076,6 +4079,38 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
   });
 
   // ---- Precios de una carga múltiple, todos juntos ----
+  // ---- Servicios conocidos ya armados: el dueño solo pone los precios, borra los que no hace y suma los suyos ----
+  const SVC_KITS = {
+    canina: {cat: 'Peluquería canina', em: '🐶', items: [
+      ['Corte de raza', 'Corte según el estándar de la raza'], ['Corte cachorro (puppy)', 'Pelo parejo y corto en todo el cuerpo'], ['Corte osito (teddy bear)', 'Cara redondeada, cuerpo parejo'],
+      ['Corte león', 'Melena larga, cuerpo rapado y borla en la cola'], ['Corte de verano (rapado)', 'Muy corto para el calor'], ['Corte higiénico', 'Zona íntima, almohadillas y ojos'],
+      ['Corte caniche', 'Estilo clásico de caniche'], ['Corte schnauzer', 'Barba y cejas marcadas'], ['Corte yorkshire', 'Largo o corto, con flequillo'], ['Corte shih tzu', 'Cara redonda, cuerpo a elección'],
+      ['Baño y secado', 'Baño, secado y cepillado'], ['Deslanado', 'Saca el pelo muerto (razas de doble manto)'], ['Baño antipulgas', 'Adicional'], ['Recorte de orejas', 'Adicional'],
+      ['Recorte de cola', 'Adicional'], ['Corte de uñas', 'Adicional'], ['Limpieza de oídos', 'Adicional'], ['Perfume y moño', 'Adicional']]},
+    pelu: {cat: 'Peluquería', em: '💇', items: [
+      ['Corte de dama', 'Lavado incluido'], ['Corte de caballero', 'Lavado incluido'], ['Corte infantil', 'Hasta 12 años'], ['Brushing', 'Lavado y brushing'], ['Peinado para eventos', 'Fiestas, casamientos, 15'],
+      ['Color / tintura', 'Raíz o completo'], ['Mechas / reflejos', 'Con gorra o papel'], ['Balayage', 'Iluminación natural'], ['Alisado', 'Keratina o botox capilar'], ['Permanente / ondas', 'Rulos duraderos'],
+      ['Tratamiento capilar', 'Hidratación profunda'], ['Lavado', 'Adicional']]},
+    barber: {cat: 'Barbería', em: '💈', items: [
+      ['Corte clásico', 'Tijera y máquina'], ['Fade / degradé', 'Degradé bajo, medio o alto'], ['Corte + barba', 'Combo'], ['Perfilado de barba', 'Con navaja'], ['Afeitado con navaja', 'Toalla caliente'],
+      ['Diseño / rayas', 'Adicional'], ['Corte infantil', 'Hasta 12 años'], ['Color de barba', 'Adicional']]},
+    unas: {cat: 'Uñas y estética', em: '💅', items: [
+      ['Esmaltado semipermanente', 'Manos'], ['Kapping', 'Refuerzo con gel'], ['Uñas esculpidas', 'Acrílico o gel'], ['Manicura', 'Limado y cutículas'], ['Pedicura', 'Pies completos'],
+      ['Nail art', 'Diseño por uña, adicional'], ['Perfilado de cejas', 'Con pinza o cera'], ['Lifting de pestañas', 'Con tinte'], ['Extensión de pestañas', 'Pelo por pelo o volumen'], ['Depilación', 'Por zona']]}
+  };
+  const svcImg = (em, name) => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3edff"/><stop offset="1" stop-color="#ffe6f0"/></linearGradient></defs><rect width="200" height="200" rx="22" fill="url(#g)"/><text x="100" y="118" font-size="84" text-anchor="middle">${em}</text><text x="100" y="168" font-family="Arial" font-size="14" font-weight="700" text-anchor="middle" fill="#6d28d9">${String(name).replace(/[<&>]/g, '').slice(0, 24)}</text></svg>`);
+  if(document.getElementById('qSvcGo')) $('qSvcGo').addEventListener('click', () => {
+    const kit = SVC_KITS[$('qSvcKind').value]; if(!kit) return;
+    let cat = cats.find(c => norm(c.name) === norm(kit.cat));
+    if(!cat){ if(cats.length >= capCats()){ $('qMsg').textContent = 'Llegaste al máximo de vitrinas de tu plan: borrá o renombrá una para cargar los servicios.'; return; } cat = {id: 'c' + uid(), name: kit.cat}; cats.push(cat); }
+    let base = products.reduce((m, p) => Math.max(m, p.added), -1) + 1;
+    const have = new Set(products.filter(p => p.cat === cat.id).map(p => norm(p.name)));
+    const created = [];
+    kit.items.forEach(([name, desc]) => { if(have.has(norm(name))) return; const p = {id: uid(), cat: cat.id, added: base++, img: svcImg(kit.em, name), name, price: '', features: [desc ? 'Detalle: ' + desc : ''].filter(Boolean), service: true}; products.push(p); created.push(p); });
+    save(); renderHome(); fillCatSelect(cat.id);
+    $('qMsg').textContent = created.length ? `Listo: cargué ${created.length} servicios en la vitrina “${kit.cat}”. Poné los precios abajo; los que no hacés, borralos, y los tuyos sumalos con su foto.` : 'Esos servicios ya estaban cargados.';
+    if(created.length) showBulkPrices(created, $('qPrices'), $('qMsg'));
+  });
   function showBulkPrices(list, box, msgEl){
     box = box || $('bulkPrices'); msgEl = msgEl || $('formMsg');
     box.innerHTML = `<strong>Poné los precios</strong><span class="note">Escribí el precio de cada uno y tocá “Guardar precios”. Los que dejes vacíos quedan “a consultar”.</span>
