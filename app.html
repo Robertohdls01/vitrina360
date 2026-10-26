@@ -5108,6 +5108,8 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     if(PUBLIC || !window.VITRINA_TOKEN || !document.getElementById('mpAutoBox')) return;
     let j = null; try{ const r = await fetch('/api/mpcobro?accion=estado', {headers: {Authorization: 'Bearer ' + await window.VITRINA_TOKEN()}}); j = r.ok ? await r.json() : null; }catch(e){}
     if(!j) return;
+    const before = mpLive; mpLive = !!j.conectado;
+    if(before !== mpLive){ try{ if(!$('cartModal').hidden) renderCart(); }catch(e){} }
     if(!j.disponible && !j.conectado){ $('mpAutoBox').hidden = true; return; }
     $('mpAutoBox').hidden = false;
     $('mpConnect').hidden = !!j.conectado; $('mpDisconnect').hidden = !j.conectado;
@@ -5204,7 +5206,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   // Mercado Pago automático: en la tienda pública se pregunta al servidor si el comercio tiene su cuenta conectada
   let mpLive = null;
   if(PUBLIC && window.VITRINA_SLUG) fetch('/api/mpcobro?accion=disponible&slug=' + encodeURIComponent(window.VITRINA_SLUG)).then(r => r.json()).then(j => { mpLive = !!(j && j.ok); try{ if(!$('cartModal').hidden) renderCart(); }catch(e){} }).catch(() => { mpLive = false; });
-  const mpAutoOk = () => (PUBLIC ? mpLive === true : !!brand.mpAuto) && curCode() === 'ARS';
+  const mpAutoOk = () => (mpLive === true || (!PUBLIC && !!brand.mpAuto)) && curCode() === 'ARS';
   // la cajera también te dice cómo podés pagar
   const payHint = () => { const ws = walletsOf().map(w => trCat(w.name)), any = brand.alias || /^https:\/\//i.test(String(brand.paylink || '')) || brand.paypal || ws.length; if(!any) return '';
     const list = [...(brand.alias ? [L('transferencia', 'bank transfer', 'transferência')] : []), ...ws].slice(0, 3).join(', ');
@@ -6230,7 +6232,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     setTimeout(() => { if(!wentAway && document.visibilityState === 'visible') go(); }, 2500);
     setTimeout(() => { if(!done){ done = true; document.removeEventListener('visibilitychange', onVis); } }, 30 * 60e3);
   }
-  function openCart(){ cartLastFocus = document.activeElement; const sl = shipList(); if(!sl.find(o => o.id === shipSel)) shipSel = sl[0] ? sl[0].id : null; renderCart(); $('cartModal').hidden = false; document.documentElement.style.overflow = 'hidden'; $('cartSheet').querySelector('.close').focus(); }
+  function openCart(){ if(!PUBLIC && mpLive === null) try{ mpRefresh(); }catch(e){}
+    cartLastFocus = document.activeElement; const sl = shipList(); if(!sl.find(o => o.id === shipSel)) shipSel = sl[0] ? sl[0].id : null; renderCart(); $('cartModal').hidden = false; document.documentElement.style.overflow = 'hidden'; $('cartSheet').querySelector('.close').focus(); }
   function closeCart(){ $('cartModal').hidden = true; document.documentElement.style.overflow = ''; try{ cartLastFocus && cartLastFocus.focus(); }catch(e){} }
   function copyText(text, msgEl, okMsg){
     const done = () => { if(msgEl) msgEl.textContent = okMsg; };
