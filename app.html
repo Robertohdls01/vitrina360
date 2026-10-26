@@ -698,6 +698,20 @@ body:not(.cartbig) .cartsheet .actions{gap:6px}
 .carttotal{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;font-size:18px;padding-top:6px}
 .carttotal .v{font:500 22px var(--mono);color:var(--accent)}
 .paybox[hidden]{display:none!important}
+#lensView{position:fixed;inset:0;z-index:120;background:#000;display:grid;grid-template-rows:1fr auto}
+#lensView[hidden]{display:none}
+.lv-scene{position:relative;overflow:hidden}
+.lv-scene video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.lv-scene.cam video{display:block}.lv-scene.cam .lv-fallback{display:none}
+.lv-fallback{position:absolute;inset:0;background:radial-gradient(circle at 75% 18%,#fffbe0 0 6%,#ffe27a 9%,rgba(255,226,122,0) 26%),linear-gradient(#5fb3ff 0 52%,#ffd9a0 52% 58%,#2f8fd8 58% 75%,#e9cf9b 75%)}
+.lv-tint{position:absolute;inset:0;background:var(--lc);opacity:var(--ld);mix-blend-mode:multiply;transition:opacity .3s}
+.lv-scene.pol video,.lv-scene.pol .lv-fallback{filter:contrast(1.15) saturate(1.25) brightness(.95)}
+.lv-scene.mir .lv-tint{background:linear-gradient(160deg,var(--lc),#000)}
+.lv-frame{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;filter:drop-shadow(0 0 18px rgba(0,0,0,.6))}
+.lv-scene.off .lv-tint{opacity:0}.lv-scene.off.pol video,.lv-scene.off.pol .lv-fallback{filter:none}
+.lv-info{background:var(--surface);color:var(--ink);padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));display:grid;gap:6px}
+.lv-info span{color:var(--muted);font-size:13.5px}.lv-info small{color:var(--muted);font-size:11.5px}
+.lv-row{display:flex;gap:8px;flex-wrap:wrap}
 .stockb{margin:2px 0;font:700 13px var(--body);color:var(--muted)}
 .stockb.low{color:#c2410c}
 .stockb.out{color:#b42318}
@@ -3177,6 +3191,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
         ${feats ? `<ul class="feats">${feats}</ul>` : `<p class="nofeat">Este producto todavía no tiene características.</p>`}
         <div class="actions">
           ${p.stock != null && +p.stock <= 0 ? `<button class="btn" type="button" disabled>${esc(L('Sin stock', 'Out of stock', 'Sem estoque'))}</button>` : `<button class="btn primary" type="button" data-m="cart">＋ Agregar al pedido</button>`}
+          ${lensOf(p) ? `<button class="btn" type="button" data-m="lens">🕶️ ${esc(L('Mirá a través del lente', 'Look through the lens', 'Veja através da lente'))}</button>` : ''}
           ${p.extLink ? `<a class="btn" href="${esc(p.extLink)}" target="_blank" rel="noopener">🔗 Ver en el sitio</a>` : ''}
           ${waHref(productMsg(p)) ? `<a class="btn wa" href="${waHref(productMsg(p))}" target="_blank" rel="noopener">Consultar por WhatsApp</a>` : ''}
           <button class="btn" type="button" data-m="add">Agregar más fotos</button>
@@ -3256,6 +3271,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
       p.variants = (p.variants || []).filter(v => v.id !== selVar[p.id]); selVar[p.id] = ''; delArmed = false;
       save(); render(); renderModal();
     }
+    else if(m === 'lens'){ openLens(p); }
     else if(m === 'cart'){ if(addToCart(cartKey(p), $('sheet').querySelector('.viewer img')) !== false) b.textContent = '✓ Agregado al pedido'; else b.textContent = p.stock > 0 ? L('Ya tenés todo el stock en tu pedido', 'All stock already in your order', 'Todo o estoque já está no pedido') : L('Sin stock', 'Out of stock', 'Sem estoque'); }
     else if(m === 'edit'){ closeModal(); startEdit(p); $('form').scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block:'start'}); }
     else if(m === 'del'){
@@ -5219,6 +5235,40 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const cn = document.getElementById('cN');
     const cg = document.getElementById('cGo'); if(cg) cg.textContent = n ? `${M('go_cash')} (${n})` : M('go_cash');
     if(cn){ const was = +cn.textContent; cn.textContent = n; cn.hidden = !n; if(typeof cIdle === 'function' && !cBubbleT) cIdle(); if(n > was){ const bk = cn.parentElement; bk.classList.remove('bump'); void bk.offsetWidth; bk.classList.add('bump'); } }
+  }
+  // ---- "Mirá a través del lente": la cámara del celular con el color y la oscuridad del cristal ----
+  // El comercio lo carga en las características: "Lente: azul espejado", "Categoría: 3", "Polarizado: sí", "UV400".
+  const LENS_COL = [['gris|humo|negro', '#3f4248'], ['marr[oó]n|caf[eé]|ambar|ámbar|havana', '#6b4423'], ['verde|g-15|g15', '#33503a'], ['azul', '#1f3f86'],
+    ['violeta|lila|p[uú]rpura', '#4b2a86'], ['rosa|rosado', '#a24f78'], ['amarill|naranja', '#b88a17'], ['rojo', '#8c2424'], ['espejad|plata|mirror', '#5c6370'], ['transparente|claro|blue ?light', '#9aa7b3']];
+  function lensOf(p){
+    const f = (p.features || []).join(' · '), all = norm(p.name + ' ' + f);
+    if(!/(anteojo|lente|gafa|gafas|sunglass|antiparra|cristal)/.test(all)) return null;
+    const line = (p.features || []).find(x => /^(lente|cristal|color del lente|color de lente|tono)\s*:/i.test(x)) || '';
+    const txt = norm(line || f);
+    let col = '#3f4248'; for(const [rx, c] of LENS_COL){ if(new RegExp(rx).test(txt)){ col = c; break; } }
+    const cm = norm(f).match(/categor[ií]a\s*:?\s*([0-4])/); const cat = cm ? +cm[1] : (/transparente|claro|blue ?light/.test(txt) ? 0 : 3);
+    return {col, cat, pol: /polariz/.test(norm(f)) && !/polarizado\s*:\s*no/.test(norm(f)), uv: /uv ?400|uv/.test(norm(f)), mirror: /espejad|mirror/.test(txt), label: line.split(':').slice(1).join(':').trim()};
+  }
+  let lensStream = null;
+  async function openLens(p){
+    const ln = lensOf(p); if(!ln) return;
+    const dark = [0.08, 0.22, 0.42, 0.62, 0.82][ln.cat];
+    let ov = document.getElementById('lensView');
+    if(!ov){ ov = document.createElement('div'); ov.id = 'lensView'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); document.body.appendChild(ov); }
+    ov.innerHTML = `<div class="lv-scene"><video playsinline muted autoplay></video><div class="lv-fallback"></div><div class="lv-tint"></div><svg class="lv-frame" viewBox="0 0 100 60" preserveAspectRatio="xMidYMid meet" aria-hidden="true" style="overflow:visible"><path fill="#0b0b0d" fill-rule="evenodd" d="M-600 -600H700V700H-600Z M3 30c0-13 8-20 21-20s22 7 22 18c0 14-9 22-22 22S3 43 3 30Z M97 30c0-13-8-20-21-20s-22 7-22 18c0 14 9 22 22 22s21-7 21-20Z"/><path d="M46 24c2-2 6-2 8 0" fill="none" stroke="#1d1d22" stroke-width="2.5"/></svg></div>
+      <div class="lv-info"><strong>${esc(p.name)}</strong><span>${esc([ln.label, 'Categoría ' + ln.cat, ln.pol ? 'Polarizado' : '', ln.uv ? 'Filtro UV' : ''].filter(Boolean).join(' · '))}</span>
+      <span class="lv-row"><button type="button" class="btn" data-lv="cmp">${esc(L('Ver sin lente', 'See without lens', 'Ver sem lente'))}</button><button type="button" class="btn primary" data-lv="close">${esc(L('Listo', 'Done', 'Pronto'))}</button></span>
+      <small>${esc(L('Imagen aproximada del color y la oscuridad del cristal.', 'Approximate view of the lens color and darkness.', 'Visão aproximada da cor e escuridão da lente.'))}</small></div>`;
+    const sc = ov.querySelector('.lv-scene');
+    sc.style.setProperty('--lc', ln.col); sc.style.setProperty('--ld', dark);
+    sc.classList.toggle('pol', ln.pol); sc.classList.toggle('mir', ln.mirror);
+    ov.hidden = false; document.documentElement.style.overflow = 'hidden';
+    const close = () => { ov.hidden = true; document.documentElement.style.overflow = ''; if(lensStream){ lensStream.getTracks().forEach(t => t.stop()); lensStream = null; } };
+    ov.onclick = e => { const b = e.target.closest('[data-lv]'); if(!b) return; if(b.dataset.lv === 'close') close(); else { sc.classList.toggle('off'); b.textContent = sc.classList.contains('off') ? L('Ver con el lente', 'See with the lens', 'Ver com a lente') : L('Ver sin lente', 'See without lens', 'Ver sem lente'); } };
+    try{
+      lensStream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}, audio: false});
+      const v = ov.querySelector('video'); v.srcObject = lensStream; sc.classList.add('cam');
+    }catch(e){ sc.classList.remove('cam'); }   // sin cámara: se ve un paisaje de sol de ejemplo
   }
   // Control de stock: si el producto tiene stock cargado, no se puede pedir más de lo que hay.
   const stockOf = key => { const p = products.find(x => x.id === String(key).split('|')[0]); return p && p.stock != null ? +p.stock : null; };
