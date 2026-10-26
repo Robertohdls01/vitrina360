@@ -4628,13 +4628,17 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   const shipList = () => SHIP_OPTS.filter(o => brand.ship && typeof brand.ship[o.id] === 'string').map(o => ({...o, detail: brand.ship[o.id]}));
   let shipSel = null;
   // Datos del cliente para la entrega y pedido para regalo (los pide la cajera; viajan en el pedido).
-  const buyer = {name:'', tel:'', dir:'', ref:'', turno:''}, gift = {on:false, who:'', msg:''};
+  const buyer = {name:'', tel:'', dir:'', ref:'', turno:'', cuando:'ya', hora:'', dia:''}, gift = {on:false, who:'', msg:''};
   // Cómo paga el cliente: ya mismo con billetera/transferencia (y manda el comprobante), o lo coordina por WhatsApp
   const payPick = {mode: '', with: ''};
   // la cajera también te dice cómo podés pagar
   const payHint = () => { const ws = walletsOf().map(w => trCat(w.name)), any = brand.alias || /^https:\/\//i.test(String(brand.paylink || '')) || brand.paypal || ws.length; if(!any) return '';
     const list = [...(brand.alias ? [L('transferencia', 'bank transfer', 'transferência')] : []), ...ws].slice(0, 3).join(', ');
     return ' ' + L(`¿Cómo pagás? Podés pagar ahora${list ? ' con ' + list : ''} y mandar el comprobante, o coordinarlo por WhatsApp.`, `How will you pay? You can pay now${list ? ' with ' + list : ''} and send the receipt, or arrange it on WhatsApp.`, `Como você vai pagar? Pode pagar agora${list ? ' com ' + list : ''} e mandar o comprovante, ou combinar pelo WhatsApp.`); };
+  // "cuándo lo querés": lo antes posible, o día + horario (ej: "jueves 30/10 — de 18 a 20 h")
+  const whenTxt = () => { if(buyer.cuando !== 'hora') return L('lo antes posible', 'as soon as possible', 'o quanto antes');
+    let d = ''; if(buyer.dia){ try{ d = new Date(buyer.dia + 'T12:00').toLocaleDateString(LANG === 'es' ? 'es-AR' : LANG, {weekday: 'long', day: 'numeric', month: 'numeric'}); }catch(e){ d = buyer.dia; } }
+    return [d, buyer.hora.trim()].filter(Boolean).join(' — ') || L('a coordinar', 'to be arranged', 'a combinar'); };
   const payTxt = () => payPick.mode === 'ahora' ? L('Pago ahora', 'Paying now', 'Pago agora') + (payPick.with ? ' ' + L('con', 'with', 'com') + ' ' + payPick.with : '') + ' — ' + L('te mando el comprobante', 'I\'ll send you the receipt', 'te mando o comprovante') : payPick.mode === 'wa' ? L('Coordinamos el pago por WhatsApp', 'Let\'s arrange payment on WhatsApp', 'Combinamos o pagamento pelo WhatsApp') : '';
   const GIFT_WHO = ['Mujer', 'Hombre', 'Niña', 'Niño', 'Otro'];
   const allDigital = () => { const it = cartItems(); return it.length > 0 && it.every(x => x.p && x.p.digital); };
@@ -5035,7 +5039,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const extra = unpriced ? L(' (más productos a consultar)', ' (plus items to confirm)', ' (mais itens a consultar)') : '';
     const g = gift.on ? `\n\n🎁 ${L('Es para regalo', 'It is a gift', 'É para presente')}${gift.who ? ' — ' + L('para ', 'for ', 'para ') + gift.who : ''}. ${L('Prepararlo para regalo (bolsa especial y moño).', 'Please prepare it as a gift (gift bag and bow).', 'Preparar para presente (sacola especial e laço).')}${gift.msg.trim() ? '\n' + L('Mensaje para la tarjeta', 'Card message', 'Mensagem do cartão') + ': “' + gift.msg.trim() + '”' : ''}` : '';
     const datos = [allService() && buyer.turno.trim() && '📅 ' + L('Turno deseado', 'Preferred time', 'Horário desejado') + ': ' + buyer.turno.trim(), buyer.name.trim() && L('Nombre', 'Name', 'Nome') + ': ' + buyer.name.trim(), buyer.tel.trim() && L('Teléfono', 'Phone', 'Telefone') + ': ' + buyer.tel.trim(),
-      needAddr() && buyer.dir.trim() && L('Dirección', 'Address', 'Endereço') + ': ' + buyer.dir.trim(), needAddr() && buyer.ref.trim() && L('Referencias', 'Notes', 'Referências') + ': ' + buyer.ref.trim()].filter(Boolean);
+      needAddr() && buyer.dir.trim() && L('Dirección', 'Address', 'Endereço') + ': ' + buyer.dir.trim(), needAddr() && buyer.ref.trim() && L('Referencias', 'Notes', 'Referências') + ': ' + buyer.ref.trim(),
+      needAddr() && '🕒 ' + L('Entrega', 'Delivery', 'Entrega') + ': ' + whenTxt()].filter(Boolean);
     const extras = g + (datos.length ? '\n\n' + datos.join('\n') : '') + (payTxt() ? '\n\n💳 ' + payTxt() + '.' : '');
     return L(`Hola ${storeName()}! Quiero hacer este pedido:`, `Hi ${storeName()}! I'd like to place this order:`, `Olá ${storeName()}! Quero fazer este pedido:`) + `\n${lines.join('\n')}\n\nTotal: ${fmt(t)}${extra}${ship}${extras}\n\n` +
       (payPick.mode === 'ahora' ? L('Ya pagué: te adjunto el comprobante 👇 Revisá que te haya llegado y despachá el pedido 🙌', 'Already paid: receipt attached 👇 Please check it arrived and send the order 🙌', 'Já paguei: segue o comprovante 👇 Confira se chegou e despache o pedido 🙌') : so ? L('¿Cómo coordinamos el pago?', 'How do we arrange payment?', 'Como combinamos o pagamento?') : L('¿Cómo coordinamos el pago y la entrega?', 'How do we arrange payment and delivery?', 'Como combinamos o pagamento e a entrega?'));
@@ -5262,6 +5267,13 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
           <span class="addrbox" ${needAddr() ? '' : 'hidden'}>
             <input class="bfield" type="text" data-b="dir" maxlength="160" autocomplete="street-address" placeholder="Dirección de entrega: calle, número, piso" value="${esc(buyer.dir)}">
             <input class="bfield" type="text" data-b="ref" maxlength="160" placeholder="Localidad y referencias (entre calles, timbre)" value="${esc(buyer.ref)}">
+            <span class="note" style="flex-basis:100%;margin:2px 0 0">🕒 ${esc(L('¿Cuándo lo querés?', 'When do you want it?', 'Quando você quer?'))}</span>
+            <label class="shipopt"><input type="radio" name="cuando" value="ya" ${buyer.cuando !== 'hora' ? 'checked' : ''}><span>${esc(L('Lo antes posible', 'As soon as possible', 'O quanto antes'))}</span></label>
+            <label class="shipopt"><input type="radio" name="cuando" value="hora" ${buyer.cuando === 'hora' ? 'checked' : ''}><span>${esc(L('Elegir día y horario', 'Pick day and time', 'Escolher dia e horário'))}</span></label>
+            <span class="whenbox" style="display:${buyer.cuando === 'hora' ? 'flex' : 'none'};flex-basis:100%;gap:5px;flex-wrap:wrap">
+              <input class="bfield" type="date" data-b="dia" min="${new Date().toISOString().slice(0, 10)}" value="${esc(buyer.dia)}" aria-label="${esc(L('Día de entrega', 'Delivery day', 'Dia da entrega'))}">
+              <input class="bfield" type="text" data-b="hora" maxlength="80" placeholder="${esc(L('Horario. Ej: de 18 a 20 h', 'Time. E.g.: 6–8 pm', 'Horário. Ex: das 18 às 20 h'))}" value="${esc(buyer.hora)}">
+            </span>
           </span>
         </div>
         <div class="shipbox"><strong>🎁 ¿Es para regalo?</strong>
@@ -5299,7 +5311,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const {t, unpriced} = cartTotal(items), na = needAddr();
     const body = {slug, items: items.map(it => ({n: it.name, q: it.q, p: it.price || '', id: it.p ? it.p.id : ''})), total: fmt(t) + (unpriced ? ' + a consultar' : ''),
       envio: o ? o.name : '', envio_id: o ? o.id : '', demora: brand.delay || '',
-      comprador: {nombre: buyer.name, tel: buyer.tel, dir: na ? buyer.dir : '', ref: na ? buyer.ref : '', turno: allService() ? buyer.turno : ''}, servicio: allService(),
+      comprador: {nombre: buyer.name, tel: buyer.tel, dir: na ? buyer.dir : '', ref: na ? buyer.ref : '', turno: allService() ? buyer.turno : '', horario: na ? whenTxt() : ''}, servicio: allService(),
       regalo: gift.on ? {si: true, para: gift.who, mensaje: gift.msg} : null, pago: payTxt()};
     return fetch('/api/pedidos', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body), keepalive: true})
       .then(r => r.ok ? r.json() : null).catch(() => null);
@@ -5384,6 +5396,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
           <div><strong>Total:</strong> ${esc(p.total || '')}${p.envio ? ` · <strong>Entrega:</strong> ${esc(p.envio)}` : ''}</div>
           ${c.dir ? `<div>📍 ${esc(c.dir)}${c.ref ? ' — ' + esc(c.ref) : ''}</div>` : ''}
           ${c.turno ? `<div>📅 Turno deseado: ${esc(c.turno)}</div>` : ''}
+          ${c.horario ? `<div>🕒 Entregar: ${esc(c.horario)}</div>` : ''}
           ${c.tel ? `<div>📞 ${esc(c.tel)}</div>` : ''}
           ${p.pago ? `<div>💳 ${esc(p.pago)}</div>` : ''}
           ${ordWa(p) ? `<div><a class="btn wa" href="${esc(ordWa(p))}" target="_blank" rel="noopener" style="padding:5px 12px;font-size:13px">💬 ${p.estado === 'salio' ? 'Avisarle que va en camino' : p.estado === 'listo' ? 'Avisarle que está listo' : p.estado === 'entregado' ? 'Agradecerle' : 'Avisarle que lo recibiste'}</a></div>` : ''}
@@ -5440,7 +5453,9 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       const moto = o && o.id === 'moto' && ridersOf().length;
       // Pagó ahora: la cajera le confirma solita que su pedido va en camino y cuánto tarda
       const paid = payPick.mode === 'ahora', dl = delayTr(brand.delay || '20 a 30 minutos');
-      const paidMsg = !paid ? '' : o && /moto|envio|delivery|cadete/.test(o.id) || moto
+      const paidMsg = !paid ? '' : needAddr() && buyer.cuando === 'hora'
+        ? `${thanks} ${L(`¡Listo! Tu pedido queda agendado para ${whenTxt()}. El comercio ya recibió tu pedido y tu comprobante por WhatsApp.`, `Done! Your order is scheduled for ${whenTxt()}. The store already got your order and receipt on WhatsApp.`, `Pronto! Seu pedido fica agendado para ${whenTxt()}. A loja já recebeu seu pedido e comprovante pelo WhatsApp.`)}`
+        : o && /moto|envio|delivery|cadete/.test(o.id) || moto
         ? `${thanks} ${L(`¡Tu pedido ya está en camino! 🛵 Tarda más o menos ${dl}, y puede demorar un poquito más. El comercio ya recibió tu pedido y tu comprobante por WhatsApp.`, `Your order is on its way! 🛵 It takes about ${dl}, maybe a little longer. The store already got your order and receipt on WhatsApp.`, `Seu pedido já está a caminho! 🛵 Leva mais ou menos ${dl}, pode demorar um pouquinho mais. A loja já recebeu seu pedido e comprovante pelo WhatsApp.`)}`
         : `${thanks} ${L('¡Listo! El comercio ya recibió tu pedido y tu comprobante por WhatsApp. Te avisan cuando esté listo.', 'Done! The store got your order and receipt on WhatsApp. They\'ll let you know when it\'s ready.', 'Pronto! A loja recebeu seu pedido e comprovante pelo WhatsApp. Eles avisam quando estiver pronto.')}`;
       const cMsg = paid ? paidMsg : moto ? `${thanks} ${deliveryLine()} ${M('any_wa')}` : `${thanks} ${o ? M('chose', {x: trCat(o.name)}) + ' ' : ''}${M('go_wa')}`;
@@ -5496,6 +5511,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   $('cartModal').addEventListener('click', e => { const a = e.target.closest('.paybox a.btn, .paybox [data-c="copyPay"], .paybox [data-c="copyAlias"]'); if(!a) return;
     payPick.with = a.matches('[data-c="copyAlias"]') ? L('transferencia', 'bank transfer', 'transferência') : (a.closest('.payrow') ? (a.closest('.payrow').querySelector('span') || {}).textContent.split(':')[0].trim() : a.textContent.replace(/^💳\s*/, '').trim()); cartWa(); });
   $('cartModal').addEventListener('change', e => {
+    if(e.target.name === 'cuando'){ buyer.cuando = e.target.value; const h = $('cartSheet').querySelector('.whenbox'); if(h) h.style.display = buyer.cuando === 'hora' ? 'flex' : 'none'; cartWa(); }
     if(e.target.name === 'paymode'){ payPick.mode = e.target.value; const pb = $('cartSheet').querySelector('.paybox'); if(pb) pb.hidden = payPick.mode !== 'ahora'; cartWa(); }
     if(e.target.name === 'ship'){ shipSel = e.target.value; const ab = $('cartSheet').querySelector('.addrbox'); if(ab) ab.hidden = !needAddr(); cartWa(); }
     if(e.target.name === 'gift'){ gift.on = e.target.value === 'si'; const gb = $('cartSheet').querySelector('.giftbox'); if(gb) gb.hidden = !gift.on; cartWa(); }
