@@ -698,6 +698,19 @@ body:not(.cartbig) .cartsheet .actions{gap:6px}
 .carttotal{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;font-size:18px;padding-top:6px}
 .carttotal .v{font:500 22px var(--mono);color:var(--accent)}
 .paybox[hidden]{display:none!important}
+#tryView{position:fixed;inset:0;z-index:125;background:rgba(12,10,20,.72);display:grid;place-items:center;padding:14px}
+#tryView[hidden]{display:none}
+#tryView .tv{width:min(460px,100%);max-height:calc(100dvh - 28px);overflow:auto;background:var(--surface);color:var(--ink);border-radius:20px;padding:18px;display:grid;gap:12px;box-shadow:0 30px 70px -20px rgba(0,0,0,.55)}
+#tryView h2{margin:0;font:800 21px/1.15 var(--display,var(--body))}
+#tryView .tvpics{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#tryView .tvpics img,#tryView .tvres img{width:100%;border-radius:14px;object-fit:cover;background:var(--bg)}
+#tryView .tvpics img{aspect-ratio:3/4}
+#tryView .tvres img{max-height:62dvh;object-fit:contain}
+#tryView .tvwait{display:flex;gap:10px;align-items:center;font-weight:600}
+#tryView .tvwait i{width:20px;height:20px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:tvspin .8s linear infinite}
+@keyframes tvspin{to{transform:rotate(360deg)}}
+#tryView a.btn{color:inherit;text-decoration:none}
+.btn.tryb{background:var(--grad,var(--accent));color:#fff;border-color:transparent}
 #lensView{position:fixed;inset:0;z-index:120;background:#000;display:grid;grid-template-rows:1fr auto}
 #lensView[hidden]{display:none}
 .lv-scene{position:relative;overflow:hidden}
@@ -1895,6 +1908,12 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
       </label>
       <button class="matbtn" type="button" id="owAuto" aria-pressed="true" style="justify-self:start">👋 Saludar sola cuando entra un cliente</button>
       <p class="note" id="owMsg" role="status" style="margin:0"></p>
+    </div>
+    <div class="presets" id="tryBox">
+      <strong>✨ Probador virtual</strong>
+      <p class="note" style="margin:0">Con IA, tus clientes suben su foto y se ven con tu ropa, anteojos o accesorios puestos. En peluquería canina, ven a su perro con el corte; en peluquería y estética, se ven con el peinado o el servicio. El botón aparece solo en los productos y servicios que lo permiten. Cada cliente puede probar hasta 4 veces por día.</p>
+      <button class="matbtn" type="button" id="tryTog" aria-pressed="true" style="justify-self:start">✨ Mostrar el probador en mi tienda</button>
+      <p class="note" id="tryMsg" role="status" style="margin:0"></p>
     </div>
     <div class="presets" id="hoursBox">
       <strong>🕘 Horario de atención</strong>
@@ -3265,6 +3284,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
         ${feats ? `<ul class="feats">${feats}</ul>` : `<p class="nofeat">Este producto todavía no tiene características.</p>`}
         <div class="actions">
           ${p.stock != null && +p.stock <= 0 ? `<button class="btn" type="button" disabled>${esc(L('Sin stock', 'Out of stock', 'Sem estoque'))}</button>` : `<button class="btn primary" type="button" data-m="cart">＋ Agregar al pedido</button>`}
+          ${tryKind(p) ? `<button class="btn tryb" type="button" data-m="try">${esc(TRY_LBL[tryKind(p)])}</button>` : ''}
           ${lensOf(p) ? `<button class="btn" type="button" data-m="lens">🕶️ ${esc(L('Mirá a través del lente', 'Look through the lens', 'Veja através da lente'))}</button>` : ''}
           ${p.extLink ? `<a class="btn" href="${esc(p.extLink)}" target="_blank" rel="noopener">🔗 Ver en el sitio</a>` : ''}
           ${waHref(productMsg(p)) ? `<a class="btn wa" href="${waHref(productMsg(p))}" target="_blank" rel="noopener">Consultar por WhatsApp</a>` : ''}
@@ -3346,6 +3366,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
       save(); render(); renderModal();
     }
     else if(m === 'lens'){ openLens(p); }
+    else if(m === 'try'){ openTry(p); }
     else if(m === 'cart'){ if(addToCart(cartKey(p), $('sheet').querySelector('.viewer img')) !== false) b.textContent = '✓ Agregado al pedido'; else b.textContent = p.stock > 0 ? L('Ya tenés todo el stock en tu pedido', 'All stock already in your order', 'Todo o estoque já está no pedido') : L('Sin stock', 'Out of stock', 'Sem estoque'); }
     else if(m === 'edit'){ closeModal(); startEdit(p); $('form').scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block:'start'}); }
     else if(m === 'del'){
@@ -5590,6 +5611,73 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     return {col, cat, pol: /polariz/.test(norm(f)) && !/polarizado\s*:\s*no/.test(norm(f)), uv: /uv ?400|uv/.test(norm(f)), mirror: /espejad|mirror/.test(txt), label: line.split(':').slice(1).join(':').trim()};
   }
   let lensStream = null;
+  // ---- Probador virtual (IA de imágenes de Google): ropa puesta, corte del perro, peinado o maquillaje sobre tu foto ----
+  const TRY_LBL = {ropa: '✨ Probátelo con tu foto', perro: '🐶 Probalo con tu perro', look: '💇 Probalo en tu foto'};
+  let tryOk = null;
+  (async () => { try{ tryOk = !!(await (await fetch('/api/probador')).json()).ok; }catch(e){ tryOk = false; } if(tryOk && typeof renderModal === 'function' && !$('modal').hidden){ try{ renderModal(); }catch(e){} } })();
+  function tryKind(p){
+    if(!tryOk || brand.tryon === false || !p || p.digital) return null;
+    const t = norm(p.name + ' ' + ((catOf(p.cat) || {}).name || ''));
+    if(p.service){
+      if(/perr|canin|mascot|cachorr|caniche|schnauzer|yorkshire|shih/.test(t)) return 'perro';
+      if(/pelu|barber|corte|peinad|brushing|alisad|mecha|tintur|balayage|maquill|unas|kapping|manicur|esmalt|ceja|pestan|nail|permanente|fade|barba/.test(t)) return 'look';
+      return null;
+    }
+    if(/lenceri|ropa interior|bikini|malla de bano|traje de bano|corpino|bombacha|boxer|calzon/.test(t)) return null;
+    if(/remera|camis|vestid|pollera|falda|pantal|jean|short|campera|buzo|sweater|sueter|blusa|musculosa|calza|jogging|abrigo|saco|traje|ropa|moda|indumentaria|zapat|calzado|bota|sandalia|gorra|gorro|sombrero|anteoj|lentes|gafas|cartera|bolso|mochila|reloj|collar|aros|pulsera|anillo|bijou|joya|bufanda|cintur|chaleco|tapado|poncho/.test(t)) return 'ropa';
+    return null;
+  }
+  // achica una imagen (archivo, data: o link) a JPG de hasta 1024 px; si un link no se deja leer, devuelve el link
+  function tryShrink(src){
+    return new Promise(res => {
+      const im = new Image(); if(/^https?:/i.test(src)) im.crossOrigin = 'anonymous';
+      im.onload = () => { try{ const k = Math.min(1, 1024 / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+        const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height); res(c.toDataURL('image/jpeg', 0.88)); }catch(e){ res(/^https:/i.test(src) ? src : null); } };
+      im.onerror = () => res(/^https:/i.test(src) ? src : null); im.src = src;
+    });
+  }
+  function openTry(p){
+    const kind = tryKind(p); if(!kind) return;
+    let ov = document.getElementById('tryView');
+    if(!ov){ ov = document.createElement('div'); ov.id = 'tryView'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); document.body.appendChild(ov); }
+    const prod = curImg(p), isSvg = /^data:image\/svg/.test(prod || '');
+    const ask = kind === 'perro' ? 'Subí una foto de tu perro, de frente o de costado, que se vea entero.' : kind === 'look' ? 'Subí una foto tuya de frente, con buena luz.' : 'Subí una foto tuya de cuerpo entero o de la cintura para arriba, de frente y con buena luz.';
+    let foto = null;
+    const draw = (body) => { ov.innerHTML = `<div class="tv"><h2>${esc(TRY_LBL[kind])}</h2><span class="note">${esc(p.name)}</span>${body}</div>`; ov.hidden = false; };
+    const start = () => draw(`<p style="margin:0">${esc(ask)}</p>
+      <div class="tvpics"><img id="tvMe" alt="Tu foto" hidden>${isSvg ? '' : `<img src="${prod}" alt="${esc(p.name)}">`}</div>
+      <label class="btn primary" style="justify-self:start">📷 ${kind === 'perro' ? 'Elegir la foto de mi perro' : 'Elegir mi foto'}<input type="file" accept="image/*" class="vh" id="tvFile"></label>
+      <button class="btn primary" type="button" id="tvGo" hidden>✨ Ver cómo ${kind === 'perro' ? 'queda' : 'me queda'}</button>
+      <p class="note" style="margin:0">🔒 Tu foto no se guarda: se usa solo para armar esta imagen. El resultado es aproximado, para darte una idea.</p>
+      <p class="msg" id="tvMsg" role="status" style="margin:0"></p>
+      <button class="btn" type="button" data-tvx>Cerrar</button>`);
+    start();
+    ov.onclick = async e => {
+      if(e.target === ov || e.target.closest('[data-tvx]')){ ov.hidden = true; ov.innerHTML = ''; return; }
+      if(e.target.closest('[data-tvagain]')){ start(); return; }
+      if(e.target.closest('[data-tvcart]')){ if(addToCart(cartKey(p)) !== false) e.target.closest('[data-tvcart]').textContent = '✓ Agregado al pedido'; return; }
+      if(!e.target.closest('#tvGo') || !foto) return;
+      const go = $('tvGo'); go.disabled = true;
+      $('tvMsg').innerHTML = `<span class="tvwait"><i></i>La IA está preparando tu foto… tarda unos segundos.</span>`;
+      try{
+        const prenda = isSvg ? null : await tryShrink(prod);
+        const headers = {'Content-Type': 'application/json'};
+        if(!PUBLIC && window.VITRINA_TOKEN){ try{ headers.Authorization = 'Bearer ' + await window.VITRINA_TOKEN(); }catch(err){} }
+        const r = await fetch('/api/probador', {method: 'POST', headers, body: JSON.stringify({slug: window.VITRINA_SLUG || '', tipo: kind, nombre: p.name, detalle: (p.features || []).join('; ').slice(0, 160), foto, prenda})});
+        const j = await r.json().catch(() => ({}));
+        if(!r.ok || !j.img){ $('tvMsg').textContent = j.error || 'No se pudo generar la imagen. Probá de nuevo.'; go.disabled = false; return; }
+        draw(`<div class="tvres"><img src="${j.img}" alt="Resultado del probador"></div>
+          <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" data-tvcart>＋ Al pedido</button><a class="btn" href="${j.img}" download="vitrina360-probador.png">⬇ Guardar foto</a><button class="btn" type="button" data-tvagain>Probar con otra foto</button><button class="btn" type="button" data-tvx>Cerrar</button></div>
+          <p class="note" style="margin:0">Imagen aproximada hecha con IA.${j.quedan != null ? ` Te quedan ${j.quedan} prueba${j.quedan === 1 ? '' : 's'} hoy.` : ''}</p>`);
+      }catch(err){ $('tvMsg').textContent = 'No se pudo conectar. Revisá internet y probá de nuevo.'; go.disabled = false; }
+    };
+    ov.onchange = async e => {
+      if(e.target.id !== 'tvFile') return; const f = e.target.files && e.target.files[0]; if(!f) return;
+      const u = URL.createObjectURL(f); foto = await tryShrink(u); URL.revokeObjectURL(u);
+      if(!foto || !/^data:/.test(foto)){ $('tvMsg').textContent = 'No pude abrir esa foto. Probá con otra.'; return; }
+      const me = $('tvMe'); me.src = foto; me.hidden = false; $('tvGo').hidden = false; $('tvMsg').textContent = '';
+    };
+  }
   async function openLens(p){
     const ln = lensOf(p); if(!ln) return;
     const dark = [0.08, 0.22, 0.42, 0.62, 0.82][ln.cat];
@@ -6736,6 +6824,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     const cb = $('helperColors'); if(cb) cb.innerHTML = `<span class="note" style="margin:0">Color de la ropa:</span>` + HCOLORS.map(c => `<button class="sw" type="button" data-hcol="${c}" style="--c:${c || 'var(--accent)'}" aria-pressed="${(brand.helperColor || '') === c}" aria-label="${c ? 'Color ' + c : 'Color de mi marca'}" title="${c ? '' : 'Color de mi marca'}"></button>`).join('') + `<label class="sw custom" title="Otro color"><input type="color" id="hColCustom" value="${brand.helperColor || '#6d28d9'}" aria-label="Otro color"></label>`;
     $('hMic').hidden = !(window.SpeechRecognition || window.webkitSpeechRecognition);
     renderOwnerPanel(); renderHours(); ownGreetSoon();
+    if(document.getElementById('tryTog')){ $('tryTog').setAttribute('aria-pressed', String(brand.tryon !== false)); $('tryMsg').textContent = tryOk === false ? 'Todavía no está activado en Vitrina 360: en cuanto esté, aparece solo.' : ''; }
   }
   function renderHours(){
     if(!document.getElementById('hoursBox')) return;
@@ -6746,6 +6835,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     $('hrOff').hidden = !hoursOn();
     $('hrMsg').textContent = hoursOn() ? `Tus clientes ven: “${hoursTxt()}”. Ahora mismo figura ${isOpenNow() ? 'abierto ✅' : 'cerrado 🌙'}.` : 'Elegí los días que atendés.';
   }
+  if(document.getElementById('tryTog')) $('tryTog').addEventListener('click', () => { brand.tryon = brand.tryon === false; if(brand.tryon) delete brand.tryon; save(); renderHelpers(); });
   if(document.getElementById('hoursBox')){
     const hSet = () => { brand.hours = Object.assign({d: [], a: '09:00', b: '20:00'}, brand.hours || {}); return brand.hours; };
     $('hrDays').addEventListener('click', e => { const b = e.target.closest('[data-hrd]'); if(!b) return; const h = hSet(), i = +b.dataset.hrd; h.d = h.d.includes(i) ? h.d.filter(x => x !== i) : [...h.d, i]; h.a = $('b-hra').value || h.a; h.b = $('b-hrb').value || h.b; save(); renderHours(); });

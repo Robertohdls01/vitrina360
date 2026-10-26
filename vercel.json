@@ -1,8 +1,26 @@
 {
   "rewrites": [
-    { "source": "/t/:slug", "destination": "/app.html" },
-    { "source": "/panel", "destination": "/app.html" }
+    {
+      "source": "/t/:slug",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/panel",
+      "destination": "/app.html"
+    }
   ],
-  "functions": { "api/ia.js": { "maxDuration": 60 } },
-  "crons": [ { "path": "/api/sincronizar", "schedule": "0 12 * * *" } ]
+  "functions": {
+    "api/ia.js": {
+      "maxDuration": 60
+    },
+    "api/probador.js": {
+      "maxDuration": 60
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/sincronizar",
+      "schedule": "0 12 * * *"
+    }
+  ]
 }
