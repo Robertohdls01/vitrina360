@@ -2008,6 +2008,20 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
         <label class="btn" for="q-photos" style="display:inline-flex">Elegir fotos sueltas<input type="file" id="q-photos" accept="image/*" multiple class="vh"></label>
         <label class="btn" for="q-folder" style="display:inline-flex">📁 Subir una carpeta<input type="file" id="q-folder" webkitdirectory directory multiple class="vh"></label>
         <button class="btn" type="button" id="qStop" hidden>Detener</button>
+        <span class="qimp" style="flex-basis:100%;display:grid;gap:6px;margin-top:4px;padding:10px 12px;border-radius:12px;border:1px dashed var(--accent)">
+          <span><strong>📥 ¿Ya vendés en otro lado?</strong> Traé todos tus productos de una: Tiendanube, Mercado Libre, Amazon, Shopify, WooCommerce, Empretienda, AliExpress, Shein, Noon, Coupang… o cualquier planilla de Excel. No gasta tu cupo de fotos.</span>
+          <span class="row" style="gap:6px"><label class="btn" for="q-import" style="display:inline-flex">📥 Subir el archivo de mi otra tienda<input type="file" id="q-import" accept=".csv,.tsv,.txt,.xlsx,text/csv,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="vh"></label></span>
+          <details><summary style="cursor:pointer;font-size:13.5px">¿Cómo bajo el archivo?</summary>
+            <ul style="margin:6px 0 0;padding-left:18px;font-size:13.5px;display:grid;gap:3px">
+              <li><b>Tiendanube:</b> en tu panel, Productos → Exportar (o Importar/exportar) → descargá el CSV.</li>
+              <li><b>Mercado Libre:</b> Publicaciones → Modificar publicaciones con Excel (edición masiva) → descargá el Excel.</li>
+              <li><b>Amazon:</b> Seller Central → Informes → Informes de inventario → “Todos los anuncios”.</li>
+              <li><b>Shopify / WooCommerce / Empretienda:</b> Productos → Exportar.</li>
+              <li><b>Otras tiendas o tu propia lista:</b> cualquier Excel o CSV con columnas como Nombre, Precio, Stock, Foto (link) y Categoría.</li>
+            </ul>
+            <p class="note" style="margin:6px 0 0">Si un producto ya está en tu tienda con el mismo nombre, le actualizo el precio y el stock en vez de duplicarlo. Las fotos se traen si el archivo tiene el link.</p>
+          </details>
+        </span>
         <span class="row" style="gap:6px;flex-basis:100%;flex-wrap:wrap;margin-top:4px"><span>✂️ ¿Das servicios? Cargá los conocidos y solo ponés los precios:</span>
           <select id="qSvcKind" aria-label="Tipo de servicios"><option value="canina">🐶 Peluquería canina</option><option value="pelu">💇 Peluquería</option><option value="barber">💈 Barbería</option><option value="unas">💅 Uñas y estética</option></select>
           <button class="btn" type="button" id="qSvcGo">Cargar servicios</button></span>
@@ -4150,6 +4164,232 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     };
     bClose.onclick = () => { box.hidden = true; };
   }
+
+  // ---- Traer productos desde el archivo de otra tienda (Tiendanube, Mercado Libre, Amazon, Shopify, Woo, Excel propio…) ----
+  const IMP = (() => {
+    const nz = t => String(t == null ? '' : t).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[_\-]+/g, ' ').replace(/\s+/g, ' ').trim();
+    // nombres de columna que usan las distintas plataformas (es, en, pt, zh, ko, ar)
+    const COLS = {
+      name: ['nombre', 'nombre del producto', 'titulo', 'titulo de la publicacion', 'title', 'name', 'product name', 'item name', 'producto', 'nome', 'nome do produto', 'articulo', 'descripcion del articulo', '商品名称', '商品标题', '标题', '产品名称', '상품명', '제품명', 'اسم المنتج'],
+      price: ['precio', 'precio de venta', 'precio unitario', 'precio final', 'price', 'variant price', 'regular price', 'sale price', 'your price', 'standard price', 'preco', 'preco de venda', 'valor', '价格', '售价', '销售价', '판매가', '가격', 'السعر'],
+      promo: ['precio promocional', 'precio de oferta', 'precio oferta', 'precio con descuento', 'compare at price', 'promotional price', 'preco promocional'],
+      stock: ['stock', 'cantidad', 'cantidad disponible', 'stock disponible', 'inventario', 'quantity', 'qty', 'variant inventory qty', 'inventory', 'stock quantity', 'available', 'estoque', 'quantidade', '库存', '数量', '재고', '재고수량', 'الكمية', 'المخزون'],
+      desc: ['descripcion', 'description', 'body (html)', 'body html', 'item description', 'product description', 'descricao', '描述', '商品描述', '상세설명', '설명', 'الوصف'],
+      img: ['imagen', 'imagenes', 'url de imagen', 'url de la imagen', 'foto', 'fotos', 'image', 'images', 'image src', 'image url', 'main image url', 'main image', 'picture', 'pictures', 'imagem', 'imagens', 'url da imagem', '图片', '主图', '图片链接', '이미지', '대표이미지', 'الصورة'],
+      cat: ['categoria', 'categorias', 'category', 'categories', 'product category', 'type', 'product type', 'tipo', 'rubro', 'departamento', 'department', 'colecao', '类目', '分类', '카테고리', 'الفئة'],
+      group: ['identificador de url', 'url identifier', 'handle', 'parent', 'parent sku', 'parent asin', 'codigo de publicacion', 'id de publicacion', 'item id', 'id do anuncio', 'spu'],
+      brand: ['marca', 'brand', 'vendor', 'fabricante', 'manufacturer', '品牌', '브랜드', 'العلامة التجارية'],
+      sku: ['sku', 'codigo', 'codigo sku', 'seller sku', 'variant sku', 'cod', 'referencia']
+    };
+    function mapCols(head){
+      const h = head.map(nz), out = {}, used = new Set();
+      Object.keys(COLS).forEach(k => {
+        let i = h.findIndex((x, j) => !used.has(j) && COLS[k].includes(x));
+        if(i < 0) i = h.findIndex((x, j) => !used.has(j) && x && COLS[k].some(s => s.length > 3 && x.length < 40 && (x.startsWith(s + ' ') || x.endsWith(' ' + s) || x.startsWith(s + ' ('))));
+        if(i >= 0){ out[k] = i; used.add(i); }
+      });
+      // variantes: "Nombre de propiedad (1)" / "Valor de propiedad (1)" (Tiendanube), "Option1 Name/Value" (Shopify), "Attribute 1 name/value" (Woo)
+      out.props = [];
+      h.forEach((x, j) => {
+        const m = x.match(/^(?:nombre de (?:la )?propiedad|option|attribute|atributo)\s*\(?(\d)\)?\s*(?:name|nombre)?$/);
+        if(!m) return;
+        const n = m[1], v = h.findIndex(y => new RegExp('^(?:valor de (?:la )?propiedad|option|attribute|atributo)\\s*\\(?' + n + '\\)?\\s*(?:value|values|valor|valores)?$').test(y));
+        if(v >= 0) out.props.push([j, v]);
+      });
+      return out;
+    }
+    const score = row => { const m = mapCols(row); return (m.name != null ? 3 : 0) + (m.price != null ? 2 : 0) + ['stock', 'img', 'cat', 'desc'].filter(k => m[k] != null).length; };
+    function parseCSV(txt){
+      txt = txt.replace(/^﻿/, '');
+      const first = txt.slice(0, 4000).split(/\r?\n/)[0] || '';
+      const cnt = c => first.split(c).length;
+      const sep = ['\t', ';', ',', '|'].sort((a, b) => cnt(b) - cnt(a))[0];
+      const rows = []; let row = [], cell = '', q = false;
+      for(let i = 0; i < txt.length; i++){
+        const c = txt[i];
+        if(q){ if(c === '"'){ if(txt[i + 1] === '"'){ cell += '"'; i++; } else q = false; } else cell += c; continue; }
+        if(c === '"' && cell === '') q = true;
+        else if(c === sep){ row.push(cell); cell = ''; }
+        else if(c === '\n' || c === '\r'){ if(c === '\r' && txt[i + 1] === '\n') i++; row.push(cell); rows.push(row); row = []; cell = ''; }
+        else cell += c;
+      }
+      if(cell || row.length){ row.push(cell); rows.push(row); }
+      return rows;
+    }
+    function decode(buf){
+      try{ return new TextDecoder('utf-8', {fatal: true}).decode(buf); }catch(e){}
+      try{ return new TextDecoder('utf-16le').decode(buf).includes('\t') && new Uint8Array(buf)[1] === 0 ? new TextDecoder('utf-16le').decode(buf) : new TextDecoder('windows-1252').decode(buf); }catch(e){ return new TextDecoder('windows-1252').decode(buf); }
+    }
+    // Lector de .xlsx sin librerías: es un zip con XML adentro
+    async function unzip(buf){
+      const dv = new DataView(buf), u8 = new Uint8Array(buf), files = {};
+      let e = buf.byteLength - 22; while(e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+      if(e < 0) throw new Error('zip');
+      let p = dv.getUint32(e + 16, true); const n = dv.getUint16(e + 10, true);
+      for(let i = 0; i < n; i++){
+        const meth = dv.getUint16(p + 10, true), csz = dv.getUint32(p + 20, true), nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true);
+        const name = new TextDecoder().decode(u8.subarray(p + 46, p + 46 + nl));
+        files[name] = {meth, csz, off}; p += 46 + nl + xl + cl;
+      }
+      return async name => {
+        const f = files[name]; if(!f) return null;
+        const start = f.off + 30 + dv.getUint16(f.off + 26, true) + dv.getUint16(f.off + 28, true), data = u8.subarray(start, start + f.csz);
+        if(f.meth === 0) return new TextDecoder().decode(data);
+        const s = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+        return await new Response(s).text();
+      };
+    }
+    async function parseXLSX(buf){
+      const get = await unzip(buf), P = s => new DOMParser().parseFromString(s, 'application/xml');
+      const ss = await get('xl/sharedStrings.xml'), strs = ss ? [...P(ss).getElementsByTagName('si')].map(si => [...si.getElementsByTagName('t')].map(t => t.textContent).join('')) : [];
+      const wb = P(await get('xl/workbook.xml') || '<w/>'), rels = P(await get('xl/_rels/workbook.xml.rels') || '<r/>');
+      const relMap = {}; [...rels.getElementsByTagName('Relationship')].forEach(r => relMap[r.getAttribute('Id')] = r.getAttribute('Target'));
+      const sheets = [...wb.getElementsByTagName('sheet')].map(s => { const t = relMap[s.getAttribute('r:id')] || ''; return t.startsWith('/') ? t.slice(1) : 'xl/' + t.replace(/^\.\//, ''); });
+      const colIx = ref => { let n = 0; for(const ch of ref.replace(/\d+/g, '')) n = n * 26 + ch.charCodeAt(0) - 64; return n - 1; };
+      const all = [];
+      for(const path of sheets.length ? sheets : ['xl/worksheets/sheet1.xml']){
+        const x = await get(path); if(!x) continue;
+        const rows = [];
+        [...P(x).getElementsByTagName('row')].forEach(r => {
+          const row = [];
+          [...r.getElementsByTagName('c')].forEach(c => {
+            const t = c.getAttribute('t'), v = c.getElementsByTagName('v')[0];
+            let val = t === 'inlineStr' ? [...c.getElementsByTagName('t')].map(z => z.textContent).join('') : v ? v.textContent : '';
+            if(t === 's') val = strs[+val] || '';
+            row[colIx(c.getAttribute('r') || 'A')] = val;
+          });
+          rows.push(Array.from(row, z => z == null ? '' : z));
+        });
+        all.push(rows);
+      }
+      return all;
+    }
+    // "$ 12.345,50", "12345.5", "1,299.00", "USD 25" → número
+    function num(s){
+      s = String(s == null ? '' : s).replace(/[^\d.,-]/g, ''); if(!s) return NaN;
+      const lc = s.lastIndexOf(','), ld = s.lastIndexOf('.');
+      if(lc >= 0 && ld >= 0) s = lc > ld ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, '');
+      else if(lc >= 0) s = /^\d{1,3}(,\d{3})+$/.test(s) ? s.replace(/,/g, '') : s.replace(',', '.');
+      else if(ld >= 0 && /^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
+      return parseFloat(s);
+    }
+    const txt = h => String(h || '').replace(/<br\s*\/?>|<\/p>|<\/li>/gi, '. ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\s+/g, ' ').replace(/(\.\s*){2,}/g, '. ').trim();
+    const firstImg = s => (String(s || '').match(/https?:\/\/[^\s,;|"']+/i) || [''])[0].replace(/^http:/i, 'https:');
+    const catName = s => { s = String(s || '').split(/[,;|]/)[0]; const parts = s.split(/\s*[>/]\s*/).map(z => z.trim()).filter(Boolean); return (parts[0] || '').slice(0, 30); };
+    // Lee todas las hojas, busca la fila de títulos (Mercado Libre trae filas de instrucciones arriba) y arma los productos
+    function build(tables){
+      let best = null;
+      tables.forEach(rows => { for(let i = 0; i < Math.min(rows.length, 25); i++){ const s = score(rows[i] || []); if(s >= 3 && (!best || s > best.s)) best = {s, rows, i}; } });
+      if(!best) return null;
+      const m = mapCols(best.rows[best.i]), items = [], byKey = new Map();
+      const g = (r, k) => m[k] != null ? String(r[m[k]] == null ? '' : r[m[k]]).trim() : '';
+      let last = null;
+      best.rows.slice(best.i + 1).forEach(r => {
+        if(!r || !r.some(c => String(c).trim())) return;
+        const name = txt(g(r, 'name')), key = g(r, 'group');
+        let it = key && byKey.get(key);
+        if(!it && !name && last && !key) it = last;       // fila de variante sin nombre (debajo de su producto)
+        if(!it){
+          if(!name || name.length < 2) return;
+          if(/^(ejemplo|example|obligatorio|required|instrucciones)/i.test(name)) return;
+          it = {name: name.slice(0, 80), price: NaN, stock: null, img: '', imgs: [], desc: '', cat: '', brand: '', sku: '', props: {}};
+          items.push(it); if(key) byKey.set(key, it);
+        }
+        last = it;
+        let pr = num(g(r, 'price')); const po = num(g(r, 'promo'));
+        if(isFinite(po) && po > 0 && (!isFinite(pr) || po < pr)) pr = po;
+        if(isFinite(pr) && pr > 0 && (!isFinite(it.price) || pr < it.price)) it.price = pr;
+        const st = num(g(r, 'stock')); if(isFinite(st) && st >= 0) it.stock = (it.stock || 0) + Math.floor(st);
+        const im = firstImg(g(r, 'img')); if(im && !it.imgs.includes(im)) it.imgs.push(im);
+        if(!it.desc) it.desc = txt(g(r, 'desc'));
+        if(!it.cat) it.cat = catName(g(r, 'cat'));
+        if(!it.brand) it.brand = g(r, 'brand').slice(0, 40);
+        if(!it.sku) it.sku = g(r, 'sku').slice(0, 30);
+        m.props.forEach(([a, b]) => { const pn = String(r[a] || '').trim(), pv = String(r[b] || '').trim(); if(!pn || !pv) return; (it.props[pn] = it.props[pn] || []); pv.split(/\s*[,|]\s*/).forEach(v => { if(v && !it.props[pn].includes(v)) it.props[pn].push(v); }); });
+      });
+      return {items, cols: m};
+    }
+    async function read(file){
+      const buf = await file.arrayBuffer(), u8 = new Uint8Array(buf, 0, 4);
+      if(u8[0] === 0x50 && u8[1] === 0x4b) return build(await parseXLSX(buf));
+      if(u8[0] === 0xD0 && u8[1] === 0xCF) throw new Error('xls');
+      return build([parseCSV(decode(buf))]);
+    }
+    return {read, num};
+  })();
+  function importApply(items){
+    const cp = capProds(), out = {nuevos: [], upd: 0, fuera: 0, sinFoto: 0, sinPrecio: [], vitrinas: new Set()};
+    const byName = new Map(products.map(p => [norm(p.name), p]));
+    const fmt = n => '$' + (n < 1000 && Math.round(n) !== n ? n.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : Math.round(n).toLocaleString('es-AR'));
+    let base = products.reduce((mx, p) => Math.max(mx, p.added), -1) + 1;
+    const count = id => products.filter(p => p.cat === id).length;
+    const catFor = name => {
+      name = (name || 'Productos').slice(0, 30);
+      // la vitrina con ese nombre (o "Nombre 2", "Nombre 3"…) que todavía tenga lugar
+      for(let k = 1; k < 30; k++){
+        const nm = k === 1 ? name : name + ' ' + k;
+        let c = cats.find(x => norm(x.name) === norm(nm));
+        if(c && count(c.id) < cp) return c;
+        if(!c){ if(cats.length >= capCats()) break; c = {id: 'c' + uid(), name: nm}; cats.push(c); return c; }
+      }
+      // sin lugar para vitrinas nuevas: la vitrina con menos productos que tenga espacio
+      return cats.filter(c => count(c.id) < cp).sort((a, b) => count(a.id) - count(b.id))[0] || null;
+    };
+    items.forEach(it => {
+      const old = byName.get(norm(it.name));
+      if(old){
+        if(isFinite(it.price)) old.price = fmt(it.price);
+        if(it.stock != null) old.stock = it.stock;
+        if(it.imgs[0] && /^data:image\/svg/.test(old.img || '')) old.img = it.imgs[0];
+        out.upd++; return;
+      }
+      const c = catFor(it.cat); if(!c){ out.fuera++; return; }
+      const feats = [];
+      Object.keys(it.props).slice(0, 3).forEach(k => feats.push(`${k}: ${it.props[k].slice(0, 12).join(', ')}`));
+      if(it.brand) feats.push('Marca: ' + it.brand);
+      if(it.desc){ const d = it.desc.length > 150 ? it.desc.slice(0, 147).replace(/\s+\S*$/, '') + '…' : it.desc; feats.push('Detalle: ' + d); }
+      const p = {id: uid(), cat: c.id, added: base++, img: it.imgs[0] || noPhotoImg(it.name), name: it.name, price: isFinite(it.price) ? fmt(it.price) : '', features: feats.slice(0, 6)};
+      if(it.imgs.length > 1) p.photos = it.imgs.slice(1, capFotos());
+      if(it.stock != null) p.stock = it.stock;
+      if(it.sku) p.sku = it.sku;
+      products.push(p); byName.set(norm(p.name), p); out.nuevos.push(p); out.vitrinas.add(c.name);
+      if(!it.imgs[0]) out.sinFoto++;
+      if(!p.price) out.sinPrecio.push(p);
+    });
+    return out;
+  }
+  if(document.getElementById('q-import')) $('q-import').addEventListener('change', async e => {
+    const file = e.target.files && e.target.files[0]; e.target.value = ''; if(!file) return;
+    const msg = $('qMsg'), box = $('qPrices');
+    msg.textContent = 'Leyendo el archivo…'; box.hidden = true;
+    let res;
+    try{ res = await IMP.read(file); }
+    catch(err){ msg.textContent = err && err.message === 'xls' ? 'Ese archivo es un Excel viejo (.xls). Abrilo y guardalo como .xlsx o .csv, y subilo de nuevo.' : 'No pude leer ese archivo. Probá exportarlo como .csv o .xlsx.'; return; }
+    if(!res || !res.items.length){ msg.textContent = 'No encontré productos en ese archivo. Tiene que tener al menos una columna con el nombre del producto (y mejor si tiene precio, stock y foto).'; return; }
+    const its = res.items, conFoto = its.filter(i => i.imgs.length).length, conPrecio = its.filter(i => isFinite(i.price)).length;
+    const cats0 = [...new Set(its.map(i => i.cat || 'Productos'))];
+    const ya = its.filter(i => products.some(p => norm(p.name) === norm(i.name))).length;
+    box.innerHTML = `<strong>📥 Encontré ${its.length} producto${its.length === 1 ? '' : 's'}</strong>
+      <span class="note">${conPrecio} con precio · ${conFoto} con foto · ${its.filter(i => i.stock != null).length} con stock · ${cats0.length} categoría${cats0.length === 1 ? '' : 's'} (${esc(cats0.slice(0, 6).join(', '))}${cats0.length > 6 ? '…' : ''})${ya ? ` · ${ya} ya estaban: les actualizo precio y stock` : ''}</span>
+      <ul class="bplist">${its.slice(0, 5).map(i => `<li>${i.imgs[0] ? `<img src="${esc(i.imgs[0])}" alt="" loading="lazy" referrerpolicy="no-referrer">` : '<span style="width:44px;text-align:center">📷</span>'}<div style="min-width:0"><div class="nm">${esc(i.name)}</div><div class="note">${esc(i.cat || 'Productos')}${i.stock != null ? ' · stock ' + i.stock : ''}</div></div><span>${isFinite(i.price) ? '$' + (i.price < 1000 && Math.round(i.price) !== i.price ? i.price.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : Math.round(i.price).toLocaleString('es-AR')) : ''}</span></li>`).join('')}</ul>
+      ${its.length > 5 ? `<span class="note">…y ${its.length - 5} más.</span>` : ''}
+      <div class="row"><button class="btn primary" type="button" data-impgo>Cargar en mi tienda</button><button class="btn" type="button" data-impno>Cancelar</button></div>`;
+    box.hidden = false; msg.textContent = '';
+    box.querySelector('[data-impno]').onclick = () => { box.hidden = true; };
+    box.querySelector('[data-impgo]').onclick = () => {
+      const r = importApply(its);
+      save(); renderHome(); if(typeof fillCatSelect === 'function') fillCatSelect();
+      box.hidden = true;
+      const parts = [];
+      if(r.nuevos.length) parts.push(`cargué ${r.nuevos.length} producto${r.nuevos.length === 1 ? '' : 's'} nuevo${r.nuevos.length === 1 ? '' : 's'} en ${r.vitrinas.size} vitrina${r.vitrinas.size === 1 ? '' : 's'}`);
+      if(r.upd) parts.push(`actualicé precio y stock de ${r.upd}`);
+      let t = parts.length ? 'Listo: ' + parts.join(' y ') + '.' : 'No hubo nada nuevo para cargar.';
+      if(r.fuera) t += ` ${r.fuera} no entraron porque llegaste al máximo de productos de tu plan.`;
+      if(r.sinFoto) t += ` ${r.sinFoto} quedaron sin foto (📷): podés sumarla con “Editar” o con la Carga rápida.`;
+      msg.textContent = t;
+      if(r.sinPrecio.length) showBulkPrices(r.sinPrecio, $('qPrices'), $('qMsg'));
+    };
+  });
 
   // ---- Carga rápida desde la pantalla principal ----
   let qCtl = null;
