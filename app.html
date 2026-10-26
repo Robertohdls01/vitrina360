@@ -1496,6 +1496,9 @@ body.has-helpers .wrap{padding-bottom:170px}
 .hrd svg{width:calc(44px * var(--dk, 1));height:auto;filter:drop-shadow(0 3px 4px rgba(0,0,0,.2));animation:hbob 3.6s ease-in-out infinite}
 .hrd .hmoto{position:absolute;right:calc(-12px * var(--dk, 1));bottom:calc(12px * var(--dk, 1));font-size:calc(20px * var(--dk, 1));filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
 .hrd .hname{font-size:calc(9.5px * max(var(--dk, 1), .8))}
+.hrd{cursor:pointer}
+.hrd.talking svg{animation:hstep .3s ease-in-out infinite alternate}
+.hrsay{position:absolute;left:0;bottom:calc(100% + 8px);width:min(240px,70vw);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px 14px 14px 4px;padding:8px 10px;font:600 13px/1.35 var(--body);box-shadow:0 10px 24px -12px var(--shadow);z-index:50;animation:bubin .25s ease-out}
 .szrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .szrow > span:first-child{flex:1 1 150px;font-weight:600}
 .szrow button{min-width:40px;height:36px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:inherit;font:800 18px/1 var(--body);cursor:pointer}
@@ -4855,6 +4858,28 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   }, true);
   window.addEventListener('v360-lang', () => { try{ if(typeof renderCashier === 'function') renderCashier(); tvSig = ''; renderTV(); renderDelivery(); }catch(e){} });
   document.addEventListener('click', e => { if(tvMoving) return; const sl = e.target.closest('#tvScr .tvsl.on'); if(sl && sl.dataset.tvpid) goToProduct(sl.dataset.tvpid); });
+  // Tocar al repartidor: se presenta con su nombre y cuenta cómo funciona la entrega
+  function riderSpeak(el){
+    const name = el.dataset.rider, r = riderListOf().find(x => String(x.name || '').trim() === name) || {}, f = !!r.f, w = brand.dlvWord || 'repartidor';
+    const rol = {repartidor: f ? L('la repartidora', 'the courier', 'a entregadora') : L('el repartidor', 'the courier', 'o entregador'),
+      cadete: f ? L('la cadete', 'the courier', 'a entregadora') : L('el cadete', 'the courier', 'o entregador'),
+      mensajero: f ? L('la mensajera', 'the messenger', 'a mensageira') : L('el mensajero', 'the messenger', 'o mensageiro'),
+      delivery: f ? L('la chica del delivery', 'the delivery girl', 'a entregadora') : L('el chico del delivery', 'the delivery guy', 'o entregador')}[w];
+    const d = brand.delay ? L(` Ahora la entrega está tardando ${brand.delay}.`, ` Right now delivery takes about ${delayTr(brand.delay)}.`, ` Agora a entrega está levando ${delayTr(brand.delay)}.`) : '';
+    const text = L(`¡Hola! Soy ${name}, ${rol} de ${storeName()}. Cuando hagas tu pedido, yo te lo llevo hasta tu casa.${d}`, `Hi! I'm ${name}, ${rol} at ${storeName()}. When you place your order, I'll bring it right to your door.${d}`, `Olá! Sou ${name}, ${rol} da ${storeName()}. Quando você fizer seu pedido, eu levo até a sua casa.${d}`);
+    el.querySelectorAll('.hrsay').forEach(x => x.remove());
+    const b = document.createElement('span'); b.className = 'hrsay'; b.textContent = text; el.appendChild(b);
+    const done = () => { el.classList.remove('talking'); setTimeout(() => b.remove(), 2500); };
+    if(!window.speechSynthesis){ return setTimeout(done, 5000); }
+    const u = new SpeechSynthesisUtterance(text); u.lang = VLANG(); u.pitch = f ? 1.25 : 0.85; u.rate = 1.03;
+    const vs = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith(u.lang.slice(0, 2)));
+    const want = f ? /female|mujer|paulina|monica|helena|sabina|laura|luciana|google español/i : /male|hombre|jorge|diego|pablo|juan|carlos/i;
+    u.voice = vs.find(v => want.test(v.name)) || vs[0] || null;
+    u.onstart = () => el.classList.add('talking'); u.onend = u.onerror = done;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+    setTimeout(() => { if(!speechSynthesis.speaking) done(); }, text.length * 100);
+  }
+  document.addEventListener('click', e => { const el = e.target.closest('[data-rider]'); if(el) riderSpeak(el); });
   function renderDelivery(){
     const row = document.getElementById('dlvRow'); if(!row) return;
     if(ridersOf().length && !PUBLIC && !(brand.ship && typeof brand.ship.moto === 'string')){ brand.ship = brand.ship || {}; brand.ship.moto = ''; save(); }
@@ -4862,7 +4887,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     row.hidden = true; row.innerHTML = '';
     // los repartidores van chiquitos, con su motito, al lado de los vendedores de abajo
     const hr = document.getElementById('hRiders');
-    if(hr) hr.innerHTML = !on ? '' : rs.map((n, i) => `<span class="hrd" title="🛵 ${esc(M('our_delivery'))}${brand.delay ? ' · ⏱ ' + esc(delayTr(brand.delay)) : ''}">${helperSVG(riderChar(n, i), hShirt())}<span class="hmoto" aria-hidden="true">🛵</span><span class="hname">${esc(n)}</span></span>`).join('');
+    if(hr) hr.innerHTML = !on ? '' : rs.map((n, i) => `<span class="hrd" role="button" tabindex="0" data-rider="${esc(n)}" title="🛵 ${esc(M('our_delivery'))}${brand.delay ? ' · ⏱ ' + esc(delayTr(brand.delay)) : ''}">${helperSVG(riderChar(n, i), hShirt())}<span class="hmoto" aria-hidden="true">🛵</span><span class="hname">${esc(n)}</span></span>`).join('');
     const hb = document.getElementById('helpers'); if(hb) hb.hidden = !hList().length && !on;
     if(!on) return;
   }
