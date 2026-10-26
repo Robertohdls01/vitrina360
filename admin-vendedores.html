@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Vendedores · Vitrina 360</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="/vend.css">
+</head>
+<body>
+<main class="wrap" id="app">
+  <div class="top"><a href="/panel">Vitrina 360</a> · <span style="font-weight:600">Vendedores</span></div>
+  <p class="msg" id="msg" role="status">Cargando…</p>
+</main>
+<script>
+(function(){
+  const $ = id => document.getElementById(id), fmt = n => '$' + Number(n || 0).toLocaleString('es-AR');
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fecha = d => { try{ return new Date(d).toLocaleDateString('es-AR'); }catch(e){ return ''; } };
+  let tok = ''; try{ tok = (JSON.parse(localStorage.getItem('v360-sesion') || 'null') || {}).access_token || ''; }catch(e){}
+  const api = (accion, body) => fetch('/api/vendedores?accion=' + accion, {method: body ? 'POST' : 'GET', headers: Object.assign({Authorization: 'Bearer ' + tok}, body ? {'Content-Type': 'application/json'} : {}), body: body ? JSON.stringify(body) : undefined}).then(r => r.json().then(j => ({ok: r.ok, status: r.status, j})));
+  const wa = n => { const d = String(n || '').replace(/\D/g, ''); return d ? 'https://wa.me/' + (d.length <= 10 ? '549' + d.replace(/^0/, '') : d) : ''; };
+  function load(){
+    if(!tok){ $('msg').innerHTML = 'Primero entrá a tu panel de Vitrina 360 con tu mail y después volvé a esta página. <a href="/panel">Ir a mi panel</a>'; return; }
+    api('admin').then(({ok, status, j}) => {
+      if(!ok){
+        $('msg').innerHTML = status === 401 ? 'Tu sesión venció. <a href="/panel">Entrá a tu panel</a> y volvé a esta página.'
+          : status === 403 ? esc(j.error) + ' Si sos el dueño, cargá tu mail (' + esc(j.email || '') + ') en Vercel, en la variable ADMIN_EMAILS.' : esc(j.error || 'No se pudo cargar.');
+        return;
+      }
+      const vs = j.vendedores;
+      $('app').innerHTML = `
+        <div class="top"><a href="/panel">Vitrina 360</a> · <span style="font-weight:600">Vendedores</span></div>
+        <h1>Vendedores</h1>
+        <div class="grid3">
+          <div class="stat"><span>Vendedores anotados</span><b>${vs.length}</b></div>
+          <div class="stat"><span>Clientes pagando que trajeron</span><b>${vs.reduce((s, v) => s + v.activos, 0)}</b></div>
+          <div class="stat"><span>Tenés que pagar ahora</span><b class="money">${fmt(j.totalDebe)}</b></div>
+        </div>
+        <section class="card">
+          <h2>Sumar vendedores</h2>
+          <p class="note">Mandales este link: se anotan solos y reciben su link de venta al instante.</p>
+          <div class="link">${esc(location.origin)}/vender.html</div>
+          <div class="row"><a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent('¿Querés ganar plata extra vendiendo Vitrina 360? Anotate acá y recibí tu link: ' + location.origin + '/vender.html')}">Compartir por WhatsApp</a></div>
+        </section>
+        ${vs.length ? vs.map(v => `
+        <section class="card">
+          <div class="row" style="justify-content:space-between"><h2>${esc(v.nombre)} · <span style="font-family:'IBM Plex Mono',monospace;font-size:16px">${esc(v.code)}</span></h2>
+            <span class="row">${v.wa ? `<a class="btn wa" href="${wa(v.wa)}" target="_blank" rel="noopener">WhatsApp</a>` : ''}<a class="btn" href="${esc(v.panel)}" target="_blank" rel="noopener">Ver su panel</a></span></div>
+          <p class="note">${esc(v.email)} · anotado el ${fecha(v.creado)} · Alias/CBU: <b>${esc(v.alias || 'no cargó')}</b> · ${v.clientes.length} clientes, ${v.activos} pagando · ya le pagaste ${fmt(v.cobrado)}</p>
+          ${v.debe.length ? `<div class="scroll"><table><thead><tr><th>Cliente</th><th>Plan</th><th>Concepto</th><th>Monto</th></tr></thead><tbody>${v.debe.map(d => `<tr><td>${esc(d.tienda)}</td><td>${esc(d.plan)}</td><td>${d.tipo === 'premio' ? 'Premio por venta' : 'Comisión ' + esc(d.mes)}</td><td class="money">${fmt(d.monto)}</td></tr>`).join('')}</tbody></table></div>
+            <div class="row"><button class="btn primary" type="button" data-pay="${esc(v.code)}" data-monto="${v.total}">Ya le pagué ${fmt(v.total)}</button></div>` : '<p class="note">No le debés nada por ahora.</p>'}
+          ${v.clientes.length ? `<details><summary>Sus clientes</summary><div class="scroll"><table><thead><tr><th>Tienda</th><th>Mail</th><th>Plan</th><th>Estado</th></tr></thead><tbody>${v.clientes.map(x => `<tr><td>${esc(x.tienda)}</td><td>${esc(x.email)}</td><td>${esc(x.plan)}</td><td>${esc(x.estado)}</td></tr>`).join('')}</tbody></table></div></details>` : ''}
+        </section>`).join('') : '<p class="note">Todavía no se anotó ningún vendedor.</p>'}
+        <p class="msg" id="msg" role="status"></p>`;
+    }).catch(() => { $('msg').textContent = 'No se pudo cargar. Probá de nuevo.'; });
+  }
+  document.addEventListener('click', async e => {
+    const b = e.target.closest('[data-pay]'); if(!b) return;
+    if(!confirm('¿Ya le transferiste ' + fmt(b.dataset.monto) + ' a este vendedor? Se va a marcar como pagado y él lo va a ver en su panel.')) return;
+    b.disabled = true;
+    const {ok, j} = await api('pagar', {code: b.dataset.pay});
+    if(!ok){ alert(j.error || 'No se pudo marcar.'); b.disabled = false; return; }
+    load();
+  });
+  load();
+})();
+</script>
+</body>
+</html>

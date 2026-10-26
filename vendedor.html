@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Mi panel de vendedor · Vitrina 360</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="/vend.css">
+</head>
+<body>
+<main class="wrap" id="app">
+  <div class="top"><a href="/">Vitrina 360</a> · <span style="font-weight:600">Panel de vendedor</span></div>
+  <p class="msg" id="msg" role="status">Cargando tu panel…</p>
+</main>
+<script>
+(function(){
+  const $ = id => document.getElementById(id), fmt = n => '$' + Number(n || 0).toLocaleString('es-AR');
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fecha = d => { try{ return new Date(d).toLocaleDateString('es-AR'); }catch(e){ return ''; } };
+  const p = new URLSearchParams(location.search), c = p.get('c'), k = p.get('k');
+  if(!c || !k){ $('msg').textContent = 'Este link no es válido. Usá el link de tu panel que recibiste al anotarte.'; return; }
+  const tag = e => e === 'pagando' ? '<span class="tag ok">Pagando ✅</span>' : e === 'en prueba gratis' ? '<span class="tag warn">En prueba gratis ⏳</span>' : `<span class="tag">${esc(e)}</span>`;
+  fetch('/api/vendedores?accion=panel&c=' + encodeURIComponent(c) + '&k=' + encodeURIComponent(k)).then(r => r.json().then(j => ({ok: r.ok, j}))).then(({ok, j}) => {
+    if(!ok){ $('msg').textContent = j.error || 'No se pudo abrir tu panel.'; return; }
+    const share = 'https://wa.me/?text=' + encodeURIComponent('¿Tenés un emprendimiento o un local? Con Vitrina 360 tenés tu propia página web para vender en toda Argentina y en el exterior, con vitrinas que giran en 360° y vendedores virtuales. Probala 7 días gratis 👉 ' + j.link);
+    $('app').innerHTML = `
+      <div class="top"><a href="/">Vitrina 360</a> · <span style="font-weight:600">Panel de vendedor</span></div>
+      <h1>Hola, ${esc(j.nombre.split(' ')[0])} 👋</h1>
+      <div class="grid3">
+        <div class="stat"><span>Clientes pagando</span><b>${j.activos}</b></div>
+        <div class="stat"><span>Te corresponde ahora</span><b class="money">${fmt(j.total)}</b></div>
+        <div class="stat"><span>Ya cobraste en total</span><b>${fmt(j.cobrado)}</b></div>
+      </div>
+      <section class="card">
+        <h2>Tu link para compartir</h2>
+        <div class="link">${esc(j.link)}</div>
+        <div class="row"><button class="btn primary" type="button" id="copy">Copiar mi link</button><a class="btn wa" href="${share}" target="_blank" rel="noopener">Compartir por WhatsApp</a></div>
+        <p class="note">Tu código: <b>${esc(j.code)}</b>. Si alguien se anota sin tu link, puede escribir el código en “Mi cuenta” dentro de su tienda.</p>
+      </section>
+      <section class="card">
+        <h2>Lo que te corresponde ahora</h2>
+        ${j.debe.length ? `<div class="scroll"><table><thead><tr><th>Cliente</th><th>Plan</th><th>Concepto</th><th>Monto</th></tr></thead><tbody>${j.debe.map(d => `<tr><td>${esc(d.tienda)}</td><td>${esc(d.plan)}</td><td>${d.tipo === 'premio' ? 'Premio por venta' : 'Comisión del mes ' + esc(d.mes)}</td><td class="money">${fmt(d.monto)}</td></tr>`).join('')}</tbody></table></div><p class="note">Vitrina 360 te lo transfiere y acá vas a ver el pago marcado.</p>` : '<p class="note">Por ahora no hay nada pendiente. Cuando un cliente tuyo pague, aparece acá.</p>'}
+      </section>
+      <section class="card">
+        <h2>Tus clientes (${j.clientes.length})</h2>
+        ${j.clientes.length ? `<div class="scroll"><table><thead><tr><th>Tienda</th><th>Plan</th><th>Se anotó</th><th>Estado</th></tr></thead><tbody>${j.clientes.map(x => `<tr><td>${esc(x.tienda || x.email)}</td><td>${esc(x.plan)}</td><td>${fecha(x.desde)}</td><td>${tag(x.estado)}</td></tr>`).join('')}</tbody></table></div>` : '<p class="note">Todavía no se anotó nadie con tu link. ¡Compartilo!</p>'}
+      </section>
+      <section class="card">
+        <h2>Pagos que recibiste</h2>
+        ${j.pagos.length ? `<div class="scroll"><table><thead><tr><th>Fecha</th><th>Monto</th><th>Detalle</th></tr></thead><tbody>${j.pagos.map(pg => `<tr><td>${fecha(pg.fecha)}</td><td class="money">${fmt(pg.monto)}</td><td>${(pg.detalle || []).map(d => `${d.tipo === 'premio' ? 'Premio' : 'Mes ' + esc(d.mes)} · ${esc(d.tienda)} (${fmt(d.monto)})`).join('<br>')}</td></tr>`).join('')}</tbody></table></div>` : '<p class="note">Todavía no hay pagos.</p>'}
+      </section>
+      <section class="card">
+        <h2>Cuánto ganás</h2>
+        <p class="note">Start: ${fmt(j.premios.emprendedora)} por venta + ${fmt(j.mensual.emprendedora)} por mes · Plus: ${fmt(j.premios.comercio)} + ${fmt(j.mensual.comercio)} por mes · Pro: ${fmt(j.premios.pro)} + ${fmt(j.mensual.pro)} por mes. El premio se gana cuando el cliente paga su primer mes; la comisión mensual, desde el mes siguiente y mientras siga pagando.</p>
+      </section>`;
+    $('copy').onclick = () => navigator.clipboard?.writeText(j.link).then(() => { $('copy').textContent = '¡Copiado!'; });
+  }).catch(() => { $('msg').textContent = 'No se pudo abrir tu panel. Revisá tu conexión y probá de nuevo.'; });
+})();
+</script>
+</body>
+</html>

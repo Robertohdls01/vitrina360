@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vendé Vitrina 360 y ganá comisiones</title>
+<meta name="description" content="Sumate como vendedor o vendedora de Vitrina 360: ganás un premio por cada comercio que se suscribe y una comisión todos los meses.">
+<meta property="og:title" content="Ganá plata vendiendo Vitrina 360">
+<meta property="og:description" content="Premio por cada venta y comisión todos los meses mientras tu cliente siga. Sin invertir nada.">
+<meta property="og:image" content="/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="/vend.css">
+</head>
+<body>
+<main class="wrap">
+  <div class="top"><a href="/">Vitrina 360</a></div>
+  <section class="card">
+    <h1>Ganá plata vendiendo Vitrina 360</h1>
+    <p class="lead">Compartí tu link. Por cada comercio que se suscribe con tu link ganás un premio, y además cobrás todos los meses mientras siga pagando. No tenés que invertir nada.</p>
+    <div class="grid3" id="tabla">
+      <div class="stat"><span>Plan Start</span><b id="p0">$5.000</b><span>por venta + <b style="display:inline;font-size:inherit" id="m0">$1.000</b> por mes</span></div>
+      <div class="stat"><span>Plan Plus</span><b id="p1">$7.000</b><span>por venta + <b style="display:inline;font-size:inherit" id="m1">$1.500</b> por mes</span></div>
+      <div class="stat"><span>Plan Pro</span><b id="p2">$10.000</b><span>por venta + <b style="display:inline;font-size:inherit" id="m2">$2.000</b> por mes</span></div>
+    </div>
+    <ul class="how">
+      <li>El premio se gana cuando tu cliente paga su primer mes.</li>
+      <li>Desde el mes siguiente cobrás la comisión mensual, mientras tu cliente siga pagando.</li>
+      <li>En tu panel ves tus clientes, lo que ganaste y cada pago que te hacemos.</li>
+      <li>Lo que ofrecés: cada comercio se lleva <b>su propia página web</b> para vender en toda Argentina y en el exterior, con vitrinas 360°, vendedores virtuales y pedidos por WhatsApp.</li>
+    </ul>
+  </section>
+
+  <section class="card" id="form">
+    <h2>Anotate y recibí tu link ahora</h2>
+    <form id="f" class="grid3" style="grid-template-columns:1fr" novalidate>
+      <label for="nombre">Nombre y apellido<input id="nombre" autocomplete="name" maxlength="60" required></label>
+      <label for="email">Mail<input id="email" type="email" autocomplete="email" maxlength="120" required></label>
+      <label for="wa">WhatsApp <small>(con código de área)</small><input id="wa" type="tel" autocomplete="tel" maxlength="30" placeholder="Ej: 11 2233 4455" required></label>
+      <label for="alias">Alias o CBU para cobrarte <small>(opcional, lo podés pasar después)</small><input id="alias" maxlength="60"></label>
+      <div class="row"><button class="btn primary" type="submit" id="go">Quiero mi link de vendedor</button></div>
+      <p class="msg" id="msg" role="status"></p>
+    </form>
+  </section>
+
+  <section class="card" id="done" hidden>
+    <h2>¡Listo! Ya sos vendedor/a de Vitrina 360 🎉</h2>
+    <p class="lead">Este es tu link para compartir. Todo el que se anote con él queda registrado como tu cliente:</p>
+    <div class="link" id="myLink"></div>
+    <div class="row"><button class="btn primary" type="button" id="copy">Copiar mi link</button><a class="btn wa" id="share" target="_blank" rel="noopener">Compartir por WhatsApp</a></div>
+    <p class="lead">Tu código es <b id="myCode"></b>. Si alguien se anota sin el link, puede escribir ese código en “Mi cuenta” dentro de su tienda.</p>
+    <p class="lead"><b>Guardá este otro link: es tu panel</b>, donde ves tus clientes y tus pagos. No lo compartas.</p>
+    <a class="btn" id="panel">Abrir mi panel</a>
+  </section>
+</main>
+<script>
+(function(){
+  const $ = id => document.getElementById(id), fmt = n => '$' + Number(n).toLocaleString('es-AR');
+  $('f').addEventListener('submit', async e => {
+    e.preventDefault();
+    const body = {nombre: $('nombre').value, email: $('email').value, wa: $('wa').value, alias: $('alias').value};
+    $('go').disabled = true; $('msg').className = 'msg'; $('msg').textContent = 'Creando tu link…';
+    try{
+      const r = await fetch('/api/vendedores?accion=anotar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+      const j = await r.json().catch(() => ({}));
+      if(!r.ok) throw new Error(j.error || 'No se pudo crear tu link.');
+      $('form').hidden = true; $('done').hidden = false;
+      $('myLink').textContent = j.link; $('myCode').textContent = j.code; $('panel').href = j.panel;
+      $('share').href = 'https://wa.me/?text=' + encodeURIComponent('¿Tenés un emprendimiento o un local? Con Vitrina 360 tenés tu propia página web para vender en toda Argentina y en el exterior, con vitrinas que giran en 360° y vendedores virtuales. Probala 7 días gratis 👉 ' + j.link);
+      try{ localStorage.setItem('v360-vendedor-panel', j.panel); }catch(err){}
+      scrollTo(0, 0);
+    }catch(err){ $('msg').className = 'msg err'; $('msg').textContent = err.message; $('go').disabled = false; }
+  });
+  $('copy').addEventListener('click', () => { navigator.clipboard?.writeText($('myLink').textContent).then(() => { $('copy').textContent = '¡Copiado!'; }); });
+})();
+</script>
+</body>
+</html>

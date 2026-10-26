@@ -369,6 +369,8 @@
       <span class="grp">🌐 <span data-lbl>${T('Tu tienda', 'Your store', 'Sua loja')}</span>: <a href="${esc(link)}" target="_blank" rel="noopener">${esc(location.host + '/t/' + slug)}</a>
       <button type="button" data-copy>${T('Copiar link', 'Copy link', 'Copiar link')}</button></span>
       <span class="grp" data-plan hidden></span>
+      <span class="grp" data-ref>🤝 ${T('Código de vendedor', 'Seller code', 'Código de vendedor')}: <input data-refin maxlength="16" placeholder="${T('Ej: JUAN', 'E.g. JUAN', 'Ex: JUAN')}" style="width:110px;text-transform:uppercase;border:1px solid var(--line,#ddd);border-radius:999px;padding:4px 10px;font:inherit;background:transparent;color:inherit"><button type="button" data-refok>${T('Guardar', 'Save', 'Salvar')}</button> <small data-refmsg></small></span>
+      <span class="grp" data-admin hidden><a href="/admin-vendedores.html">💼 ${T('Vendedores', 'Sellers', 'Vendedores')}</a></span>
       <span class="grp"><button type="button" data-out>${T('Salir', 'Sign out', 'Sair')}</button></span>
       </div>`;
     const wrap = document.querySelector('.wrap'); (wrap ? wrap.parentNode : document.body).insertBefore(bar, wrap || document.body.firstChild);
@@ -377,6 +379,29 @@
     bar.querySelector('[data-copy]').onclick = e => { const b = e.currentTarget; navigator.clipboard?.writeText(link).then(() => { b.textContent = T('¡Copiado!', 'Copied!', 'Copiado!'); }, () => { b.textContent = link; }); };
     bar.querySelector('[data-out]').onclick = async () => { if(latest || saving){ clearTimeout(timer); await flush(); } try{ await api('POST', '/auth/v1/logout', {tok: ses.access_token}); }catch(e){} keep(null); location.reload(); };
     plan(bar.querySelector('[data-plan]'));
+    // Código de vendedor: si entró por el link de un vendedor (?ref=), queda como su cliente solo; si no, lo puede escribir acá.
+    (function(){
+      const box = bar.querySelector('[data-ref]'), inp = box.querySelector('[data-refin]'), msg = box.querySelector('[data-refmsg]');
+      const asignar = async code => {
+        const r = await fetch('/api/vendedores?accion=asignar', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + ses.access_token}, body: JSON.stringify({code})});
+        const j = await r.json().catch(() => ({}));
+        if(r.ok){ try{ localStorage.setItem('v360-ref-ok', j.code); localStorage.removeItem('v360-ref'); }catch(e){} box.innerHTML = '🤝 ' + T('Vendedor', 'Seller', 'Vendedor') + ': <b>' + esc(j.code) + '</b>'; }
+        return {ok: r.ok, j};
+      };
+      let ok = ''; try{ ok = localStorage.getItem('v360-ref-ok') || ''; }catch(e){}
+      if(ok){ box.innerHTML = '🤝 ' + T('Vendedor', 'Seller', 'Vendedor') + ': <b>' + esc(ok) + '</b>'; }
+      else {
+        let ref = null; try{ ref = JSON.parse(localStorage.getItem('v360-ref') || 'null'); }catch(e){}
+        if(ref && ref.c && Date.now() - (ref.t || 0) < 30 * 864e5) asignar(ref.c).catch(() => {});
+      }
+      box.querySelector('[data-refok]') && (box.querySelector('[data-refok]').onclick = async () => {
+        const c = String(inp.value || '').trim().toUpperCase(); if(!c) return;
+        msg.textContent = '…';
+        try{ const {ok, j} = await asignar(c); if(!ok) msg.textContent = j.error || T('No se pudo.', 'Could not save.', 'Não foi possível.'); }catch(e){ msg.textContent = T('No se pudo.', 'Could not save.', 'Não foi possível.'); }
+      });
+      // el dueño de Vitrina 360 ve el acceso a la pantalla de vendedores
+      fetch('/api/vendedores?accion=admin', {headers: {Authorization: 'Bearer ' + ses.access_token}}).then(r => { if(r.ok) bar.querySelector('[data-admin]').hidden = false; }).catch(() => {});
+    })();
     // "Ver como cliente" va al lado de "Mi cuenta": deja libre el cuadrado de la cajera y la pantalla
     const cbtn = document.getElementById('clientBtn'); if(cbtn){ const g = bar.querySelector('.grp'); g.insertBefore(cbtn, g.querySelector('.st')); }
     window.addEventListener('v360-lang', () => {
@@ -394,6 +419,7 @@
 })();
 
 </script>
+<script>try{var r=new URLSearchParams(location.search).get('ref');if(r&&/^[A-Za-z0-9]{3,16}$/.test(r))localStorage.setItem('v360-ref',JSON.stringify({c:r.toUpperCase(),t:Date.now()}))}catch(e){}</script>
 </head>
 <body>
 <title>Vitrina 360</title>
