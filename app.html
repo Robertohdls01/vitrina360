@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Vitrina 360">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0e6a5b">
+<meta name="theme-color" content="#6d28d9">
 <script>
 /* App instalable: en el panel del dueño el celular puede poner el ícono de Vitrina 360 en la pantalla, como una app. */
 (function(){
@@ -44,24 +44,24 @@
   const onReady = fn => document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', fn) : fn();
 
   // ---------- Pantallas propias del puente ----------
-  const CSS = `.v3o{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px 16px;background:var(--bg,#edf0ec);color:var(--ink,#1c2420);font:400 15px/1.5 var(--body,system-ui,sans-serif);overflow:auto}
+  const CSS = `.v3o{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px 16px;background:var(--bg,#f3f1f8);color:var(--ink,#1c2420);font:400 15px/1.5 var(--body,system-ui,sans-serif);overflow:auto}
   .v3o .card{width:min(440px,100%);background:var(--surface,#fbfcfa);border:1px solid var(--line,#d3dad5);border-radius:18px;padding:22px;display:grid;gap:14px;box-shadow:0 20px 40px -24px rgba(0,0,0,.35)}
   .v3o h2{font:800 26px/1.1 var(--display,system-ui,sans-serif);margin:0}
   .v3o p{margin:0;color:var(--muted,#5d6a64)}
   .v3o input{width:100%;border:1px solid var(--line,#d3dad5);background:var(--bg,#fff);color:inherit;border-radius:12px;padding:11px 13px;font:inherit}
   .v3o button{border:1px solid var(--line,#d3dad5);background:var(--surface,#fff);color:inherit;border-radius:999px;padding:10px 16px;font:600 15px/1.2 var(--body,system-ui,sans-serif);cursor:pointer}
-  .v3o button.pri{background:var(--accent,#0e6a5b);color:var(--accent-ink,#fff);border-color:var(--accent,#0e6a5b)}
+  .v3o button.pri{background:var(--accent,#6d28d9);color:var(--accent-ink,#fff);border-color:var(--accent,#6d28d9)}
   .v3o button:disabled{opacity:.55;cursor:default}
   .v3o .msg{min-height:1.2em;font-size:14px}
   .v3o .msg.err{color:var(--danger,#a8392c)}
   .v3o .opt{display:grid;gap:8px}
   .v3o .pl{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line,#d3dad5);border-radius:12px;padding:10px 12px;cursor:pointer}
-  .v3o .pl:has(input:checked){border-color:var(--accent,#0e6a5b);box-shadow:0 0 0 1px var(--accent,#0e6a5b)}
+  .v3o .pl:has(input:checked){border-color:var(--accent,#6d28d9);box-shadow:0 0 0 1px var(--accent,#6d28d9)}
   .v3o .pl input{width:auto;margin-top:4px}
   .v3o .pl small{color:var(--muted,#5d6a64)}
   .v3o .link{font-family:var(--mono,monospace);font-size:13px;background:var(--bg,#eee);border-radius:8px;padding:6px 9px;word-break:break-all}
   .v3bar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;background:var(--surface,#fff);border:1px solid var(--line,#ddd);border-radius:14px;padding:8px 12px;font:500 14px/1.4 var(--body,system-ui,sans-serif);color:var(--ink,#222);max-width:1160px;margin:12px auto 0}
-  .v3bar a{color:var(--accent,#0e6a5b);font-weight:600;word-break:break-all}
+  .v3bar a{color:var(--accent,#6d28d9);font-weight:600;word-break:break-all}
   .v3bar .st{font-size:12.5px;color:var(--muted,#666)}
   .v3bar .st.err{color:var(--danger,#a8392c)}
   .v3bar button{border:1px solid var(--line,#ddd);background:var(--bg,#fff);color:inherit;border-radius:999px;padding:5px 11px;font:600 13px/1.2 var(--body,system-ui,sans-serif);cursor:pointer}
@@ -432,8 +432,8 @@
 <style>
 /* Layout: vitrina cilíndrica 3D arriba (se gira arrastrando), abajo ficha del producto + formulario de carga */
 :root{
-  --bg:#edf0ec; --surface:#fbfcfa; --ink:#1c2420; --muted:#5d6a64; --line:#d3dad5;
-  --accent:#0e6a5b; --accent-ink:#ffffff; --brass:#b98e36;
+  --bg:#f3f1f8; --surface:#fdfcff; --ink:#1d1a26; --muted:#625d6e; --line:#dcd7e6;
+  --accent:#6d28d9; --accent-ink:#ffffff; --brass:#b98e36;
   --stage-top:#e3e9e5; --stage-bot:#c7d1cb; --wall:rgba(255,255,255,.55); --glass:rgba(200,228,220,.55);
   --shelf:#c08f60; --shelf-edge:#8b603d; --tag-bg:#fffaf0; --tag-ink:#2a221a; --shadow:rgba(20,35,30,.28);
   --danger:#a8392c;
@@ -447,8 +447,8 @@
   --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#111614; --surface:#19201d; --ink:#e6ebe8; --muted:#97a49e; --line:#2b3531;
-  --accent:#43b9a3; --accent-ink:#08130f; --brass:#c9a24f;
+  --bg:#13111a; --surface:#1c1925; --ink:#ece9f3; --muted:#a7a1b5; --line:#322d3f;
+  --accent:#b69cff; --accent-ink:#140b26; --brass:#c9a24f;
   --stage-top:#1b2421; --stage-bot:#0c110f; --wall:rgba(34,46,42,.72); --glass:rgba(90,150,135,.18);
   --shelf:#7c5738; --shelf-edge:#523822; --tag-bg:#ece5d3; --tag-ink:#231c14; --shadow:rgba(0,0,0,.55);
   --danger:#e07a6c;
@@ -458,8 +458,8 @@
   --room-a:#9aa5ac; --room-b:#4b555c; --seam:rgba(255,255,255,.3); --floor-a:#7a858c; --floor-b:#3a4349; --stage-label:#f1f4f6;
   --d-room-a:#9aa5ac; --d-room-b:#4b555c; --d-seam:rgba(255,255,255,.3); --d-floor-a:#7a858c; --d-floor-b:#3a4349; --d-stage-label:#f1f4f6; --scrim:rgba(0,0,0,.72); --veil:rgba(17,22,20,.5); --wa:#3ccf7d; --wa-ink:#06200f; color-scheme:dark }}
 :root[data-theme="dark"]{
-  --bg:#111614; --surface:#19201d; --ink:#e6ebe8; --muted:#97a49e; --line:#2b3531;
-  --accent:#43b9a3; --accent-ink:#08130f; --brass:#c9a24f;
+  --bg:#13111a; --surface:#1c1925; --ink:#ece9f3; --muted:#a7a1b5; --line:#322d3f;
+  --accent:#b69cff; --accent-ink:#140b26; --brass:#c9a24f;
   --stage-top:#1b2421; --stage-bot:#0c110f; --wall:rgba(34,46,42,.72); --glass:rgba(90,150,135,.18);
   --shelf:#7c5738; --shelf-edge:#523822; --tag-bg:#ece5d3; --tag-ink:#231c14; --shadow:rgba(0,0,0,.55);
   --danger:#e07a6c;
@@ -1654,7 +1654,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
 
 /* ===== Imagen 2026: más moderna y llamativa (va al final para mandar sobre lo anterior) ===== */
 :root{--r-lg:22px;--r-md:16px;--glow:0 18px 40px -18px color-mix(in srgb,var(--accent) 55%,transparent);
-  --soft:0 1px 2px rgba(16,24,20,.06),0 8px 24px -12px rgba(16,24,20,.22);--grad:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 62%,#7fe3d0))}
+  --soft:0 1px 2px rgba(16,24,20,.06),0 8px 24px -12px rgba(16,24,20,.22);--grad:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 45%,#f0457e))}
 body{background:radial-gradient(1200px 600px at 10% -10%,color-mix(in srgb,var(--accent) 14%,transparent),transparent 60%),radial-gradient(900px 500px at 110% 10%,color-mix(in srgb,var(--brass,#b98e36) 12%,transparent),transparent 60%),var(--bg);background-attachment:fixed;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 h1,h2,h3,.plaque{letter-spacing:-.02em}
 header h1,#brandName{font-family:var(--display);font-weight:800;background:linear-gradient(120deg,var(--ink) 30%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -5284,7 +5284,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       r.setProperty('--ink', light ? '#1c2420' : '#eef2f0');
       r.setProperty('--muted', light ? '#56625c' : '#a7b2ad');
       r.setProperty('--line', light ? mix(c, '#000000', 0.13) : mix(c, '#ffffff', 0.16));
-      r.setProperty('--accent', light ? '#0e6a5b' : '#43b9a3');
+      r.setProperty('--accent', light ? '#6d28d9' : '#b69cff');
       r.setProperty('--accent-ink', light ? '#ffffff' : '#08130f');
       r.setProperty('color-scheme', light ? 'light' : 'dark');
     }
@@ -6257,7 +6257,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   }
   let hCur = null, hLast = null, hPending = null, hAskCaja = false;
   const hOn = () => hList().length > 0;
-  const hShirt = () => brand.helperColor || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0e6a5b';
+  const hShirt = () => brand.helperColor || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#6d28d9';
   function renderHelpers(){
     const ids = hList();
     setTimeout(renderCashier, 0);
@@ -6268,7 +6268,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(!ids.length) $('hPanel').hidden = true;
     const bar = $('helperBar'); if(bar) bar.innerHTML = `<span class="note" style="margin:0;flex-basis:100%">Tocá los que quieras en esta tienda (${ids.length} de ${HIDS.length}):</span>` + HIDS.map(id => `<button class="hpick" type="button" data-hset="${id}" aria-pressed="${ids.includes(id)}">${helperSVG(HELPERS[id], hShirt())}<span>${HELPERS[id].name}</span></button>`).join('') + `<button class="matbtn" type="button" data-hset="" aria-pressed="${!ids.length}">Ninguno</button>`;
     if(bar) bar.innerHTML += `<button class="matbtn" type="button" id="hWalkBtn" aria-pressed="${brand.helperWalk !== false}">🚶 Que caminen hasta la vitrina</button><button class="matbtn" type="button" id="hCashBtn" aria-pressed="${brand.cashier !== false}">🧺 Cajera con canastito</button>`;
-    const cb = $('helperColors'); if(cb) cb.innerHTML = `<span class="note" style="margin:0">Color de la ropa:</span>` + HCOLORS.map(c => `<button class="sw" type="button" data-hcol="${c}" style="--c:${c || 'var(--accent)'}" aria-pressed="${(brand.helperColor || '') === c}" aria-label="${c ? 'Color ' + c : 'Color de mi marca'}" title="${c ? '' : 'Color de mi marca'}"></button>`).join('') + `<label class="sw custom" title="Otro color"><input type="color" id="hColCustom" value="${brand.helperColor || '#0e6a5b'}" aria-label="Otro color"></label>`;
+    const cb = $('helperColors'); if(cb) cb.innerHTML = `<span class="note" style="margin:0">Color de la ropa:</span>` + HCOLORS.map(c => `<button class="sw" type="button" data-hcol="${c}" style="--c:${c || 'var(--accent)'}" aria-pressed="${(brand.helperColor || '') === c}" aria-label="${c ? 'Color ' + c : 'Color de mi marca'}" title="${c ? '' : 'Color de mi marca'}"></button>`).join('') + `<label class="sw custom" title="Otro color"><input type="color" id="hColCustom" value="${brand.helperColor || '#6d28d9'}" aria-label="Otro color"></label>`;
     $('hMic').hidden = !(window.SpeechRecognition || window.webkitSpeechRecognition);
   }
   document.addEventListener('click', e => {
