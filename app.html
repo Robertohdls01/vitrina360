@@ -5360,11 +5360,22 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(!$('ordersModal').hidden) renderOrders();
     return ordList;
   }
+  // Avisarle al cliente por WhatsApp en qué anda su pedido (en camino, listo para retirar, recibido)
+  function ordWa(p){
+    const c = p.comprador || {}; let n = String(c.tel || '').replace(/\D/g, ''); if(n.length < 8) return '';
+    if(!/^(54|1|55|52|56|57|58|51|59|34|39|49|33|44)/.test(n) || n.length <= 10) n = '549' + n.replace(/^0/, '').replace(/^(\d{2,4})15/, '$1');
+    const hi = `¡Hola${c.nombre ? ' ' + c.nombre.split(' ')[0] : ''}! `, st = storeName();
+    const txt = p.estado === 'salio' ? `${hi}Tu pedido de ${st} ya está en camino${p.repartidor ? ' con ' + p.repartidor : ''} 🛵. ¡En un ratito llega!`
+      : p.estado === 'listo' ? (p.envio_id === 'retiro' || /retir/i.test(p.envio || '') ? `${hi}Tu pedido de ${st} ya está listo para retirar. ¡Te esperamos!` : `${hi}Tu pedido de ${st} ya está listo.`)
+      : p.estado === 'entregado' ? `${hi}¡Gracias por tu compra en ${st}! Cualquier cosa, escribinos.`
+      : `${hi}Recibimos tu pedido en ${st} y ya lo estamos preparando${brand.delay ? ' (demora aproximada: ' + brand.delay + ')' : ''}. Te avisamos cuando salga.`;
+    return `https://wa.me/${n}?text=${encodeURIComponent(txt)}`;
+  }
   function renderOrders(){
     const rs = ridersOf(), hora = d => { try{ return new Date(d).toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit'}); }catch(e){ return ''; } };
     $('ordersSheet').innerHTML = `<button class="close" type="button" data-o="close" aria-label="Cerrar">✕</button>
       <h2 id="ordersTitle">📋 Pedidos</h2>
-      <p class="note" style="margin:0">Los pedidos que te mandan desde tu tienda. Cuando el delivery sale, tocá “Salió”: al cliente se le para el relojito y le sale la motito con el nombre del repartidor.</p>
+      <p class="note" style="margin:0">Los pedidos que te mandan desde tu tienda. Cuando el pedido sale, tocá “Salió”: al cliente se le para el relojito y le sale la motito con el nombre del repartidor. Con 💬 le avisás también por WhatsApp.</p>
       ${ordList.length ? `<div class="ordlist">${ordList.map(p => {
         const c = p.comprador || {}, moto = p.envio_id === 'moto', abierto = p.estado === 'preparando';
         return `<div class="ordcard st-${esc(p.estado)}">
@@ -5375,6 +5386,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
           ${c.turno ? `<div>📅 Turno deseado: ${esc(c.turno)}</div>` : ''}
           ${c.tel ? `<div>📞 ${esc(c.tel)}</div>` : ''}
           ${p.pago ? `<div>💳 ${esc(p.pago)}</div>` : ''}
+          ${ordWa(p) ? `<div><a class="btn wa" href="${esc(ordWa(p))}" target="_blank" rel="noopener" style="padding:5px 12px;font-size:13px">💬 ${p.estado === 'salio' ? 'Avisarle que va en camino' : p.estado === 'listo' ? 'Avisarle que está listo' : p.estado === 'entregado' ? 'Agradecerle' : 'Avisarle que lo recibiste'}</a></div>` : ''}
           ${p.regalo ? `<div>🎁 Para regalo${p.regalo.para ? ' (' + esc(p.regalo.para) + ')' : ''}: bolsa especial y moño${p.regalo.mensaje ? ` · Tarjeta: “${esc(p.regalo.mensaje)}”` : ''}</div>` : ''}
           ${abierto ? `<div class="oacts">
             ${moto ? `${rs.length ? `<select data-orider="${esc(p.ref)}" aria-label="Repartidor">${rs.map(r => `<option>${esc(r)}</option>`).join('')}</select>` : ''}<button class="btn primary" type="button" data-o="salio" data-ref="${esc(p.ref)}">🛵 Salió</button>`
