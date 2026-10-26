@@ -6124,10 +6124,15 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     e.preventDefault();
     const paid = payPick.mode === 'ahora';
     let bye = `${M('thanks', {store: storeName()})} ${L(paid ? 'Ahora te abro WhatsApp: mandá el mensaje con tu comprobante y listo.' : 'Ahora te abro WhatsApp: tocá enviar y listo.', paid ? "Now I'm opening WhatsApp: send the message with your receipt and you're done." : "Now I'm opening WhatsApp: just tap send.", paid ? 'Agora vou abrir o WhatsApp: envie a mensagem com o comprovante e pronto.' : 'Agora vou abrir o WhatsApp: toque em enviar e pronto.')}`;
+    // qué pasa después: el comercio le avisa por WhatsApp cuando el pedido está listo para salir (o para retirar, o el turno)
+    const who = attName() || L('el comercio', 'the store', 'a loja');
+    bye += ' ' + (allService() ? L(`${who} te confirma el turno por WhatsApp.`, `${who} will confirm your appointment on WhatsApp.`, `${who} confirma seu horário pelo WhatsApp.`)
+      : o && o.id === 'retiro' ? L(`Cuando esté listo para retirar, ${who} te avisa por WhatsApp.`, `When it's ready for pickup, ${who} will let you know on WhatsApp.`, `Quando estiver pronto para retirar, ${who} avisa pelo WhatsApp.`)
+      : L(`Cuando tu pedido esté listo para salir, ${who} te avisa por WhatsApp.`, `When your order is ready to go out, ${who} will let you know on WhatsApp.`, `Quando seu pedido estiver pronto para sair, ${who} avisa pelo WhatsApp.`));
     if(!isOpenNow()) bye += ` ${L(`Ahora estamos fuera de horario: ${attName() ? attName() + ' te responde' : 'te respondemos'} ${nextOpenTxt()}.`, `We're closed right now: we'll reply ${nextOpenTxt()}.`, `Agora estamos fora do horário: respondemos ${nextOpenTxt()}.`)}`;
     if(cajeraOn()){ $('cBubble').textContent = trSay(bye); $('cBubble').classList.add('show'); placeBubble(); cSpeak(bye); }
     else { $('hPanel').hidden = false; hSpeak(bye); }
-    setTimeout(() => { let w = null; try{ w = window.open(url, '_blank', 'noopener'); }catch(err){} if(!w) location.href = url; }, 3200);
+    setTimeout(() => { let w = null; try{ w = window.open(url, '_blank', 'noopener'); }catch(err){} if(!w) location.href = url; }, 4200);
   });
   let cartLastFocus = null;
   document.addEventListener('click', e => {
