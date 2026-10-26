@@ -1458,6 +1458,16 @@ body.clientmode .decoshop{display:none}
 .hav svg{width:62px;height:auto;animation:hbob 3.2s ease-in-out infinite;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2))}
 .hav + .hav svg{animation-delay:-1.6s}
 .hav.on svg{filter:drop-shadow(0 0 6px var(--accent)) drop-shadow(0 4px 6px rgba(0,0,0,.2))}
+.owprev{width:56px;height:56px;border-radius:50%;background:var(--bg) center/cover no-repeat;border:2px solid var(--accent);display:grid;place-items:center;font-size:24px}
+.owprev:empty::before{content:"🙂"}
+.hav.owner .hname::before{content:"★ ";color:var(--accent)}
+.hav.owner.talking .owring{animation:owtalk .5s ease-in-out infinite alternate}
+@keyframes owtalk{from{stroke-width:2.5;opacity:1}to{stroke-width:5;opacity:.55}}
+.owbub{position:absolute;left:0;bottom:calc(100% + 10px);width:min(270px,calc(100vw - 32px));background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:16px 16px 16px 4px;padding:10px 30px 10px 12px;font:500 14px/1.35 var(--body);box-shadow:0 12px 30px -10px rgba(0,0,0,.35);z-index:60;animation:owin .35s ease-out}
+.owbub b{display:block;font-size:12.5px;color:var(--accent);margin-bottom:2px}
+.owbub .owx{position:absolute;top:4px;right:6px;border:0;background:none;font-size:15px;cursor:pointer;color:var(--muted,#777);padding:4px}
+.owbub .owgo{margin-top:8px;border:0;border-radius:999px;padding:7px 12px;font:700 13px var(--body);background:var(--accent);color:#fff;cursor:pointer}
+@keyframes owin{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
 .hname{font:700 10.5px/1 var(--body);background:var(--surface);color:var(--ink);border-radius:999px;padding:2px 7px;margin-top:-6px;box-shadow:0 2px 6px -2px var(--shadow)}
 @keyframes hbob{50%{transform:translateY(-3px)}}
 .hav.walking svg{animation:hstep .28s ease-in-out infinite alternate}
@@ -1558,7 +1568,8 @@ body.has-helpers .wrap{padding-bottom:170px}
 .hname{font-size:calc(10.5px * max(var(--hk, 1), .8))}
 .dlvp svg{width:calc(40px * var(--dk, 1))!important}
 .dlvp{font-size:calc(11.5px * max(var(--dk, 1), .8))}
-.hline{display:flex;align-items:flex-end;gap:4px}
+.hline{display:flex;align-items:flex-end;gap:4px;position:relative}
+.owbub{pointer-events:auto}
 .hriders{display:flex;align-items:flex-end;gap:2px;pointer-events:auto}
 .hriders:empty{display:none}
 .hrd{position:relative;display:grid;justify-items:center;width:calc(44px * var(--dk, 1));cursor:default}
@@ -1846,6 +1857,24 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
       <div class="szrow"><span>🧾 Cajera</span><button type="button" data-szk="cash" data-szd="-1" aria-label="Más chica">−</button><b id="sz-cash">100%</b><button type="button" data-szk="cash" data-szd="1" aria-label="Más grande">+</button></div>
       <div class="szrow"><span>📺 Pantalla LED de ofertas</span><button type="button" data-szk="tv" data-szd="-1" aria-label="Más chica">−</button><b id="sz-tv">100%</b><button type="button" data-szk="tv" data-szd="1" aria-label="Más grande">+</button></div>
       <div class="szrow"><span>🛵 Repartidores</span><button type="button" data-szk="dlv" data-szd="-1" aria-label="Más chicos">−</button><b id="sz-dlv">100%</b><button type="button" data-szk="dlv" data-szd="1" aria-label="Más grandes">+</button></div>
+    </div>
+    <div class="presets" id="ownerBox">
+      <strong>👩‍💼 Vos en tu tienda</strong>
+      <p class="note" style="margin:0">Subí una foto tuya (de frente, que se vea bien la cara) y aparecés como un muñequito más, al lado de los vendedores. Saludás a los clientes cuando entran, presentás tu tienda y, si te tocan, los atendés igual que los vendedores.</p>
+      <div class="row" style="gap:10px;align-items:center;flex-wrap:wrap">
+        <span class="owprev" id="owPrev" aria-hidden="true"></span>
+        <label class="btn" for="b-owphoto" style="display:inline-flex">📷 <span id="owPhotoLbl">Subir mi foto</span><input type="file" id="b-owphoto" accept="image/*" class="vh"></label>
+        <button class="linkbtn" type="button" id="owDel" hidden>Quitar</button>
+      </div>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <label for="b-owname" style="flex:1 1 160px">Tu nombre <input type="text" id="b-owname" maxlength="20" placeholder="Ej: Marta"></label>
+        <label for="b-owsex" style="flex:0 1 140px">Voz <select id="b-owsex"><option value="f">De mujer</option><option value="m">De hombre</option></select></label>
+      </div>
+      <label for="b-owgreet">Tu saludo <small>Lo que les decís a los clientes cuando entran. Si lo dejás vacío, uso uno de bienvenida con el nombre de tu tienda.</small>
+        <textarea id="b-owgreet" rows="2" maxlength="220" placeholder="¡Hola! Soy Marta, la dueña. Bienvenida a mi tienda: esta semana hay ofertas en carteras. Tocame si necesitás algo."></textarea>
+      </label>
+      <button class="matbtn" type="button" id="owAuto" aria-pressed="true" style="justify-self:start">👋 Saludar sola cuando entra un cliente</button>
+      <p class="note" id="owMsg" role="status" style="margin:0"></p>
     </div>
     <div class="presets">
       <strong>Vendedores virtuales</strong>
@@ -4793,6 +4822,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     }
     if(!$('mallView').hidden) showMall(); else if(currentCat){ render(); } else renderHome();
     scrollTo(0, 0);
+    if(on){ ownGreeted = false; ownGreetSoon(); } else { const ob = document.querySelector('.owbub'); if(ob) ob.remove(); }
   }
   $('clientBtn').onclick = () => setClient(true);
   $('clientExit').onclick = () => setClient(false);
@@ -6572,8 +6602,17 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     joaco: {name: 'Joaco', pitch: 0.76, hair: '#6b4a2b', skin: '#f0c49b', female: false, style: 'short'}
   };
   const HIDS = Object.keys(HELPERS);
-  // los vendedores elegidos de esta tienda (antes se guardaba 'sofi', 'tomas' o 'ambos')
-  const hList = () => { const h = brand.helpers; if(Array.isArray(h)) return h.filter(id => HELPERS[id]); return h === 'ambos' ? ['sofi', 'tomas'] : HELPERS[h] ? [h] : []; };
+  // ---- La dueña (o el dueño) en la tienda: su foto como muñequito, saluda al entrar y atiende como los vendedores ----
+  const ownOn = () => !!(brand.owner && brand.owner.photo);
+  const ownRole = () => brand.owner && brand.owner.male ? 'el dueño' : 'la dueña';
+  const ownName = () => (brand.owner && brand.owner.name) || (brand.owner && brand.owner.male ? 'El dueño' : 'La dueña');
+  const ownGreet = () => (brand.owner && String(brand.owner.greet || '').trim()) || `¡Hola! Soy ${ownName()}, ${ownRole()} ${brand.name ? 'de ' + brand.name : 'de esta tienda'}. ¡Bienvenidos! Mirá las vitrinas con tranquilidad y, si necesitás algo, tocame y te ayudo.`;
+  function syncOwner(){
+    if(ownOn()) HELPERS.duena = {name: ownName(), pitch: brand.owner.male ? 0.9 : 1.12, female: !brand.owner.male, photo: brand.owner.photo, owner: true};
+    else delete HELPERS.duena;
+  }
+  // los vendedores elegidos de esta tienda (antes se guardaba 'sofi', 'tomas' o 'ambos'); la dueña va primero
+  const hList = () => { syncOwner(); const h = brand.helpers; const own = ownOn() ? ['duena'] : []; if(Array.isArray(h)) return own.concat(h.filter(id => HELPERS[id] && id !== 'duena')); return own.concat(h === 'ambos' ? ['sofi', 'tomas'] : HELPERS[h] ? [h] : []); };
   const HCOLORS = ['', '#e63946', '#ff8c00', '#2a9d8f', '#1d4ed8', '#7c3aed', '#111827', '#db2777', '#ff2fd6', '#39ff14', '#00e5ff', '#ff6a00', '#f5ff00'];
   function helperSVG(h, shirt){
     const tag = esc((brand.name || 'Mi tienda').slice(0, 14));
@@ -6587,12 +6626,12 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       <path d="M14 104c0-22 11-36 26-36s26 14 26 36z" fill="${shirt}"/>
       <path d="M33 68l7 9 7-9" fill="#fff" opacity=".9"/>
       <rect x="22" y="84" width="36" height="11" rx="3" fill="#fff"/><text x="40" y="92.2" font-size="${Math.min(6.6, 52 / Math.max(1, tag.length)).toFixed(1)}" font-weight="800" text-anchor="middle" fill="${shirt}" font-family="system-ui,sans-serif">${tag}</text>
-      <rect x="35" y="56" width="10" height="13" rx="4" fill="${h.skin}"/>
+      ${h.photo ? (cid => `<defs><clipPath id="${cid}"><circle cx="40" cy="47" r="21"/></clipPath></defs><image href="${h.photo}" x="19" y="26" width="42" height="42" clip-path="url(#${cid})" preserveAspectRatio="xMidYMid slice"/><circle class="owring" cx="40" cy="47" r="21" fill="none" stroke="${shirt}" stroke-width="2.5"/>`)('ow' + Math.random().toString(36).slice(2, 8)) : `<rect x="35" y="56" width="10" height="13" rx="4" fill="${h.skin}"/>
       <circle cx="40" cy="38" r="18" fill="${h.skin}"/>${hair}
       <g class="heyes"><circle cx="33.5" cy="39" r="2.2" fill="#222"/><circle cx="46.5" cy="39" r="2.2" fill="#222"/></g>
       <ellipse cx="29" cy="45" rx="3" ry="1.8" fill="#f08f8f" opacity=".45"/><ellipse cx="51" cy="45" rx="3" ry="1.8" fill="#f08f8f" opacity=".45"/>
-      <path class="hmouth" d="M35 47q5 4 10 0" stroke="#7a2e2e" stroke-width="2" fill="#a33" stroke-linecap="round"/>
-      ${brand.logo ? (st === 'cap' ? `<path d="M22 27q18-14 36 0v4H22z" fill="${shirt}"/><rect x="20" y="29" width="40" height="4" rx="2" fill="${shirt}"/><image href="${brand.logo}" x="31" y="17" width="18" height="11" preserveAspectRatio="xMidYMid meet"/>` : `<image href="${brand.logo}" x="50" y="73" width="11" height="11" preserveAspectRatio="xMidYMid meet"/>`) : (st === 'cap' ? `<path d="M22 27q18-14 36 0v4H22z" fill="${shirt}"/><rect x="20" y="29" width="40" height="4" rx="2" fill="${shirt}"/>` : '')}
+      <path class="hmouth" d="M35 47q5 4 10 0" stroke="#7a2e2e" stroke-width="2" fill="#a33" stroke-linecap="round"/>`}
+      ${h.photo ? '' : brand.logo ? (st === 'cap' ? `<path d="M22 27q18-14 36 0v4H22z" fill="${shirt}"/><rect x="20" y="29" width="40" height="4" rx="2" fill="${shirt}"/><image href="${brand.logo}" x="31" y="17" width="18" height="11" preserveAspectRatio="xMidYMid meet"/>` : `<image href="${brand.logo}" x="50" y="73" width="11" height="11" preserveAspectRatio="xMidYMid meet"/>`) : (st === 'cap' ? `<path d="M22 27q18-14 36 0v4H22z" fill="${shirt}"/><rect x="20" y="29" width="40" height="4" rx="2" fill="${shirt}"/>` : '')}
     </svg>`;
   }
   let hCur = null, hLast = null, hPending = null, hAskCaja = false;
@@ -6604,12 +6643,61 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     $('helpers').hidden = !ids.length && !(document.getElementById('hRiders') || {}).childElementCount; $('helpers').classList.toggle('many', ids.length > 3);
     document.body.classList.toggle('has-helpers', ids.length > 0);
     $('hHelp').hidden = !ids.length;
-    $('hRow').innerHTML = ids.map(id => `<button class="hav" type="button" data-hav="${id}" aria-label="Hablar con ${HELPERS[id].name}">${helperSVG(HELPERS[id], hShirt())}<span class="hname">${HELPERS[id].name}</span></button>`).join('');
+    $('hRow').innerHTML = ids.map(id => `<button class="hav${id === 'duena' ? ' owner' : ''}" type="button" data-hav="${id}" aria-label="Hablar con ${HELPERS[id].name}">${helperSVG(HELPERS[id], hShirt())}<span class="hname">${HELPERS[id].name}</span></button>`).join('');
     if(!ids.length) $('hPanel').hidden = true;
     const bar = $('helperBar'); if(bar) bar.innerHTML = `<span class="note" style="margin:0;flex-basis:100%">Tocá los que quieras en esta tienda (${ids.length} de ${HIDS.length}):</span>` + HIDS.map(id => `<button class="hpick" type="button" data-hset="${id}" aria-pressed="${ids.includes(id)}">${helperSVG(HELPERS[id], hShirt())}<span>${HELPERS[id].name}</span></button>`).join('') + `<button class="matbtn" type="button" data-hset="" aria-pressed="${!ids.length}">Ninguno</button>`;
     if(bar) bar.innerHTML += `<button class="matbtn" type="button" id="hWalkBtn" aria-pressed="${brand.helperWalk !== false}">🚶 Que caminen hasta la vitrina</button><button class="matbtn" type="button" id="hCashBtn" aria-pressed="${brand.cashier !== false}">🧺 Cajera con canastito</button>`;
     const cb = $('helperColors'); if(cb) cb.innerHTML = `<span class="note" style="margin:0">Color de la ropa:</span>` + HCOLORS.map(c => `<button class="sw" type="button" data-hcol="${c}" style="--c:${c || 'var(--accent)'}" aria-pressed="${(brand.helperColor || '') === c}" aria-label="${c ? 'Color ' + c : 'Color de mi marca'}" title="${c ? '' : 'Color de mi marca'}"></button>`).join('') + `<label class="sw custom" title="Otro color"><input type="color" id="hColCustom" value="${brand.helperColor || '#6d28d9'}" aria-label="Otro color"></label>`;
     $('hMic').hidden = !(window.SpeechRecognition || window.webkitSpeechRecognition);
+    renderOwnerPanel(); ownGreetSoon();
+  }
+  function renderOwnerPanel(){
+    if(!document.getElementById('ownerBox')) return;
+    const o = brand.owner || {}, act = document.activeElement;
+    $('owPrev').style.backgroundImage = o.photo ? `url("${o.photo}")` : ''; $('owPrev').textContent = o.photo ? '' : '';
+    $('owPhotoLbl').textContent = o.photo ? 'Cambiar la foto' : 'Subir mi foto'; $('owDel').hidden = !o.photo;
+    if(act !== $('b-owname')) $('b-owname').value = o.name || '';
+    if(act !== $('b-owgreet')) $('b-owgreet').value = o.greet || '';
+    $('b-owsex').value = o.male ? 'm' : 'f';
+    $('owAuto').setAttribute('aria-pressed', String(o.auto !== false));
+  }
+  // la foto: recorte cuadrado (un poco hacia arriba, donde suele estar la cara), chiquita para que pese poco
+  function ownPhoto(file){
+    return new Promise((res, rej) => { const u = URL.createObjectURL(file), im = new Image();
+      im.onload = () => { const w = im.naturalWidth, h = im.naturalHeight, sz = Math.min(w, h), c = document.createElement('canvas'); c.width = c.height = 320;
+        c.getContext('2d').drawImage(im, (w - sz) / 2, h > w ? (h - sz) * 0.18 : 0, sz, sz, 0, 0, 320, 320); URL.revokeObjectURL(u); res(c.toDataURL('image/jpeg', 0.86)); };
+      im.onerror = e => { URL.revokeObjectURL(u); rej(e); }; im.src = u; });
+  }
+  const ownSet = (k, v) => { brand.owner = Object.assign({}, brand.owner || {}, {[k]: v}); save(); };
+  if(document.getElementById('ownerBox')){
+    $('b-owphoto').addEventListener('change', async e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if(!f) return;
+      try{ ownSet('photo', await ownPhoto(f)); ownGreeted = false; renderHelpers(); $('owMsg').textContent = '¡Listo! Ya aparecés en tu tienda. Tocá “Ver como cliente” para ver cómo saludás.'; }catch(err){ $('owMsg').textContent = 'No pude abrir esa foto. Probá con otra.'; } });
+    $('owDel').addEventListener('click', () => { if(brand.owner) delete brand.owner.photo; save(); renderHelpers(); $('owMsg').textContent = 'Listo, ya no aparecés en la tienda.'; });
+    $('b-owname').addEventListener('input', e => { ownSet('name', e.target.value.trim()); renderHelpers(); });
+    $('b-owgreet').addEventListener('input', e => ownSet('greet', e.target.value));
+    $('b-owsex').addEventListener('change', e => { ownSet('male', e.target.value === 'm'); renderHelpers(); });
+    $('owAuto').addEventListener('click', () => { ownSet('auto', !(brand.owner && brand.owner.auto !== false)); renderOwnerPanel(); });
+  }
+  // el saludo al entrar: un globito al lado de su muñequito (la voz arranca cuando el cliente la toca: el celular no deja hablar sin un toque)
+  let ownGreeted = false, ownT = null;
+  function ownGreetSoon(){
+    if(ownGreeted || !ownOn() || brand.owner.auto === false || !(PUBLIC || clientMode)) return;
+    let key = ''; try{ key = 'v360-owhi-' + location.pathname; if(PUBLIC && sessionStorage.getItem(key)) return; }catch(e){}
+    clearTimeout(ownT);
+    ownT = setTimeout(() => {
+      if(ownGreeted || !ownOn() || !(PUBLIC || clientMode)) return;
+      const av = $('hRow').querySelector('[data-hav="duena"]'); if(!av || $('helpers').hidden) return;
+      ownGreeted = true; try{ if(PUBLIC) sessionStorage.setItem(key, '1'); }catch(e){}
+      const old = document.querySelector('.owbub'); if(old) old.remove();
+      const b = document.createElement('div'); b.className = 'owbub'; b.setAttribute('role', 'status');
+      b.innerHTML = `<b>${esc(ownName())} · ${ownRole() === 'el dueño' ? 'Dueño' : 'Dueña'}</b>${esc(trSay(ownGreet()))}<br><button class="owgo" type="button">▶ Escuchame y te muestro la tienda</button><button class="owx" type="button" aria-label="Cerrar">✕</button>`;
+      av.closest('.hline').appendChild(b);
+      av.classList.add('talking'); setTimeout(() => av.classList.remove('talking'), 2500);
+      const close = () => { clearTimeout(t); b.remove(); };
+      const t = setTimeout(close, 14000);
+      b.querySelector('.owx').onclick = close;
+      b.querySelector('.owgo').onclick = () => { close(); hOpen('duena'); };
+    }, 1800);
   }
   document.addEventListener('click', e => {
     const a = e.target.closest('[data-hset]'), c = e.target.closest('[data-hcol]');
@@ -6931,7 +7019,8 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     hCur = id; $('hPanel').hidden = false;
     $('hChips').innerHTML = (cartCount() ? `<button class="matbtn" type="button" data-hcaja="1">🧾 Ir a la caja (${cartCount()})</button>` : '') + [['🏬 Ver vitrinas', 'vitrinas'], ['🔥 Ofertas', 'ofertas'], ['📱 WhatsApp', 'me pasas el numero'], ['🚚 Envíos', 'como hacen los envios'], ['💳 Cómo pago', 'como pago'], ...visCats().slice(0, 4).map(c => [c.name, 'mostrame ' + c.name])].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${esc(q)}">${esc(t)}</button>`).join('');
     $('hRow').querySelectorAll('.hav').forEach(b => b.classList.toggle('on', b.dataset.hav === id));
-    renderHMode(); hShow([]); hSpeak(M('hello_pick', {name: HELPERS[id].name}));
+    const ob = document.querySelector('.owbub'); if(ob) ob.remove();
+    renderHMode(); hShow([]); hSpeak(id === 'duena' ? ownGreet() : M('hello_pick', {name: HELPERS[id].name}));
   }
   $('hRow').addEventListener('click', e => {
     const b = e.target.closest('[data-hav]'); if(b) hOpen(b.dataset.hav);
