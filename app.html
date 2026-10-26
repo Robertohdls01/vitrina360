@@ -428,7 +428,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500&family=Bebas+Neue&family=Righteous&family=Permanent+Marker&family=Fredoka:wght@600&family=Pacifico&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500&family=Bebas+Neue&family=Righteous&family=Permanent+Marker&family=Fredoka:wght@600&family=Pacifico&display=swap">
 <style>
 /* Layout: vitrina cilíndrica 3D arriba (se gira arrastrando), abajo ficha del producto + formulario de carga */
 :root{
@@ -442,8 +442,8 @@
   --price-bg:#14231f; --price-ink:#f6e7b8; --price-hole:#d8d0bd;
   --room-a:#f6f9fb; --room-b:#c3cdd4; --seam:rgba(255,255,255,.85); --floor-a:#e1e7eb; --floor-b:#a9b5bd; --stage-label:#46535b;
   --d-room-a:#f6f9fb; --d-room-b:#c3cdd4; --d-seam:rgba(255,255,255,.85); --d-floor-a:#e1e7eb; --d-floor-b:#a9b5bd; --d-stage-label:#46535b; --scrim:rgba(14,24,21,.6); --veil:rgba(237,240,236,.5); --wa:#1a8d4f; --wa-ink:#ffffff;
-  --display:"Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
-  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --display:"Plus Jakarta Sans", "Bricolage Grotesque", system-ui, sans-serif;
+  --body:"Inter", "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
@@ -1651,6 +1651,43 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
 .catstrip .mini.cur .mstage{outline:3px solid var(--accent);outline-offset:2px}
 .catstrip .mini.cur .plaque{color:var(--accent)}
 @media (max-width:700px){.catstrip{--cw:58px;--mp:260px;gap:8px}.catstrip .mini{flex-basis:84px}.catstrip .plaque{font-size:10.5px}}
+
+/* ===== Imagen 2026: más moderna y llamativa (va al final para mandar sobre lo anterior) ===== */
+:root{--r-lg:22px;--r-md:16px;--glow:0 18px 40px -18px color-mix(in srgb,var(--accent) 55%,transparent);
+  --soft:0 1px 2px rgba(16,24,20,.06),0 8px 24px -12px rgba(16,24,20,.22);--grad:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 62%,#7fe3d0))}
+body{background:radial-gradient(1200px 600px at 10% -10%,color-mix(in srgb,var(--accent) 14%,transparent),transparent 60%),radial-gradient(900px 500px at 110% 10%,color-mix(in srgb,var(--brass,#b98e36) 12%,transparent),transparent 60%),var(--bg);background-attachment:fixed;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3,.plaque{letter-spacing:-.02em}
+header h1,#brandName{font-family:var(--display);font-weight:800;background:linear-gradient(120deg,var(--ink) 30%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s,background-color .18s,border-color .18s;box-shadow:var(--soft);border-color:color-mix(in srgb,var(--line) 70%,transparent);background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:saturate(1.4) blur(8px);-webkit-backdrop-filter:saturate(1.4) blur(8px)}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:translateY(0) scale(.97)}
+.btn.primary{background:var(--grad);border-color:transparent;color:var(--accent-ink,#fff);box-shadow:var(--glow)}
+.btn.wa{box-shadow:0 14px 30px -16px rgba(26,141,79,.8)}
+#back{padding:9px 16px;font-size:14px}
+.sarrow{background:color-mix(in srgb,var(--surface) 72%,transparent)!important;color:var(--accent)!important;border:1px solid color-mix(in srgb,var(--line) 60%,transparent)!important;backdrop-filter:blur(10px) saturate(1.5);-webkit-backdrop-filter:blur(10px) saturate(1.5);box-shadow:0 10px 26px -12px rgba(0,0,0,.35)!important;width:44px!important;height:44px!important;font-size:24px!important}
+.sarrow:active{transform:translateY(-50%) scale(.92)}
+.sdots button.on{background:var(--grad)}
+.mstage{border-radius:var(--r-md);box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 18px 36px -22px rgba(16,30,25,.45)}
+.sitem.on .mstage{box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 26px 50px -24px color-mix(in srgb,var(--accent) 60%,rgba(0,0,0,.4))}
+.sitem .plaque{font-size:15px;font-weight:800}
+.stage{border-radius:var(--r-lg);box-shadow:0 30px 60px -34px rgba(16,30,25,.55)}
+.sbox{background:color-mix(in srgb,var(--surface) 82%,transparent)!important;backdrop-filter:blur(10px) saturate(1.4);-webkit-backdrop-filter:blur(10px) saturate(1.4);border-color:color-mix(in srgb,var(--line) 60%,transparent)!important;box-shadow:var(--soft)}
+.sbox:focus-within{border-color:var(--accent)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 18%,transparent)}
+.cartfab{background:var(--grad)!important;color:#fff!important;box-shadow:var(--glow)!important;padding:13px 20px}
+.cartfab .n{background:#fff;color:var(--accent)}
+.panel,.sheet,.card,.hpanel{border-radius:var(--r-lg)}
+.sheet,.hpanel{box-shadow:0 30px 70px -30px rgba(10,20,16,.55)}
+.modal{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.price{font-family:var(--display);letter-spacing:-.02em}
+.storechip,.chip{transition:transform .15s}
+.storechip:active,.chip:active{transform:scale(.96)}
+input[type=text],input[type=search],input[type=tel],input[type=email],input[type=number],textarea,select{transition:border-color .15s,box-shadow .15s}
+input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 18%,transparent)}
+#shopView .shopbar{background:color-mix(in srgb,var(--bg) 70%,transparent)!important;backdrop-filter:blur(14px) saturate(1.4);-webkit-backdrop-filter:blur(14px) saturate(1.4);border-radius:0 0 18px 18px}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.sitem,.mini,.shop,.ordcard{animation:rise .45s cubic-bezier(.2,.8,.2,1) both}
+@media (prefers-reduced-motion:reduce){.sitem,.mini,.shop,.ordcard{animation:none}.btn{transition:none}}
+@media (prefers-color-scheme:dark){header h1,#brandName{background:linear-gradient(120deg,#fff 30%,color-mix(in srgb,var(--accent) 70%,#fff))}}
 </style>
 
 <div class="clientbar" id="clientBar" hidden>
