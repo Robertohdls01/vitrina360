@@ -1907,9 +1907,10 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
         <p class="note" style="margin:4px 0 0">Subí todas las fotos juntas, de productos variados (hasta 40). Claude reconoce cada producto, le escribe el nombre y las características, y lo manda solo a su vitrina. Al final ponés los precios. ¿Vendés por catálogo? Usá “📖 Foto de catálogo”: una foto de la página entera y separa cada producto, con su precio si figura.</p>
       </div>
       <div class="row">
-        <label class="btn primary" for="q-photos" style="display:inline-flex">Elegir fotos<input type="file" id="q-photos" accept="image/*" multiple class="vh"></label>
+        <p class="qtip" style="flex-basis:100%;margin:0 0 4px;padding:8px 12px;border-radius:12px;background:color-mix(in srgb,var(--accent) 12%,var(--surface));border:1px solid var(--accent);font-size:13.5px;line-height:1.35">💡 <strong>Rinde más:</strong> sacale foto a una página del catálogo o a varios productos juntos. La IA los carga todos de una vez y <strong>cuenta como 1 sola foto</strong> de tu cupo.</p>
+        <label class="btn primary" for="q-catalog" style="display:inline-flex">📖 Foto de catálogo o varios productos juntos<input type="file" id="q-catalog" accept="image/*" multiple class="vh"></label>
+        <label class="btn" for="q-photos" style="display:inline-flex">Elegir fotos sueltas<input type="file" id="q-photos" accept="image/*" multiple class="vh"></label>
         <label class="btn" for="q-folder" style="display:inline-flex">📁 Subir una carpeta<input type="file" id="q-folder" webkitdirectory directory multiple class="vh"></label>
-        <label class="btn" for="q-catalog" style="display:inline-flex">📖 Foto de catálogo<input type="file" id="q-catalog" accept="image/*" multiple class="vh"></label>
         <button class="btn" type="button" id="qStop" hidden>Detener</button>
       </div>
       <label class="qbrand" for="qBrand">Marca del catálogo <small>(opcional, para “📖 Foto de catálogo”)</small>
