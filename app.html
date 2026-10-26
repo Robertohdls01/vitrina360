@@ -1898,6 +1898,7 @@ html[data-mat="plastico"] .col .wall{border-left-width:6px;border-right-width:6p
       </span>
       <button class="btn" type="button" id="editBtn" aria-pressed="false">✥ Mover vitrinas</button>
       <button class="btn primary" type="button" id="quickBtn" aria-expanded="false" aria-controls="quickPanel">✦ Carga rápida</button>
+      <button class="btn" type="button" id="qCatBtn" title="Una foto con muchos productos cuenta como 1 sola foto de tu cupo">📖 Foto de catálogo</button>
       <span class="note" id="editHint" hidden></span>
       <button class="linkbtn" type="button" id="freeReset" hidden>Volver a acomodar</button>
     </div>
@@ -4111,6 +4112,8 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     afterAutoCats();
     if($('qFlyer').checked){ brand.layout = 'folleto'; brand.flyerPer = +$('qFlyerPer').value; save(); renderHome(); }
   }
+  // Atajo de arriba: abre la carga rápida y elige directo la foto de catálogo (la que más rinde)
+  if(document.getElementById('qCatBtn')) $('qCatBtn').addEventListener('click', () => { if($('quickPanel').hidden) $('quickBtn').click(); $('q-catalog').click(); });
   // ---- Foto de catálogo: una página con muchos productos ----
   function loadImg(file){
     return new Promise((res, rej) => { const url = URL.createObjectURL(file), im = new Image(); im.onload = () => res({im, url}); im.onerror = () => { URL.revokeObjectURL(url); rej(new Error('img')); }; im.src = url; });
@@ -5552,6 +5555,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const sb = document.getElementById('seasonBar'), eh = document.getElementById('editHint');
     [...ht.children].forEach(c => { if(c !== sb && c !== eh) row.appendChild(c); });
     const qb = document.getElementById('quickBtn'); if(qb) row.insertBefore(qb, row.firstChild);   // lo más importante primero: cargar productos
+    const qc = document.getElementById('qCatBtn'); if(qc && qb) row.insertBefore(qc, qb.nextSibling);   // y al lado, la foto de catálogo (la que más rinde)
     ht.insertBefore(row, ht.firstChild); if(sb) ht.appendChild(sb); if(eh) ht.appendChild(eh);
     ht.classList.add('hrowed');
   })();
