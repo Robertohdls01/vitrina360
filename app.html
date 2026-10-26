@@ -1611,6 +1611,10 @@ body.has-helpers .wrap{padding-bottom:170px}
 .hriders:empty{display:none}
 .hrd{position:relative;display:grid;justify-items:center;width:calc(44px * var(--dk, 1));cursor:default}
 .hrd svg{width:calc(44px * var(--dk, 1));height:auto;filter:drop-shadow(0 3px 4px rgba(0,0,0,.2));animation:hbob 3.6s ease-in-out infinite}
+.shipbox.needpick{border-color:var(--accent)!important;box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 25%,transparent)}
+.shipbox.flash{animation:shipflash .45s ease-in-out 3}
+@keyframes shipflash{50%{background:color-mix(in srgb,var(--accent) 14%,var(--surface))}}
+.pickme{display:block;font-weight:700;color:var(--accent);margin:2px 0 4px}
 .carttotal.sub{font-size:14px;color:var(--muted);padding-top:0;padding-bottom:0;border:0}
 .hrd .hmoto{position:absolute;right:calc(-12px * var(--dk, 1));bottom:calc(12px * var(--dk, 1));font-size:calc(20px * var(--dk, 1));filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
 .hrd .hname{font-size:calc(9.5px * max(var(--dk, 1), .8))}
@@ -5977,7 +5981,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         ${allService() ? `<div class="shipbox"><strong>📅 ${esc(L('¿Qué día y horario preferís?', 'Which day and time do you prefer?', 'Qual dia e horário você prefere?', 'Quel jour et quelle heure préférez-vous ?', 'Welcher Tag und welche Uhrzeit passen dir?', 'Che giorno e orario preferisci?', '你希望哪天什么时间？', 'ご希望の日時は？'))}</strong>
           <input class="bfield" type="text" data-b="turno" maxlength="120" placeholder="${esc(L('Ej: sábado a la mañana, o martes 18 h', 'E.g.: Saturday morning, or Tuesday 6 pm', 'Ex: sábado de manhã, ou terça 18 h', 'Ex. : samedi matin, ou mardi 18 h', 'z. B.: Samstagvormittag oder Dienstag 18 Uhr', 'Es.: sabato mattina, o martedì alle 18', '例如：周六上午，或周二18点', '例：土曜の午前、または火曜18時'))}" value="${esc(buyer.turno || '')}">
           <small class="note">${esc(L('El comercio te confirma el turno.', 'The store will confirm your appointment.', 'A loja confirma o horário.', 'Le commerce vous confirme le rendez-vous.', 'Das Geschäft bestätigt deinen Termin.', 'Il negozio ti conferma l\'appuntamento.', '商家会确认你的预约。', 'お店が予約を確定します。'))}</small>${brand.svcHome ? `<span class="note" style="flex-basis:100%;margin:4px 0 0">📍 ${esc(L('¿Dónde?', 'Where?', 'Onde?'))}</span><label class="shipopt"><input type="radio" name="lugar" value="local" ${buyer.lugar !== 'casa' ? 'checked' : ''}><span>${esc(L('En el local', 'At the shop', 'No local'))}</span></label><label class="shipopt"><input type="radio" name="lugar" value="casa" ${buyer.lugar === 'casa' ? 'checked' : ''}><span>🏠 ${esc(L('A domicilio', 'At my home', 'Em domicílio'))}</span>${brand.svcCost ? `<small>+ ${esc(fmt(priceNum('$' + brand.svcCost)))}</small>` : ''}</label>` : ''}</div>` : ''}
-        ${shipList().length && !noShip() ? `<div class="shipbox"><strong>¿Cómo lo recibís?</strong>${shipList().map(o => `<label class="shipopt"><input type="radio" name="ship" value="${o.id}" ${shipSel===o.id?'checked':''}><span>${esc(o.name)}</span>${o.detail ? `<small>${esc(o.detail)}</small>` : ''}${o.id === 'moto' && brand.delay ? `<small>${esc(M('delay_now', {d: delayTr(brand.delay)}))}</small>` : ''}</label>`).join('')}</div>` : ''}
+        ${shipList().length && !noShip() ? `<div class="shipbox${!shipSel ? ' needpick' : ''}" id="shipBox"><strong>¿Cómo lo recibís?</strong>${!shipSel ? `<span class="note pickme">👉 ${esc(L('Elegí una opción: envío o retiro', 'Pick one: delivery or pickup', 'Escolha: entrega ou retirada'))}</span>` : ''}${shipList().map(o => `<label class="shipopt"><input type="radio" name="ship" value="${o.id}" ${shipSel===o.id?'checked':''}><span>${esc(o.name)}</span>${o.detail ? `<small>${esc(o.detail)}</small>` : ''}${o.id === 'moto' && brand.delay ? `<small>${esc(M('delay_now', {d: delayTr(brand.delay)}))}</small>` : ''}</label>`).join('')}</div>` : ''}
         <div class="shipbox"><strong>Tus datos</strong>
           <input class="bfield" type="text" data-b="name" maxlength="80" autocomplete="name" placeholder="Nombre y apellido" value="${esc(buyer.name)}">
           <input class="bfield" type="tel" data-b="tel" maxlength="30" autocomplete="tel" placeholder="Teléfono" value="${esc(buyer.tel)}">
@@ -6185,6 +6189,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   // el pedido se guarda y el carrito queda vacío para la próxima compra.
   document.addEventListener('click', e => {
     const a = e.target.closest('[data-c="sent"]'); if(!a) return;
+    if(shipMissing()){ e.preventDefault(); e.stopImmediatePropagation(); return; }
     const o = SHIP_OPTS.find(x => x.id === shipSel), url = a.href;
     const paidNow = payPick.mode === 'ahora';
     sendOrder(o).then(r => { if(r && r.ref) trackStart({ref: r.ref, k: r.k, slug: window.VITRINA_SLUG, paid: paidNow, moto: !!(o && o.id === 'moto'), retiro: !!(o && o.id === 'retiro'), demora: brand.delay || '', start: Date.now()}); });
@@ -6235,8 +6240,17 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     setTimeout(() => { if(!wentAway && document.visibilityState === 'visible') go(); }, 2500);
     setTimeout(() => { if(!done){ done = true; document.removeEventListener('visibilitychange', onVis); } }, 30 * 60e3);
   }
+  // si hay que elegir envío o retiro y no lo eligió, se lo pide (y Caro lo dice)
+  function shipMissing(){
+    if(noShip() || shipList().length < 2 || shipSel) return false;
+    const bx = document.getElementById('shipBox'); if(bx){ bx.classList.add('needpick', 'flash'); bx.scrollIntoView({block: 'center', behavior: 'smooth'}); setTimeout(() => bx.classList.remove('flash'), 1400); }
+    const t = L('Antes, elegí cómo lo recibís: ' + shipList().map(o => trCat(o.name)).join(' o ') + '.', 'First, choose how you get it: ' + shipList().map(o => trCat(o.name)).join(' or ') + '.', 'Antes, escolha como recebe: ' + shipList().map(o => trCat(o.name)).join(' ou ') + '.');
+    const m = document.getElementById('cartMsg'); if(m) m.textContent = t;
+    try{ if(typeof cajeraOn === 'function' && cajeraOn()) cSpeak(t); }catch(e){}
+    return true;
+  }
   function openCart(){ if(!PUBLIC && mpLive === null) try{ mpRefresh(); }catch(e){}
-    cartLastFocus = document.activeElement; const sl = shipList(); if(!sl.find(o => o.id === shipSel)) shipSel = sl[0] ? sl[0].id : null; renderCart(); $('cartModal').hidden = false; document.documentElement.style.overflow = 'hidden'; $('cartSheet').querySelector('.close').focus(); }
+    cartLastFocus = document.activeElement; const sl = shipList(); if(!sl.find(o => o.id === shipSel)) shipSel = sl.length === 1 ? sl[0].id : null; renderCart(); $('cartModal').hidden = false; document.documentElement.style.overflow = 'hidden'; $('cartSheet').querySelector('.close').focus(); }
   function closeCart(){ $('cartModal').hidden = true; document.documentElement.style.overflow = ''; try{ cartLastFocus && cartLastFocus.focus(); }catch(e){} }
   function copyText(text, msgEl, okMsg){
     const done = () => { if(msgEl) msgEl.textContent = okMsg; };
@@ -6260,6 +6274,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       else { b.dataset.armed = '1'; b.textContent = '¿Seguro? Tocá de nuevo'; }
     }
     else if(c === 'mppay'){
+      if(shipMissing()) return;
       const o = SHIP_OPTS.find(x => x.id === shipSel);
       if(!PUBLIC || !window.VITRINA_SLUG){ $('cartMsg').textContent = L('El pago con Mercado Pago funciona en tu tienda publicada (el link que compartís), no en el panel.', 'Mercado Pago payment works in your published store.', 'Funciona na sua loja publicada.'); return; }
       b.disabled = true; $('cartMsg').textContent = L('Preparando tu pago…', 'Preparing your payment…', 'Preparando seu pagamento…');
@@ -6292,7 +6307,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(e.target.name === 'paymode'){ payPick.mode = e.target.value; const pb = $('cartSheet').querySelector('.paybox'); if(pb) pb.hidden = payPick.mode !== 'ahora';
       const mb = $('cartSheet').querySelector('[data-c="mppay"]'), wb = $('cartSheet').querySelector('[data-c="sent"]'); if(mb){ mb.hidden = payPick.mode !== 'mp'; if(wb) wb.hidden = payPick.mode === 'mp'; }
       cartWa(); }
-    if(e.target.name === 'ship'){ shipSel = e.target.value; const ab = $('cartSheet').querySelector('.addrbox'); if(ab) ab.hidden = !needAddr(); cartWa(); }
+    if(e.target.name === 'ship'){ shipSel = e.target.value; const sc = $('cartSheet').scrollTop; renderCart(); $('cartSheet').scrollTop = sc; return; }
     if(e.target.name === 'gift'){ gift.on = e.target.value === 'si'; const gb = $('cartSheet').querySelector('.giftbox'); if(gb) gb.hidden = !gift.on; cartWa(); }
     if(e.target.name === 'giftwho'){ gift.who = e.target.value; cartWa(); }
   });
