@@ -1458,6 +1458,9 @@ body.clientmode .decoshop{display:none}
 .hav svg{width:62px;height:auto;animation:hbob 3.2s ease-in-out infinite;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2))}
 .hav + .hav svg{animation-delay:-1.6s}
 .hav.on svg{filter:drop-shadow(0 0 6px var(--accent)) drop-shadow(0 4px 6px rgba(0,0,0,.2))}
+.hlive{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:10px}
+.hlive > div{display:grid;gap:6px}
+.hlph{width:44px;height:44px;border-radius:50%;background:var(--surface) center/cover no-repeat;border:2px solid var(--accent);display:grid;place-items:center;font-size:20px}
 .owprev{width:56px;height:56px;border-radius:50%;background:var(--bg) center/cover no-repeat;border:2px solid var(--accent);display:grid;place-items:center;font-size:24px}
 .owprev:empty::before{content:"🙂"}
 .hav.owner .hname::before{content:"★ ";color:var(--accent)}
@@ -6975,8 +6978,27 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     hCajaChip(); hAskCaja = true;
     hSpeak(M('added', {p: p.name}));
   }
+  // ---- Pasar con la persona de verdad: WhatsApp de la dueña con la consulta ya escrita ----
+  function ownWaText(q){
+    const p = hLast, who = ownOn() ? ownName() : '';
+    return `¡Hola${who ? ' ' + who : ''}! Te escribo desde tu tienda${brand.name ? ' ' + brand.name : ''} en Vitrina 360.` +
+      (p ? ` Estoy mirando: ${p.name}${curPrice(p) ? ' (' + curPrice(p) + ')' : ''}.` : '') +
+      (q ? ` Quería saber: ${q}` : ' Quería hacerte una consulta.');
+  }
+  function hHandoff(q){
+    const url = waHref(ownWaText(q));
+    if(!url){ hShow([]); return hSpeak('Todavía no tengo cargado el WhatsApp de la tienda. Probá preguntarme por un producto, una vitrina o las ofertas.'); }
+    const me = hCur === 'duena', who = ownOn() ? ownName() : '';
+    $('hRes').innerHTML = `<div class="hlive">${ownOn() ? `<span class="hlph" style="background-image:url('${brand.owner.photo}')"></span>` : '<span class="hlph">💬</span>'}<div style="min-width:0"><strong>${me ? 'Hablá conmigo por WhatsApp' : who ? 'Hablá con ' + esc(who) : 'Hablá con el negocio'}</strong><span class="note">Se abre WhatsApp con tu consulta ya escrita${hLast ? ' y el producto que estás mirando' : ''}. Solo tocás enviar.</span>
+      <a class="btn wa" href="${url}" target="_blank" rel="noopener">💬 Escribir por WhatsApp</a></div></div>`;
+    if(!q) return hSpeak(me ? '¡Claro! Tocá el botón de WhatsApp y hablamos directo.' : who ? `¡Claro! Te comunico con ${who}, ${ownRole()}. Tocá el botón de WhatsApp y le escribís directo.` : '¡Claro! Tocá el botón y te comunico directo con el negocio por WhatsApp.');
+    hSpeak(me ? 'Eso te lo respondo mejor yo en persona. Tocá el botón de WhatsApp y tu consulta me llega directo.'
+      : who ? `Eso lo sabe mejor ${who}, ${ownRole()}. Te comunico directo con ${brand.owner.male ? 'él' : 'ella'} por WhatsApp: tocá el botón y le llega tu consulta.`
+      : 'Eso te lo responden mejor en el negocio. Tocá el botón y te comunico directo por WhatsApp, con tu consulta ya escrita.');
+  }
   function hAnswer(q){
     const n = norm(q).trim();
+    if(/\b(hablar|hablo|comunicar|comunicame|contactar|pasame|atender|atienda|conectar)\b.*\b(duen[oa]|persona|alguien|humano|encargad[oa]|real|vos|ella|el|responsable)\b/.test(n) || /\b(una persona|un humano|persona real|la duena|el dueno|la encargada|el encargado)\b/.test(n) || (ownOn() && n.length < 40 && norm(ownName()).length > 2 && /\b(hablar|hablo|comunicar|pasame|contactar)\b/.test(n) && n.includes(norm(ownName())))) return hHandoff('');
     if(hAskCaja && !hPending && /^(si|sii+|sip|dale|ok|okey|bueno|claro|de una|llevame|vamos|listo|a la caja|caja|por favor)\b/.test(n)){ hAskCaja = false; return hToCaja(); }
     if(hAskCaja && !hPending && /^(no|nop|algo mas|quiero (ver )?algo mas|todavia no|seguir|sigo mirando)\b/.test(n)){ hAskCaja = false; return hSpeak('¡Dale! ¿Qué más querés ver? Decime un producto o una vitrina.'); }
     hAskCaja = false;
@@ -7013,11 +7035,12 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       if(found.length === 1) hYesNo(p);
       return hSpeak(found.length === 1 ? `Acá tenés ${p.name}${p.promo ? ', ' + p.promo : ''}${curPrice(p) ? ', a ' + curPrice(p) : ''}. ¿Lo agrego a tu pedido?` : `Encontré ${found.length} opciones. La primera es ${p.name}${curPrice(p) ? ', a ' + curPrice(p) : ''}. Tocá la que quieras ver en grande.`);
     }
+    if(waNumber() && n.split(' ').length > 2) return hHandoff(q);
     hShow([]); hSpeak(M('unknown', {wa: String(brand.wa || '').trim() ? M('write_us', {wa: brand.wa}) : ''}));
   }
   function hOpen(id){
     hCur = id; $('hPanel').hidden = false;
-    $('hChips').innerHTML = (cartCount() ? `<button class="matbtn" type="button" data-hcaja="1">🧾 Ir a la caja (${cartCount()})</button>` : '') + [['🏬 Ver vitrinas', 'vitrinas'], ['🔥 Ofertas', 'ofertas'], ['📱 WhatsApp', 'me pasas el numero'], ['🚚 Envíos', 'como hacen los envios'], ['💳 Cómo pago', 'como pago'], ...visCats().slice(0, 4).map(c => [c.name, 'mostrame ' + c.name])].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${esc(q)}">${esc(t)}</button>`).join('');
+    $('hChips').innerHTML = (cartCount() ? `<button class="matbtn" type="button" data-hcaja="1">🧾 Ir a la caja (${cartCount()})</button>` : '') + (waNumber() ? `<button class="matbtn" type="button" data-hlive="1">💬 ${ownOn() ? (id === 'duena' ? 'Hablar conmigo' : 'Hablar con ' + esc(ownName())) : 'Hablar con una persona'}</button>` : '') + [['🏬 Ver vitrinas', 'vitrinas'], ['🔥 Ofertas', 'ofertas'], ['📱 WhatsApp', 'me pasas el numero'], ['🚚 Envíos', 'como hacen los envios'], ['💳 Cómo pago', 'como pago'], ...visCats().slice(0, 4).map(c => [c.name, 'mostrame ' + c.name])].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${esc(q)}">${esc(t)}</button>`).join('');
     $('hRow').querySelectorAll('.hav').forEach(b => b.classList.toggle('on', b.dataset.hav === id));
     const ob = document.querySelector('.owbub'); if(ob) ob.remove();
     renderHMode(); hShow([]); hSpeak(id === 'duena' ? ownGreet() : M('hello_pick', {name: HELPERS[id].name}));
@@ -7037,6 +7060,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(ad){ const p = products.find(x => x.id === ad.dataset.hadd); if(p){ hPending = p; hAddPending(); ad.textContent = '✓ Agregado'; ad.classList.add('done'); } }
     if(op){ $('hPanel').hidden = true; openModal(op.dataset.hopen); }
     const hs = e.target.closest('[data-hship]'); if(hs){ hShipSteps(hs.dataset.hship); return; }
+    if(e.target.closest('[data-hlive]')) return hHandoff('');
     if(e.target.closest('[data-hyes]')) return hAddPending();
     if(e.target.closest('[data-hcaja]')) return hToCaja();
     if(e.target.closest('[data-hno]')){ hPending = null; $('hRes').querySelectorAll('.hyn').forEach(x => x.remove()); return hSpeak('¡Dale! Seguimos mirando.'); }
