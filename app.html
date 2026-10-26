@@ -5038,7 +5038,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       needAddr() && buyer.dir.trim() && L('Dirección', 'Address', 'Endereço') + ': ' + buyer.dir.trim(), needAddr() && buyer.ref.trim() && L('Referencias', 'Notes', 'Referências') + ': ' + buyer.ref.trim()].filter(Boolean);
     const extras = g + (datos.length ? '\n\n' + datos.join('\n') : '') + (payTxt() ? '\n\n💳 ' + payTxt() + '.' : '');
     return L(`Hola ${storeName()}! Quiero hacer este pedido:`, `Hi ${storeName()}! I'd like to place this order:`, `Olá ${storeName()}! Quero fazer este pedido:`) + `\n${lines.join('\n')}\n\nTotal: ${fmt(t)}${extra}${ship}${extras}\n\n` +
-      (payPick.mode === 'ahora' ? L('Te adjunto el comprobante 👇', 'Receipt attached 👇', 'Segue o comprovante 👇') : so ? L('¿Cómo coordinamos el pago?', 'How do we arrange payment?', 'Como combinamos o pagamento?') : L('¿Cómo coordinamos el pago y la entrega?', 'How do we arrange payment and delivery?', 'Como combinamos o pagamento e a entrega?'));
+      (payPick.mode === 'ahora' ? L('Ya pagué: te adjunto el comprobante 👇 Revisá que te haya llegado y despachá el pedido 🙌', 'Already paid: receipt attached 👇 Please check it arrived and send the order 🙌', 'Já paguei: segue o comprovante 👇 Confira se chegou e despache o pedido 🙌') : so ? L('¿Cómo coordinamos el pago?', 'How do we arrange payment?', 'Como combinamos o pagamento?') : L('¿Cómo coordinamos el pago y la entrega?', 'How do we arrange payment and delivery?', 'Como combinamos o pagamento e a entrega?'));
   }
   function updateFab(){
     const n = cartItems().reduce((a, it) => a + it.q, 0);
@@ -5438,7 +5438,12 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       $('cartModal').hidden = true; document.documentElement.style.overflow = '';
       const thanks = M('thanks', {store: storeName()});
       const moto = o && o.id === 'moto' && ridersOf().length;
-      const cMsg = moto ? `${thanks} ${deliveryLine()} ${M('any_wa')}` : `${thanks} ${o ? M('chose', {x: trCat(o.name)}) + ' ' : ''}${M('go_wa')}`;
+      // Pagó ahora: la cajera le confirma solita que su pedido va en camino y cuánto tarda
+      const paid = payPick.mode === 'ahora', dl = delayTr(brand.delay || '20 a 30 minutos');
+      const paidMsg = !paid ? '' : o && /moto|envio|delivery|cadete/.test(o.id) || moto
+        ? `${thanks} ${L(`¡Tu pedido ya está en camino! 🛵 Tarda más o menos ${dl}, y puede demorar un poquito más. El comercio ya recibió tu pedido y tu comprobante por WhatsApp.`, `Your order is on its way! 🛵 It takes about ${dl}, maybe a little longer. The store already got your order and receipt on WhatsApp.`, `Seu pedido já está a caminho! 🛵 Leva mais ou menos ${dl}, pode demorar um pouquinho mais. A loja já recebeu seu pedido e comprovante pelo WhatsApp.`)}`
+        : `${thanks} ${L('¡Listo! El comercio ya recibió tu pedido y tu comprobante por WhatsApp. Te avisan cuando esté listo.', 'Done! The store got your order and receipt on WhatsApp. They\'ll let you know when it\'s ready.', 'Pronto! A loja recebeu seu pedido e comprovante pelo WhatsApp. Eles avisam quando estiver pronto.')}`;
+      const cMsg = paid ? paidMsg : moto ? `${thanks} ${deliveryLine()} ${M('any_wa')}` : `${thanks} ${o ? M('chose', {x: trCat(o.name)}) + ' ' : ''}${M('go_wa')}`;
       if(cajeraOn()){ $('cBubble').textContent = trSay(cMsg); $('cBubble').classList.add('show'); placeBubble(); sayWhenBack(() => cSpeak(cMsg)); }
       $('hPanel').hidden = false;
       if(o){ hInfo(`<strong>${esc(thanks)} ${esc(M('next', {x: trCat(o.name)}))}</strong><ol class="hsteps">${next.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`); if(!cajeraOn()) sayWhenBack(() => hSpeak(moto ? `${thanks} ${deliveryLine()}` : `${thanks} ${M('chose', {x: trCat(o.name)})} ${LANG === 'es' ? next.join(' ') : ''}`)); else $('hSay').textContent = thanks; }
