@@ -56,7 +56,13 @@ function prompt(tipo, nombre, detalle, conRef) {
 
 module.exports = async (req, res) => {
   const KEY = process.env.GEMINI_API_KEY;
-  if (req.method === 'GET') return res.status(200).json({ ok: !!KEY });
+  // si Google dijo que no hay saldo, el botón se esconde en todas las tiendas por 6 horas (y se vuelve a intentar solo)
+  if (req.method === 'GET') {
+    let ok = !!KEY;
+    if (ok && process.env.SUPABASE_SERVICE_KEY) { const f = await leer('sin-saldo.json'); if (f && Date.now() - f.t < 6 * 3600e3) ok = false; }
+    res.setHeader('Cache-Control', 'public, s-maxage=300');
+    return res.status(200).json({ ok });
+  }
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido.' });
   if (!KEY) return res.status(503).json({ error: 'El probador todavía no está activado en esta tienda.' });
   if (!process.env.SUPABASE_SERVICE_KEY) return res.status(503).json({ error: 'Todavía no está configurado.' });
@@ -100,7 +106,7 @@ module.exports = async (req, res) => {
   if (!r.ok) {
     const msg = String(j && j.error && j.error.message || '');
     console.error('probador', r.status, msg.slice(0, 300));
-    if (r.status === 429 || /quota|billing|exhausted|free tier/i.test(msg)) return res.status(503).json({ error: 'El probador está sin saldo por ahora. Si sos el dueño de Vitrina 360: hay que cargar saldo en Google AI Studio (Configurar prepago).', saldo: true });
+    if (r.status === 429 || /quota|billing|exhausted|free tier/i.test(msg)) { await guardar('sin-saldo.json', { t: Date.now(), msg: msg.slice(0, 200) }); return res.status(503).json({ error: 'El probador está sin saldo por ahora. Si sos el dueño de Vitrina 360: hay que cargar saldo en Google AI Studio (Configurar prepago).', saldo: true }); }
     if (r.status === 400 && /api key/i.test(msg)) return res.status(503).json({ error: 'La clave de Google no es válida. Revisá GEMINI_API_KEY en Vercel.' });
     return res.status(502).json({ error: 'La IA no pudo generar la imagen. Probá con otra foto, de frente y con buena luz.' });
   }
