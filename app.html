@@ -405,6 +405,8 @@
       // con un aviso de cuántas novedades hay (clientes nuevos que trajeron y comisiones para pagar)
       fetch('/api/vendedores?accion=admin', {headers: {Authorization: 'Bearer ' + ses.access_token}}).then(r => r.ok ? r.json() : null).then(j => { if(!j) return;
         const el = bar.querySelector('[data-admin]'); el.hidden = false;
+        // a la vista, al lado de "Mi cuenta" (no escondido en el menú)
+        const g0 = bar.querySelector('.grp'); if(g0 && g0.parentNode) g0.parentNode.insertBefore(el, g0.nextSibling);
         let visto = 0; try{ visto = +localStorage.getItem('v360-vend-visto') || 0; }catch(e){}
         const nuevos = (j.vendedores || []).reduce((n, v) => n + (v.clientes || []).filter(c => Date.parse(c.desde || 0) > visto).length, 0), deben = (j.vendedores || []).filter(v => v.total > 0).length;
         if(nuevos || deben) el.querySelector('a').textContent += ` (${nuevos ? '🔔 ' + nuevos : ''}${nuevos && deben ? ' · ' : ''}${deben ? '💰 ' + deben : ''})`;
