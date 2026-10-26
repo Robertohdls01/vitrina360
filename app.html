@@ -1611,6 +1611,7 @@ body.has-helpers .wrap{padding-bottom:170px}
 .hriders:empty{display:none}
 .hrd{position:relative;display:grid;justify-items:center;width:calc(44px * var(--dk, 1));cursor:default}
 .hrd svg{width:calc(44px * var(--dk, 1));height:auto;filter:drop-shadow(0 3px 4px rgba(0,0,0,.2));animation:hbob 3.6s ease-in-out infinite}
+.carttotal.sub{font-size:14px;color:var(--muted);padding-top:0;padding-bottom:0;border:0}
 .hrd .hmoto{position:absolute;right:calc(-12px * var(--dk, 1));bottom:calc(12px * var(--dk, 1));font-size:calc(20px * var(--dk, 1));filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
 .hrd .hname{font-size:calc(9.5px * max(var(--dk, 1), .8))}
 .hrd{cursor:pointer}
@@ -5153,7 +5154,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   // Formas de entrega. "r": monedas (países) donde aparece esa opción; sin "r", en todos lados.
   const SHIP_OPTS = [
     {id:'retiro', name:'Retiro en el local', ph:'Dirección y horario. Ej: Av. Colón 1234, de 10 a 19 h'},
-    {id:'moto', name:'Envío en moto (cadete)', ph:'Costo o zona. Ej: $2.500 dentro de la ciudad'},
+    {id:'moto', name:'Envío a domicilio (cadete)', ph:'Costo o zona. Ej: $2.500 dentro de la ciudad'},
     {id:'apps', name:'Delivery por app (PedidosYa, Rappi, Uber, DoorDash…)', ph:'Ej: lo pedimos por app, el costo lo paga el cliente'},
     {id:'domicilio', name:'Envío a domicilio (empresa de envíos)', ph:'Costo o zona. Ej: gratis en compras grandes'},
     {id:'correo', name:'Correo Argentino', ph:'Costo o aclaración. Ej: a todo el país, se cotiza', r:['ARS']},
@@ -5192,11 +5193,16 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   const needAddr = () => (!noShip() && !!shipSel && shipSel !== 'retiro') || svcHome();
   // Repartidores: lista con nombre y chico/chica (antes era un texto con nombres separados por coma).
   const riderListOf = () => Array.isArray(brand.riderList) ? brand.riderList : String(brand.riders || '').split(',').map(x => x.trim()).filter(Boolean).map(n => ({name: n, f: false}));
+  const VEH = {moto: '🛵', auto: '🚗', bici: '🚲'};
+  const vehOf = name => { const r = riderListOf().find(x => String(x.name || '').trim() === name); return r && VEH[r.v] ? r.v : 'moto'; };
   const ridersOf = () => riderListOf().map(r => String(r.name || '').trim()).filter(Boolean).slice(0, 8);
   const R_LOOK = [['#2b2118', '#d9a679'], ['#5a3825', '#f2c9a0'], ['#1a1a1a', '#8d5b3e'], ['#e3b35a', '#f6d5b8'], ['#a1332b', '#c98e6a'], ['#6b4a2b', '#f0c49b']];
   const riderChar = (name, i) => { const r = riderListOf().find(x => String(x.name || '').trim() === name) || {f: false}; const k = i == null ? Math.max(0, ridersOf().indexOf(name)) : i; const [hair, skin] = R_LOOK[k % R_LOOK.length]; return {name, female: !!r.f, hair, skin, style: 'helmet'}; };
   const MOTO_SVG = c => `<svg class="mg-moto" viewBox="0 0 100 60" aria-hidden="true"><circle cx="20" cy="48" r="10" fill="#222"/><circle cx="20" cy="48" r="4" fill="#bbb"/><circle cx="80" cy="48" r="10" fill="#222"/><circle cx="80" cy="48" r="4" fill="#bbb"/>
     <path d="M10 44h44l12-22h9l3 4h-7l-9 18h12c6 0 10 3 11 8H10z" fill="${c}"/><rect x="26" y="36" width="26" height="6" rx="3" fill="#111" opacity=".75"/><rect x="2" y="30" width="18" height="12" rx="3" fill="#e63946"/><path d="M73 22l6-8" stroke="#333" stroke-width="3" stroke-linecap="round"/><circle cx="90" cy="42" r="3" fill="#ffd54a"/></svg>`;
+  const CAR_SVG = c => `<svg class="mg-moto" viewBox="0 0 100 60" aria-hidden="true"><path d="M6 44v-8c0-3 2-5 5-6l12-3 10-11c2-2 4-3 7-3h24c3 0 5 1 7 3l9 11 8 2c3 1 6 4 6 8v7z" fill="${c}"/><path d="M36 18h12v11H27zM52 18h12l8 11H52z" fill="#cfe8ff"/><circle cx="26" cy="46" r="9" fill="#222"/><circle cx="26" cy="46" r="3.5" fill="#bbb"/><circle cx="76" cy="46" r="9" fill="#222"/><circle cx="76" cy="46" r="3.5" fill="#bbb"/><rect x="90" y="33" width="6" height="4" rx="2" fill="#ffd166"/></svg>`;
+  const BICI_SVG = c => `<svg class="mg-moto" viewBox="0 0 100 60" aria-hidden="true"><g fill="none" stroke="#222" stroke-width="4"><circle cx="22" cy="44" r="13"/><circle cx="78" cy="44" r="13"/></g><path d="M22 44l18-22h30l8 22M40 22l12 22h-30M52 44l18-22M36 16h10M68 16l2 6" fill="none" stroke="${c}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="58" y="6" width="18" height="12" rx="3" fill="#e63946"/></svg>`;
+  const vehSVG = (v, c) => v === 'auto' ? CAR_SVG(c) : v === 'bici' ? BICI_SVG(c) : MOTO_SVG(c);
   // ---- Holograma de la ubicación: logo girando como moneda sobre un pin, y el mapa abajo ----
   function renderHolo(){
     const box = document.getElementById('holoBox'); if(!box) return;
@@ -5463,21 +5469,21 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     row.hidden = true; row.innerHTML = '';
     // los repartidores van chiquitos, con su motito, al lado de los vendedores de abajo
     const hr = document.getElementById('hRiders');
-    if(hr) hr.innerHTML = !on ? '' : rs.map((n, i) => `<span class="hrd" role="button" tabindex="0" data-rider="${esc(n)}" title="🛵 ${esc(M('our_delivery'))}${brand.delay ? ' · ⏱ ' + esc(delayTr(brand.delay)) : ''}">${helperSVG(riderChar(n, i), hShirt())}<span class="hmoto" aria-hidden="true">🛵</span><span class="hname">${esc(n)}</span></span>`).join('');
+    if(hr) hr.innerHTML = !on ? '' : rs.map((n, i) => `<span class="hrd" role="button" tabindex="0" data-rider="${esc(n)}" title="🛵 ${esc(M('our_delivery'))}${brand.delay ? ' · ⏱ ' + esc(delayTr(brand.delay)) : ''}">${helperSVG(riderChar(n, i), hShirt())}<span class="hmoto" aria-hidden="true">${VEH[vehOf(n)]}</span><span class="hname">${esc(n)}</span></span>`).join('');
     const hb = document.getElementById('helpers'); if(hb) hb.hidden = !hList().length && !on;
     if(!on) return;
   }
   function renderRiderPanel(){
     const box = document.getElementById('riderList'); if(!box) return;
     const rl = riderListOf();
-    box.innerHTML = rl.map((r, i) => `<div class="riderrow"><input type="text" data-ri="${i}" maxlength="30" value="${esc(r.name || '')}" placeholder="Nombre" aria-label="Nombre del repartidor"><span class="rsex" role="group" aria-label="Chico o chica"><button type="button" data-rsex="${i}" data-f="0" aria-pressed="${!r.f}">Chico</button><button type="button" data-rsex="${i}" data-f="1" aria-pressed="${!!r.f}">Chica</button></span><button class="btn" type="button" data-rdel="${i}" aria-label="Quitar">✕</button></div>`).join('');
+    box.innerHTML = rl.map((r, i) => `<div class="riderrow"><input type="text" data-ri="${i}" maxlength="30" value="${esc(r.name || '')}" placeholder="Nombre" aria-label="Nombre del repartidor"><span class="rsex" role="group" aria-label="Chico o chica"><button type="button" data-rsex="${i}" data-f="0" aria-pressed="${!r.f}">Chico</button><button type="button" data-rsex="${i}" data-f="1" aria-pressed="${!!r.f}">Chica</button></span><span class="rsex" role="group" aria-label="Vehículo">${Object.entries(VEH).map(([k, em]) => `<button type="button" data-rveh="${i}" data-v="${k}" aria-pressed="${(VEH[r.v] ? r.v : 'moto') === k}" title="${k === 'moto' ? 'Moto' : k === 'auto' ? 'Auto' : 'Bicicleta'}">${em}</button>`).join('')}</span><button class="btn" type="button" data-rdel="${i}" aria-label="Quitar">✕</button></div>`).join('');
   }
   // La motito del delivery propio cruza la pantalla con el nombre del equipo.
   function motoGo(name){
     const rs = ridersOf(); if(!name && !rs.length) return;
     const el = document.createElement('div'); el.className = 'motogo'; el.setAttribute('aria-hidden', 'true');
     const who = name || rs[0];
-    el.innerHTML = `<span class="mg-ride"><span class="mg-av">${helperSVG(riderChar(who), hShirt())}</span>${MOTO_SVG(hShirt())}</span><span class="mg-tag">${esc(name ? M('moto_to', {name}) : rs.length === 1 ? M('dlv_one', {name: rs[0]}) : M('our_list', {list: rs.join(', ')}))}</span>`;
+    el.innerHTML = `<span class="mg-ride"><span class="mg-av">${helperSVG(riderChar(who), hShirt())}</span>${vehSVG(vehOf(who), hShirt())}</span><span class="mg-tag">${esc(name ? M('moto_to', {name}) : rs.length === 1 ? M('dlv_one', {name: rs[0]}) : M('our_list', {list: rs.join(', ')}))}</span>`;
     document.body.appendChild(el); setTimeout(() => el.remove(), 6500);
   }
   const deliveryLine = () => M('dline', {d: brand.delay ? M('approx', {d: delayTr(brand.delay)}) : ''});
@@ -5488,6 +5494,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
       <input type="checkbox" id="ship-${o.id}" data-ship="${o.id}" ${typeof sh[o.id]==='string'?'checked':''}>
       <label class="nm" for="ship-${o.id}">${o.name}</label>
       <input type="text" id="shipd-${o.id}" data-shipd="${o.id}" maxlength="80" placeholder="${o.ph}" value="${esc(sh[o.id] || '')}" ${typeof sh[o.id]==='string'?'':'hidden'} aria-label="Detalle de ${o.name}">
+      ${o.id === 'retiro' ? '' : `<label class="note shipc" ${typeof sh[o.id]==='string'?'':'hidden'} style="display:${typeof sh[o.id]==='string'?'flex':'none'};gap:6px;align-items:center;flex-basis:100%;margin:2px 0 0">💲 Costo fijo (se suma solo al total) <input type="number" min="0" step="1" inputmode="numeric" data-shipc="${o.id}" value="${(brand.shipCost || {})[o.id] || ''}" placeholder="Ej: 2500" style="max-width:120px"></label>`}
     </div>`).join('');
   }
   $('shipGrid').addEventListener('change', e => {
@@ -5495,6 +5502,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     brand.ship = brand.ship || {};
     if(e.target.checked){ brand.ship[id] = brand.ship[id] || ''; } else delete brand.ship[id];
     $('shipd-' + id).hidden = !e.target.checked; if(e.target.checked) $('shipd-' + id).focus();
+    const sc = e.target.closest('.shiprow') && e.target.closest('.shiprow').querySelector('.shipc'); if(sc) sc.style.display = e.target.checked ? 'flex' : 'none';
     save(); renderDelivery();
   });
   if($('b-currency')){
@@ -5548,12 +5556,14 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     $('riderList').addEventListener('click', e => {
       const sx = e.target.closest('[data-rsex]'), dl = e.target.closest('[data-rdel]'); const rl = riderListOf().slice();
       if(sx){ rl[+sx.dataset.rsex] = {...rl[+sx.dataset.rsex], f: sx.dataset.f === '1'}; setRL(rl); renderRiderPanel(); }
+      const vh = e.target.closest('[data-rveh]'); if(vh){ rl[+vh.dataset.rveh] = {...rl[+vh.dataset.rveh], v: vh.dataset.v}; setRL(rl); renderRiderPanel(); }
       if(dl){ rl.splice(+dl.dataset.rdel, 1); setRL(rl); renderRiderPanel(); }
     });
     $('riderAdd').addEventListener('click', () => { const rl = riderListOf().slice(); if(rl.length >= 8) return; rl.push({name: '', f: false}); setRL(rl); renderRiderPanel(); const ins = $('riderList').querySelectorAll('input'); ins[ins.length - 1]?.focus(); });
     $('b-delay').addEventListener('change', e => { brand.delay = e.target.value; save(); renderDelivery(); });
   }
   $('shipGrid').addEventListener('input', e => {
+    const c = e.target.dataset.shipc; if(c){ brand.shipCost = brand.shipCost || {}; const v = Math.max(0, Math.round(+e.target.value || 0)); if(v) brand.shipCost[c] = v; else delete brand.shipCost[c]; save(); return; }
     const id = e.target.dataset.shipd; if(!id) return;
     brand.ship = brand.ship || {}; brand.ship[id] = e.target.value.trim(); save();
   });
@@ -5581,6 +5591,16 @@ function paypalHref(t, unpriced){
 const WALLETS = ['Mercado Pago','AstroPay','Ualá','MODO','Naranja X','Cuenta DNI','Personal Pay','Prex','Brubank','Lemon','Binance Pay','Coinbase','Cripto (USDT)','Stripe','Zelle','Venmo','Cash App','PIX','Nequi','Yape','Otra forma de pago'];
 const walletsOf = () => (Array.isArray(brand.wallets) ? brand.wallets : []).filter(w => w && String(w.value || '').trim());
 const walletHref = v => { v = String(v || '').trim(); return /^https?:\/\//i.test(v) ? v.replace(/^http:/i, 'https:') : /^(www\.)?[\w-]+(\.[\w-]+)*\.[a-z]{2,}\/\S+$/i.test(v) ? 'https://' + v : ''; };
+// costo fijo del envío elegido (y del servicio a domicilio): se suma al total para que el cliente pague todo junto
+function shipFee(){
+  let n = 0, parts = [];
+  try{
+    const o = !noShip() ? shipList().find(x => x.id === shipSel) : null, c = o && +((brand.shipCost || {})[o.id]) || 0;
+    if(c > 0){ n += c; parts.push(trCat(o.name)); }
+    if(svcHome() && brand.svcCost){ const v = priceNum('$' + brand.svcCost); if(isFinite(v) && v > 0){ n += v; parts.push(L('Servicio a domicilio', 'Home service', 'Serviço em domicílio')); } }
+  }catch(e){}
+  return {n, label: parts.join(' + ')};
+}
 function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const v = priceNum(it.price); if(v === Infinity) unpriced++; else t += v * it.q; }); return {t, unpriced}; }
   function orderText(items){
     const {t, unpriced} = cartTotal(items);
@@ -5595,7 +5615,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       svcHome() && '🏠 ' + L('Servicio a domicilio', 'Home service', 'Serviço em domicílio') + (brand.svcCost ? ' (+' + fmt(priceNum('$' + brand.svcCost)) + ')' : '')].filter(Boolean);
     const extras = g + (datos.length ? '\n\n' + datos.join('\n') : '') + (payTxt() ? '\n\n💳 ' + payTxt() + '.' : '');
     const hiWho = attName() ? attName() + (brand.name ? ` (${brand.name})` : '') : storeName(), late = !isOpenNow() ? '\n\n🌙 ' + L('Te lo dejo fuera de horario: respondeme cuando abras 🙏', 'Leaving it after hours: reply when you open 🙏', 'Deixo fora do horário: me responda quando abrir 🙏') : '';
-    return L(`Hola ${hiWho}! Quiero hacer este pedido:`, `Hi ${hiWho}! I'd like to place this order:`, `Olá ${hiWho}! Quero fazer este pedido:`) + `\n${lines.join('\n')}\n\nTotal: ${fmt(t)}${extra}${ship}${extras}${late}\n\n` +
+    const fee = shipFee(), feeTxt = fee.n ? `\n${L('Envío', 'Delivery', 'Entrega')}: ${fmt(fee.n)}` : '';
+    return L(`Hola ${hiWho}! Quiero hacer este pedido:`, `Hi ${hiWho}! I'd like to place this order:`, `Olá ${hiWho}! Quero fazer este pedido:`) + `\n${lines.join('\n')}\n${feeTxt}\nTotal: ${fmt(t + fee.n)}${extra}${ship}${extras}${late}\n\n` +
       (payPick.mode === 'ahora' ? L('Ya pagué: te adjunto el comprobante 👇 Revisá que te haya llegado y despachá el pedido 🙌', 'Already paid: receipt attached 👇 Please check it arrived and send the order 🙌', 'Já paguei: segue o comprovante 👇 Confira se chegou e despache o pedido 🙌') : so ? L('¿Cómo coordinamos el pago?', 'How do we arrange payment?', 'Como combinamos o pagamento?') : L('¿Cómo coordinamos el pago y la entrega?', 'How do we arrange payment and delivery?', 'Como combinamos o pagamento e a entrega?'));
   }
   function updateFab(){
@@ -5904,8 +5925,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   });
   function renderCart(){
     try{ applyCartBig(); }catch(e){}
-    const items = cartItems(), {t, unpriced} = cartTotal(items), wa = waHref(orderText(items));
-    const pay = String(brand.paylink || '').trim(), payOk = /^https:\/\//i.test(pay), pp = items.length ? paypalHref(t, unpriced) : '', ws = walletsOf();
+    const items = cartItems(), {t, unpriced} = cartTotal(items), wa = waHref(orderText(items)), fee = shipFee();
+    const pay = String(brand.paylink || '').trim(), payOk = /^https:\/\//i.test(pay), pp = items.length ? paypalHref(t + fee.n, unpriced) : '', ws = walletsOf();
     $('cartSheet').innerHTML = `
       <button class="close" type="button" data-c="close" aria-label="Cerrar">✕</button>
       <h2 id="cartTitle">Tu pedido</h2>
@@ -5914,7 +5935,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
           <div style="min-width:0"><div class="nm">${esc(it.name)}</div><div class="pr">${it.price ? esc(it.price) + ' c/u' : 'Consultar precio'}</div></div>
           <span class="qty"><button type="button" data-c="minus" data-id="${it.key}" aria-label="Uno menos">−</button><span>${it.q}</span><button type="button" data-c="plus" data-id="${it.key}" aria-label="Uno más">＋</button></span>
         </li>`).join('')}</ul>
-        <div class="carttotal"><span>Total</span><span class="v">${fmt(t)}</span></div>
+        ${fee.n ? `<div class="carttotal sub"><span>${esc(L('Productos', 'Items', 'Produtos'))}</span><span>${fmt(t)}</span></div><div class="carttotal sub"><span>${esc(fee.label || L('Envío', 'Delivery', 'Entrega'))}</span><span>${fmt(fee.n)}</span></div>` : ''}
+        <div class="carttotal"><span>Total</span><span class="v">${fmt(t + fee.n)}</span></div>
         ${unpriced ? `<p class="note" style="margin:0">${unpriced} producto${unpriced===1?'':'s'} sin precio: el comercio te lo confirma.</p>` : ''}
         ${allDigital() ? `<p class="note" style="margin:0">📥 ${esc(L('Productos digitales: los descargás desde acá cuando el comercio confirme tu pago.', 'Digital products: you download them here once the store confirms your payment.', 'Produtos digitais: você baixa aqui quando a loja confirmar o pagamento.'))}</p>` : ''}
         ${allService() ? `<div class="shipbox"><strong>📅 ${esc(L('¿Qué día y horario preferís?', 'Which day and time do you prefer?', 'Qual dia e horário você prefere?', 'Quel jour et quelle heure préférez-vous ?', 'Welcher Tag und welche Uhrzeit passen dir?', 'Che giorno e orario preferisci?', '你希望哪天什么时间？', 'ご希望の日時は？'))}</strong>
@@ -5970,7 +5992,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const slug = window.VITRINA_SLUG; if(!PUBLIC || !slug) return Promise.resolve(null);
     const items = cartItems(); if(!items.length) return Promise.resolve(null);
     const {t, unpriced} = cartTotal(items), na = needAddr();
-    const body = {slug, items: items.map(it => ({n: it.name, q: it.q, p: it.price || '', id: it.p ? it.p.id : ''})), total: fmt(t) + (unpriced ? ' + a consultar' : ''),
+    const body = {slug, items: items.map(it => ({n: it.name, q: it.q, p: it.price || '', id: it.p ? it.p.id : ''})), total: fmt(t + shipFee().n) + (unpriced ? ' + a consultar' : ''),
       envio: o ? o.name : '', envio_id: o ? o.id : '', demora: brand.delay || '',
       comprador: {nombre: buyer.name, tel: buyer.tel, dir: na ? buyer.dir : '', ref: na ? buyer.ref : '', turno: allService() ? buyer.turno : '', horario: na && !allService() ? whenTxt() : '', lugar: svcHome() ? 'A domicilio' + (brand.svcCost ? ' (+' + fmt(priceNum('$' + brand.svcCost)) + ')' : '') : ''}, servicio: allService(),
       regalo: gift.on ? {si: true, para: gift.who, mensaje: gift.msg} : null, pago: payTxt()};
