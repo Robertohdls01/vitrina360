@@ -639,6 +639,25 @@ body:not(.cartbig) .cartsheet .actions{gap:6px}
   body:not(.cartbig) .carttotal .v{font-size:19px}
   body:not(.cartbig) .cartsheet .shipopt small{font-size:12px}
   body:not(.cartbig) .cartsheet .giftwho label{padding:4px 10px;font-size:13px}
+  /* Pedido compacto: ventanita en el medio del celular, con borde alrededor, todo a la vista */
+  body:not(.cartbig) #cartModal{place-items:center!important;padding:14px!important}
+  body:not(.cartbig) .cartsheet{width:min(100%,360px);max-height:calc(100dvh - 28px);border-radius:18px!important;padding:12px 12px 12px!important;gap:7px!important;font-size:13px!important}
+  body:not(.cartbig) .cartsheet .close{width:32px;height:32px;font-size:16px;top:8px;right:8px}
+  body:not(.cartbig) .cartsheet h2{font-size:15.5px!important}
+  body:not(.cartbig) .cartlist li{grid-template-columns:30px minmax(0,1fr) auto!important;gap:6px!important;padding:3px 0!important;font-size:12.5px}
+  body:not(.cartbig) .cartlist img{width:30px!important;height:30px!important}
+  body:not(.cartbig) .cartlist li button{min-width:24px;height:24px;padding:0 4px}
+  body:not(.cartbig) .cartlist li > :last-child{transform:scale(.82);transform-origin:right center}
+  body:not(.cartbig) .carttotal{font-size:14px!important}
+  body:not(.cartbig) .carttotal .v{font-size:16px!important}
+  body:not(.cartbig) .cartsheet .shipbox{display:flex!important;flex-wrap:wrap;gap:5px!important;align-items:center}
+  body:not(.cartbig) .cartsheet .shipbox > strong{flex-basis:100%;font-size:13px}
+  body:not(.cartbig) .cartsheet .shipopt{flex:1 1 auto;padding:5px 9px!important;font-size:12.5px;border-radius:999px!important;gap:5px}
+  body:not(.cartbig) .cartsheet .shipopt small{display:inline!important;font-size:11px!important;margin:0 0 0 3px;opacity:.8}
+  body:not(.cartbig) .cartsheet .bfield{flex:1 1 40%;min-width:0;padding:6px 9px!important;font-size:13px}
+  body:not(.cartbig) .cartsheet .addrbox,body:not(.cartbig) .cartsheet .giftbox{flex-basis:100%}
+  body:not(.cartbig) .cartsheet .actions{gap:5px!important}
+  body:not(.cartbig) .cartsheet .actions .btn{padding:8px 12px;font-size:13.5px}
 }
 .cartlist{list-style:none;margin:0;padding:0;display:grid;border-top:1px solid var(--line)}
 .cartlist li{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
