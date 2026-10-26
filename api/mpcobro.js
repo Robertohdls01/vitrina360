@@ -10,7 +10,7 @@
 //   POST ?accion=aviso&u=<dueño> (Mercado Pago avisa un pago) → si está aprobado, el pedido queda "pagado" solo
 // Las claves de cada comerciante se guardan cifradas en el almacenamiento privado (carpeta "mpcobro").
 const crypto = require('crypto');
-const { cuerpo, usuario, stHeaders } = require('./_comun');
+const { cuerpo, usuario, stHeaders, db } = require('./_comun');
 
 const SURL = () => String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const ST = () => SURL() + '/storage/v1';
@@ -70,6 +70,14 @@ module.exports = async (req, res) => {
     }
     if (req.method === 'GET' && q.error) { res.writeHead(302, { Location: '/panel?mp=cancelado' }); return res.end(); }
 
+    // ---- ¿esta tienda cobra con Mercado Pago automático? (lo pregunta la tienda pública) ----
+    if (req.method === 'GET' && a === 'disponible') {
+      const slug = String(q.slug || ''); if (!/^[a-z0-9-]{3,40}$/.test(slug)) return res.status(200).json({ ok: false });
+      let row = null; try { const r = await db('GET', '/rest/v1/tiendas?slug=eq.' + slug + '&select=owner'); row = r && r[0]; } catch (e) {}
+      const t = row && await leer('mpcobro', 't/' + row.owner + '.json');
+      res.setHeader('Cache-Control', 'public, s-maxage=60');
+      return res.status(200).json({ ok: !!t });
+    }
     // ---- el comerciante ----
     if (a === 'conectar' || a === 'estado' || a === 'desconectar') {
       const u = await usuario(req); if (!u) return res.status(401).json({ error: 'Entrá a tu panel primero.' });
