@@ -5465,8 +5465,10 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     brand.ship = brand.ship || {}; brand.ship[id] = e.target.value.trim(); save();
   });
   let cart = {};
-  try{ cart = JSON.parse(localStorage.getItem('vitrina360-cart') || '{}') || {}; }catch(e){ cart = {}; }
-  const saveCart = () => { try{ localStorage.setItem('vitrina360-cart', JSON.stringify(cart)); }catch(e){} };
+  // el pedido es de cada tienda: antes todas compartían el mismo y se mezclaban
+  const CART_KEY = 'vitrina360-cart' + (window.VITRINA_SLUG ? ':' + window.VITRINA_SLUG : '');
+  try{ cart = JSON.parse(localStorage.getItem(CART_KEY) || '{}') || {}; }catch(e){ cart = {}; }
+  const saveCart = () => { try{ localStorage.setItem(CART_KEY, JSON.stringify(cart)); }catch(e){} };
   function cartItems(){
     return Object.entries(cart).map(([key, q]) => {
       const [pid, vid] = key.split('|'), p = products.find(x => x.id === pid);
@@ -5948,10 +5950,21 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   }
 
   // Cada pedido mandado por WhatsApp también queda guardado para el panel (tenga o no vendedores virtuales).
+  // Al tocar "Enviar pedido por WhatsApp": la cajera agradece ANTES de irse a WhatsApp (por si el cliente no vuelve),
+  // el pedido se guarda y el carrito queda vacío para la próxima compra.
   document.addEventListener('click', e => {
-    if(!e.target.closest('[data-c="sent"]')) return;
-    const o = SHIP_OPTS.find(x => x.id === shipSel);
+    const a = e.target.closest('[data-c="sent"]'); if(!a) return;
+    const o = SHIP_OPTS.find(x => x.id === shipSel), url = a.href;
     sendOrder(o).then(r => { if(r && r.ref) trackStart({ref: r.ref, k: r.k, slug: window.VITRINA_SLUG, moto: !!(o && o.id === 'moto'), retiro: !!(o && o.id === 'retiro'), demora: brand.delay || '', start: Date.now()}); });
+    cart = {}; saveCart(); updateFab(); setTimeout(closeCart, 50);
+    const talk = (typeof cajeraOn === 'function' && cajeraOn()) || hList().length;
+    if(!talk || !url) return;                      // sin nadie que hable: WhatsApp se abre al toque, como siempre
+    e.preventDefault();
+    const paid = payPick.mode === 'ahora';
+    const bye = `${M('thanks', {store: storeName()})} ${L(paid ? 'Ahora te abro WhatsApp: mandá el mensaje con tu comprobante y listo.' : 'Ahora te abro WhatsApp: tocá enviar y listo.', paid ? "Now I'm opening WhatsApp: send the message with your receipt and you're done." : "Now I'm opening WhatsApp: just tap send.", paid ? 'Agora vou abrir o WhatsApp: envie a mensagem com o comprovante e pronto.' : 'Agora vou abrir o WhatsApp: toque em enviar e pronto.')}`;
+    if(cajeraOn()){ $('cBubble').textContent = trSay(bye); $('cBubble').classList.add('show'); placeBubble(); cSpeak(bye); }
+    else { $('hPanel').hidden = false; hSpeak(bye); }
+    setTimeout(() => { let w = null; try{ w = window.open(url, '_blank', 'noopener'); }catch(err){} if(!w) location.href = url; }, 3200);
   });
   let cartLastFocus = null;
   document.addEventListener('click', e => {
@@ -5971,10 +5984,10 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         ? `${thanks} ${L(`¡Tu pedido ya está en camino! 🛵 Tarda más o menos ${dl}, y puede demorar un poquito más. El comercio ya recibió tu pedido y tu comprobante por WhatsApp.`, `Your order is on its way! 🛵 It takes about ${dl}, maybe a little longer. The store already got your order and receipt on WhatsApp.`, `Seu pedido já está a caminho! 🛵 Leva mais ou menos ${dl}, pode demorar um pouquinho mais. A loja já recebeu seu pedido e comprovante pelo WhatsApp.`)}`
         : `${thanks} ${L('¡Listo! El comercio ya recibió tu pedido y tu comprobante por WhatsApp. Te avisan cuando esté listo.', 'Done! The store got your order and receipt on WhatsApp. They\'ll let you know when it\'s ready.', 'Pronto! A loja recebeu seu pedido e comprovante pelo WhatsApp. Eles avisam quando estiver pronto.')}`;
       const cMsg = paid ? paidMsg : moto ? `${thanks} ${deliveryLine()} ${M('any_wa')}` : `${thanks} ${o ? M('chose', {x: trCat(o.name)}) + ' ' : ''}${M('go_wa')}`;
-      if(cajeraOn()){ $('cBubble').textContent = trSay(cMsg); $('cBubble').classList.add('show'); placeBubble(); sayWhenBack(() => cSpeak(cMsg)); }
+      if(cajeraOn()){ sayWhenBack(() => { $('cBubble').textContent = trSay(cMsg); $('cBubble').classList.add('show'); placeBubble(); }); }
       $('hPanel').hidden = false;
-      if(o){ hInfo(`<strong>${esc(thanks)} ${esc(M('next', {x: trCat(o.name)}))}</strong><ol class="hsteps">${next.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`); if(!cajeraOn()) sayWhenBack(() => hSpeak(moto ? `${thanks} ${deliveryLine()}` : `${thanks} ${M('chose', {x: trCat(o.name)})} ${LANG === 'es' ? next.join(' ') : ''}`)); else $('hSay').textContent = thanks; }
-      else { hShow([]); sayWhenBack(() => hSpeak(`${thanks} ${M('msg_coming')}`)); }
+      if(o){ hInfo(`<strong>${esc(thanks)} ${esc(M('next', {x: trCat(o.name)}))}</strong><ol class="hsteps">${next.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`); $('hSay').textContent = thanks; }
+      else { hShow([]); $('hSay').textContent = `${thanks} ${M('msg_coming')}`; }
     }, 700);
   });
   // Al mandar el pedido se abre WhatsApp y la tienda queda atrás: el celular corta la voz.
@@ -6985,6 +6998,38 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       (p ? ` Estoy mirando: ${p.name}${curPrice(p) ? ' (' + curPrice(p) + ')' : ''}.` : '') +
       (q ? ` Quería saber: ${q}` : ' Quería hacerte una consulta.');
   }
+  function hLiveCard(q){
+    const url = waHref(ownWaText(q)); if(!url) return '';
+    const me = hCur === 'duena', who = ownOn() ? ownName() : '';
+    return `<div class="hlive">${ownOn() ? `<span class="hlph" style="background-image:url('${brand.owner.photo}')"></span>` : '<span class="hlph">💬</span>'}<div style="min-width:0"><strong>${me ? 'Preguntame por WhatsApp' : who ? 'Preguntale a ' + esc(who) : 'Preguntale al negocio'}</strong><span class="note">Se abre WhatsApp con tu pregunta ya escrita. Solo tocás enviar.</span>
+      <a class="btn wa" href="${url}" target="_blank" rel="noopener">💬 Preguntar por WhatsApp</a></div></div>`;
+  }
+  // "¿Tienen…?", "¿hay…?", "¿consiguen…?": si está, lo muestra; si no está seguro o no lo tiene, ofrece preguntarle a la dueña
+  function hAvail(q, n){
+    if(!/^(y |che |hola |buenas )?(tienen|tenes|tienes|tendran|tendrias|hay|venden|vendes|consiguen|conseguis|traen|traes|trabajan|manejan|les queda|te queda|queda|quedan|habra|existe)\b/.test(n)) return false;
+    const VERB = /^(tienen|tenes|tienes|tendran|tendrias|hay|venden|vendes|consiguen|conseguis|traen|traes|trabajan|manejan|queda|quedan|les|te|habra|existe|che|hola|buenas|algun|alguna|algunos|algunas|stock|disponible)$/;
+    const toks = n.replace(/[^a-z0-9ñ ]/g, ' ').split(/\s+/).filter(w => w && !STOP.has(w) && !VERB.test(w) && (w.length > 1 || /\d/.test(w))).map(stem);
+    if(!toks.length) return false;
+    const who = ownOn() ? ownName() : '', me = hCur === 'duena', ask = /\?$/.test(q.trim()) ? q.trim() : '¿' + q.trim().replace(/^¿/, '') + '?';
+    const scored = products.filter(p => !(catOf(p.cat) || {}).hidden).map(p => { const hay = norm(p.name + ' ' + ((catOf(p.cat) || {}).name || '') + ' ' + (p.features || []).join(' ')); return {p, h: toks.filter(t => hay.includes(t)).length}; });
+    const full = scored.filter(x => x.h === toks.length).map(x => x.p);
+    const near = scored.filter(x => x.h && x.h < toks.length && x.h / toks.length >= 0.5).sort((a, b) => b.h - a.h).map(x => x.p);
+    const card = hLiveCard(ask);
+    if(full.length){
+      const f = full.slice(0, 6); hLast = f.length === 1 ? f[0] : null; hShow(f, f.length === 1); hWalk(f[0].cat); if(f.length === 1) hYesNo(f[0]);
+      if(card) $('hRes').insertAdjacentHTML('beforeend', `<button class="linkbtn" type="button" data-hask="${esc(ask)}" style="justify-self:start">¿Otra duda? ${me ? 'Preguntame por WhatsApp' : who ? 'Preguntale a ' + esc(who) : 'Preguntale al negocio'}</button>`);
+      return hSpeak(f.length === 1 ? `¡Sí, tenemos! ${f[0].name}${curPrice(f[0]) ? ', a ' + curPrice(f[0]) : ''}. ¿Lo agrego a tu pedido?` : `¡Sí! Tenemos ${f.length} opciones. Tocá la que quieras ver en grande.`), true;
+    }
+    if(near.length){
+      const f = near.slice(0, 4); hLast = f.length === 1 ? f[0] : null; hShow(f, false); hWalk(f[0].cat);
+      if(card) $('hRes').insertAdjacentHTML('beforeend', card);
+      return hSpeak(card ? (me ? 'No sé si tengo exactamente eso cargado. Te muestro lo más parecido, y si querés preguntame por WhatsApp: capaz que lo tengo o te lo consigo.' : `No sé si tenemos exactamente eso. Te muestro lo más parecido, y si querés le preguntás a ${who || 'la tienda'} por WhatsApp: capaz que lo tiene o te lo consigue.`) : 'No sé si tenemos exactamente eso. Te muestro lo más parecido.'), true;
+    }
+    hLast = null; hShow([]);
+    if(!card) return hSpeak('Eso no lo veo en la tienda por ahora. Preguntame por otro producto o mirá las vitrinas.'), true;
+    $('hRes').innerHTML = card;
+    return hSpeak(me ? 'Eso no lo tengo cargado en la tienda, pero capaz que lo tengo o te lo consigo. Tocá el botón y preguntame por WhatsApp.' : `Eso no lo veo en la tienda, pero ${who || 'en el negocio'} capaz que lo ${who ? 'tiene' : 'tienen'} o te lo ${who ? 'consigue' : 'consiguen'}. Tocá el botón y ${who ? 'le' : 'les'} llega tu pregunta por WhatsApp.`), true;
+  }
   function hHandoff(q){
     const url = waHref(ownWaText(q));
     if(!url){ hShow([]); return hSpeak('Todavía no tengo cargado el WhatsApp de la tienda. Probá preguntarme por un producto, una vitrina o las ofertas.'); }
@@ -7014,6 +7059,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       const f = products.filter(p => p.featured && !(catOf(p.cat) || {}).hidden);
       if(f.length){ hLast = f.length === 1 ? f[0] : null; hShow(f, true); hWalk(f[0].cat); return hSpeak(f.length === 1 ? `Hoy te recomiendo ${f[0].name}${f[0].promo ? ', ' + f[0].promo : ''}${curPrice(f[0]) ? ', a ' + curPrice(f[0]) : ''}.` : `Estas son las ofertas de hoy: ${f.map(p => p.name + (p.promo ? ', ' + p.promo : '')).join('; ')}.`); }
     }
+    if(hAvail(q, n)) return;
     const vc = visCats();
     const num = n.match(/vitrina\s*(?:n(?:umero|°|ro)?\.?\s*)?(\d+|uno|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)/);
     const words = {uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10};
@@ -7061,6 +7107,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(op){ $('hPanel').hidden = true; openModal(op.dataset.hopen); }
     const hs = e.target.closest('[data-hship]'); if(hs){ hShipSteps(hs.dataset.hship); return; }
     if(e.target.closest('[data-hlive]')) return hHandoff('');
+    const hk = e.target.closest('[data-hask]'); if(hk) return hHandoff(hk.dataset.hask);
     if(e.target.closest('[data-hyes]')) return hAddPending();
     if(e.target.closest('[data-hcaja]')) return hToCaja();
     if(e.target.closest('[data-hno]')){ hPending = null; $('hRes').querySelectorAll('.hyn').forEach(x => x.remove()); return hSpeak('¡Dale! Seguimos mirando.'); }
