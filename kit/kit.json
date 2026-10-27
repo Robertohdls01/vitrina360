@@ -1,8 +1,19 @@
 {
   "_como": "Material para que los vendedores publiquen. Para sumar un video: subir el .mp4 a esta carpeta (kit/) y agregarlo en 'videos'.",
-  "videos": [],
+  "videos": [
+    {
+      "src": "/kit/vitrina360-1min.mp4",
+      "titulo": "Video de 1 minuto (vertical, para estados, Reels y TikTok)"
+    }
+  ],
   "imagenes": [
-    {"src": "/kit/estado.jpg", "titulo": "Vertical, para estados e historias"},
-    {"src": "/og.png", "titulo": "Horizontal, para grupos y Facebook"}
+    {
+      "src": "/kit/estado.jpg",
+      "titulo": "Vertical, para estados e historias"
+    },
+    {
+      "src": "/og.png",
+      "titulo": "Horizontal, para grupos y Facebook"
+    }
   ]
 }
