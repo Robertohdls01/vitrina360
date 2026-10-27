@@ -3,7 +3,11 @@
   "videos": [
     {
       "src": "/kit/vitrina360-1min.mp4",
-      "titulo": "Video de 1 minuto (vertical, para estados, Reels y TikTok)"
+      "titulo": "Video animado 3D de 1 minuto (vertical, para estados, Reels y TikTok)"
+    },
+    {
+      "src": "/kit/vitrina360-anuncio.mp4",
+      "titulo": "Anuncio corto de 28 segundos"
     }
   ],
   "imagenes": [
