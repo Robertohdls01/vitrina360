@@ -54,8 +54,12 @@ function prompt(tipo, nombre, detalle, conRef) {
     ' Keep the person exactly the same: face, identity, body shape, skin tone, hair, pose and background. Reproduce the product faithfully: color, pattern, fabric, cut, length, details. If the product is an accessory (glasses, bag, watch, jewelry, cap, shoes), place it naturally on the person. Natural light, no text, no watermark.';
 }
 
+// En pausa hasta cargar saldo en Google: las tiendas muestran el botón con "Próximamente".
+// Para activarlo: poner PAUSADO = false (o la variable PROBADOR_ACTIVO=1 en Vercel).
+const PAUSADO = process.env.PROBADOR_ACTIVO !== '1';
+
 module.exports = async (req, res) => {
-  const KEY = process.env.GEMINI_API_KEY;
+  const KEY = PAUSADO ? '' : process.env.GEMINI_API_KEY;
   // si Google dijo que no hay saldo, el botón se esconde en todas las tiendas por 6 horas (y se vuelve a intentar solo)
   if (req.method === 'GET') {
     let ok = !!KEY;

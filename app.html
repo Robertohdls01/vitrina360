@@ -719,6 +719,8 @@ body:not(.cartbig) .cartsheet .actions{gap:6px}
 @keyframes tvspin{to{transform:rotate(360deg)}}
 #tryView a.btn{color:inherit;text-decoration:none}
 .btn.tryb{background:var(--grad,var(--accent));color:#fff;border-color:transparent}
+.btn.tryb.soon{opacity:.6;cursor:default;filter:saturate(.6)}
+.btn.tryb .soontag{margin-left:6px;font-size:.72em;font-weight:800;letter-spacing:.04em;text-transform:uppercase;background:rgba(255,255,255,.28);border-radius:999px;padding:2px 8px}
 #lensView{position:fixed;inset:0;z-index:120;background:#000;display:grid;grid-template-rows:1fr auto}
 #lensView[hidden]{display:none}
 .lv-scene{position:relative;overflow:hidden}
@@ -3321,7 +3323,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
         ${feats ? `<ul class="feats">${feats}</ul>` : `<p class="nofeat">Este producto todavía no tiene características.</p>`}
         <div class="actions">
           ${p.stock != null && +p.stock <= 0 ? `<button class="btn" type="button" disabled>${esc(L('Sin stock', 'Out of stock', 'Sem estoque'))}</button>` : `<button class="btn primary" type="button" data-m="cart">＋ Agregar al pedido</button>`}
-          ${tryKind(p) ? `<button class="btn tryb" type="button" data-m="try">${esc(TRY_LBL[tryKind(p)])}</button>` : ''}
+          ${tryKind(p) ? `<button class="btn tryb" type="button" data-m="try">${esc(TRY_LBL[tryKind(p)])}</button>` : trySoon(p) ? `<button class="btn tryb soon" type="button" data-m="trysoon" aria-disabled="true">${esc(TRY_LBL[trySoon(p)])}<span class="soontag">${esc(L('Próximamente', 'Coming soon', 'Em breve'))}</span></button>` : ''}
           ${lensOf(p) ? `<button class="btn" type="button" data-m="lens">🕶️ ${esc(L('Mirá a través del lente', 'Look through the lens', 'Veja através da lente'))}</button>` : ''}
           ${p.extLink ? `<a class="btn" href="${esc(p.extLink)}" target="_blank" rel="noopener">🔗 Ver en el sitio</a>` : ''}
           ${waHref(productMsg(p)) ? `<a class="btn wa" href="${waHref(productMsg(p))}" target="_blank" rel="noopener">Consultar por WhatsApp</a>` : ''}
@@ -3404,6 +3406,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
     }
     else if(m === 'lens'){ openLens(p); }
     else if(m === 'try'){ openTry(p); }
+    else if(m === 'trysoon'){ const b = e.target.closest('[data-m]'); if(b && !b.dataset.said){ b.dataset.said = '1'; b.insertAdjacentHTML('afterend', `<p class="note" style="margin:4px 0 0">${esc(L('El probador virtual llega muy pronto a esta tienda.', 'The virtual fitting room is coming soon to this store.', 'O provador virtual chega em breve a esta loja.'))}</p>`); } }
     else if(m === 'cart'){ if(addToCart(cartKey(p), $('sheet').querySelector('.viewer img')) !== false) b.textContent = '✓ Agregado al pedido'; else b.textContent = p.stock > 0 ? L('Ya tenés todo el stock en tu pedido', 'All stock already in your order', 'Todo o estoque já está no pedido') : L('Sin stock', 'Out of stock', 'Sem estoque'); }
     else if(m === 'edit'){ closeModal(); startEdit(p); $('form').scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block:'start'}); }
     else if(m === 'del'){
@@ -5705,9 +5708,12 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   // ---- Probador virtual (IA de imágenes de Google): ropa puesta, corte del perro, peinado o maquillaje sobre tu foto ----
   const TRY_LBL = {ropa: '✨ Probátelo con tu foto', perro: '🐶 Probalo con tu perro', look: '💇 Probalo en tu foto'};
   let tryOk = null;
-  (async () => { try{ tryOk = !!(await (await fetch('/api/probador')).json()).ok; }catch(e){ tryOk = false; } if(tryOk && typeof renderModal === 'function' && !$('modal').hidden){ try{ renderModal(); }catch(e){} } })();
-  function tryKind(p){
-    if(!tryOk || brand.tryon === false || !p || p.digital) return null;
+  (async () => { try{ tryOk = !!(await (await fetch('/api/probador')).json()).ok; }catch(e){ tryOk = false; } if(typeof renderModal === 'function' && !$('modal').hidden){ try{ renderModal(); }catch(e){} } })();
+  // mientras el probador no está activado, el botón se ve igual pero con el cartelito "Próximamente"
+  function tryKind(p){ return tryOk ? kindOf(p) : null; }
+  function trySoon(p){ return tryOk === false ? kindOf(p) : null; }
+  function kindOf(p){
+    if(brand.tryon === false || !p || p.digital) return null;
     const t = norm(p.name + ' ' + ((catOf(p.cat) || {}).name || ''));
     if(p.service){
       if(/perr|canin|mascot|cachorr|caniche|schnauzer|yorkshire|shih/.test(t)) return 'perro';
