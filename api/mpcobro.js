@@ -97,14 +97,16 @@ module.exports = async (req, res) => {
       const p = await leer('pedidos', b.ref + '.json');
       if (!p || p.k !== String(b.k || '')) return res.status(404).json({ error: 'No encontramos tu pedido.' });
       if (p.pagado) return res.status(409).json({ error: 'Este pedido ya está pagado.' });
-      const total = num(p.total);
+      const MON = ['ARS', 'BRL', 'MXN', 'CLP', 'COP', 'PEN', 'UYU', 'USD'], moneda = MON.includes(p.moneda) ? p.moneda : 'ARS';
+      let total = p.total_n != null ? Number(p.total_n) : num(p.total);
+      if (moneda === 'CLP' || moneda === 'COP') total = Math.round(total);
       if (!isFinite(total) || total <= 0) return res.status(400).json({ error: 'Este pedido tiene productos sin precio: coordiná el pago por WhatsApp.' });
       const owner = b.ref.split('/')[0], tok = await tokenDe(owner);
       if (!tok) return res.status(409).json({ error: 'Este comercio no tiene conectado Mercado Pago. Coordiná el pago por WhatsApp.' });
       const slug = String(b.slug || '').replace(/[^a-z0-9-]/g, '').slice(0, 40);
       const back = slug ? host + '/t/' + slug : host;
       const r = await fetch('https://api.mercadopago.com/checkout/preferences', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok }, body: JSON.stringify({
-        items: [{ id: p.id, title: ('Pedido ' + (String(b.tienda || '').slice(0, 40) || 'Vitrina 360')).slice(0, 60), quantity: 1, unit_price: Math.round(total * 100) / 100, currency_id: 'ARS' }],
+        items: [{ id: p.id, title: ('Pedido ' + (String(b.tienda || '').slice(0, 40) || 'Vitrina 360')).slice(0, 60), quantity: 1, unit_price: Math.round(total * 100) / 100, currency_id: moneda }],
         external_reference: b.ref,
         notification_url: host + '/api/mpcobro?accion=aviso&u=' + owner,
         back_urls: { success: back + '?pago=ok', pending: back + '?pago=pendiente', failure: back + '?pago=error' },
@@ -130,8 +132,8 @@ module.exports = async (req, res) => {
       const ref = String(pay.external_reference || '');
       if (!okRef(ref) || ref.split('/')[0] !== owner) return res.status(200).json({ ok: true });
       const p = await leer('pedidos', ref + '.json'); if (!p) return res.status(200).json({ ok: true });
-      const total = num(p.total);
-      if (pay.status === 'approved' && (!isFinite(total) || Math.abs(Number(pay.transaction_amount) - total) < 1)) {
+      const total = p.total_n != null ? Number(p.total_n) : num(p.total);
+      if (pay.status === 'approved' && (!isFinite(total) || Math.abs(Number(pay.transaction_amount) - total) <= Math.max(1, total * 0.005))) {
         if (!p.pagado) { p.pagado = true; p.paga_ahora = true; p.pagado_en = new Date().toISOString(); p.pago_mp = id; p.pago = (p.pago ? p.pago + ' · ' : '') + 'Pagado con Mercado Pago (confirmado solo)'; await guardar('pedidos', ref + '.json', p); }
       }
       return res.status(200).json({ ok: true });

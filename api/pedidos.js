@@ -91,6 +91,8 @@ module.exports = async (req, res) => {
         comprador: { nombre: corto(c.nombre, 80), tel: corto(c.tel, 30), dir: corto(c.dir, 160), ref: corto(c.ref, 160), turno: corto(c.turno, 120), horario: corto(c.horario, 80), lugar: corto(c.lugar, 60) }, servicio: !!b.servicio,
         regalo: g.si ? { para: corto(g.para, 20), mensaje: corto(g.mensaje, 160) } : null,
         pago: corto(b.pago, 120), paga_ahora: !!b.paga_ahora, pagado: false,
+        total_n: Number.isFinite(Number(b.total_n)) && Number(b.total_n) > 0 ? Math.round(Number(b.total_n) * 100) / 100 : null,
+        moneda: /^[A-Z]{3}$/.test(String(b.moneda || '')) ? String(b.moneda) : 'ARS',
         repartidor: '', salio_en: null
       };
       await guardar(ref, pedido);

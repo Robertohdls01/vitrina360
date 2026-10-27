@@ -5230,7 +5230,9 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   // Mercado Pago automático: en la tienda pública se pregunta al servidor si el comercio tiene su cuenta conectada
   let mpLive = null;
   if(PUBLIC && window.VITRINA_SLUG) fetch('/api/mpcobro?accion=disponible&slug=' + encodeURIComponent(window.VITRINA_SLUG)).then(r => r.json()).then(j => { mpLive = !!(j && j.ok); try{ if(!$('cartModal').hidden) renderCart(); }catch(e){} }).catch(() => { mpLive = false; });
-  const mpAutoOk = () => (mpLive === true || (!PUBLIC && !!brand.mpAuto)) && curCode() === 'ARS';
+  // monedas de los países donde está Mercado Pago (Ecuador usa dólares)
+  const MP_CUR = ['ARS', 'BRL', 'MXN', 'CLP', 'COP', 'PEN', 'UYU', 'USD'];
+  const mpAutoOk = () => (mpLive === true || (!PUBLIC && !!brand.mpAuto)) && MP_CUR.includes(curCode());
   // la cajera también te dice cómo podés pagar
   const payHint = () => { const ws = walletsOf().map(w => trCat(w.name)), mp = mpAutoOk(), any = mp || brand.alias || /^https:\/\//i.test(String(brand.paylink || '')) || brand.paypal || ws.length; if(!any) return '';
     const list = [...(brand.alias ? [L('transferencia', 'bank transfer', 'transferência')] : []), ...ws].slice(0, 3).join(', ');
@@ -6055,7 +6057,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const slug = window.VITRINA_SLUG; if(!PUBLIC || !slug) return Promise.resolve(null);
     const items = cartItems(); if(!items.length) return Promise.resolve(null);
     const {t, unpriced} = cartTotal(items), na = needAddr();
-    const body = {slug, items: items.map(it => ({n: it.name, q: it.q, p: it.price || '', id: it.p ? it.p.id : ''})), total: fmt(t + shipFee().n) + (unpriced ? ' + a consultar' : ''),
+    const body = {slug, items: items.map(it => ({n: it.name, q: it.q, p: it.price || '', id: it.p ? it.p.id : ''})), total: fmt(t + shipFee().n) + (unpriced ? ' + a consultar' : ''), total_n: unpriced ? null : Math.round((t + shipFee().n) * 100) / 100, moneda: curCode(),
       envio: o ? o.name : '', envio_id: o ? o.id : '', demora: brand.delay || '',
       comprador: {nombre: buyer.name, tel: buyer.tel, dir: na ? buyer.dir : '', ref: na ? buyer.ref : '', turno: allService() ? buyer.turno : '', horario: na && !allService() ? whenTxt() : '', lugar: svcHome() ? 'A domicilio' + (brand.svcCost ? ' (+' + fmt(priceNum('$' + brand.svcCost)) + ')' : '') : ''}, servicio: allService(),
       regalo: gift.on ? {si: true, para: gift.who, mensaje: gift.msg} : null, pago: payTxt(), paga_ahora: payPick.mode === 'ahora'};
