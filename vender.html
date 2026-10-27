@@ -45,12 +45,15 @@
 
   <section class="card" id="done" hidden>
     <h2>¡Listo! Ya sos vendedor/a de Vitrina 360 🎉</h2>
+    <a class="btn primary" id="kitBtn" style="justify-self:start;font-size:17px;padding:14px 20px">🎬 Ver mis videos y textos para publicar</a>
+    <p class="lead">Ahí ya tenés todo listo para compartir: videos, imágenes y textos con tu link puesto.</p>
     <p class="lead">Este es tu link para compartir. Todo el que se anote con él queda registrado como tu cliente:</p>
     <div class="link" id="myLink"></div>
     <div class="row"><button class="btn primary" type="button" id="copy">Copiar mi link</button><a class="btn wa" id="share" target="_blank" rel="noopener">Compartir por WhatsApp</a></div>
     <p class="lead">Tu código es <b id="myCode"></b>. Si alguien se anota sin el link, puede escribir ese código en “Mi cuenta” dentro de su tienda.</p>
     <p class="lead"><b>Guardá este otro link: es tu panel</b>, donde ves tus clientes y tus pagos. No lo compartas.</p>
-    <a class="btn" id="panel">Abrir mi panel</a>
+    <div class="row"><a class="btn" id="panel">Abrir mi panel</a><a class="btn wa" id="savePanel" target="_blank" rel="noopener">Guardar mi panel en WhatsApp</a></div>
+    <p class="note">Tip: mandátelo a vos mismo/a o a alguien de confianza, así no lo perdés.</p>
   </section>
 </main>
 <script>
@@ -65,7 +68,8 @@
       const j = await r.json().catch(() => ({}));
       if(!r.ok) throw new Error(j.error || 'No se pudo crear tu link.');
       $('form').hidden = true; $('done').hidden = false;
-      $('myLink').textContent = j.link; $('myCode').textContent = j.code; $('panel').href = j.panel;
+      $('myLink').textContent = j.link; $('myCode').textContent = j.code; $('panel').href = j.panel; $('kitBtn').href = j.panel + '&nuevo=1#kit';
+      $('savePanel').href = 'https://wa.me/?text=' + encodeURIComponent('Mi panel de vendedor de Vitrina 360 (no compartir): ' + j.panel);
       $('share').href = 'https://wa.me/?text=' + encodeURIComponent('¿Tenés un emprendimiento o un local? Con Vitrina 360 tenés tu propia página web para vender en toda Argentina y en el exterior, con vitrinas que giran en 360° y vendedores virtuales. Probala 7 días gratis 👉 ' + j.link);
       try{ localStorage.setItem('v360-vendedor-panel', j.panel); }catch(err){}
       scrollTo(0, 0);

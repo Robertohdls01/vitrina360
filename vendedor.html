@@ -58,7 +58,8 @@
   fetch('/api/vendedores?accion=panel&c=' + encodeURIComponent(c) + '&k=' + encodeURIComponent(k)).then(r => r.json().then(j => ({ok: r.ok, j}))).then(({ok, j}) => {
     if(!ok){ $('msg').textContent = j.error || 'No se pudo abrir tu panel.'; return; }
     const share = 'https://wa.me/?text=' + encodeURIComponent('¿Tenés un emprendimiento o un local? Con Vitrina 360 tenés tu propia página web para vender en toda Argentina y en el exterior, con vitrinas que giran en 360° y vendedores virtuales. Probala 7 días gratis 👉 ' + j.link);
-    $('app').innerHTML = `
+    const nuevo = p.get('nuevo') === '1';
+    $('app').innerHTML = (nuevo ? `<section class="card"><h2>¡Bienvenido/a, ${esc(j.nombre.split(' ')[0])}! 🎉</h2><p class="lead">Esta página es <b>tu panel</b>: acá ves tus clientes, lo que ganás y tu material para publicar. Guardala para volver cuando quieras.</p><div class="row"><a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent('Mi panel de vendedor de Vitrina 360 (no compartir): ' + location.href.replace('&nuevo=1', '').split('#')[0])}">Guardar mi panel en WhatsApp</a><a class="btn primary" href="#kit">Ir a mis videos y textos ↓</a></div></section>` : '') + `
       <div class="top"><a href="/">Vitrina 360</a> · <span style="font-weight:600">Panel de vendedor</span></div>
       <h1>Hola, ${esc(j.nombre.split(' ')[0])} 👋</h1>
       <div class="grid3">
@@ -100,7 +101,7 @@
       </section>`;
     const txts = TEXTOS(j.link);
     document.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => navigator.clipboard?.writeText(txts[+b.dataset.copy].texto).then(() => { b.textContent = '¡Copiado!'; setTimeout(() => b.textContent = 'Copiar', 2000); }));
-    cargarKit(j.link);
+    cargarKit(j.link).then(() => { if(location.hash === '#kit') setTimeout(() => $('kit').scrollIntoView({behavior: 'smooth'}), 300); });
     $('copy').onclick = () => navigator.clipboard?.writeText(j.link).then(() => { $('copy').textContent = '¡Copiado!'; });
   }).catch(() => { $('msg').textContent = 'No se pudo abrir tu panel. Revisá tu conexión y probá de nuevo.'; });
 })();
