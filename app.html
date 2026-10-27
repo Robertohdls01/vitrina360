@@ -6428,7 +6428,14 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     {id:'hogar', name:'Hogar y deco', hint:'Bazar, textil, decoración', frame:'#7d6b5d', shelf:'#efe7dc', edge:'#c9b8a3',
      cats:['Cocina','Bazar','Mesa','Textil','Baño','Decoración','Iluminación','Organización','Jardín','Ofertas']},
     {id:'casero', name:'Comida casera', hint:'Pastelería, viandas, panificados', frame:'#a0522d', shelf:'#f5e6cc', edge:'#d2b48c',
-     cats:['Tortas','Tartas','Budines','Alfajores','Panificados','Viandas','Empanadas','Salados','Sin TACC','Pedidos especiales']}
+     cats:['Tortas','Tartas','Budines','Alfajores','Panificados','Viandas','Empanadas','Salados','Sin TACC','Pedidos especiales']},
+    // servicios: el cliente pide turno en vez de envío (y se pueden cargar los servicios conocidos con un toque)
+    {id:'peluqueria', name:'Peluquería y barbería', hint:'Cortes, color, peinados, barba', frame:'#3d3d3d', shelf:'#f2e6dc', edge:'#c9b29c', kits:['pelu', 'barber'],
+     cats:['Peluquería','Barbería','Color y mechas','Alisados','Peinados','Tratamientos','Niños','Novias y fiestas','Productos','Promos']},
+    {id:'estetica', name:'Estética y uñas', hint:'Uñas, cejas, pestañas, depilación', frame:'#d98aa8', shelf:'#fbeef3', edge:'#e2b7c8', kits:['unas'],
+     cats:['Uñas y estética','Pies','Uñas esculpidas','Nail art','Cejas','Pestañas','Depilación','Faciales','Masajes','Promos']},
+    {id:'canina', name:'Peluquería canina', hint:'Baño y corte de mascotas', frame:'#2e86c1', shelf:'#e9f2f8', edge:'#a9c9de', kits:['canina'],
+     cats:['Peluquería canina','Cortes cómodos','Baño y secado','Adicionales','Gatos','Cachorros','A domicilio','Productos','Accesorios','Promos']}
   ];
   const PRESET_COLORS = {"belleza": ["#f7c6d9", "#e91e63", "#fde8ef", "#f3d9c9", "#c9a7e8", "#f4b6c2", "#b9d7f0", "#ffe3b3", "#e8c6f0", "#d32f2f"], "electro": ["#1e5bc6", "#141414", "#4b555c", "#7b1fa2", "#00acc1", "#2e7d32", "#3949ab", "#d32f2f", "#263238", "#ff8f00"], "moda": ["#f7e1e8", "#cfd8dc", "#ffe0b2", "#a1887f", "#e1bee7", "#43a047", "#90a4ae", "#ffcc80", "#d7ccc8", "#d32f2f"], "joyas": ["#c9a227", "#f7e1e8", "#cfd8dc", "#141414", "#ffe0b2", "#7b1fa2", "#b0bec5", "#e0e0e0", "#a1887f", "#e91e63"], "almacen": ["#1e5bc6", "#e91e63", "#fbc02d", "#e3f2fd", "#a1887f", "#00acc1", "#c9a7e8", "#b3e5fc", "#ffcc80", "#d32f2f"], "ferreteria": ["#ff8f00", "#fbc02d", "#1e5bc6", "#9e9e9e", "#6d4c41", "#43a047", "#ffe082", "#d32f2f", "#607d8b", "#e65100"], "mascotas": ["#a1887f", "#ffcc80", "#fbc02d", "#00acc1", "#8d6e63", "#b3e5fc", "#d32f2f", "#4fc3f7", "#c5e1a5", "#ff8f00"], "deportes": ["#43a047", "#ff8f00", "#141414", "#00acc1", "#fbc02d", "#1e5bc6", "#2e7d32", "#7b1fa2", "#90a4ae", "#d32f2f"], "libreria": ["#1e5bc6", "#9e9e9e", "#e91e63", "#fbc02d", "#43a047", "#f7c6d9", "#ff8f00", "#a1887f", "#00acc1", "#d32f2f"], "hogar": ["#ffcc80", "#cfd8dc", "#d7ccc8", "#b3e5fc", "#e0f2f1", "#c5e1a5", "#ffe082", "#e1bee7", "#a5d6a7", "#d32f2f"], "casero": ["#f7c6d9", "#ffcc80", "#ffe082", "#a1887f", "#d7ccc8", "#c5e1a5", "#ffab91", "#fff3e0", "#c8e6c9", "#d32f2f"]};
   const presetOf = id => PRESETS.find(x => x.id === id) || PRESETS[0];
@@ -6466,6 +6473,14 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       <span class="swatch"><i style="background:${pr.frame}"></i><i style="background:${pr.shelf}"></i><i style="background:${pr.edge}"></i></span>
       <strong>${esc(pr.name)}</strong><small>${esc(pr.hint)}</small></button>`).join('');
   }
+  // plantillas de servicios: cargar con un toque los servicios conocidos (el cliente pide turno)
+  document.addEventListener('click', e => {
+    const k = e.target.closest('[data-loadkits]'); if(!k) return;
+    if($('quickPanel').hidden) $('quickBtn').click();
+    k.dataset.loadkits.split(',').forEach((kit, i) => setTimeout(() => { $('qSvcKind').value = kit; $('qSvcGo').click(); }, i * 300));
+    setTimeout(() => { try{ $('quickPanel').scrollIntoView({block: 'start', behavior: 'smooth'}); }catch(err){} }, 700);
+    k.disabled = true; k.textContent = '✓ Servicios cargados: poné los precios en Carga rápida';
+  });
   $('presetGrid').addEventListener('click', e => {
     const b = e.target.closest('.preset'); if(!b) return;
     const pr = presetOf(b.dataset.preset);
@@ -6476,7 +6491,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(pr.id !== 'general') products = products.filter(p => !p.sample);
     applyTheme(); renderPresets(); renderCatToggles(); save(); render(); fillCatSelect(currentCat || cats[0].id);
     if(currentCat) $('catTitle').textContent = catOf(currentCat).name;
-    $('presetMsg').textContent = `Listo: plantilla ${pr.name}.` + (hadSamples && pr.id !== 'general' ? ' Se quitaron los productos de ejemplo.' : '');
+    $('presetMsg').innerHTML = esc(`Listo: plantilla ${pr.name}.` + (hadSamples && pr.id !== 'general' ? ' Se quitaron los productos de ejemplo.' : '')) +
+      (pr.kits ? ` <button class="btn primary" type="button" data-loadkits="${pr.kits.join(',')}" style="margin-top:6px">✂️ Cargar los servicios conocidos</button> <small class="note">(después solo ponés los precios)</small>` : '');
   });
 
   // ---- Marca del comercio ----

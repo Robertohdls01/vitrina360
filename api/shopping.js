@@ -3,7 +3,7 @@
 // Aparece una tienda cuando el comerciante prendió "Aparecer en el Shopping" y tiene plan Plus o Pro pagado (o está en la prueba gratis).
 const { db } = require('./_comun');
 
-const RUBROS = { general: 'General', belleza: 'Belleza y cosmética', electro: 'Electrónica', moda: 'Ropa y moda', joyas: 'Bijouterie y joyería', almacen: 'Almacén y kiosco', ferreteria: 'Ferretería' };
+const RUBROS = { general: 'General', belleza: 'Belleza y cosmética', electro: 'Electrónica', moda: 'Ropa y moda', joyas: 'Bijouterie y joyería', almacen: 'Almacén y kiosco', ferreteria: 'Ferretería', mascotas: 'Mascotas', deportes: 'Deportes', libreria: 'Librería y regalería', hogar: 'Hogar y deco', casero: 'Comida casera', peluqueria: 'Peluquería y barbería', estetica: 'Estética y uñas', canina: 'Peluquería canina' };
 const corto = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
 
 module.exports = async (req, res) => {
