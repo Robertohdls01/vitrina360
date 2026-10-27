@@ -36,3 +36,9 @@ th{color:var(--muted);font-weight:600;font-size:12.5px}
 .money{font-weight:800;color:var(--accent)}
 .note{font-size:13px;color:var(--muted);margin:0}
 ul.how{margin:0;padding-left:20px;display:grid;gap:4px}
+h3{font:700 16px var(--display);margin:6px 0 0}
+.kitt,.kitimg{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.kitbox{border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:8px;align-content:start;background:var(--bg)}
+.kittxt{margin:0;font-size:14px;white-space:normal}
+.kitbox img,.kitbox video{width:100%;max-height:340px;object-fit:contain;border-radius:10px}
+.kitbox video{background:#000}

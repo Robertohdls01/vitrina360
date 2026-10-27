@@ -19,6 +19,39 @@
   const $ = id => document.getElementById(id), fmt = n => '$' + Number(n || 0).toLocaleString('es-AR');
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const fecha = d => { try{ return new Date(d).toLocaleDateString('es-AR'); }catch(e){ return ''; } };
+  // textos listos para publicar (llevan el link del vendedor)
+  const TEXTOS = link => [
+    {titulo: 'Para tu estado de WhatsApp', texto: '¿Vendés algo? 📸 Sacale una foto y Vitrina 360 te arma tu tienda solita: vitrinas que giran, precios y pedidos por WhatsApp. Probala 7 días gratis 👉 ' + link},
+    {titulo: 'Para grupos de emprendedores', texto: 'Hola a todos 👋 Quería compartirles una herramienta que me parece re útil para los que venden: Vitrina 360.\n\nSacás una foto del producto y se carga solo, con nombre y características. Tus clientes ven tus productos en vitrinas que giran en 360°, eligen y te hacen el pedido. Sin saber nada de computación.\n\nSe puede probar 7 días gratis: ' + link},
+    {titulo: 'Para revendedoras de catálogo', texto: '¿Revendés Avon, Natura, Violetta u otra marca? 💄 Con Vitrina 360 subís la foto de la página del catálogo y la app separa cada producto con su precio. Tus clientas ven todo en tu propia tienda y te hacen el pedido por WhatsApp.\n\nProbala 7 días gratis 👉 ' + link},
+    {titulo: 'Para Instagram o Facebook', texto: 'Tu local, ahora en el celular de tus clientes 🛍️\n\n✅ Sacás una foto y el producto se carga solo\n✅ Vitrinas que giran en 360°\n✅ Una cajera virtual que atiende y toma los pedidos\n✅ Pedidos y pagos sin complicaciones\n\nProbá Vitrina 360 gratis 7 días 👉 ' + link}
+  ];
+  // videos e imágenes del kit: se cargan desde /kit/kit.json (así se suman videos sin tocar esta página)
+  async function compartirArchivo(url, nombre, texto, btn){
+    try{
+      const blob = await (await fetch(url)).blob(), f = new File([blob], nombre, {type: blob.type});
+      if(navigator.canShare && navigator.canShare({files: [f]})){ await navigator.share({files: [f], text: texto}); return; }
+    }catch(e){ if(e && e.name === 'AbortError') return; }
+    const a = document.createElement('a'); a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
+    if(btn){ btn.textContent = 'Descargado ✓'; }
+  }
+  async function cargarKit(link){
+    let k = {videos: [], imagenes: []};
+    try{ k = await (await fetch('/kit/kit.json', {cache: 'no-cache'})).json(); }catch(e){}
+    const corto = '¿Vendés algo? Armá tu tienda con una foto 👉 ' + link;
+    const item = (x, i, tipo) => {
+      const nombre = x.src.split('/').pop();
+      const media = tipo === 'v' ? `<video src="${esc(x.src)}" controls playsinline preload="metadata"></video>` : `<img src="${esc(x.src)}" alt="${esc(x.titulo || '')}" loading="lazy">`;
+      return `<div class="kitbox">${media}<b>${esc(x.titulo || '')}</b><div class="row"><button class="btn primary" type="button" data-kit="${tipo}${i}">Compartir</button><a class="btn" href="${esc(x.src)}" download="${esc(nombre)}">Descargar</a></div></div>`;
+    };
+    const vids = k.videos || [], imgs = k.imagenes || [];
+    $('kitVideos').innerHTML = `<h3>Videos</h3>` + (vids.length ? `<div class="kitimg">${vids.map((x, i) => item(x, i, 'v')).join('')}</div>` : '<p class="note">Muy pronto vas a tener acá los videos listos para subir a tus estados y redes.</p>');
+    $('kitImgs').innerHTML = imgs.map((x, i) => item(x, i, 'i')).join('');
+    document.querySelectorAll('[data-kit]').forEach(b => b.onclick = () => {
+      const t = b.dataset.kit[0], x = (t === 'v' ? vids : imgs)[+b.dataset.kit.slice(1)];
+      compartirArchivo(x.src, x.src.split('/').pop(), corto, b);
+    });
+  }
   const p = new URLSearchParams(location.search), c = p.get('c'), k = p.get('k');
   if(!c || !k){ $('msg').textContent = 'Este link no es válido. Usá el link de tu panel que recibiste al anotarte.'; return; }
   const tag = e => e === 'pagando' ? '<span class="tag ok">Pagando ✅</span>' : e === 'en prueba gratis' ? '<span class="tag warn">En prueba gratis ⏳</span>' : `<span class="tag">${esc(e)}</span>`;
@@ -39,6 +72,16 @@
         <div class="row"><button class="btn primary" type="button" id="copy">Copiar mi link</button><a class="btn wa" href="${share}" target="_blank" rel="noopener">Compartir por WhatsApp</a></div>
         <p class="note">Tu código: <b>${esc(j.code)}</b>. Si alguien se anota sin tu link, puede escribir el código en “Mi cuenta” dentro de su tienda.</p>
       </section>
+      <section class="card" id="kit">
+        <h2>Material para publicar</h2>
+        <p class="note">Todo listo para copiar y publicar. Los textos ya llevan tu link, así que cada persona que se anote desde ahí te suma a vos.</p>
+        <div class="kitv" id="kitVideos"></div>
+        <h3>Textos</h3>
+        <div class="kitt">${TEXTOS(j.link).map((t, i) => `<div class="kitbox"><b>${esc(t.titulo)}</b><p class="kittxt">${esc(t.texto).replace(/\n/g, '<br>')}</p>
+          <div class="row"><button class="btn" type="button" data-copy="${i}">Copiar</button><a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(t.texto)}" target="_blank" rel="noopener">Mandar por WhatsApp</a></div></div>`).join('')}</div>
+        <h3>Imágenes</h3>
+        <div class="kitimg" id="kitImgs"></div>
+      </section>
       <section class="card">
         <h2>Lo que te corresponde ahora</h2>
         ${j.debe.length ? `<div class="scroll"><table><thead><tr><th>Cliente</th><th>Plan</th><th>Concepto</th><th>Monto</th></tr></thead><tbody>${j.debe.map(d => `<tr><td>${esc(d.tienda)}</td><td>${esc(d.plan)}</td><td>${d.tipo === 'premio' ? 'Premio por venta' : 'Comisión del mes ' + esc(d.mes)}</td><td class="money">${fmt(d.monto)}</td></tr>`).join('')}</tbody></table></div><p class="note">Vitrina 360 te lo transfiere y acá vas a ver el pago marcado.</p>` : '<p class="note">Por ahora no hay nada pendiente. Cuando un cliente tuyo pague, aparece acá.</p>'}
@@ -55,6 +98,9 @@
         <h2>Cuánto ganás</h2>
         <p class="note">Start: ${fmt(j.premios.emprendedora)} por venta + ${fmt(j.mensual.emprendedora)} por mes · Plus: ${fmt(j.premios.comercio)} + ${fmt(j.mensual.comercio)} por mes · Pro: ${fmt(j.premios.pro)} + ${fmt(j.mensual.pro)} por mes. El premio se gana cuando el cliente paga su primer mes; la comisión mensual, desde el mes siguiente y mientras siga pagando.</p>
       </section>`;
+    const txts = TEXTOS(j.link);
+    document.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => navigator.clipboard?.writeText(txts[+b.dataset.copy].texto).then(() => { b.textContent = '¡Copiado!'; setTimeout(() => b.textContent = 'Copiar', 2000); }));
+    cargarKit(j.link);
     $('copy').onclick = () => navigator.clipboard?.writeText(j.link).then(() => { $('copy').textContent = '¡Copiado!'; });
   }).catch(() => { $('msg').textContent = 'No se pudo abrir tu panel. Revisá tu conexión y probá de nuevo.'; });
 })();

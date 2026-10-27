@@ -1,0 +1,8 @@
+{
+  "_como": "Material para que los vendedores publiquen. Para sumar un video: subir el .mp4 a esta carpeta (kit/) y agregarlo en 'videos'.",
+  "videos": [],
+  "imagenes": [
+    {"src": "/kit/estado.jpg", "titulo": "Vertical, para estados e historias"},
+    {"src": "/og.png", "titulo": "Horizontal, para grupos y Facebook"}
+  ]
+}
