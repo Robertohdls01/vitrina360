@@ -37,7 +37,7 @@
       vs.forEach(v => (v.clientes || []).filter(c => Date.parse(c.desde || 0) > visto).forEach(c => nov.push(`🔔 <b>${esc(v.nombre)}</b> (${esc(v.code)}) trajo un cliente nuevo: ${esc(c.tienda || c.email)} · ${esc(c.estado)}`)));
       vs.filter(v => v.total > 0).forEach(v => nov.push(`💰 Le tenés que pagar <b>${fmt(v.total)}</b> a <b>${esc(v.nombre)}</b>${v.alias ? ' · alias ' + esc(v.alias) : ''}`));
       $('app').innerHTML = `
-        <div class="top"><a href="/panel">Vitrina 360</a> · <span style="font-weight:600">Vendedores</span></div>
+        <div class="top"><a href="/panel">Vitrina 360</a> · <span style="font-weight:600">Vendedores</span> · <a href="/admin-estadisticas.html" style="font-weight:600">Estadísticas</a></div>
         <h1>Vendedores</h1>
         ${nov.length ? `<section class="card"><h2>Novedades</h2><ul class="how">${nov.map(x => `<li>${x}</li>`).join('')}</ul><p class="note">Se anota todo solo: cuando alguien entra con el link de un vendedor y crea su tienda, queda como cliente de ese vendedor. Cuando paga, acá te aparece cuánto le debés.</p></section>` : `<p class="note">Sin novedades desde tu última visita.</p>`}
         <div class="grid3">

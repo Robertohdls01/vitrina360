@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Estadísticas · Vitrina 360</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="/vend.css">
+<style>
+/* colores suaves (verde), para que no canse la vista */
+:root{--bg:#f2f6f3;--surface:#fbfdfb;--ink:#1f2a24;--muted:#5d6b63;--line:#d8e3dc;--accent:#3f8f63;--accent-ink:#fff;--bar:#7fbf98;--bar-hi:#3f8f63;--grid:#e3ebe6}
+@media (prefers-color-scheme: dark){:root{--bg:#141a17;--surface:#1b231f;--ink:#e6eee9;--muted:#9fb0a6;--line:#2c3832;--accent:#8fd1aa;--accent-ink:#10251a;--bar:#4f9a72;--bar-hi:#8fd1aa;--grid:#26312b}}
+.chart{position:relative}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart .ax{font:500 11px var(--body);fill:var(--muted)}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--surface);font:600 13px var(--body);padding:6px 9px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-110%);opacity:0;transition:opacity .1s}
+.tip.on{opacity:1}
+.bars rect.b{fill:var(--bar)}
+.bars g:hover rect.b,.bars g:focus rect.b{fill:var(--bar-hi)}
+.bars g{outline:none}
+.st{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700;border:1px solid var(--line);background:var(--bg);white-space:nowrap}
+.st.ok{color:var(--accent);border-color:var(--accent)}
+.st.pr{color:#8a6a10;border-color:#d9c27a}
+@media (prefers-color-scheme: dark){.st.pr{color:#e8cf7a;border-color:#7a6a2a}}
+.grid3{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.top{flex-wrap:wrap}
+a{color:var(--accent)}
+.cnt{font-variant-numeric:tabular-nums;font-weight:700;text-align:right}
+.yo{color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<main class="wrap" id="app">
+  <div class="top"><a href="/panel">Vitrina 360</a> · <span style="font-weight:600">Estadísticas</span></div>
+  <p class="msg" id="msg" role="status">Cargando…</p>
+</main>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const n = x => Number(x || 0).toLocaleString('es-AR');
+  const fecha = d => { try{ return d ? new Date(d).toLocaleDateString('es-AR') : ''; }catch(e){ return ''; } };
+  const corta = d => { const [y, m, dd] = d.split('-'); return +dd + '/' + +m; };
+  let tok = ''; try{ tok = (JSON.parse(localStorage.getItem('v360-sesion') || 'null') || {}).access_token || ''; }catch(e){}
+  if(!tok){ $('msg').innerHTML = 'Primero entrá a tu panel de Vitrina 360 con tu mail y después volvé a esta página. <a href="/panel">Ir a mi panel</a>'; return; }
+
+  // gráfico de barras: visitantes por día (una sola serie, con aviso al pasar el dedo o el mouse)
+  function grafico(serie, ancho){
+    const W = Math.round(Math.max(300, Math.min(900, ancho))), H = 220, L = 34, R = 8, T = 12, Bm = 26, iw = W - L - R, ih = H - T - Bm;
+    const max = Math.max(4, ...serie.map(s => s.visitantes));
+    const paso = max <= 10 ? 2 : max <= 50 ? 10 : max <= 200 ? 50 : Math.pow(10, Math.floor(Math.log10(max)));
+    const top = Math.ceil(max / paso) * paso, y = v => T + ih - (v / top) * ih;
+    const bw = iw / serie.length, w = Math.max(3, bw - 4);
+    let g = '';
+    for(let v = 0; v <= top; v += paso) g += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)" stroke-width="1"/><text class="ax" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+    const bars = serie.map((s, i) => {
+      const x = L + i * bw + (bw - w) / 2, h = Math.max(0, ih - (y(s.visitantes) - T)), r = Math.min(4, w / 2, h);
+      const path = h > 0 ? `M${x},${T + ih} V${T + ih - h + r} Q${x},${T + ih - h} ${x + r},${T + ih - h} H${x + w - r} Q${x + w},${T + ih - h} ${x + w},${T + ih - h + r} V${T + ih} Z` : '';
+      const lab = (i % 5 === 4 || i === serie.length - 1) ? `<text class="ax" x="${x + w / 2}" y="${H - 8}" text-anchor="${i === serie.length - 1 ? 'end' : 'middle'}">${corta(s.dia)}</text>` : '';
+      return `<g tabindex="0" data-i="${i}"><rect x="${L + i * bw}" y="${T}" width="${bw}" height="${ih}" fill="transparent"/>${path ? `<path class="b" d="${path}" style="fill:var(--bar)"/>` : ''}${lab}</g>`;
+    }).join('');
+    return `<div class="chart" id="ch"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Visitantes por día, últimos 30 días">${g}<line x1="${L}" x2="${W - R}" y1="${T + ih}" y2="${T + ih}" stroke="var(--line)"/><g class="bars">${bars}</g></svg><div class="tip" id="tip"></div></div>`;
+  }
+
+  fetch('/api/estadisticas?accion=admin', {headers: {Authorization: 'Bearer ' + tok}}).then(r => r.json().then(j => ({ok: r.ok, status: r.status, j}))).then(({ok, status, j}) => {
+    if(!ok){
+      $('msg').innerHTML = status === 401 ? 'Tu sesión venció. <a href="/panel">Entrá a tu panel</a> y volvé a esta página.'
+        : status === 403 ? esc(j.error) + ' Si sos el dueño, cargá tu mail (' + esc(j.email || '') + ') en Vercel, en la variable ADMIN_EMAILS.' : esc(j.error || 'No se pudo cargar.');
+      return;
+    }
+    const s = j.serie, ult = k => s.slice(-k).reduce((a, x) => a + x.visitantes, 0);
+    const hay = s.some(x => x.vistas > 0), primero = (s.find(x => x.vistas > 0) || {}).dia;
+    const cs = j.cuentas.filter(c => !c.vos);
+    const nuevas7 = cs.filter(c => Date.now() - Date.parse(c.creado || 0) < 7 * 864e5).length;
+    const prueba = cs.filter(c => c.estado === 'En prueba gratis').length, pagando = cs.filter(c => c.estado === 'Pagando').length;
+    const tag = e => `<span class="st ${e === 'Pagando' ? 'ok' : e === 'En prueba gratis' ? 'pr' : ''}">${esc(e)}</span>`;
+    $('app').innerHTML = `
+      <div class="top"><a href="/panel">Vitrina 360</a> · <span style="font-weight:600">Estadísticas</span> · <a href="/admin-vendedores.html" style="font-weight:600">Vendedores</a></div>
+      <h1>Cómo viene Vitrina 360</h1>
+      <div class="grid3">
+        <div class="stat"><span>Visitantes hoy</span><b>${n(ult(1))}</b></div>
+        <div class="stat"><span>Visitantes, últimos 7 días</span><b>${n(ult(7))}</b></div>
+        <div class="stat"><span>Cuentas nuevas, últimos 7 días</span><b>${n(nuevas7)}</b></div>
+        <div class="stat"><span>En prueba gratis ahora</span><b>${n(prueba)}</b></div>
+        <div class="stat"><span>Pagando</span><b style="color:var(--accent)">${n(pagando)}</b></div>
+        <div class="stat"><span>Cuentas en total</span><b>${n(cs.length)}</b></div>
+      </div>
+      <section class="card">
+        <h2>Visitantes por día</h2>
+        <p class="note">Personas distintas que entraron a tus páginas cada día (últimos 30 días). Pasá el dedo o el mouse por una barra para ver el número.</p>
+        ${hay ? grafico(s, ($('app').clientWidth || 360) - 40) : '<p class="lead">Todavía no hay visitas contadas. El contador arrancó hoy: en cuanto alguien entre a tus páginas, aparece acá.</p>'}
+        ${hay && primero !== s[0].dia ? `<p class="note">Se empezó a contar el ${corta(primero)}: los días anteriores no tienen datos.</p>` : ''}
+      </section>
+      <section class="card">
+        <h2>De dónde vienen</h2>
+        ${j.fuentes.length ? `<div class="scroll"><table><thead><tr><th>Origen</th><th class="cnt">Visitantes</th></tr></thead><tbody>${j.fuentes.map(f => `<tr><td>${esc(f.nombre)}</td><td class="cnt">${n(f.n)}</td></tr>`).join('')}</tbody></table></div>
+        <p class="note">"Directo" casi siempre es un link mandado por WhatsApp o copiado y pegado, porque WhatsApp no avisa de dónde viene.</p>` : '<p class="note">Todavía no hay datos.</p>'}
+      </section>
+      <section class="card">
+        <h2>Qué páginas visitan</h2>
+        ${j.paginas.length ? `<div class="scroll"><table><thead><tr><th>Página</th><th class="cnt">Visitantes</th><th class="cnt">Veces que se abrió</th></tr></thead><tbody>${j.paginas.map(p => `<tr><td>${esc(p.nombre)}</td><td class="cnt">${n(p.visitantes)}</td><td class="cnt">${n(p.vistas)}</td></tr>`).join('')}</tbody></table></div>` : '<p class="note">Todavía no hay datos.</p>'}
+      </section>
+      <section class="card">
+        <h2>Quiénes se anotaron (${cs.length})</h2>
+        ${j.cuentas.length ? `<div class="scroll"><table><thead><tr><th>Mail</th><th>Tienda</th><th>Se anotó</th><th>Estado</th><th>Plan</th><th class="cnt">Visitas a su tienda</th></tr></thead><tbody>${j.cuentas.map(c => `<tr><td>${esc(c.email)}${c.vos ? ' <span class="yo">(vos)</span>' : ''}</td><td>${c.slug ? `<a href="/t/${esc(c.slug)}" target="_blank" rel="noopener">${esc(c.tienda || c.slug)}</a>` : '—'}</td><td>${fecha(c.creado)}</td><td>${tag(c.estado)}${c.estado === 'En prueba gratis' && c.dias != null ? ` <span class="yo">${c.dias} días</span>` : ''}</td><td>${esc(c.plan || '—')}</td><td class="cnt">${n(c.vistas)}</td></tr>`).join('')}</tbody></table></div>
+        <p class="note">Las visitas a cada tienda se cuentan desde hoy. "Se anotó, sin tienda" = creó la cuenta pero todavía no armó su tienda: es buen momento para escribirle y ayudarlo.</p>` : '<p class="note">Todavía no se anotó nadie.</p>'}
+      </section>`;
+    const ch = document.getElementById('ch');
+    if(ch){
+      const tip = $('tip'), show = gEl => { const i = +gEl.dataset.i, d = s[i], r = gEl.getBoundingClientRect(), c = ch.getBoundingClientRect();
+        tip.textContent = `${corta(d.dia)}: ${d.visitantes} ${d.visitantes === 1 ? 'visitante' : 'visitantes'}`; const half = tip.offsetWidth / 2 || 60; tip.style.left = Math.min(c.width - half - 2, Math.max(half + 2, r.left - c.left + r.width / 2)) + 'px'; tip.style.top = Math.max(tip.offsetHeight + 2, r.top - c.top + 12) + 'px'; tip.classList.add('on'); };
+      ch.querySelectorAll('.bars g').forEach(gEl => { gEl.addEventListener('mouseenter', () => show(gEl)); gEl.addEventListener('focus', () => show(gEl)); gEl.addEventListener('touchstart', () => show(gEl), {passive: true}); });
+      ch.addEventListener('mouseleave', () => tip.classList.remove('on'));
+    }
+  }).catch(() => { $('msg').textContent = 'No se pudo cargar. Probá de nuevo.'; });
+})();
+</script>
+</body>
+</html>

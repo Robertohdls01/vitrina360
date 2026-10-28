@@ -372,7 +372,7 @@
       <button type="button" data-copy>${T('Copiar link', 'Copy link', 'Copiar link')}</button></span>
       <span class="grp" data-plan hidden></span>
       <span class="grp" data-ref>🤝 ${T('Código de vendedor', 'Seller code', 'Código de vendedor')}: <input data-refin maxlength="16" placeholder="${T('Ej: JUAN', 'E.g. JUAN', 'Ex: JUAN')}" style="width:110px;text-transform:uppercase;border:1px solid var(--line,#ddd);border-radius:999px;padding:4px 10px;font:inherit;background:transparent;color:inherit"><button type="button" data-refok>${T('Guardar', 'Save', 'Salvar')}</button> <small data-refmsg></small></span>
-      <span class="grp" data-admin hidden><a href="/admin-vendedores.html">💼 ${T('Vendedores', 'Sellers', 'Vendedores')}</a></span>
+      <span class="grp" data-admin hidden><a href="/admin-vendedores.html">💼 ${T('Vendedores', 'Sellers', 'Vendedores')}</a> · <a href="/admin-estadisticas.html">📊 ${T('Estadísticas', 'Stats', 'Estatísticas')}</a></span>
       <span class="grp"><button type="button" data-out>${T('Salir', 'Sign out', 'Sair')}</button></span>
       </div>`;
     const wrap = document.querySelector('.wrap'); (wrap ? wrap.parentNode : document.body).insertBefore(bar, wrap || document.body.firstChild);
@@ -7582,5 +7582,6 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
 })();
 </script>
 
+<script src="/estad.js" data-p="tienda" defer></script>
 </body>
 </html>
