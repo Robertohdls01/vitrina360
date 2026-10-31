@@ -7,7 +7,7 @@ const { cuerpo, usuario, db, estado, stHeaders, PLANES } = require('./_comun');
 const SURL = () => String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const ST = () => SURL() + '/storage/v1';
 const B = 'estadisticas';
-const PAGINAS = { inicio: 'Página principal', ingles: 'Página en inglés', vender: 'Anotarse como vendedor', tienda: 'Tiendas de los clientes' };
+const PAGINAS = { inicio: 'Página principal', ingles: 'Página en inglés', vender: 'Anotarse como vendedor', tienda: 'Tiendas de los clientes', censo: 'Censo Mundial de Mascotas' };
 const ADMINS = () => String(process.env.ADMIN_EMAILS || process.env.IA_SIN_LIMITE || '').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
 const dia = t => new Date(t - 3 * 3600e3).toISOString().slice(0, 10);   // hora de Argentina
 const limpio = (v, n, rx) => String(v == null ? '' : v).replace(rx, '').slice(0, n);

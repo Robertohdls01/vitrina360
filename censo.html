@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Censo Mundial de Mascotas</title>
+<meta name="description" content="Anotá a tu mascota en el Censo Mundial de Mascotas, recibí su número y mirá qué raza y qué país van ganando.">
+<meta property="og:title" content="Censo Mundial de Mascotas 🐾">
+<meta property="og:description" content="Anotá a tu mascota, recibí su número y mirá qué raza va ganando en el mundo.">
+<meta property="og:image" content="https://vitrina360-kappa.vercel.app/censo-og.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#fbf6ee;--surface:#fffdf9;--ink:#2b2420;--muted:#6f645b;--line:#eadfd1;--accent:#2f8f83;--accent-ink:#fff;--warm:#e3876c;--bar:#9ccfc6;--soft:#f3ebe0;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;--body:"Figtree",system-ui,sans-serif}
+@media (prefers-color-scheme: dark){:root{--bg:#1b1815;--surface:#24201c;--ink:#f3ece4;--muted:#b6aa9d;--line:#3a332c;--accent:#6fc3b6;--accent-ink:#10231f;--warm:#f0a088;--bar:#3f7f76;--soft:#2c2722}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--body)}
+.wrap{max-width:920px;margin:0 auto;padding:20px 16px 56px;display:grid;gap:18px}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.015em}
+h1{font-size:clamp(30px,7vw,52px);line-height:1.02}
+h2{font-size:22px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{font:800 18px var(--display);display:flex;align-items:center;gap:8px}
+.langs{display:flex;gap:4px}
+.langs button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 10px;font:600 13px var(--body);cursor:pointer}
+.langs button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.hero{display:grid;gap:12px}
+.lead{color:var(--muted);margin:0;font-size:17px;max-width:60ch}
+.counter{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:18px 20px;display:flex;flex-wrap:wrap;gap:14px 34px;align-items:baseline}
+.counter .big{font:800 clamp(44px,11vw,76px)/1 var(--display);color:var(--accent);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.counter .lab{color:var(--muted);font-weight:600}
+.counter .sm{font:800 26px var(--display);font-variant-numeric:tabular-nums}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:20px;display:grid;gap:14px}
+form{display:grid;gap:12px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+label{display:grid;gap:5px;font-weight:600;font-size:14px}
+label small{font-weight:400;color:var(--muted)}
+input,select{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;width:100%}
+.esp{display:flex;flex-wrap:wrap;gap:8px}
+.esp button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:9px 13px;font:600 15px var(--body);cursor:pointer}
+.esp button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chk{display:flex;gap:10px;align-items:flex-start;font-weight:500}
+.chk input{width:auto;margin-top:4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:13px 20px;font:700 16px var(--body);cursor:pointer;text-decoration:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-size:17px}
+.btn.wa{background:#1f8f55;border-color:#1f8f55;color:#fff}
+.btn:disabled{opacity:.6}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.msg{margin:0;font-weight:600;min-height:1.4em}
+.msg.err{color:#b4412b}
+.note{font-size:13px;color:var(--muted);margin:0}
+#done[hidden],#form[hidden]{display:none}
+.done-num{font:800 clamp(38px,10vw,64px)/1 var(--display);color:var(--warm);font-variant-numeric:tabular-nums}
+#cardImg{width:100%;max-width:360px;border-radius:18px;border:1px solid var(--line);display:block}
+.ranks{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.rank h3{font-size:17px;margin-bottom:8px}
+.rank ol{list-style:none;margin:0;padding:0;display:grid;gap:7px}
+.rank li{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:center;font-size:15px}
+.rank .pos{color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
+.rank .nm{position:relative;overflow:hidden;border-radius:8px;padding:4px 8px;background:var(--soft)}
+.rank .nm i{position:absolute;inset:0 auto 0 0;background:var(--bar);border-radius:8px;opacity:.55}
+.rank .nm span{position:relative}
+.rank .v{font-weight:700;font-variant-numeric:tabular-nums;min-width:3ch;text-align:right}
+.empty{color:var(--muted);font-size:14px}
+.mine{display:flex;flex-wrap:wrap;gap:6px}
+.mine span{background:var(--soft);border-radius:999px;padding:4px 10px;font-size:14px}
+footer{text-align:center;color:var(--muted);font-size:13px}
+footer a{color:inherit}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="top">
+    <div class="brand">🐾 <span data-t="marca"></span></div>
+    <div class="langs" role="group" aria-label="Idioma"><button type="button" data-l="es">ES</button><button type="button" data-l="en">EN</button><button type="button" data-l="pt">PT</button></div>
+  </div>
+
+  <section class="hero">
+    <h1 data-t="titulo"></h1>
+    <p class="lead" data-t="bajada"></p>
+  </section>
+
+  <section class="counter" aria-live="polite">
+    <div><div class="big" id="cTotal">—</div><div class="lab" data-t="anotadas"></div></div>
+    <div><div class="sm" id="cPaises">—</div><div class="lab" data-t="paises"></div></div>
+    <div><div class="sm" id="cSemana">—</div><div class="lab" data-t="semana"></div></div>
+  </section>
+
+  <section class="card" id="form">
+    <h2 data-t="anotala"></h2>
+    <form id="f" novalidate>
+      <div>
+        <div style="font-weight:600;font-size:14px;margin-bottom:6px" data-t="queEs"></div>
+        <div class="esp" id="esp" role="group"></div>
+      </div>
+      <div class="grid2">
+        <label><span data-t="nombre"></span><input id="nombre" maxlength="30" autocomplete="off" required></label>
+        <label><span data-t="raza"></span><input id="raza" maxlength="40" list="razas" autocomplete="off"><small data-t="razaAyuda"></small></label>
+      </div>
+      <div class="grid2">
+        <label><span data-t="pais"></span><select id="pais" required></select></label>
+        <label><span data-t="edad"></span><select id="edad"></select></label>
+      </div>
+      <div class="grid2">
+        <label><span data-t="tutor"></span><input id="tutor" maxlength="30" autocomplete="given-name"><small data-t="tutorAyuda"></small></label>
+        <label><span data-t="foto"></span><input id="foto" type="file" accept="image/*"><small data-t="fotoAyuda"></small></label>
+      </div>
+      <label class="chk"><input type="checkbox" id="acepta"><span data-t="quieroResultados"></span></label>
+      <label id="mailBox" hidden><span data-t="mail"></span><input id="email" type="email" autocomplete="email"></label>
+      <div class="row"><button class="btn primary" id="go" type="submit" data-t="boton"></button></div>
+      <p class="msg" id="msg" role="status"></p>
+      <p class="note" data-t="privacidad"></p>
+    </form>
+    <div id="misMascotas" hidden><div class="note" data-t="yaAnotaste"></div><div class="mine" id="mine"></div></div>
+  </section>
+
+  <section class="card" id="done" hidden>
+    <div class="note" data-t="listo"></div>
+    <div><span id="doneName" style="font:800 26px var(--display)"></span> <span data-t="esLa"></span></div>
+    <div class="done-num" id="doneNum"></div>
+    <div data-t="delCenso" style="font-weight:600"></div>
+    <img id="cardImg" alt="" style="max-width:560px">
+    <div class="row">
+      <button class="btn primary" type="button" id="share" data-t="compartir"></button>
+      <a class="btn wa" id="wa" target="_blank" rel="noopener" data-t="whatsapp"></a>
+      <a class="btn" id="fb" target="_blank" rel="noopener">Facebook</a>
+      <button class="btn" type="button" id="dl" data-t="descargar"></button>
+    </div>
+    <div class="row"><button class="btn" type="button" id="otra" data-t="otra"></button></div>
+  </section>
+
+  <section class="card">
+    <h2 data-t="ranking"></h2>
+    <p class="note" data-t="rankingNota"></p>
+    <div class="ranks" id="ranks"><p class="empty" data-t="cargando"></p></div>
+  </section>
+
+  <footer><span data-t="pie"></span> · <a href="/" data-t="pieLink"></a></footer>
+</main>
+
+<datalist id="razas"></datalist>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const T = {
+    es: {marca:'Censo Mundial de Mascotas', titulo:'¿Cuántas mascotas hay en el mundo? Contemos juntos 🐶🐱', bajada:'Anotá a tu mascota en 10 segundos, recibí su número del censo y mirá qué raza y qué país van ganando. Perros, gatos, conejos, loros, peces, tortugas… ¡y hasta chanchitos!', anotadas:'mascotas anotadas', paises:'países', semana:'nuevas esta semana', anotala:'Anotá a tu mascota', queEs:'¿Qué es?', nombre:'Nombre de tu mascota', raza:'Raza', razaAyuda:'Si no sabés o es mezcla, poné "Mestizo".', pais:'País', quieroResultados:'Quiero recibir los resultados del censo por mail', mail:'Tu mail', boton:'Anotar a mi mascota 🐾', privacidad:'Solo guardamos los datos de tu mascota. Tu mail, si lo dejás, se usa únicamente para mandarte los resultados. Este censo es de la comunidad: muestra las mascotas que participan, no es un dato oficial.', yaAnotaste:'Ya anotaste desde este celular:', listo:'¡Listo! 🎉', esLa:'es la mascota', delCenso:'del Censo Mundial de Mascotas', compartir:'Compartir', whatsapp:'WhatsApp', descargar:'Descargar imagen', otra:'Anotar otra mascota', ranking:'Quién va ganando', rankingNota:'Se actualiza cada minuto. Todas las semanas publicamos los resultados.', cargando:'Cargando…', pie:'Censo Mundial de Mascotas', pieLink:'Hecho con Vitrina 360', faltan:'Completá qué animal es, el nombre y el país.', anotando:'Anotando…', repetida:'Esta mascota ya estaba anotada desde acá. Este es su número:', rPerros:'Razas de perros', rGatos:'Razas de gatos', rOtras:'Otras mascotas', rPaises:'Países', rNombres:'Nombres más populares', rEspecies:'Por tipo de mascota', vacio:'Todavía no hay datos. ¡Sé el primero!', compartirTxt:'¡{n} es la mascota N° {num} del Censo Mundial de Mascotas! 🐾 Anotá a la tuya:', elegi:'Elegí el país', edad:'Edad', tutor:'Tu nombre (tutor/a)', tutorAyuda:'Opcional. Solo aparece en la credencial, no lo guardamos.', foto:'Foto de tu mascota', fotoAyuda:'Opcional. Se usa solo para tu credencial y no se sube a ningún lado.', credencial:'Credencial del Censo Mundial de Mascotas', noOficial:'Credencial de la comunidad · no es un documento oficial', cEspecie:'Especie', cRaza:'Raza', cEdad:'Edad', cPais:'País', cTutor:'Tutor/a', cAlta:'Fecha de alta', cDoc:'N° de documento', anios:'años', anio:'año', cachorro:'Menos de 1 año', sinDato:'—'},
+    en: {marca:'World Pet Census', titulo:'How many pets are there in the world? Let\'s count together 🐶🐱', bajada:'Add your pet in 10 seconds, get its census number and see which breed and which country are winning. Dogs, cats, rabbits, parrots, fish, turtles… and even piggies!', anotadas:'pets counted', paises:'countries', semana:'new this week', anotala:'Add your pet', queEs:'What is it?', nombre:'Your pet\'s name', raza:'Breed', razaAyuda:'If you don\'t know or it\'s mixed, write "Mixed".', pais:'Country', quieroResultados:'Email me the census results', mail:'Your email', boton:'Add my pet 🐾', privacidad:'We only store your pet\'s details. Your email, if you leave it, is only used to send you the results. This is a community census: it shows the pets that take part, not official data.', yaAnotaste:'Already added from this phone:', listo:'Done! 🎉', esLa:'is pet', delCenso:'in the World Pet Census', compartir:'Share', whatsapp:'WhatsApp', descargar:'Download image', otra:'Add another pet', ranking:'Who\'s winning', rankingNota:'Updated every minute. Results are posted every week.', cargando:'Loading…', pie:'World Pet Census', pieLink:'Made with Vitrina 360', faltan:'Choose the animal and fill in the name and country.', anotando:'Adding…', repetida:'This pet was already added from here. Its number is:', rPerros:'Dog breeds', rGatos:'Cat breeds', rOtras:'Other pets', rPaises:'Countries', rNombres:'Most popular names', rEspecies:'By type of pet', vacio:'No data yet. Be the first!', compartirTxt:'{n} is pet No. {num} in the World Pet Census! 🐾 Add yours:', elegi:'Choose your country', edad:'Age', tutor:'Your name (owner)', tutorAyuda:'Optional. Only shown on the ID card, we don\'t store it.', foto:'Your pet\'s photo', fotoAyuda:'Optional. Only used for your ID card and never uploaded.', credencial:'World Pet Census ID Card', noOficial:'Community ID card · not an official document', cEspecie:'Species', cRaza:'Breed', cEdad:'Age', cPais:'Country', cTutor:'Owner', cAlta:'Registered', cDoc:'ID number', anios:'years', anio:'year', cachorro:'Under 1 year', sinDato:'—'},
+    pt: {marca:'Censo Mundial de Pets', titulo:'Quantos pets existem no mundo? Vamos contar juntos 🐶🐱', bajada:'Cadastre seu pet em 10 segundos, receba o número dele no censo e veja qual raça e qual país estão ganhando. Cães, gatos, coelhos, papagaios, peixes, tartarugas… e até porquinhos!', anotadas:'pets cadastrados', paises:'países', semana:'novos esta semana', anotala:'Cadastre seu pet', queEs:'O que é?', nombre:'Nome do seu pet', raza:'Raça', razaAyuda:'Se não souber ou for misturado, escreva "SRD".', pais:'País', quieroResultados:'Quero receber os resultados por e-mail', mail:'Seu e-mail', boton:'Cadastrar meu pet 🐾', privacidad:'Só guardamos os dados do seu pet. Seu e-mail, se deixar, é usado apenas para enviar os resultados. Este censo é da comunidade: mostra os pets que participam, não é um dado oficial.', yaAnotaste:'Já cadastrados neste celular:', listo:'Pronto! 🎉', esLa:'é o pet', delCenso:'do Censo Mundial de Pets', compartir:'Compartilhar', whatsapp:'WhatsApp', descargar:'Baixar imagem', otra:'Cadastrar outro pet', ranking:'Quem está ganhando', rankingNota:'Atualiza a cada minuto. Toda semana publicamos os resultados.', cargando:'Carregando…', pie:'Censo Mundial de Pets', pieLink:'Feito com Vitrina 360', faltan:'Escolha o animal e preencha o nome e o país.', anotando:'Cadastrando…', repetida:'Este pet já foi cadastrado daqui. O número dele é:', rPerros:'Raças de cães', rGatos:'Raças de gatos', rOtras:'Outros pets', rPaises:'Países', rNombres:'Nomes mais populares', rEspecies:'Por tipo de pet', vacio:'Ainda sem dados. Seja o primeiro!', compartirTxt:'{n} é o pet nº {num} do Censo Mundial de Pets! 🐾 Cadastre o seu:', elegi:'Escolha o país', edad:'Idade', tutor:'Seu nome (tutor/a)', tutorAyuda:'Opcional. Só aparece na carteirinha, não guardamos.', foto:'Foto do seu pet', fotoAyuda:'Opcional. Usada só na carteirinha e não é enviada a lugar nenhum.', credencial:'Carteirinha do Censo Mundial de Pets', noOficial:'Carteirinha da comunidade · não é um documento oficial', cEspecie:'Espécie', cRaza:'Raça', cEdad:'Idade', cPais:'País', cTutor:'Tutor/a', cAlta:'Cadastro', cDoc:'Nº do documento', anios:'anos', anio:'ano', cachorro:'Menos de 1 ano', sinDato:'—'}
+  };
+  const ESP = [['perro','🐶',{es:'Perro',en:'Dog',pt:'Cão'}],['gato','🐱',{es:'Gato',en:'Cat',pt:'Gato'}],['conejo','🐰',{es:'Conejo',en:'Rabbit',pt:'Coelho'}],['ave','🦜',{es:'Ave',en:'Bird',pt:'Ave'}],['pez','🐠',{es:'Pez',en:'Fish',pt:'Peixe'}],['roedor','🐹',{es:'Hámster o roedor',en:'Hamster or rodent',pt:'Hamster ou roedor'}],['tortuga','🐢',{es:'Tortuga',en:'Turtle',pt:'Tartaruga'}],['reptil','🦎',{es:'Reptil',en:'Reptile',pt:'Réptil'}],['cerdo','🐷',{es:'Chanchito',en:'Pig',pt:'Porquinho'}],['caballo','🐴',{es:'Caballo',en:'Horse',pt:'Cavalo'}],['huron','🦦',{es:'Hurón',en:'Ferret',pt:'Furão'}],['otro','🐾',{es:'Otro',en:'Other',pt:'Outro'}]];
+  const RAZAS = {
+    perro:['Mestizo','Caniche','Labrador','Golden Retriever','Ovejero Alemán','Bulldog Francés','Bulldog Inglés','Chihuahua','Yorkshire','Shih Tzu','Beagle','Salchicha','Pug','Border Collie','Boxer','Rottweiler','Pitbull','Husky Siberiano','Schnauzer','Cocker Spaniel','Maltés','Pomerania','Dogo Argentino','Galgo','Jack Russell','Doberman','Bichón Frisé','Shar Pei','Chow Chow','Akita','Samoyedo','Basset Hound','Bull Terrier','Weimaraner','Pastor Belga','Fox Terrier','Lhasa Apso','Cavalier King Charles','San Bernardo','Gran Danés'],
+    gato:['Mestizo','Común europeo','Siamés','Persa','Maine Coon','Angora','Bengalí','Ragdoll','British Shorthair','Sphynx','Azul Ruso','Scottish Fold','Exótico','Abisinio','Birmano','Siberiano','Himalayo','Bosque de Noruega'],
+    ave:['Canario','Periquito','Cotorra','Loro','Cacatúa','Ninfa','Agapornis','Gallina'],
+    roedor:['Hámster','Cobayo','Chinchilla','Jerbo','Rata','Ratón','Degú'],
+    conejo:['Mestizo','Enano','Belier','Cabeza de León','Rex','Angora'],
+    pez:['Goldfish','Betta','Guppy','Pez payaso','Escalar','Tetra','Koi']
+  };
+  const PAISES = 'AR,UY,PY,BO,CL,PE,EC,CO,VE,BR,MX,GT,SV,HN,NI,CR,PA,CU,DO,PR,ES,US,CA,PT,IT,FR,DE,GB,IE,NL,BE,CH,AT,SE,NO,DK,FI,PL,CZ,GR,RO,HU,UA,RU,TR,IL,AE,SA,EG,MA,ZA,NG,KE,IN,PK,CN,JP,KR,PH,TH,VN,ID,MY,SG,AU,NZ,AD,AL,AM,AO,AZ,BA,BD,BG,BY,BZ,CI,CM,CY,DZ,EE,ET,GE,GH,GY,HR,HT,IQ,IR,IS,JM,JO,KZ,KW,LB,LK,LT,LU,LV,MD,ME,MK,MT,MU,NP,OM,QA,RS,SI,SK,SN,SR,TN,TT,TW,TZ,UG,UZ,ZW'.split(',');
+  const flag = c => String.fromCodePoint(...[...c].map(ch => 127397 + ch.charCodeAt(0)));
+  let L = 'es'; try{ L = localStorage.getItem('censo-lang') || ((navigator.language || 'es').slice(0, 2)); }catch(e){}
+  if(!T[L]) L = 'es';
+  const t = k => T[L][k] || T.es[k] || k;
+  const regionName = c => { try{ return new Intl.DisplayNames([L], {type: 'region'}).of(c); }catch(e){ return c; } };
+  const fmt = n => Number(n || 0).toLocaleString(L === 'en' ? 'en-US' : L === 'pt' ? 'pt-BR' : 'es-AR');
+  let especie = '', datos = null, ultimo = null;
+  let mios = []; try{ mios = JSON.parse(localStorage.getItem('censo-mios') || '[]'); }catch(e){}
+  let dev = ''; try{ dev = localStorage.getItem('censo-d') || ''; if(!dev){ dev = Math.random().toString(36).slice(2, 14).padEnd(10, '0'); localStorage.setItem('censo-d', dev); } }catch(e){}
+
+  function pintar(){
+    document.documentElement.lang = L;
+    document.querySelectorAll('[data-t]').forEach(el => { el.textContent = t(el.dataset.t); });
+    document.querySelectorAll('.langs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.l === L)));
+    $('esp').innerHTML = ESP.map(([k, e, n]) => `<button type="button" data-e="${k}" aria-pressed="${especie === k}">${e} ${esc(n[L])}</button>`).join('');
+    const sel = $('pais'), cur = sel.value || '';
+    let guess = ''; try{ const loc = (navigator.language || '').split('-')[1]; if(loc && PAISES.includes(loc.toUpperCase())) guess = loc.toUpperCase(); }catch(e){}
+    const lista = PAISES.map(c => [c, regionName(c)]).sort((a, b) => a[1].localeCompare(b[1], L));
+    sel.innerHTML = `<option value="">${esc(t('elegi'))}</option>` + lista.map(([c, n]) => `<option value="${c}">${flag(c)} ${esc(n)}</option>`).join('');
+    sel.value = cur || guess;
+    const ed = $('edad'), edv = ed.value;
+    ed.innerHTML = `<option value="">${esc(t('sinDato'))}</option><option value="0">${esc(t('cachorro'))}</option>` + Array.from({length: 25}, (_, i) => i + 1).map(n => `<option value="${n}">${n} ${esc(n === 1 ? t('anio') : t('anios'))}</option>`).join('') + `<option value="25+">25+ ${esc(t('anios'))}</option>`;
+    ed.value = edv;
+    $('razas').innerHTML = (RAZAS[especie] || []).map(r => `<option value="${esc(r)}">`).join('');
+    $('misMascotas').hidden = !mios.length;
+    $('mine').innerHTML = mios.map(m => `<span>${esc(m.n)} · N° ${fmt(m.num)}</span>`).join('');
+    if(datos) rankings(datos);
+    if(ultimo) mostrar(ultimo);
+  }
+
+  function lista(titulo, filas, nombre){
+    const max = Math.max(1, ...filas.map(f => f.n));
+    return `<div class="rank"><h3>${esc(titulo)}</h3>${filas.length ? `<ol>${filas.slice(0, 10).map((f, i) => `<li><span class="pos">${i + 1}</span><span class="nm"><i style="width:${Math.max(4, f.n / max * 100)}%"></i><span>${nombre(f)}</span></span><span class="v">${fmt(f.n)}</span></li>`).join('')}</ol>` : `<p class="empty">${esc(t('vacio'))}</p>`}</div>`;
+  }
+  const espNombre = k => { const e = ESP.find(x => x[0] === k); return e ? e[1] + ' ' + e[2][L] : k; };
+  function rankings(d){
+    const r = d.resumen || {};
+    $('cTotal').textContent = fmt(r.total); $('cPaises').textContent = fmt(r.paises); $('cSemana').textContent = fmt(r.semana);
+    $('ranks').innerHTML = [
+      lista(t('rEspecies'), d.especies || [], f => esc(espNombre(f.especie))),
+      lista(t('rPerros'), d.perros || [], f => esc(f.raza)),
+      lista(t('rGatos'), d.gatos || [], f => esc(f.raza)),
+      lista(t('rPaises'), d.paises || [], f => flag(f.pais) + ' ' + esc(regionName(f.pais))),
+      lista(t('rNombres'), d.nombres || [], f => esc(f.nombre)),
+      lista(t('rOtras'), d.otras || [], f => esc(espNombre(f.especie).split(' ')[0] + ' ' + f.raza))
+    ].join('');
+  }
+  function cargar(){
+    fetch('/api/censo').then(r => r.json().then(j => ({ok: r.ok, j}))).then(({ok, j}) => { if(ok){ datos = j; rankings(j); } else $('ranks').innerHTML = `<p class="empty">${esc(j.error || '')}</p>`; }).catch(() => {});
+  }
+
+  // credencial del censo (1200×760), con la foto que elige el usuario (no se sube a ningún lado)
+  let fotoImg = null;
+  $('foto') && $('foto').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if(!f) return; const im = new Image(); im.onload = () => { fotoImg = im; if(ultimo) mostrar(ultimo); }; im.src = URL.createObjectURL(f); });
+  const docNum = n => String(n).padStart(8, '0').replace(/^(\d{2})(\d{3})(\d{3})$/, '$1.$2.$3');
+  const edadTxt = v => !v ? t('sinDato') : v === '0' ? t('cachorro') : v + ' ' + (v === '1' ? t('anio') : t('anios'));
+  function rr(g, x, y, w, h, r){ g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+  function tarjeta(m){
+    const W = 1200, H = 760, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+    const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, '#e6f4f1'); gr.addColorStop(1, '#fdf1e2'); g.fillStyle = gr; rr(g, 0, 0, W, H, 44); g.fill();
+    g.save(); g.globalAlpha = .07; g.font = '80px serif'; for(let i = 0; i < 18; i++) g.fillText('🐾', (i * 263) % W, 90 + (i * 157) % H); g.restore();
+    g.fillStyle = '#2f8f83'; rr(g, 0, 0, W, 120, 44); g.fill(); g.fillRect(0, 60, W, 60);
+    g.fillStyle = '#fff'; g.font = '800 44px "Bricolage Grotesque", sans-serif'; g.textAlign = 'left'; g.fillText('🐾 ' + t('credencial'), 50, 78);
+    // foto
+    const fx = 60, fy = 170, fw = 340, fh = 420; g.fillStyle = '#fffdf9'; rr(g, fx, fy, fw, fh, 26); g.fill();
+    if(fotoImg){ g.save(); rr(g, fx, fy, fw, fh, 26); g.clip(); const k = Math.max(fw / fotoImg.width, fh / fotoImg.height), iw = fotoImg.width * k, ih = fotoImg.height * k; g.drawImage(fotoImg, fx + (fw - iw) / 2, fy + (fh - ih) / 2, iw, ih); g.restore(); }
+    else { g.textAlign = 'center'; g.font = '190px serif'; g.fillText((ESP.find(x => x[0] === m.e) || ESP[11])[1], fx + fw / 2, fy + fh / 2 + 70); }
+    g.strokeStyle = '#2f8f83'; g.lineWidth = 4; rr(g, fx, fy, fw, fh, 26); g.stroke();
+    // datos
+    g.textAlign = 'left'; const X = 450;
+    g.fillStyle = '#2b2420'; g.font = '800 72px "Bricolage Grotesque", sans-serif'; g.fillText(m.n.slice(0, 16), X, 235);
+    const campo = (lab, val, x, y) => { g.fillStyle = '#7a6d62'; g.font = '700 22px Figtree, sans-serif'; g.fillText(lab.toUpperCase(), x, y); g.fillStyle = '#2b2420'; g.font = '600 34px Figtree, sans-serif'; g.fillText(String(val || t('sinDato')).slice(0, 22), x, y + 40); };
+    const esp = ESP.find(x => x[0] === m.e) || ESP[11];
+    campo(t('cEspecie'), esp[2][L], X, 300); campo(t('cRaza'), m.r || t('sinDato'), X + 360, 300);
+    campo(t('cEdad'), edadTxt(m.a), X, 395); campo(t('cPais'), flag(m.p) + ' ' + regionName(m.p), X + 360, 395);
+    campo(t('cTutor'), m.t || t('sinDato'), X, 490); campo(t('cAlta'), new Date(m.f || Date.now()).toLocaleDateString(L === 'en' ? 'en-US' : L === 'pt' ? 'pt-BR' : 'es-AR'), X + 360, 490);
+    // número de documento
+    g.fillStyle = '#fffdf9'; rr(g, X, 560, 690, 120, 22); g.fill();
+    g.fillStyle = '#7a6d62'; g.font = '700 22px Figtree, sans-serif'; g.fillText(t('cDoc').toUpperCase(), X + 26, 600);
+    g.fillStyle = '#e3876c'; g.font = '800 58px "Bricolage Grotesque", sans-serif'; g.fillText(docNum(m.num), X + 26, 660);
+    g.fillStyle = '#7a6d62'; g.font = '500 20px Figtree, sans-serif'; g.fillText(t('noOficial') + ' · ' + location.host + '/censo', 60, 720);
+    return c;
+  }
+  function mostrar(m){
+    ultimo = m;
+    $('form').hidden = true; $('done').hidden = false;
+    $('doneName').textContent = m.n; $('doneNum').textContent = 'N° ' + docNum(m.num);
+    const c = tarjeta(m); $('cardImg').src = c.toDataURL('image/png'); $('cardImg').alt = m.n + ' · N° ' + m.num;
+    const url = location.origin + '/censo', txt = t('compartirTxt').replace('{n}', m.n).replace('{num}', fmt(m.num));
+    $('wa').href = 'https://wa.me/?text=' + encodeURIComponent(txt + ' ' + url);
+    $('fb').href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
+    $('share').onclick = async () => {
+      try{ const blob = await new Promise(r => c.toBlob(r, 'image/png')); const f = new File([blob], 'credencial-mascota.png', {type: 'image/png'});
+        if(navigator.canShare && navigator.canShare({files: [f]})) return await navigator.share({files: [f], text: txt + ' ' + url});
+        if(navigator.share) return await navigator.share({text: txt, url}); }catch(e){ if(e && e.name === 'AbortError') return; }
+      window.open($('wa').href, '_blank');
+    };
+    $('dl').onclick = () => { const a = document.createElement('a'); a.href = c.toDataURL('image/png'); a.download = 'credencial-' + m.n + '.png'; a.click(); };
+    scrollTo({top: $('done').offsetTop - 10, behavior: 'smooth'});
+  }
+
+  $('esp').addEventListener('click', e => { const b = e.target.closest('[data-e]'); if(!b) return; especie = b.dataset.e; pintar(); });
+  document.querySelector('.langs').addEventListener('click', e => { const b = e.target.closest('[data-l]'); if(!b) return; L = b.dataset.l; try{ localStorage.setItem('censo-lang', L); }catch(err){} pintar(); });
+  $('acepta').addEventListener('change', () => { $('mailBox').hidden = !$('acepta').checked; });
+  $('otra').addEventListener('click', () => { ultimo = null; $('done').hidden = true; $('form').hidden = false; $('nombre').value = ''; $('raza').value = ''; $('foto').value = ''; fotoImg = null; $('msg').textContent = ''; pintar(); $('nombre').focus(); });
+  $('f').addEventListener('submit', async e => {
+    e.preventDefault();
+    const nombre = $('nombre').value.trim(), raza = $('raza').value.trim(), pais = $('pais').value;
+    if(!especie || !nombre || !pais){ $('msg').className = 'msg err'; $('msg').textContent = t('faltan'); return; }
+    $('go').disabled = true; $('msg').className = 'msg'; $('msg').textContent = t('anotando');
+    try{
+      const r = await fetch('/api/censo', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({nombre, especie, raza, pais, d: dev, edad: $('edad').value, acepta: $('acepta').checked, email: $('email').value.trim()})});
+      const j = await r.json().catch(() => ({}));
+      if(!r.ok || !j.numero) throw new Error(j.error || 'Error');
+      const m = {n: nombre, e: especie, r: raza, p: pais, a: $('edad').value, t: $('tutor').value.trim(), f: Date.now(), num: j.numero};
+      if(!mios.some(x => x.num === m.num)){ mios.push(m); try{ localStorage.setItem('censo-mios', JSON.stringify(mios.slice(-20))); }catch(err){} }
+      $('msg').textContent = j.repetida ? t('repetida') : '';
+      mostrar(m); cargar();
+    }catch(err){ $('msg').className = 'msg err'; $('msg').textContent = err.message; }
+    finally{ $('go').disabled = false; }
+  });
+  pintar(); cargar(); setInterval(cargar, 60000);
+})();
+</script>
+<script src="/estad.js" data-p="censo" defer></script>
+</body>
+</html>

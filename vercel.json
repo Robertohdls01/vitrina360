@@ -7,6 +7,10 @@
     {
       "source": "/panel",
       "destination": "/app.html"
+    },
+    {
+      "source": "/censo",
+      "destination": "/censo.html"
     }
   ],
   "functions": {
