@@ -4,7 +4,8 @@
 // HOTMART_OFERTAS: {"códigoDeOferta":"emprendedora|comercio|pro", ...} si cambian los links de pago.
 const { cuerpo, db, hmGuardar, aplicarPago, stHeaders } = require('./_comun');
 
-const OFERTAS = { I108173020N: 'emprendedora', F108173050I: 'comercio', T108173095W: 'pro' };
+// EE.UU.: I108173020N, F108173050I, T108173095W · Latinoamérica: E108277539J (Start)
+const OFERTAS = { I108173020N: 'emprendedora', F108173050I: 'comercio', T108173095W: 'pro', E108277539J: 'emprendedora' };
 const ACTIVAN = ['PURCHASE_APPROVED'];   // llega en cada cobro aprobado, también en las renovaciones mensuales
 const CORTAN = ['PURCHASE_REFUNDED', 'PURCHASE_CHARGEBACK'];
 const DIA = 864e5;
