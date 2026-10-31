@@ -345,8 +345,16 @@
       ${e.estado === 'pausa' ? `<p>${T('Mientras tanto tus productos quedan guardados: cuando pagues, tus clientes vuelven a ver la tienda.', 'Your products stay saved: once you pay, customers see your store again.', 'Seus produtos ficam salvos: ao pagar, a loja volta a aparecer.')}</p>` : ''}
       <label style="display:grid;gap:4px;font-size:14px">${T('Mail de tu cuenta de Mercado Pago', 'Your Mercado Pago email', 'E-mail da sua conta Mercado Pago')}<input type="email" id="v3mp" value="${esc(userEmail)}" autocomplete="email"></label>
       <button class="pri" type="button" id="v3go">${T('Ir a Mercado Pago', 'Go to Mercado Pago', 'Ir ao Mercado Pago')}</button>
-      <button type="button" id="v3no">${T('Ahora no', 'Not now', 'Agora não')}</button>
-      <div class="msg" id="v3msg" aria-live="polite"></div>`);
+      <div class="msg" id="v3msg" aria-live="polite"></div>
+      <div style="border-top:1px solid var(--line,#ddd);padding-top:10px;display:grid;gap:8px">
+        <b>🌎 ${T('¿Estás fuera de Argentina? Pagá en dólares con tarjeta', 'Outside Argentina? Pay in US dollars by card', 'Fora da Argentina? Pague em dólares com cartão')}</b>
+        <span style="font-size:13px;opacity:.75">${T('Por Hotmart, en la moneda de tu país. Usá el mismo mail de tu cuenta', 'Through Hotmart. Use the same email as your account', 'Pela Hotmart, na moeda do seu país. Use o mesmo e-mail da sua conta')}: <b>${esc(userEmail)}</b></span>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">${(T('la', 'us', 'la') === 'us'
+          ? [['Start', 'USD 29', 'I108173020N'], ['Plus', 'USD 49', 'F108173050I'], ['Pro', 'USD 79', 'T108173095W']]
+          : [['Start', 'USD 12', 'E108277539J'], ['Plus', 'USD 19', 'M108277689T'], ['Pro', 'USD 29', 'W108277726R']]
+        ).map(([n, p, c]) => `<a href="https://pay.hotmart.com/${c}?email=${encodeURIComponent(userEmail || '')}" target="_blank" rel="noopener" style="flex:1 1 30%;text-align:center;border:1px solid var(--line,#ccc);border-radius:999px;padding:8px 10px;text-decoration:none;color:inherit;font-weight:600">${n} · ${p}</a>`).join('')}</div>
+      </div>
+      <button type="button" id="v3no">${T('Ahora no', 'Not now', 'Agora não')}</button>`);
     o.querySelector('#v3no').onclick = () => o.remove();
     o.querySelector('#v3go').onclick = async () => {
       const m = o.querySelector('#v3msg'), b = o.querySelector('#v3go');
