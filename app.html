@@ -1792,6 +1792,12 @@ body:has(#cartFab[hidden]):has(#musicFab[hidden]) .mediadock{--mdb:16px}
 .toolform.mapbar{display:flex;gap:4px;flex-wrap:nowrap;align-items:center}
 .mapbar input{flex:1 1 auto;min-width:0}
 .maplinks{display:inline-flex;gap:4px}
+.lopen{display:flex;align-items:center;gap:10px;width:100%;flex:1 1 auto;min-height:34px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:6px 12px;font:inherit;font-weight:600;font-size:13px;cursor:pointer;text-align:left}
+.lopen:hover{border-color:var(--accent)}
+.lopen img{width:22px;height:22px;border-radius:5px;flex:none}
+.lopen span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lopen b{color:var(--muted)}
+.tlink{display:flex;flex-direction:column}
 .fbopen{justify-self:start;align-self:flex-start;padding:4px 10px!important;font-size:12px!important}
 .maplinks[hidden]{display:none}
 .maplinks .btn{padding:4px 9px!important;font-size:13px!important;text-decoration:none}
@@ -5281,6 +5287,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   Object.assign(DICT, {"Abrir en Facebook ↗": ["Open on Facebook ↗", "Abrir no Facebook ↗", "Ouvrir sur Facebook ↗", "Auf Facebook öffnen ↗", "Apri su Facebook ↗", "在 Facebook 打开 ↗", "Facebookで開く ↗"], "Ese es un link de “Compartir” y Facebook no lo deja mostrar. Abrí tu página en la computadora y copiá el link de la barra de arriba, tipo facebook.com/minegocio.": ["That's a “Share” link and Facebook doesn't allow showing it. Open your page on the computer and copy the link from the address bar, like facebook.com/mybusiness.", "Esse é um link de “Compartilhar” e o Facebook não deixa mostrar. Abra sua página no computador e copie o link da barra de endereço, tipo facebook.com/meunegocio.", "C'est un lien « Partager » que Facebook ne laisse pas afficher. Ouvrez votre page sur l'ordinateur et copiez le lien de la barre d'adresse, comme facebook.com/monentreprise.", "Das ist ein „Teilen“-Link, den Facebook nicht anzeigen lässt. Öffne deine Seite am Computer und kopiere den Link aus der Adressleiste, z. B. facebook.com/meingeschaeft.", "È un link “Condividi” e Facebook non lo lascia mostrare. Apri la tua pagina sul computer e copia il link dalla barra degli indirizzi, tipo facebook.com/miaattivita.", "这是“分享”链接，Facebook 不允许显示。请在电脑上打开你的主页，复制地址栏里的链接，例如 facebook.com/mybusiness。", "これは「共有」リンクなのでFacebookが表示を許可しません。パソコンでページを開き、アドレスバーのリンク（例：facebook.com/mybusiness）をコピーしてください。"], "Ese link es de un perfil personal. Facebook solo deja mostrar Páginas de negocio (tipo facebook.com/minegocio). Igual lo podés abrir con “Abrir en Facebook ↗”.": ["That link is a personal profile. Facebook only allows showing business Pages (like facebook.com/mybusiness). You can still open it with “Open on Facebook ↗”.", "Esse link é de um perfil pessoal. O Facebook só deixa mostrar Páginas de negócio (tipo facebook.com/meunegocio). Mesmo assim, você pode abri-lo com “Abrir no Facebook ↗”.", "Ce lien est un profil personnel. Facebook n'affiche que les Pages professionnelles (comme facebook.com/monentreprise). Vous pouvez quand même l'ouvrir avec « Ouvrir sur Facebook ↗ ».", "Das ist ein persönliches Profil. Facebook zeigt nur Unternehmensseiten (z. B. facebook.com/meingeschaeft). Du kannst es trotzdem mit „Auf Facebook öffnen ↗“ öffnen.", "Quel link è un profilo personale. Facebook mostra solo le Pagine aziendali (tipo facebook.com/miaattivita). Puoi comunque aprirlo con “Apri su Facebook ↗”.", "这是个人资料链接。Facebook 只允许显示商家主页（例如 facebook.com/mybusiness）。你仍可用“在 Facebook 打开 ↗”打开。", "個人プロフィールのリンクです。Facebookはビジネス用ページ（例：facebook.com/mybusiness）のみ表示できます。「Facebookで開く ↗」で開くことはできます。"], "Si el recuadro queda en blanco, puede ser la “Prevención de seguimiento” de Edge: en Configuración → Privacidad, ponela en “Básica” o agregá una excepción para tu tienda.": ["If the box stays blank, it may be Edge's “Tracking prevention”: in Settings → Privacy, set it to “Basic” or add an exception for your store.", "Se o quadro ficar em branco, pode ser a “Prevenção de rastreamento” do Edge: em Configurações → Privacidade, coloque em “Básica” ou adicione uma exceção para sua loja.", "Si le cadre reste vide, c'est peut-être la « Prévention du suivi » d'Edge : dans Paramètres → Confidentialité, mettez-la sur « De base » ou ajoutez une exception pour votre boutique.", "Bleibt das Feld leer, kann es der „Tracking-Schutz“ von Edge sein: Stelle ihn unter Einstellungen → Datenschutz auf „Einfach“ oder füge eine Ausnahme für deinen Shop hinzu.", "Se il riquadro resta vuoto, può essere la “Prevenzione del tracciamento” di Edge: in Impostazioni → Privacy, mettila su “Di base” o aggiungi un'eccezione per il tuo negozio.", "如果框内一片空白，可能是 Edge 的“跟踪防护”：在设置 → 隐私中改为“基本”，或为你的店铺添加例外。", "枠が空白のままなら、Edgeの「追跡防止」が原因かもしれません。設定 → プライバシーで「基本」にするか、ショップを例外に追加してください。"]});
   Object.assign(DICT, {"No encontré esa dirección en el mapa. Probá agregando la ciudad, o abrila en Google Maps con ↗.": ["I couldn't find that address on the map. Try adding the city, or open it in Google Maps with ↗.", "Não encontrei esse endereço no mapa. Tente adicionar a cidade, ou abra no Google Maps com ↗.", "Je n'ai pas trouvé cette adresse sur la carte. Ajoutez la ville, ou ouvrez-la dans Google Maps avec ↗.", "Diese Adresse habe ich auf der Karte nicht gefunden. Füge die Stadt hinzu oder öffne sie mit ↗ in Google Maps.", "Non ho trovato quell'indirizzo sulla mappa. Prova ad aggiungere la città, o aprilo in Google Maps con ↗.", "地图上找不到这个地址。试着加上城市，或用 ↗ 在 Google 地图中打开。", "地図でその住所が見つかりません。都市名を加えるか、↗でGoogleマップを開いてください。"], "No se pudo cargar el mapa. Revisá tu conexión, o abrilo en Google Maps con ↗.": ["The map couldn't load. Check your connection, or open it in Google Maps with ↗.", "Não foi possível carregar o mapa. Verifique sua conexão, ou abra no Google Maps com ↗.", "Impossible de charger la carte. Vérifiez votre connexion, ou ouvrez-la dans Google Maps avec ↗.", "Die Karte konnte nicht geladen werden. Prüfe deine Verbindung oder öffne sie mit ↗ in Google Maps.", "Impossibile caricare la mappa. Controlla la connessione, o aprila in Google Maps con ↗.", "地图无法加载。请检查网络，或用 ↗ 在 Google 地图中打开。", "地図を読み込めませんでした。接続を確認するか、↗でGoogleマップを開いてください。"], "No pude calcular las calles: te muestro la línea recta.": ["I couldn't calculate the streets: here's the straight line.", "Não consegui calcular as ruas: mostro a linha reta.", "Je n'ai pas pu calculer les rues : voici la ligne droite.", "Ich konnte die Straßen nicht berechnen: hier die Luftlinie.", "Non sono riuscito a calcolare le strade: ecco la linea retta.", "无法计算街道路线：显示直线距离。", "道順を計算できませんでした。直線で表示します。"], "No encontré la dirección de tu local en el mapa: revisala en Personalizar → Ubicación del negocio.": ["I couldn't find your store's address on the map: check it in Customize → Business location.", "Não encontrei o endereço da sua loja no mapa: revise em Personalizar → Localização do negócio.", "Je n'ai pas trouvé l'adresse de votre commerce : vérifiez-la dans Personnaliser → Emplacement.", "Die Adresse deines Geschäfts wurde nicht gefunden: prüfe sie unter Anpassen → Standort.", "Non ho trovato l'indirizzo del tuo negozio: controllalo in Personalizza → Posizione.", "地图上找不到你店铺的地址：请在“自定义 → 店铺位置”中检查。", "店舗の住所が見つかりません：カスタマイズ → 店舗の場所で確認してください。"], "No encontré esa dirección en el mapa.": ["I couldn't find that address on the map.", "Não encontrei esse endereço no mapa.", "Je n'ai pas trouvé cette adresse sur la carte.", "Diese Adresse wurde auf der Karte nicht gefunden.", "Non ho trovato quell'indirizzo sulla mappa.", "地图上找不到这个地址。", "地図でその住所が見つかりません。"], "Tu local": ["Your store", "Sua loja", "Votre commerce", "Dein Geschäft", "Il tuo negozio", "你的店铺", "あなたの店舗"]});
   Object.assign(DICT, {"No entra en esta columna: achicá o sacá algo de este lado.": ["It doesn't fit in this column: shrink or remove something on this side.", "Não cabe nesta coluna: diminua ou tire algo deste lado.", "Ça ne rentre pas dans cette colonne : réduisez ou retirez quelque chose de ce côté.", "Passt nicht in diese Spalte: verkleinere oder entferne etwas auf dieser Seite.", "Non entra in questa colonna: rimpicciolisci o togli qualcosa da questo lato.", "这一栏放不下：请缩小或移除这一侧的内容。", "この列に入りません。こちら側の何かを小さくするか外してください。"]});
+  Object.assign(DICT, {"Pegá un link: música, video o cualquier página": ["Paste a link: music, video or any page", "Cole um link: música, vídeo ou qualquer página", "Collez un lien : musique, vidéo ou n'importe quelle page", "Füge einen Link ein: Musik, Video oder jede Seite", "Incolla un link: musica, video o qualsiasi pagina", "粘贴链接：音乐、视频或任意网页", "リンクを貼り付け：音楽、動画、どんなページでも"], "Ya tenés 16 links guardados: borrá alguno en “Mis otros links”.": ["You already have 16 saved links: delete one in “My other links”.", "Você já tem 16 links salvos: apague algum em “Meus outros links”.", "Vous avez déjà 16 liens : supprimez-en un dans « Mes autres liens ».", "Du hast schon 16 Links: lösche einen unter „Meine anderen Links“.", "Hai già 16 link salvati: cancellane uno in “I miei altri link”.", "已保存 16 个链接：请在“我的其他链接”中删除一个。", "リンクが16件あります。「その他のリンク」で1つ削除してください。"]});
   Object.assign(DICT, {"🎧 Spotify o YouTube": ["🎧 Spotify or YouTube", "🎧 Spotify ou YouTube", "🎧 Spotify ou YouTube", "🎧 Spotify oder YouTube", "🎧 Spotify o YouTube", "🎧 Spotify 或 YouTube", "🎧 Spotify または YouTube"], "Pegá el link de una canción, playlist o video. Se abre en un reproductor chiquito y sigue sonando mientras ordenás tu tienda.": ["Paste the link to a song, playlist or video. It opens in a small player and keeps playing while you organize your store.", "Cole o link de uma música, playlist ou vídeo. Ele abre em um player pequeno e continua tocando enquanto você organiza sua loja.", "Collez le lien d'une chanson, d'une playlist ou d'une vidéo. Il s'ouvre dans un petit lecteur et continue pendant que vous organisez votre boutique.", "Füge den Link zu einem Song, einer Playlist oder einem Video ein. Er öffnet sich in einem kleinen Player und läuft weiter, während du deinen Shop ordnest.", "Incolla il link di una canzone, una playlist o un video. Si apre in un piccolo lettore e continua a suonare mentre sistemi il tuo negozio.", "粘贴歌曲、歌单或视频的链接。它会在小播放器中打开，你整理店铺时也会继续播放。", "曲・プレイリスト・動画のリンクを貼り付けてください。小さなプレーヤーで開き、ショップを整理している間も再生が続きます。"], "Link de Spotify o YouTube": ["Spotify or YouTube link", "Link do Spotify ou YouTube", "Lien Spotify ou YouTube", "Spotify- oder YouTube-Link", "Link di Spotify o YouTube", "Spotify 或 YouTube 链接", "Spotify または YouTube のリンク"], "▶ Poner": ["▶ Play", "▶ Tocar", "▶ Lancer", "▶ Abspielen", "▶ Avvia", "▶ 播放", "▶ 再生"], "📣 Mostrar también a mis clientes": ["📣 Also show it to my customers", "📣 Mostrar também aos meus clientes", "📣 Le montrer aussi à mes clients", "📣 Auch meinen Kunden zeigen", "📣 Mostralo anche ai miei clienti", "📣 也展示给我的顾客", "📣 お客様にも表示する"], "Si lo activás, tus clientes ven el reproductor en una esquina de tu tienda, en pausa: suena solo si lo tocan. Spotify se escucha completo solo con la sesión de Spotify abierta; si no, son 30 segundos.": ["If you turn it on, your customers see the player in a corner of your store, paused: it only plays if they tap it. Spotify plays in full only for people signed in to Spotify; otherwise it's 30 seconds.", "Se você ativar, seus clientes veem o player em um canto da loja, pausado: só toca se tocarem nele. O Spotify toca completo só com a sessão do Spotify aberta; senão, são 30 segundos.", "Si vous l'activez, vos clients voient le lecteur dans un coin de votre boutique, en pause : il ne joue que s'ils le touchent. Spotify est complet seulement si la session Spotify est ouverte ; sinon, 30 secondes.", "Wenn du es aktivierst, sehen deine Kunden den Player pausiert in einer Ecke deines Shops: Er spielt nur, wenn sie ihn antippen. Spotify läuft nur mit angemeldetem Spotify-Konto komplett, sonst 30 Sekunden.", "Se lo attivi, i tuoi clienti vedono il lettore in un angolo del negozio, in pausa: suona solo se lo toccano. Spotify si sente per intero solo con la sessione di Spotify aperta; altrimenti sono 30 secondi.", "开启后，顾客会在店铺角落看到暂停状态的播放器：只有点击才会播放。只有登录 Spotify 的人才能听完整版，否则只有 30 秒。", "オンにすると、お客様にはショップの隅に一時停止したプレーヤーが表示され、タップしたときだけ再生されます。Spotify はログインしている人だけフル再生、それ以外は30秒です。"], "Pegá primero el link de Spotify o YouTube.": ["First paste the Spotify or YouTube link.", "Cole primeiro o link do Spotify ou YouTube.", "Collez d'abord le lien Spotify ou YouTube.", "Füge zuerst den Spotify- oder YouTube-Link ein.", "Incolla prima il link di Spotify o YouTube.", "请先粘贴 Spotify 或 YouTube 链接。", "まず Spotify または YouTube のリンクを貼り付けてください。"], "Ese link no es de Spotify ni de YouTube. En la app tocá “Compartir” → “Copiar enlace” y pegalo acá.": ["That link isn't from Spotify or YouTube. In the app tap “Share” → “Copy link” and paste it here.", "Esse link não é do Spotify nem do YouTube. No app toque em “Compartilhar” → “Copiar link” e cole aqui.", "Ce lien n'est ni Spotify ni YouTube. Dans l'appli, touchez « Partager » → « Copier le lien » et collez-le ici.", "Dieser Link ist weder von Spotify noch von YouTube. Tippe in der App auf „Teilen“ → „Link kopieren“ und füge ihn hier ein.", "Quel link non è di Spotify né di YouTube. Nell'app tocca “Condividi” → “Copia link” e incollalo qui.", "这个链接不是 Spotify 或 YouTube 的。在应用里点“分享”→“复制链接”，再粘贴到这里。", "そのリンクは Spotify でも YouTube でもありません。アプリで「共有」→「リンクをコピー」して、ここに貼り付けてください。"], "Listo. También lo ven tus clientes.": ["Done. Your customers see it too.", "Pronto. Seus clientes também veem.", "C'est fait. Vos clients le voient aussi.", "Fertig. Deine Kunden sehen es auch.", "Fatto. Lo vedono anche i tuoi clienti.", "好了。顾客也能看到。", "完了。お客様にも表示されます。"], "Listo. Por ahora lo escuchás solo vos.": ["Done. For now only you can hear it.", "Pronto. Por enquanto só você ouve.", "C'est fait. Pour l'instant, vous seul l'entendez.", "Fertig. Vorerst hörst nur du es.", "Fatto. Per ora lo senti solo tu.", "好了。目前只有你能听到。", "完了。今はあなただけが聴けます。"], "Listo, sacamos el reproductor.": ["Done, the player was removed.", "Pronto, tiramos o player.", "C'est fait, le lecteur a été retiré.", "Fertig, der Player wurde entfernt.", "Fatto, abbiamo tolto il lettore.", "好了，播放器已移除。", "完了、プレーヤーを削除しました。"], "Ahora tus clientes también ven el reproductor, en pausa.": ["Now your customers also see the player, paused.", "Agora seus clientes também veem o player, pausado.", "Vos clients voient maintenant aussi le lecteur, en pause.", "Jetzt sehen auch deine Kunden den Player, pausiert.", "Ora anche i tuoi clienti vedono il lettore, in pausa.", "现在顾客也能看到播放器（暂停状态）。", "お客様にもプレーヤーが一時停止状態で表示されます。"], "Ahora el reproductor es solo para vos.": ["Now the player is just for you.", "Agora o player é só para você.", "Le lecteur est maintenant pour vous seul.", "Jetzt ist der Player nur für dich.", "Ora il lettore è solo per te.", "现在播放器只给你自己用。", "プレーヤーはあなた専用になりました。"], "Achicar": ["Minimize", "Minimizar", "Réduire", "Verkleinern", "Riduci", "最小化", "最小化"], "Reproductor": ["Player", "Player", "Lecteur", "Player", "Lettore", "播放器", "プレーヤー"], "Volver al reproductor": ["Back to the player", "Voltar ao player", "Revenir au lecteur", "Zurück zum Player", "Torna al lettore", "返回播放器", "プレーヤーに戻る"], "Abrir el reproductor": ["Open the player", "Abrir o player", "Ouvrir le lecteur", "Player öffnen", "Apri il lettore", "打开播放器", "プレーヤーを開く"]});
   const L = (es, en, pt, fr, de, it, zh, ja) => {
     if(LANG === 'es') return es; if(LANG === 'en') return en; if(LANG === 'pt') return pt;
@@ -7308,8 +7315,9 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   // abre la red en una ventana al costado; si ya estaba abierta, la reutiliza
   function netOpen(url, name){
     // ventana chica, tipo celular, pegada al costado izquierdo de la pantalla
-    const w = Math.min(380, Math.round(screen.availWidth * 0.3)), h = Math.min(680, (screen.availHeight || 800) - 80);
-    const left = (screen.availLeft || 0) + 16, top = (screen.availTop || 0) + 40;
+    // del tamaño de un celular grande: angosta y bien alta
+    const w = Math.min(430, screen.availWidth || 430), h = Math.min(920, (screen.availHeight || 800) - 30);
+    const left = (screen.availLeft || 0) + 16, top = (screen.availTop || 0) + 10;
     let win = null;
     try{ win = window.open(url, 'v360_' + name, `popup=yes,width=${w},height=${h},left=${left},top=${top}`); }catch(e){}
     if(!win){ try{ win = window.open(url, '_blank', 'noopener'); }catch(e){} }
@@ -7326,7 +7334,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   [$('netBtns'), $('iaBtns')].forEach(box => box.addEventListener('click', e => { const b = e.target.closest('[data-net]'); if(!b) return; const x = [...NETS, ...AIS].find(n => n.id === b.dataset.net); if(x) netOpen(x.u, x.id); }));
   $('myLinks').addEventListener('click', e => {
     const d = e.target.closest('[data-mydel]');
-    if(d){ brand.myLinks.splice(+d.dataset.mydel, 1); save(); renderNets(); return; }
+    if(d){ brand.myLinks.splice(+d.dataset.mydel, 1); save(); renderNets(); renderGrid(); return; }
     const b = e.target.closest('[data-mylink]'); if(!b) return;
     const x = (brand.myLinks || [])[+b.dataset.mylink]; if(x) netOpen(x.u, 'link' + b.dataset.mylink);
   });
@@ -7335,8 +7343,8 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     const n = $('myLinkName').value.trim(), u = linkOk($('myLinkUrl').value.trim());
     if(!u){ $('myLinkMsg').textContent = 'Pegá un link que empiece con https://'; return; }
     const ls = brand.myLinks = Array.isArray(brand.myLinks) ? brand.myLinks : [];
-    if(ls.length >= 10){ $('myLinkMsg').textContent = 'Podés guardar hasta 10 links.'; return; }
-    ls.push({n: n || new URL(u).hostname.replace(/^www\./, ''), u}); save(); renderNets();
+    if(ls.length >= 16){ $('myLinkMsg').textContent = 'Podés guardar hasta 16 links.'; return; }
+    ls.push({n: n || linkName(u), u}); save(); renderNets(); renderGrid();
     $('myLinkName').value = ''; $('myLinkUrl').value = ''; $('myLinkMsg').textContent = '';
   });
   // ---- Chat con IA dentro del rectángulo (usa la IA de la tienda, con cupo por plan) ----
@@ -7480,9 +7488,27 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   // ---- Grilla de rectángulos: 8 a cada lado (16). Cada cosa ocupa 1, 2 o 3 de alto y se pasa de un lugar a otro ----
   const G_ROWS = 8, G_CELLS = 16, G_FIXED = {redes: 2, links: 1, mapa: 2, fb: 2, ia: 3};
   const G_NAMES = {redes: '💬 Redes', links: '🔗 Links', mapa: '🗺 Mapa', fb: '📘 Facebook', ia: '🤖 IA'};
-  const gItems = () => [...Object.keys(G_FIXED), ...mediaList().map(u => 'm:' + u)];
-  const gSpan0 = id => G_FIXED[id] || 2;
-  const tcard = id => id.startsWith('m:') ? pcards().find(c => c.dataset.card === id) : document.querySelector(`.tcard[data-card="${id}"]`);
+  const myLinkList = () => Array.isArray(brand.myLinks) ? brand.myLinks : [];
+  const gItems = () => [...Object.keys(G_FIXED), ...mediaList().map(u => 'm:' + u), ...myLinkList().map(x => 'l:' + x.u)];
+  const gSpan0 = id => G_FIXED[id] || (id.startsWith('l:') ? 1 : 2);
+  const tcard = id => id.startsWith('m:') ? pcards().find(c => c.dataset.card === id) : id.startsWith('l:') ? [...document.querySelectorAll('.tlink')].find(c => c.dataset.card === id) : document.querySelector(`.tcard[data-card="${id}"]`);
+  // nombre lindo para un link cualquiera
+  function linkName(u){
+    let h = ''; try{ h = new URL(u).hostname.replace(/^www\./, ''); }catch(e){ return 'Link'; }
+    const known = {'mail.google.com': 'Gmail', 'drive.google.com': 'Google Drive', 'docs.google.com': 'Google Docs', 'calendar.google.com': 'Google Calendar', 'outlook.live.com': 'Outlook', 'outlook.office.com': 'Outlook', 'web.whatsapp.com': 'WhatsApp', 'business.facebook.com': 'Meta Business', 'pay.hotmart.com': 'Hotmart', 'mercadolibre.com.ar': 'Mercado Libre', 'mercadolibre.com': 'Mercado Libre', 'mercadopago.com.ar': 'Mercado Pago'};
+    if(known[h]) return known[h];
+    const base = h.split('.').filter(x => !/^(com|net|org|ar|br|mx|cl|uy|es|app|io|co|gob|gov|edu)$/.test(x)).pop() || h;
+    return base.charAt(0).toUpperCase() + base.slice(1).replace(/-/g, ' ');
+  }
+  // rectángulo de un link: un botón grande con el ícono de la página, que abre la ventanita tipo celular
+  function lcardMake(x){
+    const c = document.createElement('section');
+    let host = ''; try{ host = new URL(x.u).hostname; }catch(e){}
+    c.className = 'tcard tlink'; c.dataset.card = 'l:' + x.u; c.setAttribute('aria-label', x.n);
+    c.innerHTML = `<div class="tcardh"><h3>🔗 ${esc(x.n)}</h3><span class="tctl"></span></div>
+      <button type="button" class="lopen" data-lopen><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64" alt="" width="28" height="28" loading="lazy" onerror="this.remove()"><span>Abrir ${esc(x.n)}</span><b aria-hidden="true">↗</b></button>`;
+    return c;
+  }
   function gOcc(g, skip){
     const occ = Array(G_CELLS).fill(null);
     Object.entries(g).forEach(([id, v]) => { if(skip && skip.includes(id)) return; for(let k = v.s; k < v.s + v.n; k++) occ[k] = id; });
@@ -7554,6 +7580,10 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   }
   const gLabel = id => id.startsWith('m:') ? (x => mediaIcon(x) + ' ' + mediaName(x))(mediaParse(id.slice(2))) : G_NAMES[id];
   function renderGrid(){
+    // rectángulos de links: se crean o se borran según la lista de links
+    const lus = myLinkList().map(x => 'l:' + x.u);
+    document.querySelectorAll('.tlink').forEach(c => { if(!lus.includes(c.dataset.card)) c.remove(); });
+    myLinkList().forEach(x => { if(!tcard('l:' + x.u)) $('toolsCards').appendChild(lcardMake(x)); });
     const g = gLoad(), occ = gOcc(g), cols = [$('toolsColL'), $('toolsColR')];
     gItems().forEach(id => {
       const el = tcard(id); if(!el) return;
@@ -7573,7 +7603,8 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     const chip = (attr, icon, color, name) => `<button type="button" class="gchip" ${attr}><span class="ni" style="background:${color}" aria-hidden="true">${icon}</span><span>${esc(name)}</span></button>`;
     const placed = Object.entries(g).sort((a, b) => a[1].s - b[1].s).map(([id]) => id);
     $('gStrip').innerHTML = [...NETS, ...AIS].map(x => chip(`data-net="${x.id}"`, x.i, x.c, x.n)).join('')
-      + placed.map(id => { if(id.startsWith('m:')){ const x = mediaParse(id.slice(2)); return chip(`data-gjump="${esc(id)}"`, mediaIcon(x), MEDIA_KINDS[x.kind][2], mediaName(x)); }
+      + placed.map(id => { if(id.startsWith('l:')){ const x = myLinkList().find(v => 'l:' + v.u === id); return chip(`data-net-link="${esc(id.slice(2))}"`, '🔗', '#64748b', x ? x.n : 'Link'); }
+        if(id.startsWith('m:')){ const x = mediaParse(id.slice(2)); return chip(`data-gjump="${esc(id)}"`, mediaIcon(x), MEDIA_KINDS[x.kind][2], mediaName(x)); }
         const c = CARD_ICON[id] || ['•', '#64748b']; return chip(`data-gjump="${id}"`, c[0], c[1], G_NAMES[id].replace(/^\S+\s/, '')); }).join('');
     // rectángulos vacíos: se toca y se elige qué poner
     cols.forEach(c => c.querySelectorAll('.gempty').forEach(e => e.remove()));
@@ -7586,7 +7617,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       e.dataset.slot = k; e.style.gridRow = `${(k % G_ROWS) + 1} / span 1`; e.style.order = k;
       e.innerHTML = `<button type="button" class="gadd" aria-label="Poner algo en el lugar ${k + 1}"><b>${k + 1}</b><span>＋ Poner algo</span></button>
         <div class="gpick">${free.map(id => `<button type="button" class="btn" data-gput="${id}">${G_NAMES[id]}</button>`).join('')}
-        <form class="toolform gform"><input type="text" inputmode="url" autocomplete="off" maxlength="300" placeholder="Link de música o video" aria-label="Link de música o video"><button class="btn" type="submit">▶</button></form></div>`;
+        <form class="toolform gform"><input type="text" inputmode="url" autocomplete="off" maxlength="300" placeholder="Pegá un link: música, video o cualquier página" aria-label="Pegá un link: música, video o cualquier página"><button class="btn" type="submit">▶</button></form></div>`;
       cols[k < G_ROWS ? 0 : 1].appendChild(e);
     });
   }
@@ -7605,6 +7636,8 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   $('gBigBack').onclick = () => gBig(null, false);
   addEventListener('keydown', e => { if(e.key === 'Escape' && document.querySelector('.tcard.big')) gBig(null, false); });
   $('toolsWrap').addEventListener('click', e => {
+    const lo = e.target.closest('[data-lopen]');
+    if(lo){ const id = lo.closest('.tlink').dataset.card.slice(2); netOpen(id, 'link_' + linkName(id).toLowerCase().replace(/\W+/g, '')); return; }
     const big = e.target.closest('[data-gbig]');
     if(big){ const c = big.closest('.tcard'); gBig(c, !c.classList.contains('big')); return; }
     const add = e.target.closest('.gadd');
@@ -7622,6 +7655,8 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   $('gStrip').addEventListener('click', e => {
     const n = e.target.closest('[data-net]');
     if(n){ const x = [...NETS, ...AIS].find(v => v.id === n.dataset.net); if(x) netOpen(x.u, x.id); return; }
+    const nl = e.target.closest('[data-net-link]');
+    if(nl){ netOpen(nl.dataset.netLink, 'link_' + linkName(nl.dataset.netLink).toLowerCase().replace(/\W+/g, '')); return; }
     const j = e.target.closest('[data-gjump]'); if(!j) return;
     const el = tcard(j.dataset.gjump); if(!el) return;
     try{ el.scrollIntoView({behavior: 'smooth', block: 'center'}); }catch(err){}
@@ -7631,7 +7666,17 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   $('toolsWrap').addEventListener('submit', e => {
     const f = e.target.closest('.gform'); if(!f) return;
     e.preventDefault();
-    mediaPut(f.querySelector('input'), $('gMsg'), +f.closest('.gempty').dataset.slot);
+    const inp = f.querySelector('input'), slot = +f.closest('.gempty').dataset.slot, raw = inp.value.trim();
+    if(raw && !mediaParse(raw)){
+      // no es música ni video: queda como botón que abre la página
+      const u = linkOk(raw); if(!u){ gMsg('Pegá un link que empiece con https://'); return; }
+      const ls = brand.myLinks = myLinkList();
+      if(!ls.some(x => x.u === u)){ if(ls.length >= 16){ gMsg('Ya tenés 16 links guardados: borrá alguno en “Mis otros links”.'); return; } ls.push({n: linkName(u), u}); }
+      const g = gLoad(), occ = gOcc(g, ['l:' + u]);
+      if(gFits(occ, slot, 1)){ g['l:' + u] = {s: slot, n: 1}; gSave(g); } else save();
+      inp.value = ''; renderNets(); renderGrid(); return;
+    }
+    mediaPut(inp, $('gMsg'), slot);
     const gm = $('gMsg'); gm.hidden = !gm.textContent;
   });
   // ---- Mostrar / esconder ----
