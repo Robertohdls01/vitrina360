@@ -1854,7 +1854,8 @@ body:has(#cartFab[hidden]):has(#musicFab[hidden]) .mediadock{--mdb:16px}
     display:grid;grid-template-rows:repeat(8, minmax(0, 1fr));gap:6px;align-content:stretch;overflow:visible}
   .sidetool.right{height:calc(100vh - 88px - 84px)}
   .sidetool > *{min-height:0}
-  .tcard{box-shadow:0 10px 24px -20px var(--shadow);padding:6px 8px;gap:6px;border-radius:12px;overflow:auto;scrollbar-width:thin;font-size:13px}
+  .tcard{box-shadow:0 10px 24px -20px var(--shadow);padding:6px 8px;gap:6px;border-radius:12px;overflow-x:hidden;overflow-y:auto;scrollbar-width:thin;font-size:13px}
+  .tcard[data-size="1"] .netbtns::-webkit-scrollbar{display:none}
   .tcard h3{font-size:13px}
   .tcard .note:not([role="status"]){display:none}
   .tcard .note[role="status"]:empty{display:none}
