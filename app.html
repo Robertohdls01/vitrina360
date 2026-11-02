@@ -350,8 +350,8 @@
         <b>🌎 ${T('¿Estás fuera de Argentina? Pagá en dólares con tarjeta', 'Outside Argentina? Pay in US dollars by card', 'Fora da Argentina? Pague em dólares com cartão')}</b>
         <span style="font-size:13px;opacity:.75">${T('Por Hotmart, en la moneda de tu país. Usá el mismo mail de tu cuenta', 'Through Hotmart. Use the same email as your account', 'Pela Hotmart, na moeda do seu país. Use o mesmo e-mail da sua conta')}: <b>${esc(userEmail)}</b></span>
         <div style="display:flex;flex-wrap:wrap;gap:8px">${(T('la', 'us', 'la') === 'us'
-          ? [['Start', 'USD 29', 'I108173020N'], ['Plus', 'USD 49', 'F108173050I'], ['Pro', 'USD 79', 'T108173095W']]
-          : [['Start', 'USD 12', 'E108277539J'], ['Plus', 'USD 19', 'M108277689T'], ['Pro', 'USD 29', 'W108277726R']]
+          ? [['Start', 'USD 9', 'I108173020N'], ['Plus', 'USD 15', 'F108173050I'], ['Pro', 'USD 24', 'T108173095W']]
+          : [['Start', 'USD 5', 'E108277539J'], ['Plus', 'USD 9', 'M108277689T'], ['Pro', 'USD 14', 'W108277726R']]
         ).map(([n, p, c]) => `<a href="https://pay.hotmart.com/${c}?email=${encodeURIComponent(userEmail || '')}" target="_blank" rel="noopener" style="flex:1 1 30%;text-align:center;border:1px solid var(--line,#ccc);border-radius:999px;padding:8px 10px;text-decoration:none;color:inherit;font-weight:600">${n} · ${p}</a>`).join('')}</div>
       </div>
       <button type="button" id="v3no">${T('Ahora no', 'Not now', 'Agora não')}</button>`);
