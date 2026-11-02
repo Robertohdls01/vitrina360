@@ -7307,8 +7307,9 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   const toolsOwner = () => !PUBLIC && !clientMode;
   // abre la red en una ventana al costado; si ya estaba abierta, la reutiliza
   function netOpen(url, name){
-    const w = Math.min(520, Math.round(screen.availWidth * 0.36)), h = screen.availHeight || 800;
-    const left = (screen.availLeft || 0), top = (screen.availTop || 0);
+    // ventana chica, tipo celular, pegada al costado izquierdo de la pantalla
+    const w = Math.min(440, Math.round(screen.availWidth * 0.3)), h = Math.min(760, (screen.availHeight || 800) - 80);
+    const left = (screen.availLeft || 0) + 16, top = (screen.availTop || 0) + 40;
     let win = null;
     try{ win = window.open(url, 'v360_' + name, `popup=yes,width=${w},height=${h},left=${left},top=${top}`); }catch(e){}
     if(!win){ try{ win = window.open(url, '_blank', 'noopener'); }catch(e){} }
