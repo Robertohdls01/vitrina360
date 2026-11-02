@@ -1700,6 +1700,8 @@ body:has(#cartFab[hidden]):has(#musicFab[hidden]) .mediadock{--mdb:16px}
 .mediaframe iframe{display:block;width:100%;border:0}
 .mediaframe.yt iframe{aspect-ratio:16/9;height:auto}
 .mediaframe.sp iframe{height:152px}
+.mediaframe.ttu{overflow:auto;max-height:min(600px, 75vh);background:#fff}
+.mediaframe.ttu a{display:block;padding:12px;font-weight:600}
 .mediaframe.sc iframe{height:166px}
 .mediaframe.am iframe{height:175px}
 .mediaframe.tt iframe{aspect-ratio:9/16;height:auto;max-height:min(560px, 70vh)}
@@ -7092,7 +7094,10 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(h === 'vimeo.com' || h === 'player.vimeo.com'){ m = u.pathname.match(/(?:^|\/)(\d{5,})(?:\/|$)/); return m ? {kind: 'vimeo', id: m[1]} : null; }
     if(h === 'twitch.tv'){ m = u.pathname.match(/^\/videos\/(\d+)/); if(m) return {kind: 'twitch', video: m[1]}; m = u.pathname.match(/^\/([A-Za-z0-9_]{3,25})\/?$/); return m ? {kind: 'twitch', channel: m[1]} : null; }
     if(h === 'music.apple.com' || h === 'embed.music.apple.com') return /\/(album|playlist|song|station)\//.test(u.pathname) ? {kind: 'apple', path: u.pathname + u.search} : null;
-    if(h === 'tiktok.com'){ m = u.pathname.match(/\/video\/(\d{8,})/); return m ? {kind: 'tiktok', id: m[1]} : null; }
+    if(h === 'tiktok.com'){
+      m = u.pathname.match(/\/video\/(\d{8,})/); if(m) return {kind: 'tiktok', id: m[1]};
+      m = u.pathname.match(/^\/@([\w.]{2,24})\/?$/); return m ? {kind: 'tiktok', user: m[1]} : null;
+    }
     return null;
   }
   function mediaSrc(x, play){
@@ -7129,6 +7134,12 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   function mpOpen(pl){
     const x = mediaParse(pl.dataset.url); if(!x) return;
     const box = pl.querySelector('.mediaframe');
+    // perfil de TikTok: se arma con el código oficial de TikTok (no tiene reproductor directo)
+    if(!box.firstChild && x.kind === 'tiktok' && x.user){
+      box.className = 'mediaframe ttu';
+      box.innerHTML = `<blockquote class="tiktok-embed" cite="https://www.tiktok.com/@${x.user}" data-unique-id="${x.user}" data-embed-type="creator" style="max-width:720px;min-width:260px;margin:0"><section><a target="_blank" rel="noopener" href="https://www.tiktok.com/@${x.user}">@${x.user}</a></section></blockquote>`;
+      const sc = document.createElement('script'); sc.async = true; sc.src = 'https://www.tiktok.com/embed.js'; box.appendChild(sc);
+    }
     if(!box.firstChild){
       box.className = 'mediaframe ' + (MEDIA_KINDS[x.kind] || MEDIA_KINDS.youtube)[3];
       const f = document.createElement('iframe');
