@@ -7599,16 +7599,34 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     const g = gLoad(), cur = g[id], n = cur ? cur.n : gSpan0(id);
     if(to === 'x'){ delete g[id]; gSave(g); return renderGrid(); }
     to = +to; if(cur && cur.s === to) return;
-    let occ = gOcc(g, [id]);
-    if(gFits(occ, to, n)){ g[id] = {s: to, n}; gSave(g); return renderGrid(); }
-    // si en ese lugar empieza otra cosa, se intercambian
-    const other = occ[to];
-    if(other && cur && g[other].s === to){
-      occ = gOcc(g, [id, other]);
-      if(gFits(occ, to, n)){ const o = {...g[other]}; occ.fill(id, to, to + n); if(gFits(occ, cur.s, o.n)){ g[other] = {s: cur.s, n: o.n}; g[id] = {s: to, n}; gSave(g); return renderGrid(); } }
+    const done = t => { gSave(g); if(t) gMsg(t); renderGrid(); };
+    // 1) el lugar está libre
+    if(gFits(gOcc(g, [id]), to, n)){ g[id] = {s: to, n}; return done(); }
+    // 2) intercambio con lo que ocupa ese lugar (aunque el lugar sea la mitad de una tarjeta Media o Grande)
+    const other = gOcc(g, [id])[to];
+    if(other && cur){
+      const o = g[other], occ = gOcc(g, [id, other]), tgt = o.s;
+      if(gFits(occ, tgt, n)){ const occ2 = gOcc(Object.assign({}, g, {[id]: {s: tgt, n}}), [other]); if(gFits(occ2, cur.s, o.n)){ g[id] = {s: tgt, n}; g[other] = {s: cur.s, n: o.n}; return done(); } }
     }
-    for(let m = n - 1; m >= 1; m--) if(gFits(gOcc(g, [id]), to, m)){ g[id] = {s: to, n: m}; gSave(g); gMsg(`Lo pasamos al lugar ${to + 1}, un poco más chico para que entre.`); return renderGrid(); }
-    gMsg(`No entra en el lugar ${to + 1}: elegí otro lugar o achicá lo que está ahí.`); renderGrid();
+    // 3) se mete en ese lugar y lo de abajo se corre (dentro de la misma columna)
+    const c0 = to < G_ROWS ? 0 : G_ROWS;
+    for(let m = n; m >= 1; m--){
+      const rest = Object.keys(g).filter(k => k !== id && (g[k].s < G_ROWS ? 0 : G_ROWS) === c0).sort((a, b) => g[a].s - g[b].s);
+      const out = {}; let pos = c0, ok = true, placed = false;
+      for(const k of [...rest, null]){
+        if(!placed && (k === null || g[k].s + g[k].n > to)){
+          const s0 = Math.max(to, pos); if(s0 !== to && rest.some(r => g[r].s < to && g[r].s + g[r].n > to)){ /* cae en medio de otra: se ubica justo después */ }
+          if(s0 + m > c0 + G_ROWS){ ok = false; break; }
+          out[id] = {s: s0, n: m}; pos = s0 + m; placed = true;
+        }
+        if(k === null) break;
+        const s0 = Math.max(g[k].s, pos);
+        if(s0 + g[k].n > c0 + G_ROWS){ ok = false; break; }
+        out[k] = {s: s0, n: g[k].n}; pos = s0 + g[k].n;
+      }
+      if(ok && placed){ Object.assign(g, out); return done(m < n ? `Lo pasamos al lugar ${out[id].s + 1}, un poco más chico para que entre.` : out[id].s !== to ? `Lo pusimos en el lugar ${out[id].s + 1}, lo más cerca posible.` : ''); }
+    }
+    gMsg(`No hay lugar en esa columna: achicá o sacá algo de ese lado.`); renderGrid();
   }
   // agrandar: si abajo hay algo, se corre hacia abajo; si no entra, se usa el lugar libre de arriba
   function gSize(id, n){
