@@ -4,8 +4,8 @@ const { db, estado } = require('./_comun');
 
 // Cupo de productos reconocidos con IA (se guarda en la cuenta del comerciante, donde él no lo puede tocar).
 // Prueba gratis o cuenta sin pagar: LIMITE_FOTOS_PRUEBA en total (10). Planes pagos: por mes, se renueva el día 1:
-// LIMITE_FOTOS_START (350), LIMITE_FOTOS_PLUS (700), LIMITE_FOTOS_PRO (2500); alcanza para llenar la tienda entera en un mes. IA_SIN_LIMITE (mails separados por coma) no tiene límite.
-const PLAN_CUPO = { emprendedora: ['LIMITE_FOTOS_START', 350, 'Start'], comercio: ['LIMITE_FOTOS_PLUS', 700, 'Plus'], pro: ['LIMITE_FOTOS_PRO', 2500, 'Pro'] };
+// LIMITE_FOTOS_START (150), LIMITE_FOTOS_PLUS (300), LIMITE_FOTOS_PRO (500): así ningún cliente cuesta en IA más de lo que paga. IA_SIN_LIMITE (mails separados por coma) no tiene límite.
+const PLAN_CUPO = { emprendedora: ['LIMITE_FOTOS_START', 150, 'Start'], comercio: ['LIMITE_FOTOS_PLUS', 300, 'Plus'], pro: ['LIMITE_FOTOS_PRO', 500, 'Pro'] };
 // Cupo del chat con IA del panel (mensajes por mes): LIMITE_CHAT_START (150), LIMITE_CHAT_PLUS (300), LIMITE_CHAT_PRO (800); prueba: LIMITE_CHAT_PRUEBA (15) en total.
 const PLAN_CHAT = { emprendedora: ['LIMITE_CHAT_START', 150, 'Start'], comercio: ['LIMITE_CHAT_PLUS', 300, 'Plus'], pro: ['LIMITE_CHAT_PRO', 800, 'Pro'] };
 async function cupoIA(user, chat) {
