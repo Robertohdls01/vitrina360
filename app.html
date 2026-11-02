@@ -1717,6 +1717,12 @@ body:has(#cartFab[hidden]):has(#musicFab[hidden]) .mediadock{--mdb:16px}
 .tcard{display:grid;gap:10px;align-content:start;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px}
 .tcardh{display:flex;align-items:center;gap:6px}
 .tcard h3{margin:0;font-size:15px;flex:1;min-width:0}
+.tcard h3 button{all:unset;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%;border-radius:6px}
+.tcard h3 button::after{content:"▾";font-size:12px;color:var(--muted);transition:transform .2s}
+.tcard.fold h3 button::after{transform:rotate(-90deg)}
+.tcard h3 button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tcard.fold > :not(.tcardh){display:none!important}
+.tcard.fold{gap:0}
 .tcard .note{margin:0}
 .tmove{display:inline-flex;gap:2px;flex:none}
 .tmove button{width:28px;height:28px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--muted);font-size:14px;cursor:pointer}
@@ -1742,7 +1748,7 @@ body:has(#cartFab[hidden]):has(#musicFab[hidden]) .mediadock{--mdb:16px}
 .toolform{display:flex;gap:6px;flex-wrap:wrap}
 .toolform input{flex:1 1 140px;min-width:0;border:1px solid var(--line);background:var(--bg);color:inherit;border-radius:10px;padding:8px 10px;font:inherit}
 .mapframe,.fbframe{border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--bg)}
-.mapframe iframe{display:block;width:100%;height:260px;border:0}
+.mapframe iframe{display:block;width:100%;height:200px;border:0}
 .fbframe iframe{display:block;width:100%;border:0}
 .toolrow{display:flex;gap:6px;flex-wrap:wrap}
 .toolrow .btn{padding:6px 12px;font-size:13px}
@@ -2441,12 +2447,12 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
   <div class="sidetool right" id="toolsColR"></div>
   <div id="toolsCards" hidden>
   <section class="tcard" data-card="redes" aria-label="Mis redes">
-    <div class="tcardh"><h3>💬 Mis redes y chats</h3><span class="tmove"><button type="button" data-tmove="up" aria-label="Subir" title="Subir">↑</button><button type="button" data-tmove="down" aria-label="Bajar" title="Bajar">↓</button><button type="button" data-tmove="side" aria-label="Pasar al otro costado" title="Pasar al otro costado">⇄</button></span></div>
+    <div class="tcardh"><h3><button type="button" data-tfold aria-expanded="true">💬 Mis redes y chats</button></h3><span class="tmove"><button type="button" data-tmove="up" aria-label="Subir" title="Subir">↑</button><button type="button" data-tmove="down" aria-label="Bajar" title="Bajar">↓</button><button type="button" data-tmove="side" aria-label="Pasar al otro costado" title="Pasar al otro costado">⇄</button></span></div>
     <p class="note">Se abren en una ventana al costado, sin cerrar tu tienda. Atendé los mensajes de un lado y armá el pedido del otro.</p>
     <div class="netbtns" id="netBtns"></div>
   </section>
   <section class="tcard" data-card="links" aria-label="Mis otros links">
-    <div class="tcardh"><h3>🔗 Mis otros links</h3><span class="tmove"><button type="button" data-tmove="up" aria-label="Subir" title="Subir">↑</button><button type="button" data-tmove="down" aria-label="Bajar" title="Bajar">↓</button><button type="button" data-tmove="side" aria-label="Pasar al otro costado" title="Pasar al otro costado">⇄</button></span></div>
+    <div class="tcardh"><h3><button type="button" data-tfold aria-expanded="true">🔗 Mis otros links</button></h3><span class="tmove"><button type="button" data-tmove="up" aria-label="Subir" title="Subir">↑</button><button type="button" data-tmove="down" aria-label="Bajar" title="Bajar">↓</button><button type="button" data-tmove="side" aria-label="Pasar al otro costado" title="Pasar al otro costado">⇄</button></span></div>
     <div class="mylinks" id="myLinks"></div>
     <form class="toolform" id="myLinkForm">
       <input type="text" id="myLinkName" maxlength="30" placeholder="Nombre (ej: Proveedor)" aria-label="Nombre del link">
@@ -2456,7 +2462,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
     <p class="note" id="myLinkMsg" role="status"></p>
   </section>
   <section class="tcard" data-card="media" aria-label="Música y videos">
-    <div class="tcardh"><h3>🎧 Música y videos</h3><span class="tmove"><button type="button" data-tmove="up" aria-label="Subir" title="Subir">↑</button><button type="button" data-tmove="down" aria-label="Bajar" title="Bajar">↓</button><button type="button" data-tmove="side" aria-label="Pasar al otro costado" title="Pasar al otro costado">⇄</button></span></div>
+    <div class="tcardh"><h3><button type="button" data-tfold aria-expanded="true">🎧 Música y videos</button></h3><span class="tmove"><button type="button" data-tmove="up" aria-label="Subir" title="Subir">↑</button><button type="button" data-tmove="down" aria-label="Bajar" title="Bajar">↓</button><button type="button" data-tmove="side" aria-label="Pasar al otro costado" title="Pasar al otro costado">⇄</button></span></div>
     <div class="mediacol" id="mediaCol"></div>
     <form class="toolform" id="mediaForm2">
       <input type="text" inputmode="url" autocomplete="off" id="b-media2" maxlength="300" placeholder="Link de YouTube, Spotify, SoundCloud…" aria-label="Link de música o video">
@@ -2465,7 +2471,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
     <p class="note" id="mediaMsg2" role="status"></p>
   </section>
   <section class="tcard" data-card="mapa" aria-label="Mapa">
-    <div class="tcardh"><h3>🗺 Mapa</h3><span class="tmove"><button type="button" data-tmove="up" aria-label="Subir" title="Subir">↑</button><button type="button" data-tmove="down" aria-label="Bajar" title="Bajar">↓</button><button type="button" data-tmove="side" aria-label="Pasar al otro costado" title="Pasar al otro costado">⇄</button></span></div>
+    <div class="tcardh"><h3><button type="button" data-tfold aria-expanded="true">🗺 Mapa</button></h3><span class="tmove"><button type="button" data-tmove="up" aria-label="Subir" title="Subir">↑</button><button type="button" data-tmove="down" aria-label="Bajar" title="Bajar">↓</button><button type="button" data-tmove="side" aria-label="Pasar al otro costado" title="Pasar al otro costado">⇄</button></span></div>
     <form class="toolform" id="mapForm">
       <input type="text" id="mapQ" maxlength="200" placeholder="Dirección del pedido" aria-label="Dirección para buscar en el mapa">
       <button class="btn" type="submit">Buscar</button>
@@ -2478,7 +2484,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
     <p class="note" id="mapNote">Escribí una dirección, o tocá “🗺 Ver en el mapa” en un pedido. Si marca otra ciudad, agregale la ciudad al final.</p>
   </section>
   <section class="tcard" data-card="fb" aria-label="Mi página de Facebook">
-    <div class="tcardh"><h3>📘 Mi página de Facebook</h3><span class="tmove"><button type="button" data-tmove="up" aria-label="Subir" title="Subir">↑</button><button type="button" data-tmove="down" aria-label="Bajar" title="Bajar">↓</button><button type="button" data-tmove="side" aria-label="Pasar al otro costado" title="Pasar al otro costado">⇄</button></span></div>
+    <div class="tcardh"><h3><button type="button" data-tfold aria-expanded="true">📘 Mi página de Facebook</button></h3><span class="tmove"><button type="button" data-tmove="up" aria-label="Subir" title="Subir">↑</button><button type="button" data-tmove="down" aria-label="Bajar" title="Bajar">↓</button><button type="button" data-tmove="side" aria-label="Pasar al otro costado" title="Pasar al otro costado">⇄</button></span></div>
     <div class="fbframe" id="fbFrame" hidden></div>
     <form class="toolform" id="fbForm">
       <input type="text" inputmode="url" autocomplete="off" id="fbUrl" maxlength="200" placeholder="Link de tu página de Facebook" aria-label="Link de tu página de Facebook">
@@ -7205,7 +7211,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     const orig = brand.addr ? '&origin=' + encodeURIComponent(brand.addr) : '';
     $('mapGo').href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(full)}${orig}`;
     $('mapOpen').href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(full)}`;
-    $('mapLinks').hidden = false;
+    $('mapLinks').hidden = false; $('mapNote').hidden = true;
     if(open && !toolsWide()) toolsOpen(true);
   }
   $('mapForm').addEventListener('submit', e => { e.preventDefault(); toolsMap($('mapQ').value); });
@@ -7239,12 +7245,21 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   }
   const tcard = c => document.querySelector(`.tcard[data-card="${c}"]`);
   function toolsPlace(){
-    const lay = toolsLayout();
+    const lay = toolsLayout(), fold = Array.isArray(brand.toolsFold) ? brand.toolsFold : [];
+    TCARDS.forEach(c => { const el = tcard(c); if(!el) return; const f = fold.includes(c); el.classList.toggle('fold', f); el.querySelector('[data-tfold]').setAttribute('aria-expanded', String(!f)); });
     [['L', $('toolsColL')], ['R', $('toolsColR')]].forEach(([k, col]) => lay[k].forEach((c, i) => {
       const el = tcard(c); if(el && col.children[i] !== el) col.insertBefore(el, col.children[i] || null);
     }));
   }
   $('toolsWrap').addEventListener('click', e => {
+    const fb = e.target.closest('[data-tfold]');
+    if(fb){
+      const c = fb.closest('.tcard').dataset.card, fold = new Set(Array.isArray(brand.toolsFold) ? brand.toolsFold : []);
+      if(fold.has(c)) fold.delete(c); else fold.add(c);
+      brand.toolsFold = [...fold]; save(); toolsPlace();
+      if(c === 'fb' && !fold.has(c)) fbRender();
+      return;
+    }
     const b = e.target.closest('[data-tmove]'), card = b && b.closest('.tcard'); if(!card) return;
     const c = card.dataset.card, lay = toolsLayout(), side = lay.L.includes(c) ? 'L' : 'R', arr = lay[side], i = arr.indexOf(c);
     if(b.dataset.tmove === 'up' && i > 0) arr.splice(i - 1, 0, arr.splice(i, 1)[0]);
