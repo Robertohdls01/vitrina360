@@ -4,6 +4,8 @@
 //   GET  /api/pedidos?ref=...&k=...           (cliente)     estado de su pedido
 //   GET  /api/pedidos                         (comerciante) sus pedidos de los últimos días
 //   POST /api/pedidos?accion=estado           (comerciante) {ref, estado, repartidor}
+//   GET  /api/pedidos?fila=slug               (cualquiera)  la fila de pedidos en preparación (número y nombre de pila)
+// Fila: cada pedido nuevo recibe un número del día (#1, #2…). Se guarda en fila/<dueño>.json.
 const crypto = require('crypto');
 const { cuerpo, usuario, db } = require('./_comun');
 
@@ -36,8 +38,20 @@ async function guardar(ref, p, otraVez) {
     throw new Error('almacenamiento ' + r.status);
   }
 }
+// ---- Fila de pedidos: número del día y orden de llegada ----
+const hoyAR = () => new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
+const pila = n => corto(String(n || '').trim().split(/\s+/)[0] || '', 20);
+async function leerFila(owner) {
+  const r = await fetch(base() + '/object/' + BUCKET + '/fila/' + owner + '.json', { headers: headers() });
+  const f = r.ok ? await r.json().catch(() => null) : null;
+  return f && Array.isArray(f.activos) ? f : { dia: hoyAR(), n: 0, activos: [] };
+}
+async function guardarFila(owner, f) {
+  try { await fetch(base() + '/object/' + BUCKET + '/fila/' + owner + '.json', { method: 'POST', headers: headers({ 'Content-Type': 'application/json', 'x-upsert': 'true', 'cache-control': 'no-cache' }), body: JSON.stringify(f) }); } catch (e) {}
+}
+const filaPublica = f => f.activos.slice(0, 15).map(a => ({ n: a.n, nombre: a.nombre || '' }));
 // Lo que ve el cliente: sin los datos internos del comercio.
-const paraCliente = p => ({ estado: p.estado, paga_ahora: !!p.paga_ahora, pagado: !!p.pagado, repartidor: p.repartidor || '', salio_en: p.salio_en || null, creado: p.creado, envio: p.envio || '', demora: p.demora || '', digital: (p.items || []).some(it => it.d), servicio: !!p.servicio });
+const paraCliente = p => ({ turno: p.turno || null, estado: p.estado, paga_ahora: !!p.paga_ahora, pagado: !!p.pagado, repartidor: p.repartidor || '', salio_en: p.salio_en || null, creado: p.creado, envio: p.envio || '', demora: p.demora || '', digital: (p.items || []).some(it => it.d), servicio: !!p.servicio });
 // Links de descarga que vencen en 3 días, solo cuando el comercio marcó el pedido como pagado/listo.
 async function descargas(p) {
   const out = [];
@@ -64,7 +78,22 @@ module.exports = async (req, res) => {
       if (!p || !q.k || p.k !== String(q.k)) return res.status(404).json({ error: 'No encontramos ese pedido.' });
       const c = paraCliente(p);
       if (c.digital && (p.estado === 'listo' || p.estado === 'entregado')) c.descargas = await descargas(p);
+      if (p.estado === 'preparando') {
+        const f = await leerFila(String(q.ref).split('/')[0]), i = f.activos.findIndex(a => a.id === p.id);
+        if (i >= 0) { c.delante = i; c.en_fila = f.activos.length; c.fila = filaPublica(f); }
+      }
       return res.status(200).json(c);
+    }
+
+    // ---- Fila pública de una tienda (número y nombre de pila) ----
+    if (req.method === 'GET' && q.fila) {
+      const slug = String(q.fila);
+      if (!/^[a-z0-9-]{3,40}$/.test(slug)) return res.status(400).json({ error: 'Tienda inválida.' });
+      const rows = await db('GET', '/rest/v1/tiendas?slug=eq.' + slug + '&select=owner,activa');
+      const t = rows && rows[0];
+      if (!t || t.activa === false) return res.status(404).json({ error: 'Esta tienda no está disponible.' });
+      const f = await leerFila(t.owner);
+      return res.status(200).json({ fila: filaPublica(f), en_fila: f.activos.length });
     }
 
     // ---- Cliente: manda un pedido nuevo desde la tienda pública ----
@@ -95,8 +124,14 @@ module.exports = async (req, res) => {
         moneda: /^[A-Z]{3}$/.test(String(b.moneda || '')) ? String(b.moneda) : 'ARS',
         repartidor: '', salio_en: null
       };
+      // número de la fila (se reinicia cada día)
+      const fila = await leerFila(t.owner);
+      if (fila.dia !== hoyAR()) { fila.dia = hoyAR(); fila.n = 0; }
+      fila.n = (Number(fila.n) || 0) + 1; pedido.turno = fila.n;
       await guardar(ref, pedido);
-      return res.status(200).json({ ref, k: pedido.k });
+      fila.activos = fila.activos.filter(a => a && a.id).concat([{ id, n: fila.n, nombre: pila(pedido.comprador.nombre), creado: pedido.creado }]).slice(-80);
+      await guardarFila(t.owner, fila);
+      return res.status(200).json({ ref, k: pedido.k, turno: pedido.turno, delante: fila.activos.length - 1 });
     }
 
     // ---- Comerciante ----
@@ -111,6 +146,10 @@ module.exports = async (req, res) => {
       const pedidos = (await Promise.all(archivos.map(f => leer(u.id + '/' + f.name.replace(/\.json$/, '')).catch(() => null))))
         .filter(Boolean).map(p => Object.assign({}, p, { k: undefined, ref: u.id + '/' + p.id }))
         .sort((a, b) => String(b.creado).localeCompare(String(a.creado)));
+      const f = await leerFila(u.id);
+      const activos = pedidos.filter(p => p.estado === 'preparando').sort((a, b) => String(a.creado).localeCompare(String(b.creado)))
+        .map(p => ({ id: p.id, n: p.turno || null, nombre: pila(p.comprador && p.comprador.nombre), creado: p.creado }));
+      if (JSON.stringify(activos.map(a => a.id)) !== JSON.stringify(f.activos.map(a => a.id))) { f.activos = activos; await guardarFila(u.id, f); }
       return res.status(200).json({ pedidos });
     }
 
@@ -125,6 +164,7 @@ module.exports = async (req, res) => {
       p.estado = b.estado;
       if (b.estado === 'salio') { p.repartidor = corto(b.repartidor, 40); p.salio_en = new Date().toISOString(); }
       await guardar(b.ref, p);
+      if (b.estado !== 'preparando') { const f = await leerFila(u.id), antes = f.activos.length; f.activos = f.activos.filter(a => a.id !== p.id); if (f.activos.length !== antes) await guardarFila(u.id, f); }
       return res.status(200).json({ ok: true, estado: p.estado });
     }
 

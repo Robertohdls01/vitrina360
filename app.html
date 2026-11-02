@@ -780,6 +780,25 @@ body:not(.cartbig) .cartsheet .actions{gap:6px}
 .digfields[hidden]{display:none}
 .dbadge{display:inline-block;background:var(--accent);color:var(--accent-ink,#fff);font:700 12px/1 var(--body);padding:4px 8px;border-radius:999px;vertical-align:middle;margin-left:6px}
 .trk-dl{display:grid;gap:6px;margin-top:6px}
+/* Fila de pedidos: tickets con número y nombre */
+.tkt{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:54px;padding:4px 8px;border-radius:10px;border:1.5px dashed var(--line);background:var(--surface);line-height:1.1}
+.tkt b{font:700 16px var(--mono)}
+.tkt span{font-size:11px;color:var(--muted);max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tkt.me{border:2px solid #16a34a;background:color-mix(in srgb,#16a34a 12%,var(--surface))}
+.tkt.first{border-style:solid;border-color:#f59e0b}
+.tktrow{display:flex;gap:6px;overflow-x:auto;padding:4px 0 2px;scrollbar-width:none}
+.tktrow::-webkit-scrollbar{display:none}
+.trk-ticket{display:flex;align-items:center;gap:8px;margin:2px 0}
+.trk-ticket .tkt{min-width:64px}
+.trk-ticket .tkt b{font-size:22px}
+.trk-fila{font-size:12.5px}
+.qbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 12px;font-size:13.5px}
+.qbar[hidden]{display:none}
+.qbar strong{white-space:nowrap}
+.ordq{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:color-mix(in srgb,#16a34a 8%,var(--surface));border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:4px 0}
+.ordq select{border:1px solid var(--line);background:var(--bg);color:inherit;border-radius:8px;padding:4px 6px;font:inherit}
+.otk{font:700 18px var(--mono);border:1.5px dashed var(--line);border-radius:8px;padding:0 7px;margin-right:6px;background:var(--surface)}
+.opos{font-size:12px;color:#16a34a;font-weight:700;margin-left:6px}
 .trk-dl a{font-size:13px;padding:6px 10px}
 .riderbox{display:grid;gap:8px;margin-top:10px}
 .riderrow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center}
@@ -2046,6 +2065,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
   <p class="note limitnote wanote" id="waNote" hidden><span>📱 Todavía no cargaste tu WhatsApp: sin él, tus clientes no pueden mandarte pedidos.</span> <button class="btn primary" type="button" id="waSet">Cargar mi WhatsApp</button></p>
 
   <div class="dlvrow" id="dlvRow" hidden></div>
+  <div class="qbar" id="qBar" role="status" aria-live="polite" hidden></div>
 
   <div class="sbrow">
   <div class="storebar" id="storeBar" role="group" aria-label="Mis tiendas"></div>
@@ -5317,6 +5337,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   Object.assign(DICT, {"🚌 Encomiendas": ["🚌 Parcels", "🚌 Encomendas", "🚌 Colis", "🚌 Pakete", "🚌 Pacchi", "🚌 包裹", "🚌 荷物"]});
   Object.assign(DICT, {"Sacar de este lugar": ["Remove from this spot", "Tirar deste lugar", "Retirer de cet emplacement", "Von diesem Platz entfernen", "Togli da questo posto", "从此位置移除", "この場所から外す"], "Listo, lo sacamos. Para volver a ponerlo, tocá “＋ Poner algo” en un lugar libre.": ["Done, it was removed. To put it back, tap “＋ Add something” in a free spot.", "Pronto, tiramos. Para colocar de novo, toque “＋ Colocar algo” num lugar livre.", "C'est fait, il a été retiré. Pour le remettre, touchez « ＋ Ajouter » dans un emplacement libre.", "Fertig, entfernt. Zum Zurücklegen tippe auf „＋ Etwas hinzufügen“ in einem freien Platz.", "Fatto, l'abbiamo tolto. Per rimetterlo, tocca “＋ Aggiungi” in un posto libero.", "好了，已移除。要放回，请在空位点“＋ 添加内容”。", "外しました。戻すには空いている場所の「＋ 追加」をタップしてください。"]});
   Object.assign(DICT, {"↺ Ordenar como al principio": ["↺ Reset to the original layout", "↺ Organizar como no início", "↺ Remettre comme au début", "↺ Wie am Anfang anordnen", "↺ Riordina come all'inizio", "↺ 恢复初始排列", "↺ 最初の並びに戻す"], "Volver a poner todo como al principio (no borra tus links ni videos)": ["Put everything back as it was at the start (your links and videos stay)", "Voltar tudo como no início (não apaga seus links nem vídeos)", "Tout remettre comme au début (vos liens et vidéos restent)", "Alles wie am Anfang anordnen (Links und Videos bleiben)", "Rimetti tutto come all'inizio (link e video restano)", "全部恢复初始排列（不会删除链接和视频）", "すべて最初の並びに戻す（リンクと動画は残ります）"], "Listo: quedó todo como al principio.": ["Done: everything is back to the original layout.", "Pronto: ficou tudo como no início.", "C'est fait : tout est comme au début.", "Fertig: alles ist wie am Anfang.", "Fatto: è tutto come all'inizio.", "好了：已恢复初始排列。", "完了：最初の並びに戻りました。"]});
+  Object.assign(DICT, {"Mostrar la fila en mi tienda": ["Show the queue in my store", "Mostrar a fila na minha loja", "Afficher la file dans ma boutique", "Warteschlange im Shop zeigen", "Mostra la fila nel negozio", "在店铺显示排队", "ショップに待ち行列を表示"], "⏱ Cada pedido tarda": ["⏱ Each order takes", "⏱ Cada pedido leva", "⏱ Chaque commande prend", "⏱ Jede Bestellung dauert", "⏱ Ogni ordine richiede", "⏱ 每单耗时", "⏱ 1件あたり"], "no sé": ["not sure", "não sei", "je ne sais pas", "weiß nicht", "non so", "不确定", "わからない"]});
   Object.assign(DICT, {"🎧 Spotify o YouTube": ["🎧 Spotify or YouTube", "🎧 Spotify ou YouTube", "🎧 Spotify ou YouTube", "🎧 Spotify oder YouTube", "🎧 Spotify o YouTube", "🎧 Spotify 或 YouTube", "🎧 Spotify または YouTube"], "Pegá el link de una canción, playlist o video. Se abre en un reproductor chiquito y sigue sonando mientras ordenás tu tienda.": ["Paste the link to a song, playlist or video. It opens in a small player and keeps playing while you organize your store.", "Cole o link de uma música, playlist ou vídeo. Ele abre em um player pequeno e continua tocando enquanto você organiza sua loja.", "Collez le lien d'une chanson, d'une playlist ou d'une vidéo. Il s'ouvre dans un petit lecteur et continue pendant que vous organisez votre boutique.", "Füge den Link zu einem Song, einer Playlist oder einem Video ein. Er öffnet sich in einem kleinen Player und läuft weiter, während du deinen Shop ordnest.", "Incolla il link di una canzone, una playlist o un video. Si apre in un piccolo lettore e continua a suonare mentre sistemi il tuo negozio.", "粘贴歌曲、歌单或视频的链接。它会在小播放器中打开，你整理店铺时也会继续播放。", "曲・プレイリスト・動画のリンクを貼り付けてください。小さなプレーヤーで開き、ショップを整理している間も再生が続きます。"], "Link de Spotify o YouTube": ["Spotify or YouTube link", "Link do Spotify ou YouTube", "Lien Spotify ou YouTube", "Spotify- oder YouTube-Link", "Link di Spotify o YouTube", "Spotify 或 YouTube 链接", "Spotify または YouTube のリンク"], "▶ Poner": ["▶ Play", "▶ Tocar", "▶ Lancer", "▶ Abspielen", "▶ Avvia", "▶ 播放", "▶ 再生"], "📣 Mostrar también a mis clientes": ["📣 Also show it to my customers", "📣 Mostrar também aos meus clientes", "📣 Le montrer aussi à mes clients", "📣 Auch meinen Kunden zeigen", "📣 Mostralo anche ai miei clienti", "📣 也展示给我的顾客", "📣 お客様にも表示する"], "Si lo activás, tus clientes ven el reproductor en una esquina de tu tienda, en pausa: suena solo si lo tocan. Spotify se escucha completo solo con la sesión de Spotify abierta; si no, son 30 segundos.": ["If you turn it on, your customers see the player in a corner of your store, paused: it only plays if they tap it. Spotify plays in full only for people signed in to Spotify; otherwise it's 30 seconds.", "Se você ativar, seus clientes veem o player em um canto da loja, pausado: só toca se tocarem nele. O Spotify toca completo só com a sessão do Spotify aberta; senão, são 30 segundos.", "Si vous l'activez, vos clients voient le lecteur dans un coin de votre boutique, en pause : il ne joue que s'ils le touchent. Spotify est complet seulement si la session Spotify est ouverte ; sinon, 30 secondes.", "Wenn du es aktivierst, sehen deine Kunden den Player pausiert in einer Ecke deines Shops: Er spielt nur, wenn sie ihn antippen. Spotify läuft nur mit angemeldetem Spotify-Konto komplett, sonst 30 Sekunden.", "Se lo attivi, i tuoi clienti vedono il lettore in un angolo del negozio, in pausa: suona solo se lo toccano. Spotify si sente per intero solo con la sessione di Spotify aperta; altrimenti sono 30 secondi.", "开启后，顾客会在店铺角落看到暂停状态的播放器：只有点击才会播放。只有登录 Spotify 的人才能听完整版，否则只有 30 秒。", "オンにすると、お客様にはショップの隅に一時停止したプレーヤーが表示され、タップしたときだけ再生されます。Spotify はログインしている人だけフル再生、それ以外は30秒です。"], "Pegá primero el link de Spotify o YouTube.": ["First paste the Spotify or YouTube link.", "Cole primeiro o link do Spotify ou YouTube.", "Collez d'abord le lien Spotify ou YouTube.", "Füge zuerst den Spotify- oder YouTube-Link ein.", "Incolla prima il link di Spotify o YouTube.", "请先粘贴 Spotify 或 YouTube 链接。", "まず Spotify または YouTube のリンクを貼り付けてください。"], "Ese link no es de Spotify ni de YouTube. En la app tocá “Compartir” → “Copiar enlace” y pegalo acá.": ["That link isn't from Spotify or YouTube. In the app tap “Share” → “Copy link” and paste it here.", "Esse link não é do Spotify nem do YouTube. No app toque em “Compartilhar” → “Copiar link” e cole aqui.", "Ce lien n'est ni Spotify ni YouTube. Dans l'appli, touchez « Partager » → « Copier le lien » et collez-le ici.", "Dieser Link ist weder von Spotify noch von YouTube. Tippe in der App auf „Teilen“ → „Link kopieren“ und füge ihn hier ein.", "Quel link non è di Spotify né di YouTube. Nell'app tocca “Condividi” → “Copia link” e incollalo qui.", "这个链接不是 Spotify 或 YouTube 的。在应用里点“分享”→“复制链接”，再粘贴到这里。", "そのリンクは Spotify でも YouTube でもありません。アプリで「共有」→「リンクをコピー」して、ここに貼り付けてください。"], "Listo. También lo ven tus clientes.": ["Done. Your customers see it too.", "Pronto. Seus clientes também veem.", "C'est fait. Vos clients le voient aussi.", "Fertig. Deine Kunden sehen es auch.", "Fatto. Lo vedono anche i tuoi clienti.", "好了。顾客也能看到。", "完了。お客様にも表示されます。"], "Listo. Por ahora lo escuchás solo vos.": ["Done. For now only you can hear it.", "Pronto. Por enquanto só você ouve.", "C'est fait. Pour l'instant, vous seul l'entendez.", "Fertig. Vorerst hörst nur du es.", "Fatto. Per ora lo senti solo tu.", "好了。目前只有你能听到。", "完了。今はあなただけが聴けます。"], "Listo, sacamos el reproductor.": ["Done, the player was removed.", "Pronto, tiramos o player.", "C'est fait, le lecteur a été retiré.", "Fertig, der Player wurde entfernt.", "Fatto, abbiamo tolto il lettore.", "好了，播放器已移除。", "完了、プレーヤーを削除しました。"], "Ahora tus clientes también ven el reproductor, en pausa.": ["Now your customers also see the player, paused.", "Agora seus clientes também veem o player, pausado.", "Vos clients voient maintenant aussi le lecteur, en pause.", "Jetzt sehen auch deine Kunden den Player, pausiert.", "Ora anche i tuoi clienti vedono il lettore, in pausa.", "现在顾客也能看到播放器（暂停状态）。", "お客様にもプレーヤーが一時停止状態で表示されます。"], "Ahora el reproductor es solo para vos.": ["Now the player is just for you.", "Agora o player é só para você.", "Le lecteur est maintenant pour vous seul.", "Jetzt ist der Player nur für dich.", "Ora il lettore è solo per te.", "现在播放器只给你自己用。", "プレーヤーはあなた専用になりました。"], "Achicar": ["Minimize", "Minimizar", "Réduire", "Verkleinern", "Riduci", "最小化", "最小化"], "Reproductor": ["Player", "Player", "Lecteur", "Player", "Lettore", "播放器", "プレーヤー"], "Volver al reproductor": ["Back to the player", "Voltar ao player", "Revenir au lecteur", "Zurück zum Player", "Torna al lettore", "返回播放器", "プレーヤーに戻る"], "Abrir el reproductor": ["Open the player", "Abrir o player", "Ouvrir le lecteur", "Player öffnen", "Apri il lettore", "打开播放器", "プレーヤーを開く"]});
   const L = (es, en, pt, fr, de, it, zh, ja) => {
     if(LANG === 'es') return es; if(LANG === 'en') return en; if(LANG === 'pt') return pt;
@@ -6404,15 +6425,17 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(!el){ el = document.createElement('div'); el.id = 'trk'; el.className = 'trk'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
     el.className = 'trk';
     const waitPay = info.paid && !info.pagoOk;   // pagó con billetera: primero esperamos que el comercio confirme el pago
-    el.innerHTML = `<span class="trk-clock" aria-hidden="true">${waitPay ? '💳' : '⏱'}</span><span class="trk-txt"><strong>${esc(waitPay ? L('Esperando que el comercio confirme tu pago…', 'Waiting for the store to confirm your payment…', 'Aguardando a loja confirmar seu pagamento…') : info.pagoOk ? L('¡Pago recibido! Tu pedido está en preparación', 'Payment received! Your order is being prepared', 'Pagamento recebido! Seu pedido está em preparação') : M('trk_prep'))}</strong><span class="trk-t">0:00</span>${info.demora ? `<small>${esc(M('trk_est', {d: delayTr(info.demora)}))}</small>` : ''}</span><button class="trk-x" type="button" aria-label="Ocultar">✕</button>`;
+    el.innerHTML = `<span class="trk-clock" aria-hidden="true">${waitPay ? '💳' : '⏱'}</span><span class="trk-txt"><strong>${esc(waitPay ? L('Esperando que el comercio confirme tu pago…', 'Waiting for the store to confirm your payment…', 'Aguardando a loja confirmar seu pagamento…') : info.pagoOk ? L('¡Pago recibido! Tu pedido está en preparación', 'Payment received! Your order is being prepared', 'Pagamento recebido! Seu pedido está em preparação') : M('trk_prep'))}</strong><span class="trk-t">0:00</span><span class="trk-q"></span>${info.demora && !(+brand.minPedido) ? `<small>${esc(M('trk_est', {d: delayTr(info.demora)}))}</small>` : ''}</span><button class="trk-x" type="button" aria-label="Ocultar">✕</button>`;
     el.querySelector('.trk-x').onclick = () => { el.hidden = true; };
     el.hidden = false;
     const tick = () => { const sec = Math.max(0, Math.floor((Date.now() - info.start) / 1000)); const t = el.querySelector('.trk-t'); if(t) t.textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; };
     tick(); clearInterval(trkTick); trkTick = setInterval(tick, 1000);
+    trkQueue(el, info, info.delante != null ? {turno: info.turno, delante: info.delante} : null);
     const poll = async () => {
       if(Date.now() - info.start > 4 * 3600e3){ trackEnd(el, true); return; }
       let st = null; try{ const r = await fetch(`/api/pedidos?ref=${encodeURIComponent(info.ref)}&k=${encodeURIComponent(info.k)}`, {cache: 'no-store'}); if(r.status === 404){ trackEnd(el, true); return; } if(r.ok) st = await r.json(); }catch(e){}
       if(!st) return;
+      if(st.estado === 'preparando') trkQueue(el, info, st);
       if(st.pagado && info.paid && !info.pagoOk){
         info.pagoOk = true; trkSave(info);
         el.querySelector('.trk-clock').textContent = '⏱';
@@ -6445,7 +6468,29 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     };
     clearInterval(trkPoll); trkPoll = setInterval(poll, 15000); setTimeout(poll, 3000);
   }
+  // ticket con el número, cuántos hay antes y la espera aproximada
+  function trkQueue(el, info, st){
+    const box = el.querySelector('.trk-q'); if(!box) return;
+    const n = (st && st.turno) || info.turno; if(!n){ box.innerHTML = ''; return; }
+    const d = st && st.delante != null ? +st.delante : null, mp = +brand.minPedido || 0;
+    const wait = d != null && mp ? (d + 1) * mp : null;
+    const lugar = d == null ? '' : d === 0 ? L('¡Sos el próximo! Tu pedido es el que se está preparando.', 'You are next! Your order is being prepared now.', 'Você é o próximo! Seu pedido está sendo preparado.') : L(`Hay ${d} ${d === 1 ? 'pedido' : 'pedidos'} antes que el tuyo.`, `There ${d === 1 ? 'is 1 order' : 'are ' + d + ' orders'} ahead of yours.`, `Há ${d} ${d === 1 ? 'pedido' : 'pedidos'} antes do seu.`);
+    const fila = st && Array.isArray(st.fila) && st.fila.length > 1 ? `<span class="tktrow">${st.fila.map((t, i) => `<span class="tkt${t.n === n ? ' me' : ''}${i === 0 ? ' first' : ''}"><b>#${t.n}</b><span>${t.n === n ? esc(L('Vos', 'You', 'Você')) : esc(t.nombre || '')}</span></span>`).join('')}</span>` : '';
+    box.innerHTML = `<span class="trk-ticket"><span class="tkt me"><b>#${n}</b><span>${esc(L('Tu número', 'Your number', 'Seu número'))}</span></span><span class="trk-fila">${esc(lugar)}${wait ? '<br><strong>' + esc(L(`Espera aprox.: ${wait} min`, `Approx. wait: ${wait} min`, `Espera aprox.: ${wait} min`)) + '</strong>' : ''}</span></span>${fila}`;
+  }
   function trackEnd(el, clear){ clearInterval(trkTick); clearInterval(trkPoll); if(el) el.hidden = true; if(clear) trkSave(null); }
+  // fila pública: tickets en preparación con número y nombre de pila
+  async function qBarPoll(){
+    const bar = $('qBar'); if(!bar) return;
+    if(!PUBLIC || !window.VITRINA_SLUG || !brand.queueShow){ bar.hidden = true; return; }
+    let j = null; try{ const r = await fetch('/api/pedidos?fila=' + encodeURIComponent(window.VITRINA_SLUG), {cache: 'no-store'}); if(r.ok) j = await r.json(); }catch(e){}
+    if(!j || !j.fila || !j.fila.length){ bar.hidden = true; return; }
+    let mine = null; try{ const v = JSON.parse(localStorage.getItem(TRK) || 'null'); mine = v && v.turno; }catch(e){}
+    const mp = +brand.minPedido || 0;
+    bar.innerHTML = `<strong>🎟 ${esc(L('Pedidos en preparación', 'Orders being prepared', 'Pedidos em preparação'))}</strong><span class="tktrow">${j.fila.map((t, i) => `<span class="tkt${t.n === mine ? ' me' : ''}${i === 0 ? ' first' : ''}"><b>#${t.n}</b><span>${t.n === mine ? esc(L('Vos', 'You', 'Você')) : esc(t.nombre || '')}</span></span>`).join('')}</span>${mp ? `<span class="note" style="margin:0">${esc(L(`Si pedís ahora: ~${(j.en_fila + 1) * mp} min`, `If you order now: ~${(j.en_fila + 1) * mp} min`, `Se pedir agora: ~${(j.en_fila + 1) * mp} min`))}</span>` : ''}`;
+    bar.hidden = false;
+  }
+  if(PUBLIC){ setTimeout(qBarPoll, 2500); setInterval(() => { if(!document.hidden) qBarPoll(); }, 30000); }
   if(PUBLIC) setTimeout(() => { try{ const v = JSON.parse(localStorage.getItem(TRK) || 'null'); if(v && v.ref && v.slug === window.VITRINA_SLUG && Date.now() - v.start < 4 * 3600e3) trackShow(v); else if(v) trkSave(null); }catch(e){} }, 1500);
 
   // ---- Panel del comercio: lista de pedidos y "Salió con…" ----
@@ -6472,15 +6517,25 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       : `${hi}Recibimos tu pedido en ${st} y ya lo estamos preparando${brand.delay ? ' (demora aproximada: ' + brand.delay + ')' : ''}. Te avisamos cuando salga.`;
     return `https://wa.me/${n}?text=${encodeURIComponent(txt)}`;
   }
+  // fila: los pedidos en preparación, el más viejo primero
+  const ordQueue = () => ordList.filter(p => p.estado === 'preparando').sort((a, b) => String(a.creado).localeCompare(String(b.creado)));
+  const ordSorted = () => [...ordQueue(), ...ordList.filter(p => p.estado !== 'preparando')];
   function renderOrders(){
     const rs = ridersOf(), hora = d => { try{ return new Date(d).toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit'}); }catch(e){ return ''; } };
     $('ordersSheet').innerHTML = `<button class="close" type="button" data-o="close" aria-label="Cerrar">✕</button>
       <h2 id="ordersTitle">📋 Pedidos</h2>
       <p class="note" style="margin:0">Los pedidos que te mandan desde tu tienda. Cuando el pedido sale, tocá “Salió”: al cliente se le para el relojito y le sale la motito con el nombre del repartidor. Con 💬 le avisás también por WhatsApp.</p>
-      ${ordList.length ? `<div class="ordlist">${ordList.map(p => {
+      ${(() => { const q = ordQueue(), mp = +brand.minPedido || 0; return `<div class="ordq">
+        <strong>🎟 Fila: ${q.length ? q.length + (q.length === 1 ? ' pedido esperando' : ' pedidos esperando') : 'sin pedidos esperando'}</strong>
+        <label class="note" style="margin:0;display:flex;gap:6px;align-items:center">⏱ Cada pedido tarda
+          <select id="ordMin">${[0, 5, 8, 10, 12, 15, 20, 25, 30, 40].map(m => `<option value="${m}"${m === mp ? ' selected' : ''}>${m ? m + ' min' : 'no sé'}</option>`).join('')}</select></label>
+        ${mp && q.length ? `<span class="note" style="margin:0">El último sale en ~${q.length * mp} min</span>` : ''}
+        <label class="note" style="margin:0;display:flex;gap:6px;align-items:center"><input type="checkbox" id="ordShowQ" ${brand.queueShow ? 'checked' : ''}> Mostrar la fila en mi tienda</label>
+      </div>`; })()}
+      ${ordList.length ? `<div class="ordlist">${ordSorted().map(p => {
         const c = p.comprador || {}, moto = p.envio_id === 'moto', abierto = p.estado === 'preparando';
         return `<div class="ordcard st-${esc(p.estado)}">
-          <div class="oh"><strong>${esc(c.nombre || 'Cliente')} · ${hora(p.creado)}</strong><span class="ost">${ORD_ST[p.estado] || esc(p.estado)}${p.estado === 'salio' && p.repartidor ? ' con ' + esc(p.repartidor) : ''}</span></div>
+          <div class="oh"><strong>${p.turno ? `<span class="otk">#${p.turno}</span>` : ''}${esc(c.nombre || 'Cliente')} · ${hora(p.creado)}${abierto && ordQueue().indexOf(p) >= 0 ? `<span class="opos">${ordQueue().indexOf(p) + 1}º en la fila</span>` : ''}</strong><span class="ost">${ORD_ST[p.estado] || esc(p.estado)}${p.estado === 'salio' && p.repartidor ? ' con ' + esc(p.repartidor) : ''}</span></div>
           <ul>${(p.items || []).map(it => `<li>${it.d ? '📥 ' : ''}${it.q} x ${esc(it.n)}${it.p ? ' — ' + esc(it.p) : ''}</li>`).join('')}</ul>
           <div><strong>Total:</strong> ${esc(p.total || '')}${p.envio ? ` · <strong>Entrega:</strong> ${esc(p.envio)}` : ''}</div>
           ${c.dir ? `<div>📍 ${esc(c.dir)}${c.ref ? ' — ' + esc(c.ref) : ''}<button class="btn ordmap" type="button" data-o="mapa" data-addr="${esc(c.dir)}">🗺 Ver en el mapa</button></div>` : ''}
@@ -6507,6 +6562,10 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       $('ordersN').hidden = true; renderOrders(); $('ordersModal').hidden = false; document.documentElement.style.overflow = 'hidden';
       $('ordersSheet').querySelector('.close').focus(); await ordFetch();
     };
+    $('ordersModal').addEventListener('change', e => {
+      if(e.target.id === 'ordMin'){ brand.minPedido = +e.target.value || 0; if(!brand.minPedido) delete brand.minPedido; save(); renderOrders(); }
+      if(e.target.id === 'ordShowQ'){ brand.queueShow = e.target.checked; if(!brand.queueShow) delete brand.queueShow; save(); }
+    });
     $('ordersModal').addEventListener('click', async e => {
       const closeO = () => { $('ordersModal').hidden = true; document.documentElement.style.overflow = ''; };
       if(e.target === $('ordersModal')) return closeO();
@@ -6549,7 +6608,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(shipMissing()){ e.preventDefault(); e.stopImmediatePropagation(); return; }
     const o = SHIP_OPTS.find(x => x.id === shipSel), url = a.href;
     const paidNow = payPick.mode === 'ahora';
-    sendOrder(o).then(r => { if(r && r.ref) trackStart({ref: r.ref, k: r.k, slug: window.VITRINA_SLUG, paid: paidNow, moto: !!(o && o.id === 'moto'), retiro: !!(o && o.id === 'retiro'), demora: brand.delay || '', start: Date.now()}); });
+    sendOrder(o).then(r => { if(r && r.ref) trackStart({ref: r.ref, k: r.k, turno: r.turno || null, delante: r.delante, slug: window.VITRINA_SLUG, paid: paidNow, moto: !!(o && o.id === 'moto'), retiro: !!(o && o.id === 'retiro'), demora: brand.delay || '', start: Date.now()}); });
     cart = {}; saveCart(); updateFab(); setTimeout(closeCart, 50);
     const talk = (typeof cajeraOn === 'function' && cajeraOn()) || hList().length;
     if(!talk || !url) return;                      // sin nadie que hable: WhatsApp se abre al toque, como siempre
