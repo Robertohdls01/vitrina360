@@ -1769,6 +1769,11 @@ body:has(#cartFab[hidden]):has(#musicFab[hidden]) .mediadock{--mdb:16px}
 .gempty.pick .gpick{display:flex}
 .gform{width:100%}
 .gmsg{margin:0;font-size:13px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;box-shadow:0 10px 24px -18px var(--shadow)}
+.toolform.mapbar{display:flex;gap:4px;flex-wrap:nowrap;align-items:center}
+.mapbar input{flex:1 1 auto;min-width:0}
+.maplinks{display:inline-flex;gap:4px}
+.maplinks[hidden]{display:none}
+.maplinks .btn{padding:4px 9px!important;font-size:13px!important;text-decoration:none}
 .mediacol{display:grid;gap:8px}
 .mediacol:empty{display:none}
 .mediacol .mplayer{align-items:stretch}
@@ -1798,8 +1803,9 @@ body:has(#cartFab[hidden]):has(#musicFab[hidden]) .mediadock{--mdb:16px}
   .toolswrap{display:contents;visibility:visible;transform:none}
   .toolshead,#toolsBtn{display:none!important}
   /* grilla: 8 rectángulos iguales por columna */
-  .sidetool{position:fixed;top:96px;z-index:30;width:min(300px, calc((100vw - 1160px) / 2 - 56px));height:calc(100vh - 96px - 240px);
+  .sidetool{position:fixed;top:88px;z-index:30;width:min(300px, calc((100vw - 1160px) / 2 - 56px));height:calc(100vh - 88px - 180px);
     display:grid;grid-template-rows:repeat(8, minmax(0, 1fr));gap:6px;align-content:stretch;overflow:visible}
+  .sidetool.right{height:calc(100vh - 88px - 84px)}
   .sidetool > *{min-height:0}
   .tcard{box-shadow:0 10px 24px -20px var(--shadow);padding:6px 8px;gap:6px;border-radius:12px;overflow:auto;scrollbar-width:thin;font-size:13px}
   .tcard h3{font-size:13px}
@@ -1809,7 +1815,13 @@ body:has(#cartFab[hidden]):has(#musicFab[hidden]) .mediadock{--mdb:16px}
   .tcard[data-card="redes"] .netbtn,.tcard[data-card="ia"] .netbtn{flex-direction:column;gap:2px;padding:4px 2px;font-size:10.5px;text-align:center;border-radius:9px}
   .tcard[data-card="redes"] .netbtn .ni,.tcard[data-card="ia"] .netbtn .ni{width:22px;height:22px;font-size:12px}
   .tcard[data-card="mapa"],.tplayer{display:flex;flex-direction:column}
+  .tcard[data-card="mapa"]{position:relative}
+  .tcard[data-card="fb"]{display:flex;flex-direction:column}
+  .tcard[data-card="fb"] .fbframe{flex:1 1 auto;min-height:40px}
+  .tcard[data-card="fb"] .fbframe iframe{height:100%}
   .tcard[data-card="mapa"] .mapframe{flex:1 1 auto;min-height:40px}
+  .tcard[data-card="mapa"] .mapframe:not([hidden]) + .mapbar{position:absolute;left:12px;right:12px;bottom:10px;z-index:2;
+    background:color-mix(in srgb,var(--surface) 88%,transparent);border-radius:10px;padding:3px;box-shadow:0 6px 16px -8px var(--shadow)}
   .tcard[data-card="mapa"] .mapframe iframe{height:100%}
   .tcard .toolform input{padding:5px 8px}
   .tcard .toolform .btn,.toolrow .btn{padding:4px 10px;font-size:12px}
@@ -2528,15 +2540,15 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
   </section>
   <section class="tcard" data-card="mapa" aria-label="Mapa">
     <div class="tcardh"><h3>🗺 Mapa</h3><span class="tctl"></span></div>
-    <form class="toolform" id="mapForm">
+    <div class="mapframe" id="mapFrame" hidden></div>
+    <form class="toolform mapbar" id="mapForm">
       <input type="text" id="mapQ" maxlength="200" placeholder="Dirección del pedido" aria-label="Dirección para buscar en el mapa">
       <button class="btn" type="submit">Buscar</button>
+      <span class="maplinks" id="mapLinks" hidden>
+        <a class="btn" id="mapGo" target="_blank" rel="noopener" title="Cómo llegar desde tu local" aria-label="Cómo llegar desde tu local">🧭</a>
+        <a class="btn" id="mapOpen" target="_blank" rel="noopener" title="Abrir en Google Maps grande" aria-label="Abrir en Google Maps grande">↗</a>
+      </span>
     </form>
-    <div class="mapframe" id="mapFrame" hidden></div>
-    <div class="toolrow" id="mapLinks" hidden>
-      <a class="btn" id="mapGo" target="_blank" rel="noopener">🧭 Cómo llegar</a>
-      <a class="btn" id="mapOpen" target="_blank" rel="noopener">Abrir en Google Maps</a>
-    </div>
     <p class="note" id="mapNote">Escribí una dirección, o tocá “🗺 Ver en el mapa” en un pedido. Si marca otra ciudad, agregale la ciudad al final.</p>
   </section>
   <section class="tcard" data-card="fb" aria-label="Mi página de Facebook">
@@ -7289,9 +7301,15 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     $('mapGo').href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(full)}${orig}`;
     $('mapOpen').href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(full)}`;
     $('mapLinks').hidden = false; $('mapNote').hidden = true;
+    $('mapGo').dataset.dest = full;
     if(open && !toolsWide()) toolsOpen(true);
   }
   $('mapForm').addEventListener('submit', e => { e.preventDefault(); toolsMap($('mapQ').value); });
+  $('mapGo').addEventListener('click', e => {
+    const dest = $('mapGo').dataset.dest; if(!brand.addr || !dest) return; // sin dirección del local, abre Google Maps afuera
+    e.preventDefault();
+    $('mapFrame').innerHTML = `<iframe title="Cómo llegar" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?saddr=${encodeURIComponent(brand.addr)}&daddr=${encodeURIComponent(dest)}&output=embed"></iframe>`;
+  });
   // ---- Página de Facebook ----
   function fbRender(){
     const u = brand.fbPage || '', fr = $('fbFrame');
