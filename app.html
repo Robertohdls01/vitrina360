@@ -876,6 +876,24 @@ body:has(.tvmove,.cashmove) header .hcorner{outline:2px dashed var(--accent);out
 .tvscr{position:relative;aspect-ratio:16/9;border-radius:6px;overflow:hidden;background:#fff;cursor:pointer}
 .tvsl{position:absolute;inset:0;display:grid;grid-template-columns:48% 1fr;align-items:center;gap:10px;padding:10px 14px;opacity:0;transition:opacity .6s;background:radial-gradient(circle at 25% 50%,#fff 0,#f1f3f6 70%)}
 .tvsl.on{opacity:1}
+/* Turnero: la tele muestra la fila de pedidos */
+.tvsl.tvq{display:flex;flex-direction:column;gap:3px;padding:6px 8px;background:#0b0b0f;color:#fff;font-family:var(--mono)}
+.tvqh{font:800 clamp(10px,2.4vw,14px)/1 var(--body);letter-spacing:.12em;color:#fbbf24;text-align:center;padding-bottom:2px}
+.tvqr{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center;padding:2px 6px;border-radius:5px;font-size:clamp(10px,2.6vw,15px);line-height:1.15}
+.tvqr b{font-weight:800}
+.tvqr span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--body);font-weight:700}
+.tvqr i{font-style:normal;font-size:.72em;font-weight:800;letter-spacing:.05em}
+.tvqr.ok{background:#15803d;color:#fff;animation:tvqblink 1s steps(2) infinite}
+.tvqr.now{background:#facc15;color:#111}
+.tvqr.wait{background:#7f1d1d;color:#fecaca}
+.tvqr.more{background:transparent;color:#9ca3af;justify-content:center;display:block;text-align:center}
+@keyframes tvqblink{50%{background:#22c55e}}
+.tvsl.tvq,.tvtop .tvsl.tvq{display:flex!important;flex-direction:column;justify-content:flex-start;align-items:stretch;gap:2px;padding:4px 6px!important;overflow:hidden}
+.tvsl.tvq > div,.tvtop .tvsl.tvq > div{position:static!important;left:auto;right:auto;bottom:auto}
+.tvsl.tvq > .tvqr,.tvtop .tvsl.tvq > .tvqr{display:grid!important;flex:0 0 auto}
+.tvtop .tvqr{font-size:clamp(9px,1.9vw,13px)}
+.tvtop .tvqh{font-size:clamp(9px,1.7vw,12px)}
+@media (prefers-reduced-motion:reduce){.tvqr.ok{animation:none}}
 .tvsl.tvfull{display:block;padding:0;background:#000}
 .tvsl.tvfull img,.tvsl.tvfull video{width:100%;height:100%;object-fit:cover;display:block}
 .tvsl.tvfull img{animation:tvzoom 5s ease-out both}
@@ -2277,6 +2295,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
       </div>
       <span class="note" id="tvMsg" role="status" style="margin:0"></span>
       <div class="row" style="gap:8px;flex-wrap:wrap"><button class="matbtn" type="button" id="tvBtn" aria-pressed="true">📺 Mostrar la pantalla LED</button>
+        <button class="matbtn" type="button" id="tvQueueBtn" aria-pressed="false" title="Cuando hay pedidos en preparación, la pantalla muestra los turnos: el listo en verde, el que se prepara en amarillo y los que esperan en rojo">🎟 Usar la pantalla como turnero</button>
         <label class="note" style="display:inline-flex;gap:6px;align-items:center;margin:0">Texto que corre abajo <input type="text" id="b-tvtext" maxlength="80" placeholder="Ej: ¡Ofertas de hoy! Envíos gratis en la ciudad" style="border:1px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--bg);color:inherit;min-width:0"></label></div>
     </div>
     <div class="presets">
@@ -5338,6 +5357,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   Object.assign(DICT, {"Sacar de este lugar": ["Remove from this spot", "Tirar deste lugar", "Retirer de cet emplacement", "Von diesem Platz entfernen", "Togli da questo posto", "从此位置移除", "この場所から外す"], "Listo, lo sacamos. Para volver a ponerlo, tocá “＋ Poner algo” en un lugar libre.": ["Done, it was removed. To put it back, tap “＋ Add something” in a free spot.", "Pronto, tiramos. Para colocar de novo, toque “＋ Colocar algo” num lugar livre.", "C'est fait, il a été retiré. Pour le remettre, touchez « ＋ Ajouter » dans un emplacement libre.", "Fertig, entfernt. Zum Zurücklegen tippe auf „＋ Etwas hinzufügen“ in einem freien Platz.", "Fatto, l'abbiamo tolto. Per rimetterlo, tocca “＋ Aggiungi” in un posto libero.", "好了，已移除。要放回，请在空位点“＋ 添加内容”。", "外しました。戻すには空いている場所の「＋ 追加」をタップしてください。"]});
   Object.assign(DICT, {"↺ Ordenar como al principio": ["↺ Reset to the original layout", "↺ Organizar como no início", "↺ Remettre comme au début", "↺ Wie am Anfang anordnen", "↺ Riordina come all'inizio", "↺ 恢复初始排列", "↺ 最初の並びに戻す"], "Volver a poner todo como al principio (no borra tus links ni videos)": ["Put everything back as it was at the start (your links and videos stay)", "Voltar tudo como no início (não apaga seus links nem vídeos)", "Tout remettre comme au début (vos liens et vidéos restent)", "Alles wie am Anfang anordnen (Links und Videos bleiben)", "Rimetti tutto come all'inizio (link e video restano)", "全部恢复初始排列（不会删除链接和视频）", "すべて最初の並びに戻す（リンクと動画は残ります）"], "Listo: quedó todo como al principio.": ["Done: everything is back to the original layout.", "Pronto: ficou tudo como no início.", "C'est fait : tout est comme au début.", "Fertig: alles ist wie am Anfang.", "Fatto: è tutto come all'inizio.", "好了：已恢复初始排列。", "完了：最初の並びに戻りました。"]});
   Object.assign(DICT, {"Mostrar la fila en mi tienda": ["Show the queue in my store", "Mostrar a fila na minha loja", "Afficher la file dans ma boutique", "Warteschlange im Shop zeigen", "Mostra la fila nel negozio", "在店铺显示排队", "ショップに待ち行列を表示"], "⏱ Cada pedido tarda": ["⏱ Each order takes", "⏱ Cada pedido leva", "⏱ Chaque commande prend", "⏱ Jede Bestellung dauert", "⏱ Ogni ordine richiede", "⏱ 每单耗时", "⏱ 1件あたり"], "no sé": ["not sure", "não sei", "je ne sais pas", "weiß nicht", "non so", "不确定", "わからない"]});
+  Object.assign(DICT, {"🎟 Usar la pantalla como turnero": ["🎟 Use the screen as an order board", "🎟 Usar a tela como painel de senhas", "🎟 Utiliser l'écran comme tableau de commandes", "🎟 Bildschirm als Bestellanzeige nutzen", "🎟 Usa lo schermo come tabellone dei turni", "🎟 把屏幕用作叫号屏", "🎟 画面を順番表示に使う"], "Cuando hay pedidos en preparación, la pantalla muestra los turnos: el listo en verde, el que se prepara en amarillo y los que esperan en rojo": ["When orders are being prepared, the screen shows the queue: ready in green, preparing in yellow and waiting in red", "Quando há pedidos em preparação, a tela mostra as senhas: pronto em verde, preparando em amarelo e esperando em vermelho", "Quand des commandes sont en préparation, l'écran montre la file : prête en vert, en préparation en jaune, en attente en rouge", "Wenn Bestellungen zubereitet werden, zeigt der Bildschirm die Reihenfolge: fertig grün, in Zubereitung gelb, wartend rot", "Quando ci sono ordini in preparazione, lo schermo mostra i turni: pronto in verde, in preparazione in giallo, in attesa in rosso", "有订单在准备时，屏幕显示排队：已好为绿色，准备中为黄色，等待中为红色", "準備中の注文があると、画面に順番を表示します：完成は緑、準備中は黄、待ちは赤"], "Listo: cuando haya pedidos en preparación, la pantalla muestra los turnos. Si no hay, sigue con tus productos.": ["Done: when there are orders being prepared, the screen shows the queue. If not, it keeps showing your products.", "Pronto: quando houver pedidos em preparação, a tela mostra as senhas. Se não houver, continua com seus produtos.", "C'est fait : quand des commandes sont en préparation, l'écran montre la file. Sinon, il montre vos produits.", "Fertig: Wenn Bestellungen zubereitet werden, zeigt der Bildschirm die Reihenfolge. Sonst deine Produkte.", "Fatto: quando ci sono ordini in preparazione, lo schermo mostra i turni. Altrimenti continua con i tuoi prodotti.", "好了：有订单准备中时屏幕显示排队，没有时继续展示你的商品。", "完了：準備中の注文があると順番を表示し、ないときは商品を表示します。"], "La pantalla vuelve a mostrar solo tus productos.": ["The screen shows only your products again.", "A tela volta a mostrar só seus produtos.", "L'écran montre de nouveau seulement vos produits.", "Der Bildschirm zeigt wieder nur deine Produkte.", "Lo schermo torna a mostrare solo i tuoi prodotti.", "屏幕恢复只显示你的商品。", "画面は商品だけの表示に戻ります。"]});
   Object.assign(DICT, {"🎧 Spotify o YouTube": ["🎧 Spotify or YouTube", "🎧 Spotify ou YouTube", "🎧 Spotify ou YouTube", "🎧 Spotify oder YouTube", "🎧 Spotify o YouTube", "🎧 Spotify 或 YouTube", "🎧 Spotify または YouTube"], "Pegá el link de una canción, playlist o video. Se abre en un reproductor chiquito y sigue sonando mientras ordenás tu tienda.": ["Paste the link to a song, playlist or video. It opens in a small player and keeps playing while you organize your store.", "Cole o link de uma música, playlist ou vídeo. Ele abre em um player pequeno e continua tocando enquanto você organiza sua loja.", "Collez le lien d'une chanson, d'une playlist ou d'une vidéo. Il s'ouvre dans un petit lecteur et continue pendant que vous organisez votre boutique.", "Füge den Link zu einem Song, einer Playlist oder einem Video ein. Er öffnet sich in einem kleinen Player und läuft weiter, während du deinen Shop ordnest.", "Incolla il link di una canzone, una playlist o un video. Si apre in un piccolo lettore e continua a suonare mentre sistemi il tuo negozio.", "粘贴歌曲、歌单或视频的链接。它会在小播放器中打开，你整理店铺时也会继续播放。", "曲・プレイリスト・動画のリンクを貼り付けてください。小さなプレーヤーで開き、ショップを整理している間も再生が続きます。"], "Link de Spotify o YouTube": ["Spotify or YouTube link", "Link do Spotify ou YouTube", "Lien Spotify ou YouTube", "Spotify- oder YouTube-Link", "Link di Spotify o YouTube", "Spotify 或 YouTube 链接", "Spotify または YouTube のリンク"], "▶ Poner": ["▶ Play", "▶ Tocar", "▶ Lancer", "▶ Abspielen", "▶ Avvia", "▶ 播放", "▶ 再生"], "📣 Mostrar también a mis clientes": ["📣 Also show it to my customers", "📣 Mostrar também aos meus clientes", "📣 Le montrer aussi à mes clients", "📣 Auch meinen Kunden zeigen", "📣 Mostralo anche ai miei clienti", "📣 也展示给我的顾客", "📣 お客様にも表示する"], "Si lo activás, tus clientes ven el reproductor en una esquina de tu tienda, en pausa: suena solo si lo tocan. Spotify se escucha completo solo con la sesión de Spotify abierta; si no, son 30 segundos.": ["If you turn it on, your customers see the player in a corner of your store, paused: it only plays if they tap it. Spotify plays in full only for people signed in to Spotify; otherwise it's 30 seconds.", "Se você ativar, seus clientes veem o player em um canto da loja, pausado: só toca se tocarem nele. O Spotify toca completo só com a sessão do Spotify aberta; senão, são 30 segundos.", "Si vous l'activez, vos clients voient le lecteur dans un coin de votre boutique, en pause : il ne joue que s'ils le touchent. Spotify est complet seulement si la session Spotify est ouverte ; sinon, 30 secondes.", "Wenn du es aktivierst, sehen deine Kunden den Player pausiert in einer Ecke deines Shops: Er spielt nur, wenn sie ihn antippen. Spotify läuft nur mit angemeldetem Spotify-Konto komplett, sonst 30 Sekunden.", "Se lo attivi, i tuoi clienti vedono il lettore in un angolo del negozio, in pausa: suona solo se lo toccano. Spotify si sente per intero solo con la sessione di Spotify aperta; altrimenti sono 30 secondi.", "开启后，顾客会在店铺角落看到暂停状态的播放器：只有点击才会播放。只有登录 Spotify 的人才能听完整版，否则只有 30 秒。", "オンにすると、お客様にはショップの隅に一時停止したプレーヤーが表示され、タップしたときだけ再生されます。Spotify はログインしている人だけフル再生、それ以外は30秒です。"], "Pegá primero el link de Spotify o YouTube.": ["First paste the Spotify or YouTube link.", "Cole primeiro o link do Spotify ou YouTube.", "Collez d'abord le lien Spotify ou YouTube.", "Füge zuerst den Spotify- oder YouTube-Link ein.", "Incolla prima il link di Spotify o YouTube.", "请先粘贴 Spotify 或 YouTube 链接。", "まず Spotify または YouTube のリンクを貼り付けてください。"], "Ese link no es de Spotify ni de YouTube. En la app tocá “Compartir” → “Copiar enlace” y pegalo acá.": ["That link isn't from Spotify or YouTube. In the app tap “Share” → “Copy link” and paste it here.", "Esse link não é do Spotify nem do YouTube. No app toque em “Compartilhar” → “Copiar link” e cole aqui.", "Ce lien n'est ni Spotify ni YouTube. Dans l'appli, touchez « Partager » → « Copier le lien » et collez-le ici.", "Dieser Link ist weder von Spotify noch von YouTube. Tippe in der App auf „Teilen“ → „Link kopieren“ und füge ihn hier ein.", "Quel link non è di Spotify né di YouTube. Nell'app tocca “Condividi” → “Copia link” e incollalo qui.", "这个链接不是 Spotify 或 YouTube 的。在应用里点“分享”→“复制链接”，再粘贴到这里。", "そのリンクは Spotify でも YouTube でもありません。アプリで「共有」→「リンクをコピー」して、ここに貼り付けてください。"], "Listo. También lo ven tus clientes.": ["Done. Your customers see it too.", "Pronto. Seus clientes também veem.", "C'est fait. Vos clients le voient aussi.", "Fertig. Deine Kunden sehen es auch.", "Fatto. Lo vedono anche i tuoi clienti.", "好了。顾客也能看到。", "完了。お客様にも表示されます。"], "Listo. Por ahora lo escuchás solo vos.": ["Done. For now only you can hear it.", "Pronto. Por enquanto só você ouve.", "C'est fait. Pour l'instant, vous seul l'entendez.", "Fertig. Vorerst hörst nur du es.", "Fatto. Per ora lo senti solo tu.", "好了。目前只有你能听到。", "完了。今はあなただけが聴けます。"], "Listo, sacamos el reproductor.": ["Done, the player was removed.", "Pronto, tiramos o player.", "C'est fait, le lecteur a été retiré.", "Fertig, der Player wurde entfernt.", "Fatto, abbiamo tolto il lettore.", "好了，播放器已移除。", "完了、プレーヤーを削除しました。"], "Ahora tus clientes también ven el reproductor, en pausa.": ["Now your customers also see the player, paused.", "Agora seus clientes também veem o player, pausado.", "Vos clients voient maintenant aussi le lecteur, en pause.", "Jetzt sehen auch deine Kunden den Player, pausiert.", "Ora anche i tuoi clienti vedono il lettore, in pausa.", "现在顾客也能看到播放器（暂停状态）。", "お客様にもプレーヤーが一時停止状態で表示されます。"], "Ahora el reproductor es solo para vos.": ["Now the player is just for you.", "Agora o player é só para você.", "Le lecteur est maintenant pour vous seul.", "Jetzt ist der Player nur für dich.", "Ora il lettore è solo per te.", "现在播放器只给你自己用。", "プレーヤーはあなた専用になりました。"], "Achicar": ["Minimize", "Minimizar", "Réduire", "Verkleinern", "Riduci", "最小化", "最小化"], "Reproductor": ["Player", "Player", "Lecteur", "Player", "Lettore", "播放器", "プレーヤー"], "Volver al reproductor": ["Back to the player", "Voltar ao player", "Revenir au lecteur", "Zurück zum Player", "Torna al lettore", "返回播放器", "プレーヤーに戻る"], "Abrir el reproductor": ["Open the player", "Abrir o player", "Ouvrir le lecteur", "Player öffnen", "Apri il lettore", "打开播放器", "プレーヤーを開く"]});
   const L = (es, en, pt, fr, de, it, zh, ja) => {
     if(LANG === 'es') return es; if(LANG === 'en') return en; if(LANG === 'pt') return pt;
@@ -5634,6 +5654,39 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
 
   // ---- Pantalla LED de ofertas: va pasando los destacados (o los productos con precio) ----
   let tvT = null, tvI = 0, tvSig = '';
+  // turnero: {fila: [{n, nombre}], listos: [{n, nombre, e}]}
+  let tvQ = null;
+  function tvQueueSet(q){
+    const sig = q ? JSON.stringify(q) : '';
+    if(sig === (tvQ ? JSON.stringify(tvQ) : '')) return;
+    tvQ = q; tvSig = ''; try{ renderTV(); }catch(e){}
+  }
+  async function tvQueuePoll(){
+    if(!brand.tvQueue){ tvQueueSet(null); return; }
+    if(!PUBLIC){   // el dueño: sale de su lista de pedidos
+      let ol; try{ ol = ordList; }catch(e){ return; }
+      const q = ol.filter(p => p.estado === 'preparando').sort((a, b) => String(a.creado).localeCompare(String(b.creado)));
+      const first = n => String(n || '').trim().split(/\s+/)[0] || '';
+      const listos = ol.filter(p => (p.estado === 'listo' || p.estado === 'salio') && p.turno && Date.now() - Date.parse(p.listo_en || p.salio_en || 0) < 15 * 60e3)
+        .sort((a, b) => Date.parse(b.listo_en || b.salio_en) - Date.parse(a.listo_en || a.salio_en)).slice(0, 4);
+      tvQueueSet(q.length || listos.length ? {fila: q.map(p => ({n: p.turno, nombre: first((p.comprador || {}).nombre)})), listos: listos.map(p => ({n: p.turno, nombre: first((p.comprador || {}).nombre), e: p.estado}))} : null);
+      return;
+    }
+    if(!window.VITRINA_SLUG) return;
+    try{ const r = await fetch('/api/pedidos?fila=' + encodeURIComponent(window.VITRINA_SLUG), {cache: 'no-store'}); if(!r.ok) return; const j = await r.json();
+      tvQueueSet((j.fila && j.fila.length) || (j.listos && j.listos.length) ? {fila: j.fila || [], listos: j.listos || []} : null); }catch(e){}
+  }
+  setTimeout(tvQueuePoll, 3000); setInterval(() => { if(!document.hidden) tvQueuePoll(); }, 20000);
+  function tvQueueHTML(q){
+    let mine = null; try{ const v = JSON.parse(localStorage.getItem('vitrina360-pedido') || 'null'); mine = v && v.turno; }catch(e){}
+    const row = (cls, t, tag) => `<div class="tvqr ${cls}"><b>#${t.n}</b><span>${t.n === mine ? esc(L('VOS', 'YOU', 'VOCÊ')) : esc(t.nombre || '')}</span><i>${esc(tag)}</i></div>`;
+    const rows = [
+      ...(q.listos || []).slice(0, 2).map(t => row('ok', t, t.e === 'salio' ? L('EN CAMINO', 'ON THE WAY', 'A CAMINHO') : L('¡LISTO!', 'READY!', 'PRONTO!'))),
+      ...(q.fila || []).map((t, i) => row(i === 0 ? 'now' : 'wait', t, i === 0 ? L('PREPARANDO', 'PREPARING', 'PREPARANDO') : L(`${i + 1}º EN FILA`, `#${i + 1} IN LINE`, `${i + 1}º NA FILA`)))
+    ];
+    const max = 5, extra = rows.length - max;
+    return `<div class="tvsl tvq" data-tvi="0"><div class="tvqh">🎟 ${esc(L('TURNOS', 'ORDERS', 'PEDIDOS'))}</div>${rows.slice(0, extra > 0 ? max - 1 : max).join('')}${extra > 0 ? `<div class="tvqr more">+${extra + 1} ${esc(L('en fila', 'in line', 'na fila'))}</div>` : ''}</div>`;
+  }
   // Lugar de la pantalla: en el encabezado, o donde el comerciante la arrastró (x en % del ancho, y en px desde arriba).
   let tvHome = null, tvMoving = false;
   // La cajera y la pantalla viven dentro de su cuadrado (arriba a la derecha) y se mueven solo ahí adentro:
@@ -5818,10 +5871,20 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     if(!list.length) list = vis.filter(p => p.price);
     list = list.slice(0, 12);
     const items = [...(brand.tvVideo ? [{t: 'video', src: brand.tvVideo}] : []), ...(Array.isArray(brand.tvPhotos) ? brand.tvPhotos : []).map(src => ({t: 'photo', src})), ...list.map(p => ({t: 'prod', p}))];
-    const on = brand.tv !== false && items.length > 0;
+    const queueOn = !!(brand.tvQueue && tvQ && ((tvQ.fila || []).length || (tvQ.listos || []).length));
+    const on = brand.tv !== false && (items.length > 0 || queueOn);
     wrap.hidden = !on;
     if(!on){ clearTimeout(tvT); tvT = null; tvSig = ''; $('tvScr').innerHTML = ''; return; }
     const sig = items.map(it => it.t === 'prod' ? it.p.id + '|' + it.p.price + '|' + it.p.img.length : it.src.length + it.src.slice(-24)).join(',') + '|' + (brand.tvText || '');
+    if(queueOn){
+      // turnero: mientras haya pedidos en preparación o recién listos, la pantalla muestra solo los turnos
+      const qsig = 'Q' + JSON.stringify(tvQ);
+      if(qsig === tvSig && tvT) return; tvSig = qsig;
+      $('tvScr').innerHTML = tvQueueHTML(tvQ);
+      const f = tvQ.fila || [], ls = tvQ.listos || [];
+      $('tvTick').textContent = [ls[0] ? L(`¡Listo el #${ls[0].n}!`, `#${ls[0].n} is ready!`, `#${ls[0].n} pronto!`) : '', f[0] ? L(`Preparando: #${f[0].n}`, `Preparing: #${f[0].n}`, `Preparando: #${f[0].n}`) : '', f[1] ? L(`Próximo: #${f[1].n}`, `Next: #${f[1].n}`, `Próximo: #${f[1].n}`) : ''].filter(Boolean).join('   ★   ');
+      tvI = -1; clearTimeout(tvT); tvNext(); return;
+    }
     if(sig === tvSig && tvT) return; tvSig = sig;
     $('tvScr').innerHTML = items.map((it, i) => it.t === 'video'
       ? `<div class="tvsl tvfull" data-tvi="${i}"><video src="${esc(it.src)}" muted playsinline preload="metadata"></video><button class="tvsnd" type="button" aria-label="${esc(M('snd_on'))}">🔇</button></div>`
@@ -5923,11 +5986,13 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
     $('brandBtn').addEventListener('click', () => setTimeout(() => { $('b-currency').value = curCode(); }, 0));
   }
   if($('tvBtn')){
-    const syncTv = () => { $('tvBtn').setAttribute('aria-pressed', String(brand.tv !== false)); $('b-tvtext').value = brand.tvText || ''; const k = Math.round((brand.tvSize || 1) * 100); $('b-tvsize').value = k; $('tvSizeTxt').textContent = k + '%'; };
+    const syncTv = () => { $('tvBtn').setAttribute('aria-pressed', String(brand.tv !== false)); $('tvQueueBtn').setAttribute('aria-pressed', String(!!brand.tvQueue)); $('b-tvtext').value = brand.tvText || ''; const k = Math.round((brand.tvSize || 1) * 100); $('b-tvsize').value = k; $('tvSizeTxt').textContent = k + '%'; };
     $('tvMoveBtn').addEventListener('click', () => tvMoveMode(!tvMoving));
     $('tvHomeBtn').addEventListener('click', () => { delete brand.tvPos; tvMoveMode(false); applyTvPos(); save(); });
     $('b-tvsize').addEventListener('input', e => { brand.tvSize = (+e.target.value || 100) / 100; $('tvSizeTxt').textContent = e.target.value + '%'; applyTvSize(); save(); });
     $('tvBtn').addEventListener('click', () => { brand.tv = brand.tv === false; save(); syncTv(); tvSig = ''; renderTV(); });
+    $('tvQueueBtn').addEventListener('click', () => { brand.tvQueue = !brand.tvQueue; if(!brand.tvQueue) delete brand.tvQueue; save(); syncTv(); tvSig = ''; tvQueuePoll(); renderTV();
+      tvMsg(brand.tvQueue ? 'Listo: cuando haya pedidos en preparación, la pantalla muestra los turnos. Si no hay, sigue con tus productos.' : 'La pantalla vuelve a mostrar solo tus productos.'); });
     $('b-tvtext').addEventListener('input', e => { brand.tvText = e.target.value; save(); tvSig = ''; renderTV(); });
     $('brandBtn').addEventListener('click', () => setTimeout(syncTv, 0));
     const tvMsg = t => { $('tvMsg').textContent = t; };
@@ -6503,6 +6568,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const nuevos = ordList.filter(p => p.estado === 'preparando' && Date.parse(p.creado) > ordSeen).length;
     const n = $('ordersN'); if(n){ n.textContent = nuevos; n.hidden = !nuevos; }
     if(!$('ordersModal').hidden) renderOrders();
+    try{ tvQueuePoll(); }catch(e){}
     return ordList;
   }
   // Avisarle al cliente por WhatsApp en qué anda su pedido (en camino, listo para retirar, recibido)
