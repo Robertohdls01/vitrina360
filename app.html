@@ -7544,8 +7544,18 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   function gLoad(){
     const raw = brand.toolsGrid && typeof brand.toolsGrid === 'object' ? brand.toolsGrid : null, items = gItems(), g = {};
     const put = (id, s, n) => { n = Math.max(1, Math.min(3, n | 0 || 1)); if(gFits(gOcc(g), s, n)){ g[id] = {s, n}; return true; } return false; };
-    if(raw) items.forEach(id => { const v = raw[id]; if(v && Number.isInteger(v.s)) put(id, v.s, v.n); });
+    if(raw){
+      items.forEach(id => { const v = raw[id]; if(v && Number.isInteger(v.s)) put(id, v.s, v.n); });
+      // tarjetas fijas nuevas (que esta tienda todavía no vio): se ubican solas en el primer lugar libre
+      const seen = Array.isArray(brand.toolsSeen) ? brand.toolsSeen : ['redes', 'links', 'mapa', 'fb', 'ia'];
+      const fresh = Object.keys(G_FIXED).filter(id => !seen.includes(id));
+      if(fresh.length){
+        fresh.forEach(id => { if(!g[id]){ const f = gFirst(gOcc(g), gSpan0(id)); if(f) g[id] = f; } });
+        brand.toolsSeen = Object.keys(G_FIXED); brand.toolsGrid = Object.assign({}, raw, g); setTimeout(save, 0);
+      }
+    }
     else {
+      brand.toolsSeen = Object.keys(G_FIXED);
       put('redes', 0, 2); put('links', 2, 1); put('mapa', 8, 2); put('fb', 10, 2); put('ia', 12, 3); put('envios', 3, 2);
       items.filter(id => id.startsWith('m:')).forEach(id => { const f = gFirst(gOcc(g), 2); if(f) g[id] = f; });
     }
