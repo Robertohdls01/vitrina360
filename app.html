@@ -7162,6 +7162,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(h === 'vimeo.com' || h === 'player.vimeo.com'){ m = u.pathname.match(/(?:^|\/)(\d{5,})(?:\/|$)/); return m ? {kind: 'vimeo', id: m[1]} : null; }
     if(h === 'twitch.tv'){ m = u.pathname.match(/^\/videos\/(\d+)/); if(m) return {kind: 'twitch', video: m[1]}; m = u.pathname.match(/^\/([A-Za-z0-9_]{3,25})\/?$/); return m ? {kind: 'twitch', channel: m[1]} : null; }
     if(h === 'music.apple.com' || h === 'embed.music.apple.com') return /\/(album|playlist|song|station)\//.test(u.pathname) ? {kind: 'apple', path: u.pathname + u.search} : null;
+    if(h === 'instagram.com'){ m = u.pathname.match(/^\/(?:[\w.]+\/)?(p|reel|reels|tv)\/([\w-]{5,})/); return m ? {kind: 'instagram', type: m[1] === 'reels' ? 'reel' : m[1], id: m[2]} : null; }
     if(h === 'tiktok.com'){
       m = u.pathname.match(/\/video\/(\d{8,})/); if(m) return {kind: 'tiktok', id: m[1]};
       m = u.pathname.match(/^\/@([\w.]{2,24})\/?$/); return m ? {kind: 'tiktok', user: m[1]} : null;
@@ -7174,6 +7175,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(x.kind === 'twitch') return `https://player.twitch.tv/?${x.video ? 'video=' + x.video : 'channel=' + x.channel}&parent=${encodeURIComponent(location.hostname)}&autoplay=${play ? 'true' : 'false'}`;
     if(x.kind === 'apple') return `https://embed.music.apple.com${x.path}`;
     if(x.kind === 'tiktok') return `https://www.tiktok.com/embed/v2/${x.id}`;
+    if(x.kind === 'instagram') return `https://www.instagram.com/${x.type}/${x.id}/embed/`;
     if(x.kind === 'spotify') return `https://open.spotify.com/embed/${x.type}/${x.id}?utm_source=generator`;
     const q = `rel=0&playsinline=1${play ? '&autoplay=1' : ''}`;
     return x.id ? `https://www.youtube-nocookie.com/embed/${x.id}?${q}${x.list ? '&list=' + x.list : ''}`
@@ -7187,7 +7189,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   };
   const mediaVisible = () => !!(brand.media || {}).share || (!PUBLIC && !clientMode);
   const MEDIA_KINDS = {youtube: ['YouTube', '▶', '#ff0000', 'yt'], spotify: ['Spotify', '♫', '#1db954', 'sp'], soundcloud: ['SoundCloud', '☁', '#ff5500', 'sc'],
-    vimeo: ['Vimeo', '▶', '#1ab7ea', 'yt'], twitch: ['Twitch', '▶', '#9146ff', 'yt'], apple: ['Apple Music', '♫', '#fa2d48', 'am'], tiktok: ['TikTok', '♪', '#111111', 'tt']};
+    vimeo: ['Vimeo', '▶', '#1ab7ea', 'yt'], twitch: ['Twitch', '▶', '#9146ff', 'yt'], apple: ['Apple Music', '♫', '#fa2d48', 'am'], tiktok: ['TikTok', '♪', '#111111', 'tt'], instagram: ['Instagram', '◉', '#d62976', 'tt']};
   const mediaName = x => (MEDIA_KINDS[x.kind] || MEDIA_KINDS.youtube)[0];
   const mediaIcon = x => (MEDIA_KINDS[x.kind] || MEDIA_KINDS.youtube)[1];
   const mediaPlayers = () => [...document.querySelectorAll('.mplayer')];
@@ -7264,7 +7266,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     inp = inp && inp.nodeType ? inp : $('b-media'); msg = msg || $('mediaMsg');
     const raw = inp.value.trim();
     if(!raw){ msg.textContent = 'Pegá primero el link de Spotify o YouTube.'; return; }
-    if(!mediaParse(raw)){ msg.textContent = 'No reconozco ese link. Sirven YouTube, Spotify, SoundCloud, Vimeo, Twitch, Apple Music y TikTok: en la app tocá “Compartir” → “Copiar enlace” y pegalo acá.'; return; }
+    if(!mediaParse(raw)){ msg.textContent = 'No reconozco ese link. Sirven YouTube, Spotify, SoundCloud, Vimeo, Twitch, Apple Music, TikTok y publicaciones de Instagram: en la app tocá “Compartir” → “Copiar enlace” y pegalo acá.'; return; }
     const list = mediaList();
     if(list.includes(raw)){ const c = pcards().find(x => x.dataset.card === 'm:' + raw), pl = c && c.querySelector('.mplayer'); if(pl) mpOpen(pl); inp.value = ''; return; }
     if(list.length >= MEDIA_MAX){ msg.textContent = 'Ya tenés 12 reproductores. Quitá uno con la ✕ para poner otro.'; return; }
