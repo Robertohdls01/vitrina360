@@ -1853,10 +1853,15 @@ body:has(#cartFab[hidden]):has(#musicFab[hidden]) .mediadock{--mdb:16px}
   .tcard h3{font-size:13px}
   .tcard .note:not([role="status"]){display:none}
   .tcard .note[role="status"]:empty{display:none}
-  .tcard[data-card="redes"] .netbtns,.tcard[data-card="ia"] .netbtns,.tcard[data-card="envios"] .netbtns{grid-template-columns:repeat(4, minmax(0, 1fr));gap:4px}
-  .tcard[data-card="redes"] .netbtn,.tcard[data-card="ia"] .netbtn,.tcard[data-card="envios"] .netbtn{flex-direction:column;gap:2px;padding:4px 2px;font-size:10.5px;text-align:center;border-radius:9px}
-  .tcard[data-card="redes"] .netbtn .ni,.tcard[data-card="ia"] .netbtn .ni,.tcard[data-card="envios"] .netbtn .ni{width:22px;height:22px;font-size:12px}
+  .tcard[data-card="redes"] .netbtns,.tcard[data-card="ia"] .netbtns,.tcard[data-card="envios"] .netbtns,.tcard[data-card="ventas"] .netbtns,.tcard[data-card="traslados"] .netbtns{grid-template-columns:repeat(4, minmax(0, 1fr));gap:4px}
+  .tcard[data-card="redes"] .netbtn,.tcard[data-card="ia"] .netbtn,.tcard[data-card="envios"] .netbtn,.tcard[data-card="ventas"] .netbtn,.tcard[data-card="traslados"] .netbtn{flex-direction:column;gap:2px;padding:4px 2px;font-size:10.5px;text-align:center;border-radius:9px}
+  .tcard[data-card="redes"] .netbtn .ni,.tcard[data-card="ia"] .netbtn .ni,.tcard[data-card="envios"] .netbtn .ni,.tcard[data-card="ventas"] .netbtn .ni,.tcard[data-card="traslados"] .netbtn .ni{width:22px;height:22px;font-size:12px}
   .tcard[data-card="mapa"],.tplayer,.tcard[data-card="ia"]{display:flex;flex-direction:column}
+  /* en Chico: solo los íconos en una fila (el nombre aparece al pasar el mouse) */
+  .tcard[data-size="1"] .netbtns{display:flex!important;flex-wrap:nowrap;gap:4px;overflow-x:auto;scrollbar-width:none}
+  .tcard[data-size="1"] .netbtn{flex:none;padding:3px!important;border-radius:9px!important}
+  .tcard[data-size="1"] .netbtn span:last-child{display:none}
+  .tcard[data-size="1"] .netbtn .ni{width:28px!important;height:28px!important;font-size:13px!important}
   .tcard[data-card="ia"] .aichat{flex:1 1 auto;max-height:none}
   .tcard[data-card="mapa"]{position:relative}
   .tcard[data-card="fb"]{display:flex;flex-direction:column}
@@ -2576,10 +2581,17 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
     <p class="note" id="aiMsg" role="status"></p>
     <div class="aiout"><span>Abrir afuera:</span><div class="netbtns" id="iaBtns"></div></div>
   </section>
-  <section class="tcard" data-card="envios" aria-label="Envíos y ventas">
-    <div class="tcardh"><h3>📦 Envíos y ventas</h3><span class="tctl"></span></div>
-    <p class="note">Cotizá o seguí un envío sin cerrar tu tienda. Se abren en la ventanita al costado.</p>
+  <section class="tcard" data-card="envios" aria-label="Correos">
+    <div class="tcardh"><h3>📮 Correos</h3><span class="tctl"></span></div>
     <div class="netbtns" id="shipBtns"></div>
+  </section>
+  <section class="tcard" data-card="ventas" aria-label="Ventas y cobros">
+    <div class="tcardh"><h3>🛒 Ventas y cobros</h3><span class="tctl"></span></div>
+    <div class="netbtns" id="saleBtns"></div>
+  </section>
+  <section class="tcard" data-card="traslados" aria-label="Encomiendas y traslados">
+    <div class="tcardh"><h3>🚌 Encomiendas</h3><span class="tctl"></span></div>
+    <div class="netbtns" id="tripBtns"></div>
   </section>
   <section class="tcard" data-card="links" aria-label="Mis otros links">
     <div class="tcardh"><h3>🔗 Mis otros links</h3><span class="tctl"></span></div>
@@ -5294,6 +5306,8 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   Object.assign(DICT, {"No entra en esta columna: achicá o sacá algo de este lado.": ["It doesn't fit in this column: shrink or remove something on this side.", "Não cabe nesta coluna: diminua ou tire algo deste lado.", "Ça ne rentre pas dans cette colonne : réduisez ou retirez quelque chose de ce côté.", "Passt nicht in diese Spalte: verkleinere oder entferne etwas auf dieser Seite.", "Non entra in questa colonna: rimpicciolisci o togli qualcosa da questo lato.", "这一栏放不下：请缩小或移除这一侧的内容。", "この列に入りません。こちら側の何かを小さくするか外してください。"]});
   Object.assign(DICT, {"Pegá un link: música, video o cualquier página": ["Paste a link: music, video or any page", "Cole um link: música, vídeo ou qualquer página", "Collez un lien : musique, vidéo ou n'importe quelle page", "Füge einen Link ein: Musik, Video oder jede Seite", "Incolla un link: musica, video o qualsiasi pagina", "粘贴链接：音乐、视频或任意网页", "リンクを貼り付け：音楽、動画、どんなページでも"], "Ya tenés 16 links guardados: borrá alguno en “Mis otros links”.": ["You already have 16 saved links: delete one in “My other links”.", "Você já tem 16 links salvos: apague algum em “Meus outros links”.", "Vous avez déjà 16 liens : supprimez-en un dans « Mes autres liens ».", "Du hast schon 16 Links: lösche einen unter „Meine anderen Links“.", "Hai già 16 link salvati: cancellane uno in “I miei altri link”.", "已保存 16 个链接：请在“我的其他链接”中删除一个。", "リンクが16件あります。「その他のリンク」で1つ削除してください。"]});
   Object.assign(DICT, {"📦 Envíos y ventas": ["📦 Shipping & sales", "📦 Envios e vendas", "📦 Expéditions et ventes", "📦 Versand & Verkauf", "📦 Spedizioni e vendite", "📦 物流与销售", "📦 配送と販売"], "Envíos y ventas": ["Shipping & sales", "Envios e vendas", "Expéditions et ventes", "Versand & Verkauf", "Spedizioni e vendite", "物流与销售", "配送と販売"], "📦 Envíos": ["📦 Shipping", "📦 Envios", "📦 Expéditions", "📦 Versand", "📦 Spedizioni", "📦 物流", "📦 配送"], "Cotizá o seguí un envío sin cerrar tu tienda. Se abren en la ventanita al costado.": ["Quote or track a shipment without closing your store. They open in the small side window.", "Cote ou acompanhe um envio sem fechar sua loja. Abrem na janelinha ao lado.", "Estimez ou suivez un envoi sans fermer votre boutique. Ils s'ouvrent dans la petite fenêtre à côté.", "Berechne oder verfolge einen Versand, ohne den Shop zu schließen. Öffnet sich im kleinen Fenster daneben.", "Fai un preventivo o traccia una spedizione senza chiudere il negozio. Si aprono nella finestrella accanto.", "不关闭店铺即可报价或追踪包裹。会在旁边的小窗口打开。", "ショップを閉じずに送料の見積もりや追跡ができます。横の小さなウィンドウで開きます。"]});
+  Object.assign(DICT, {"📮 Correos": ["📮 Mail & couriers", "📮 Correios", "📮 Courriers", "📮 Post & Kuriere", "📮 Corrieri", "📮 快递", "📮 郵便・宅配"], "Correos": ["Mail & couriers", "Correios", "Courriers", "Post & Kuriere", "Corrieri", "快递", "郵便・宅配"], "🛒 Ventas y cobros": ["🛒 Sales & payments", "🛒 Vendas e cobranças", "🛒 Ventes et paiements", "🛒 Verkauf & Zahlungen", "🛒 Vendite e pagamenti", "🛒 销售与收款", "🛒 販売と決済"], "Ventas y cobros": ["Sales & payments", "Vendas e cobranças", "Ventes et paiements", "Verkauf & Zahlungen", "Vendite e pagamenti", "销售与收款", "販売と決済"], "🚌 Encomiendas y traslados": ["🚌 Parcels & transport", "🚌 Encomendas e transporte", "🚌 Colis et transport", "🚌 Pakete & Transport", "🚌 Pacchi e trasporti", "🚌 包裹与运输", "🚌 荷物と輸送"], "Encomiendas y traslados": ["Parcels & transport", "Encomendas e transporte", "Colis et transport", "Pakete & Transport", "Pacchi e trasporti", "包裹与运输", "荷物と輸送"], "🛒 Ventas": ["🛒 Sales", "🛒 Vendas", "🛒 Ventes", "🛒 Verkauf", "🛒 Vendite", "🛒 销售", "🛒 販売"], "🚌 Traslados": ["🚌 Transport", "🚌 Transporte", "🚌 Transport", "🚌 Transport", "🚌 Trasporti", "🚌 运输", "🚌 輸送"]});
+  Object.assign(DICT, {"🚌 Encomiendas": ["🚌 Parcels", "🚌 Encomendas", "🚌 Colis", "🚌 Pakete", "🚌 Pacchi", "🚌 包裹", "🚌 荷物"]});
   Object.assign(DICT, {"🎧 Spotify o YouTube": ["🎧 Spotify or YouTube", "🎧 Spotify ou YouTube", "🎧 Spotify ou YouTube", "🎧 Spotify oder YouTube", "🎧 Spotify o YouTube", "🎧 Spotify 或 YouTube", "🎧 Spotify または YouTube"], "Pegá el link de una canción, playlist o video. Se abre en un reproductor chiquito y sigue sonando mientras ordenás tu tienda.": ["Paste the link to a song, playlist or video. It opens in a small player and keeps playing while you organize your store.", "Cole o link de uma música, playlist ou vídeo. Ele abre em um player pequeno e continua tocando enquanto você organiza sua loja.", "Collez le lien d'une chanson, d'une playlist ou d'une vidéo. Il s'ouvre dans un petit lecteur et continue pendant que vous organisez votre boutique.", "Füge den Link zu einem Song, einer Playlist oder einem Video ein. Er öffnet sich in einem kleinen Player und läuft weiter, während du deinen Shop ordnest.", "Incolla il link di una canzone, una playlist o un video. Si apre in un piccolo lettore e continua a suonare mentre sistemi il tuo negozio.", "粘贴歌曲、歌单或视频的链接。它会在小播放器中打开，你整理店铺时也会继续播放。", "曲・プレイリスト・動画のリンクを貼り付けてください。小さなプレーヤーで開き、ショップを整理している間も再生が続きます。"], "Link de Spotify o YouTube": ["Spotify or YouTube link", "Link do Spotify ou YouTube", "Lien Spotify ou YouTube", "Spotify- oder YouTube-Link", "Link di Spotify o YouTube", "Spotify 或 YouTube 链接", "Spotify または YouTube のリンク"], "▶ Poner": ["▶ Play", "▶ Tocar", "▶ Lancer", "▶ Abspielen", "▶ Avvia", "▶ 播放", "▶ 再生"], "📣 Mostrar también a mis clientes": ["📣 Also show it to my customers", "📣 Mostrar também aos meus clientes", "📣 Le montrer aussi à mes clients", "📣 Auch meinen Kunden zeigen", "📣 Mostralo anche ai miei clienti", "📣 也展示给我的顾客", "📣 お客様にも表示する"], "Si lo activás, tus clientes ven el reproductor en una esquina de tu tienda, en pausa: suena solo si lo tocan. Spotify se escucha completo solo con la sesión de Spotify abierta; si no, son 30 segundos.": ["If you turn it on, your customers see the player in a corner of your store, paused: it only plays if they tap it. Spotify plays in full only for people signed in to Spotify; otherwise it's 30 seconds.", "Se você ativar, seus clientes veem o player em um canto da loja, pausado: só toca se tocarem nele. O Spotify toca completo só com a sessão do Spotify aberta; senão, são 30 segundos.", "Si vous l'activez, vos clients voient le lecteur dans un coin de votre boutique, en pause : il ne joue que s'ils le touchent. Spotify est complet seulement si la session Spotify est ouverte ; sinon, 30 secondes.", "Wenn du es aktivierst, sehen deine Kunden den Player pausiert in einer Ecke deines Shops: Er spielt nur, wenn sie ihn antippen. Spotify läuft nur mit angemeldetem Spotify-Konto komplett, sonst 30 Sekunden.", "Se lo attivi, i tuoi clienti vedono il lettore in un angolo del negozio, in pausa: suona solo se lo toccano. Spotify si sente per intero solo con la sessione di Spotify aperta; altrimenti sono 30 secondi.", "开启后，顾客会在店铺角落看到暂停状态的播放器：只有点击才会播放。只有登录 Spotify 的人才能听完整版，否则只有 30 秒。", "オンにすると、お客様にはショップの隅に一時停止したプレーヤーが表示され、タップしたときだけ再生されます。Spotify はログインしている人だけフル再生、それ以外は30秒です。"], "Pegá primero el link de Spotify o YouTube.": ["First paste the Spotify or YouTube link.", "Cole primeiro o link do Spotify ou YouTube.", "Collez d'abord le lien Spotify ou YouTube.", "Füge zuerst den Spotify- oder YouTube-Link ein.", "Incolla prima il link di Spotify o YouTube.", "请先粘贴 Spotify 或 YouTube 链接。", "まず Spotify または YouTube のリンクを貼り付けてください。"], "Ese link no es de Spotify ni de YouTube. En la app tocá “Compartir” → “Copiar enlace” y pegalo acá.": ["That link isn't from Spotify or YouTube. In the app tap “Share” → “Copy link” and paste it here.", "Esse link não é do Spotify nem do YouTube. No app toque em “Compartilhar” → “Copiar link” e cole aqui.", "Ce lien n'est ni Spotify ni YouTube. Dans l'appli, touchez « Partager » → « Copier le lien » et collez-le ici.", "Dieser Link ist weder von Spotify noch von YouTube. Tippe in der App auf „Teilen“ → „Link kopieren“ und füge ihn hier ein.", "Quel link non è di Spotify né di YouTube. Nell'app tocca “Condividi” → “Copia link” e incollalo qui.", "这个链接不是 Spotify 或 YouTube 的。在应用里点“分享”→“复制链接”，再粘贴到这里。", "そのリンクは Spotify でも YouTube でもありません。アプリで「共有」→「リンクをコピー」して、ここに貼り付けてください。"], "Listo. También lo ven tus clientes.": ["Done. Your customers see it too.", "Pronto. Seus clientes também veem.", "C'est fait. Vos clients le voient aussi.", "Fertig. Deine Kunden sehen es auch.", "Fatto. Lo vedono anche i tuoi clienti.", "好了。顾客也能看到。", "完了。お客様にも表示されます。"], "Listo. Por ahora lo escuchás solo vos.": ["Done. For now only you can hear it.", "Pronto. Por enquanto só você ouve.", "C'est fait. Pour l'instant, vous seul l'entendez.", "Fertig. Vorerst hörst nur du es.", "Fatto. Per ora lo senti solo tu.", "好了。目前只有你能听到。", "完了。今はあなただけが聴けます。"], "Listo, sacamos el reproductor.": ["Done, the player was removed.", "Pronto, tiramos o player.", "C'est fait, le lecteur a été retiré.", "Fertig, der Player wurde entfernt.", "Fatto, abbiamo tolto il lettore.", "好了，播放器已移除。", "完了、プレーヤーを削除しました。"], "Ahora tus clientes también ven el reproductor, en pausa.": ["Now your customers also see the player, paused.", "Agora seus clientes também veem o player, pausado.", "Vos clients voient maintenant aussi le lecteur, en pause.", "Jetzt sehen auch deine Kunden den Player, pausiert.", "Ora anche i tuoi clienti vedono il lettore, in pausa.", "现在顾客也能看到播放器（暂停状态）。", "お客様にもプレーヤーが一時停止状態で表示されます。"], "Ahora el reproductor es solo para vos.": ["Now the player is just for you.", "Agora o player é só para você.", "Le lecteur est maintenant pour vous seul.", "Jetzt ist der Player nur für dich.", "Ora il lettore è solo per te.", "现在播放器只给你自己用。", "プレーヤーはあなた専用になりました。"], "Achicar": ["Minimize", "Minimizar", "Réduire", "Verkleinern", "Riduci", "最小化", "最小化"], "Reproductor": ["Player", "Player", "Lecteur", "Player", "Lettore", "播放器", "プレーヤー"], "Volver al reproductor": ["Back to the player", "Voltar ao player", "Revenir au lecteur", "Zurück zum Player", "Torna al lettore", "返回播放器", "プレーヤーに戻る"], "Abrir el reproductor": ["Open the player", "Abrir o player", "Ouvrir le lecteur", "Player öffnen", "Apri il lettore", "打开播放器", "プレーヤーを開く"]});
   const L = (es, en, pt, fr, de, it, zh, ja) => {
     if(LANG === 'es') return es; if(LANG === 'en') return en; if(LANG === 'pt') return pt;
@@ -7318,12 +7332,20 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     {id: 'oca', n: 'OCA', u: 'https://www.oca.com.ar/', c: '#5b2a86', i: 'O'},
     {id: 'dhl', n: 'DHL', u: 'https://www.dhl.com/', c: '#d40511', i: 'D'},
     {id: 'fedex', n: 'FedEx', u: 'https://www.fedex.com/', c: '#4d148c', i: 'F'},
-    {id: 'ups', n: 'UPS', u: 'https://www.ups.com/', c: '#5a3a1e', i: 'U'},
+    {id: 'ups', n: 'UPS', u: 'https://www.ups.com/', c: '#5a3a1e', i: 'U'}
+  ];
+  const SALES = [
+    {id: 'meli', n: 'Mercado Libre', u: 'https://www.mercadolibre.com.ar/', c: '#e6b800', i: 'M'},
+    {id: 'mp2', n: 'Mercado Pago', u: 'https://www.mercadopago.com.ar/activities', c: '#009ee3', i: '$'},
+    {id: 'hotmart', n: 'Hotmart', u: 'https://app.hotmart.com/', c: '#f04e23', i: 'H'}
+  ];
+  const TRIPS = [
     {id: 'viacargo', n: 'Vía Cargo', u: 'https://www.viacargo.com.ar/', c: '#0b8a3c', i: 'V'},
     {id: 'andesmar', n: 'Andesmar', u: 'https://www.andesmar.com/', c: '#f39200', i: 'A'},
     {id: 'flechabus', n: 'Flecha Bus', u: 'https://www.flechabus.com.ar/', c: '#c8102e', i: 'F'},
-    {id: 'meli', n: 'Mercado Libre', u: 'https://www.mercadolibre.com.ar/', c: '#e6b800', i: 'M'}
+    {id: 'uber', n: 'Uber', u: 'https://www.uber.com/ar/es/', c: '#111111', i: 'U'}
   ];
+  const ALLNETS = () => [...NETS, ...SHIPS, ...SALES, ...TRIPS, ...AIS];
   // asistentes de inteligencia artificial: se abren al costado, como los chats
   const AIS = [
     {id: 'claude', n: 'Claude', u: 'https://claude.ai/new', c: '#d97757', i: '✳'},
@@ -7346,14 +7368,16 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   }
   const linkOk = u => { try{ const x = new URL(/^https?:\/\//i.test(u) ? u : 'https://' + u); return /^https?:$/.test(x.protocol) && x.hostname.includes('.') ? x.href : ''; }catch(e){ return ''; } };
   function renderNets(){
-    const nb = x => `<button class="netbtn" type="button" data-net="${x.id}"><span class="ni" style="background:${x.c}" aria-hidden="true">${x.i}</span><span>${esc(x.n)}</span></button>`;
+    const nb = x => `<button class="netbtn" type="button" data-net="${x.id}" title="${esc(x.n)}"><span class="ni" style="background:${x.c}" aria-hidden="true">${x.i}</span><span>${esc(x.n)}</span></button>`;
     $('netBtns').innerHTML = NETS.map(nb).join('');
     $('iaBtns').innerHTML = AIS.map(nb).join('');
     $('shipBtns').innerHTML = SHIPS.map(nb).join('');
+    $('saleBtns').innerHTML = SALES.map(nb).join('');
+    $('tripBtns').innerHTML = TRIPS.map(nb).join('');
     const ls = Array.isArray(brand.myLinks) ? brand.myLinks : [];
     $('myLinks').innerHTML = ls.map((x, i) => `<div class="mylink"><button class="netbtn" type="button" data-mylink="${i}"><span class="ni" style="background:#64748b" aria-hidden="true">↗</span><span>${esc(x.n)}</span></button><button class="del" type="button" data-mydel="${i}" aria-label="Quitar ${esc(x.n)}">✕</button></div>`).join('');
   }
-  [$('netBtns'), $('iaBtns'), $('shipBtns')].forEach(box => box.addEventListener('click', e => { const b = e.target.closest('[data-net]'); if(!b) return; const x = [...NETS, ...AIS, ...SHIPS].find(n => n.id === b.dataset.net); if(x) netOpen(x.u, x.id); }));
+  [$('netBtns'), $('iaBtns'), $('shipBtns'), $('saleBtns'), $('tripBtns')].forEach(box => box.addEventListener('click', e => { const b = e.target.closest('[data-net]'); if(!b) return; const x = ALLNETS().find(n => n.id === b.dataset.net); if(x) netOpen(x.u, x.id); }));
   $('myLinks').addEventListener('click', e => {
     const d = e.target.closest('[data-mydel]');
     if(d){ brand.myLinks.splice(+d.dataset.mydel, 1); save(); renderNets(); renderGrid(); return; }
@@ -7508,8 +7532,8 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     brand.fbPage = u; save(); $('fbMsg').textContent = 'Si el recuadro queda en blanco, puede ser la “Prevención de seguimiento” de Edge: en Configuración → Privacidad, ponela en “Básica” o agregá una excepción para tu tienda.'; fbRender();
   });
   // ---- Grilla de rectángulos: 8 a cada lado (16). Cada cosa ocupa 1, 2 o 3 de alto y se pasa de un lugar a otro ----
-  const G_ROWS = 8, G_CELLS = 16, G_FIXED = {redes: 2, links: 1, mapa: 2, fb: 2, ia: 3, envios: 2};
-  const G_NAMES = {redes: '💬 Redes', links: '🔗 Links', mapa: '🗺 Mapa', fb: '📘 Facebook', ia: '🤖 IA', envios: '📦 Envíos'};
+  const G_ROWS = 8, G_CELLS = 16, G_FIXED = {redes: 2, links: 1, mapa: 2, fb: 2, ia: 3, envios: 1, ventas: 1, traslados: 1};
+  const G_NAMES = {redes: '💬 Redes', links: '🔗 Links', mapa: '🗺 Mapa', fb: '📘 Facebook', ia: '🤖 IA', envios: '📮 Correos', ventas: '🛒 Ventas', traslados: '🚌 Traslados'};
   const myLinkList = () => Array.isArray(brand.myLinks) ? brand.myLinks : [];
   const gItems = () => [...Object.keys(G_FIXED), ...mediaList().map(u => 'm:' + u), ...myLinkList().map(x => 'l:' + x.u)];
   const gSpan0 = id => G_FIXED[id] || (id.startsWith('l:') ? 1 : 2);
@@ -7556,7 +7580,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     }
     else {
       brand.toolsSeen = Object.keys(G_FIXED);
-      put('redes', 0, 2); put('links', 2, 1); put('mapa', 8, 2); put('fb', 10, 2); put('ia', 12, 3); put('envios', 3, 2);
+      put('envios', 0, 1); put('ventas', 1, 1); put('traslados', 2, 1); put('redes', 3, 2); put('links', 5, 1); put('mapa', 8, 2); put('fb', 10, 2); put('ia', 12, 3);
       items.filter(id => id.startsWith('m:')).forEach(id => { const f = gFirst(gOcc(g), 2); if(f) g[id] = f; });
     }
     return g;
@@ -7623,7 +7647,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       if(!v){ if(el.parentElement !== $('toolsCards')) $('toolsCards').appendChild(el); return; }
       const col = cols[v.s < G_ROWS ? 0 : 1], r = v.s % G_ROWS;
       if(el.parentElement !== col) col.appendChild(el);
-      el.style.gridRow = `${r + 1} / span ${v.n}`; el.style.order = v.s;
+      el.style.gridRow = `${r + 1} / span ${v.n}`; el.style.order = v.s; el.dataset.size = v.n;
       const isP = id.startsWith('m:');
       el.querySelector('.tctl').innerHTML = `<select data-gslot aria-label="Lugar" title="Lugar">${Array.from({length: G_CELLS}, (_, k) => `<option value="${k}"${k === v.s ? ' selected' : ''}>${k + 1}</option>`).join('')}${isP ? '' : '<option value="x">Sacar</option>'}</select>`
         + `<select data-gsize aria-label="Tamaño" title="Tamaño">${[[1, 'Chico'], [2, 'Medio'], [3, 'Grande']].map(([n, t]) => `<option value="${n}"${n === v.n ? ' selected' : ''}>${t}</option>`).join('')}</select>`
@@ -7631,10 +7655,10 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
         + (isP ? `<button type="button" data-mp="close" aria-label="Apagar" title="Apagar">⏹</button><button type="button" data-mp="del" aria-label="Quitar" title="Quitar">✕</button>` : '');
     });
     // tira deslizable: primero las apps que se abren directo, después lo que está en la grilla
-    const CARD_ICON = {redes: ['💬', '#16a34a'], links: ['🔗', '#64748b'], mapa: ['🗺', '#0ea5e9'], fb: ['📘', '#1877f2'], ia: ['🤖', '#d97757'], envios: ['📦', '#b45309']};
+    const CARD_ICON = {redes: ['💬', '#16a34a'], links: ['🔗', '#64748b'], mapa: ['🗺', '#0ea5e9'], fb: ['📘', '#1877f2'], ia: ['🤖', '#d97757'], envios: ['📮', '#1f3a93'], ventas: ['🛒', '#e6b800'], traslados: ['🚌', '#0b8a3c']};
     const chip = (attr, icon, color, name) => `<button type="button" class="gchip" ${attr}><span class="ni" style="background:${color}" aria-hidden="true">${icon}</span><span>${esc(name)}</span></button>`;
     const placed = Object.entries(g).sort((a, b) => a[1].s - b[1].s).map(([id]) => id);
-    $('gStrip').innerHTML = [...NETS, ...SHIPS, ...AIS].map(x => chip(`data-net="${x.id}"`, x.i, x.c, x.n)).join('')
+    $('gStrip').innerHTML = ALLNETS().map(x => chip(`data-net="${x.id}"`, x.i, x.c, x.n)).join('')
       + placed.map(id => { if(id.startsWith('l:')){ const x = myLinkList().find(v => 'l:' + v.u === id); return chip(`data-net-link="${esc(id.slice(2))}"`, '🔗', '#64748b', x ? x.n : 'Link'); }
         if(id.startsWith('m:')){ const x = mediaParse(id.slice(2)); return chip(`data-gjump="${esc(id)}"`, mediaIcon(x), MEDIA_KINDS[x.kind][2], mediaName(x)); }
         const c = CARD_ICON[id] || ['•', '#64748b']; return chip(`data-gjump="${id}"`, c[0], c[1], G_NAMES[id].replace(/^\S+\s/, '')); }).join('');
@@ -7686,7 +7710,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   });
   $('gStrip').addEventListener('click', e => {
     const n = e.target.closest('[data-net]');
-    if(n){ const x = [...NETS, ...SHIPS, ...AIS].find(v => v.id === n.dataset.net); if(x) netOpen(x.u, x.id); return; }
+    if(n){ const x = ALLNETS().find(v => v.id === n.dataset.net); if(x) netOpen(x.u, x.id); return; }
     const nl = e.target.closest('[data-net-link]');
     if(nl){ netOpen(nl.dataset.netLink, 'link_' + linkName(nl.dataset.netLink).toLowerCase().replace(/\W+/g, '')); return; }
     const j = e.target.closest('[data-gjump]'); if(!j) return;
