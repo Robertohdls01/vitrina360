@@ -4,9 +4,10 @@
 <meta charset="utf-8">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%2064%2064%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22%235f8f66%22%3E%3Cellipse%20cx%3D%2214%22%20cy%3D%2226%22%20rx%3D%227%22%20ry%3D%229%22%20transform%3D%22rotate%28-20%2014%2026%29%22/%3E%3Cellipse%20cx%3D%2226%22%20cy%3D%2214%22%20rx%3D%227%22%20ry%3D%229%22%20transform%3D%22rotate%28-6%2026%2014%29%22/%3E%3Cellipse%20cx%3D%2240%22%20cy%3D%2214%22%20rx%3D%227%22%20ry%3D%229%22%20transform%3D%22rotate%286%2040%2014%29%22/%3E%3Cellipse%20cx%3D%2251%22%20cy%3D%2226%22%20rx%3D%227%22%20ry%3D%229%22%20transform%3D%22rotate%2820%2051%2026%29%22/%3E%3C/g%3E%3Cpath%20d%3D%22M32.5%2058%20C%2030%2055%2C%2015%2046%2C%2015%2036%20C%2015%2029.5%2C%2020%2026%2C%2024.5%2026%20C%2028%2026%2C%2031%2028%2C%2032.5%2031%20C%2034%2028%2C%2037%2026%2C%2040.5%2026%20C%2045%2026%2C%2050%2029.5%2C%2050%2036%20C%2050%2046%2C%2035%2055%2C%2032.5%2058%20Z%22%20fill%3D%22%23e08e86%22/%3E%3C/svg%3E">
 <base href="/mascota/">
+<script>window.SC_MODE="demo";</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Siempre Conmigo: tu mascota vive en la pantalla, en tu casa, con su forma de ser.">
-<title>Siempre Conmigo</title>
+<title>Curri · Siempre Conmigo</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -171,6 +172,13 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 4vw
 .tongue::after { content: ""; position: absolute; left: 48%; top: 8%; width: 4%; height: 60%; border-radius: 4px; background: rgba(150, 50, 65, .35); }
 .lick.licking .tongue { animation: lickT .6s ease-in-out 4; }
 @keyframes lickT { 0% { transform: scaleY(0) rotate(0); } 35% { transform: scale(1.5, 1.2) rotate(-14deg); } 65% { transform: scale(1.6, 1.25) rotate(12deg); } 100% { transform: scaleY(0) rotate(0); } }
+.treat { position: absolute; z-index: 8; height: 34%; aspect-ratio: 1 / 2.3; transform: translateX(-50%); pointer-events: none; --eat: 0%; }
+.treat .ice { position: absolute; left: 0; right: 0; top: 0; height: 66%; clip-path: inset(var(--eat) 0 0 0); transition: clip-path .5s ease; }
+.treat .ice::before { content: ""; position: absolute; inset: 0; }
+.treat.agua .ice::before { border-radius: 46% 46% 12% 12%; background: linear-gradient(90deg, rgba(255,255,255,.35) 0 18%, transparent 18%), linear-gradient(#f6b8a6, #ee9c88 55%, #f3c27c); }
+.treat.agua .base { position: absolute; left: 40%; width: 20%; top: 60%; height: 40%; border-radius: 0 0 40% 40%; background: #e2c48e; box-shadow: inset -2px 0 0 #c9a56c; }
+.treat.crema .ice::before { top: 8%; border-radius: 50% 50% 38% 38%; background: radial-gradient(circle at 34% 30%, #fffaf0 0 14%, transparent 15%), linear-gradient(#fbe7c4, #f4d29c); box-shadow: inset 0 -6px 0 #f0c98c; }
+.treat.crema .base { position: absolute; left: 6%; right: 6%; top: 56%; bottom: 0; clip-path: polygon(0 0, 100% 0, 50% 100%); background: repeating-linear-gradient(45deg, #d7a25c 0 7px, #c38b45 7px 9px), #d7a25c; }
 .wet { position: absolute; inset: 0; pointer-events: none; z-index: 8; }
 .wet i { position: absolute; border-radius: 50%; background: radial-gradient(ellipse, rgba(235, 245, 255, .55), rgba(235, 245, 255, 0) 70%); filter: blur(2px); animation: wetfade 4s ease forwards; }
 @keyframes wetfade { 0% { opacity: 0; } 10% { opacity: 1; } 70% { opacity: .8; } 100% { opacity: 0; } }
@@ -330,6 +338,8 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 4vw
 .foods { display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; min-width: 0; }
 .foods button { font-size: .85rem; padding: 5px 9px; }
 .foods button.on { background: var(--accent-soft); border-color: var(--accent); }
+.foodbox .treats { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; border-top: 1px dashed var(--line); padding-top: 8px; }
+.foodbox .treats button { font-size: .85rem; padding: 5px 9px; }
 .foodbox .acts { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; align-items: center; }
 @media (max-width: 560px) { .foodbox { grid-template-columns: 1fr; } .plate { margin: 0 auto; } }
 .kidsbar { display: none; flex-wrap: wrap; gap: 12px; justify-content: center; }
@@ -345,6 +355,8 @@ body.kids .stars { display: flex; }
 .kidsToggle { font: inherit; font-weight: 700; border-radius: 999px; padding: 8px 14px; background: #fff9e4; border: 2px solid #e7c766; color: var(--ink); cursor: pointer; }
 .confetti { position: absolute; z-index: 13; font-size: 1.6rem; pointer-events: none; animation: conf 2.2s ease-in forwards; }
 @keyframes conf { from { transform: translateY(-20px) rotate(0); opacity: 1; } to { transform: translateY(110%) rotate(320deg); opacity: 0; } }
+.demobar { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; justify-content: center; background: #fff9e4; border: 1px solid #e7c766; color: var(--ink); border-radius: 12px; padding: 8px 14px; font-weight: 700; }
+.demobar a { color: var(--ink); background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 999px; padding: 4px 12px; text-decoration: none; }
 .atdoor { position: absolute; left: 68%; bottom: 19%; width: 23%; max-width: none; z-index: 6; pointer-events: none; }
 .hand { position: absolute; left: 60%; top: -42%; width: 36%; opacity: 0; pointer-events: none; transform-origin: 50% 100%; z-index: 2; transition: opacity .3s; }
 .hand svg { width: 100%; height: auto; display: block; }
@@ -440,6 +452,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     <div class="row" style="justify-content:flex-end"><p class="sub">Tocá la pantalla una vez para activar los sonidos.</p><button type="button" class="kidsToggle" id="kidsToggle">Modo chicos</button></div>
   </header>
 
+  <div class="demobar" id="demobar" hidden><span id="demoText">Esta es Curri, una mascota de muestra.</span> <a href="/mascota/#pedido" id="demoLink">Quiero la mía</a></div>
   <div class="scene" id="scene" aria-label="La habitación de la mascota">
     <div class="window wallart"></div>
     <div class="frame wallart" id="frame">Su foto</div>
@@ -470,7 +483,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     <div class="bathbar" id="walkbar" hidden><button type="button" id="wStop">Parar un ratito</button><button type="button" id="wGo">Seguir caminando</button><button type="button" id="wChange">Cambiar de lugar</button><button type="button" id="wHome">Volver a casa</button></div>
     <div class="bathbar" id="groombar" hidden><button type="button" id="gNails">Cortarle las uñas</button><button type="button" id="gBrush">Cepillarlo</button><button type="button" id="gHair">Cortes de pelo</button><button type="button" id="gDone">Listo</button></div>
     <div class="nails" id="nails" hidden><b>Tocá cada uña para cortarla</b><svg viewBox="0 -24 200 214" aria-label="Pata de tu mascota"><g fill="#f3ece1" stroke="#d9ccb8" stroke-width="3"><ellipse cx="100" cy="128" rx="70" ry="54"/><circle cx="36" cy="72" r="26"/><circle cx="76" cy="44" r="27"/><circle cx="124" cy="44" r="27"/><circle cx="164" cy="72" r="26"/></g><g fill="#e3a3a6"><ellipse cx="100" cy="134" rx="34" ry="26"/><ellipse cx="38" cy="76" rx="11" ry="12"/><ellipse cx="77" cy="49" rx="11" ry="12"/><ellipse cx="123" cy="49" rx="11" ry="12"/><ellipse cx="162" cy="76" rx="11" ry="12"/></g><g fill="#6b6460" stroke="#4d4743" stroke-width="2"><path class="nail" tabindex="0" role="button" aria-label="Uña 1" d="M28 52 Q 30 20 22 6 Q 40 18 44 50 Z"/><path class="nail" tabindex="0" role="button" aria-label="Uña 2" d="M70 22 Q 72 -6 64 -18 Q 84 -4 86 20 Z"/><path class="nail" tabindex="0" role="button" aria-label="Uña 3" d="M116 20 Q 118 -4 136 -18 Q 128 -4 132 22 Z"/><path class="nail" tabindex="0" role="button" aria-label="Uña 4" d="M156 50 Q 160 18 178 6 Q 170 20 172 52 Z"/></g></svg></div>
-    <div class="foodbox" id="foodbox" hidden role="dialog" aria-label="Preparar la comida"><h3>Prepará su plato <span class="note">(elegí hasta 4 cosas)</span></h3><div class="plate" id="plate" aria-label="Su plato"><span></span><span></span><span></span><span></span></div><div class="foods" id="foods"></div><div class="acts"><span class="note" id="foodNote"></span><button type="button" id="foodCancel">Cancelar</button><button type="button" class="primary" id="foodServe">Servir</button></div></div>
+    <div class="foodbox" id="foodbox" hidden role="dialog" aria-label="Preparar la comida"><h3>Prepará su plato <span class="note">(elegí hasta 4 cosas)</span></h3><div class="plate" id="plate" aria-label="Su plato"><span></span><span></span><span></span><span></span></div><div class="foods" id="foods"></div><div class="treats"><span class="note">Un gustito:</span><button type="button" id="iceAgua">🍧 Helado de agua</button><button type="button" id="iceCrema">🍦 Helado de crema</button></div><div class="acts"><span class="note" id="foodNote"></span><button type="button" id="foodCancel">Cancelar</button><button type="button" class="primary" id="foodServe">Servir</button></div></div>
     <div class="bath" id="bath" hidden><div class="head"></div><div class="faucet"></div></div>
     <div class="tub" id="tub" hidden></div>
     <div class="foam" id="foam"></div>
@@ -490,6 +503,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     <img class="closeup" id="closeup" alt="" hidden>
     <div class="lick" id="lick" hidden><img src="curri-cerca.webp" alt=""><div class="tongue"></div></div>
     <div class="paw" id="paw" hidden aria-hidden="true"><svg viewBox="0 0 120 130"><g fill="#f3ece1" stroke="#d9ccb8" stroke-width="3"><ellipse cx="60" cy="88" rx="44" ry="38"/><circle cx="20" cy="50" r="17"/><circle cx="44" cy="30" r="18"/><circle cx="76" cy="30" r="18"/><circle cx="100" cy="50" r="17"/></g><g fill="#e3a3a6"><ellipse cx="60" cy="92" rx="22" ry="17"/><ellipse cx="22" cy="52" rx="8" ry="9"/><ellipse cx="45" cy="33" rx="8" ry="9"/><ellipse cx="75" cy="33" rx="8" ry="9"/><ellipse cx="98" cy="52" rx="8" ry="9"/></g></svg></div>
+    <div class="treat" id="treat" hidden><div class="ice"></div><div class="base"></div></div>
     <div class="wet" id="wet"></div>
     <img class="atdoor" id="atdoor" src="curri-rasguna.webp" alt="" hidden>
     <button type="button" class="camBtn" id="camBtn" aria-label="Sacarle una foto" title="Sacarle una foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
@@ -577,7 +591,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
       <ul class="learned" id="learned"></ul>
     </section>
 
-    <section class="panel">
+    <section class="panel" id="cfgPanel">
       <h2>Armá a tu mascota</h2>
       <div class="row">
         <label class="field" style="flex:1;min-width:140px"><span>Nombre</span><input type="text" id="cName" value="Curri"></label>
@@ -647,13 +661,16 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     tricks: { sentate: 1, pata: 0, pelota: 2 },
     visits: [], greets: 0, photo: null, house: null
   };
+  const MODE = window.SC_MODE || "full";   // full (prototipo), demo (Curri de muestra), play (la comprada)
+  const QS = new URLSearchParams(location.search), LIC = { c: QS.get("c") || "", k: QS.get("k") || "" };
+  const STORE = MODE === "play" && /^[a-z0-9]{10,24}$/.test(LIC.c) ? "sc-" + LIC.c : "mascota-v2";
   let S = Object.assign({}, defaults);
   try {
-    const raw = localStorage.getItem("mascota-v2");
+    const raw = localStorage.getItem(STORE);
     if (raw) S = Object.assign({}, defaults, JSON.parse(raw));
   } catch (e) {}
   if (S.name === "Toby") S.name = "Curri";
-  const save = () => { try { localStorage.setItem("mascota-v2", JSON.stringify(S)); } catch (e) {} };
+  const save = () => { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} };
 
   // registra la visita de hoy
   S.visits = (S.visits || []).concat([new Date().getHours()]).slice(-20);
@@ -714,7 +731,8 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     document.querySelectorAll("#dog .belly").forEach((el) => el.setAttribute("fill", f[2]));
     $("title").textContent = "La casa de " + S.name;
     $("greetIn").placeholder = S.name + ", " + S.name + ", adentro";
-    $("frame").style.backgroundImage = "url(" + (S.photo || PHOTO_DEFAULT) + ")"; $("frame").textContent = "";
+    const fr = S.photo || (pet.classList.contains("hasreal") ? PHOTO_DEFAULT : "");
+    $("frame").style.backgroundImage = fr ? "url(" + fr + ")" : ""; $("frame").textContent = fr ? "" : "🐾";
     if (S.plushPhoto) $("plush").innerHTML = '<img alt="Su peluche" src="' + S.plushPhoto + '">';
     if (S.carPhoto) { $("car").classList.add("photo"); $("car").style.backgroundImage = "url(" + S.carPhoto + ")"; }
     if (S.avatarPhoto) { $("avPhoto").setAttribute("href", S.avatarPhoto); $("avPhoto").style.display = ""; $("avFace").style.display = "none"; }
@@ -817,6 +835,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
   const slurp = () => { for (let i = 0; i < 4; i++) { noise(0.13, 0.35, i * 0.6 + 0.15, 700); tone(260, 180, 0.12, "sine", 0.05, i * 0.6 + 0.15); } };
   async function lickAnim() {
     const lick = $("lick"), wet = $("wet");
+    if (!REAL()) { setPose("happy"); wag(true); slurp(); toast(S.name + " te da besitos."); hearts(3); await sleep(1800); wag(false); setPose(""); return; }
     pet.style.visibility = "hidden"; lick.hidden = false;
     await sleep(250);
     lick.classList.remove("licking"); void lick.offsetWidth; lick.classList.add("licking");
@@ -1140,6 +1159,44 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
       say("¡Rico!"); await sleep(900); wag(false); setPose("sit");
     });
   };
+  /* ---------- helado: se lo das con la mano y lo lame ---------- */
+  function giveIce(kind) {
+    $("foodbox").hidden = true;
+    guard(async () => {
+      const tr = $("treat"), lick = $("lick");
+      tr.className = "treat " + kind; tr.style.setProperty("--eat", "0%");
+      talk(pick(["¡Helado! ¿Me das, {a}?", "¡Quiero probar!", "¡Qué rico, helado!"]));
+      if (!S.iceTip) { S.iceTip = 1; save(); toast("Para perros, helado especial: sin chocolate y sin azúcar.", 3200); }
+      let real = REAL();
+      if (real) {
+        await walkTo(50); clearDepth(); pet.style.visibility = "hidden"; lick.hidden = false;
+        tr.style.left = "50%"; tr.style.bottom = "-6%"; tr.style.height = "36%";
+      } else {
+        await walkTo(42); flip.classList.remove("left"); setPose("sit"); await sleep(200);
+        const sr = scene.getBoundingClientRect(), pr = pet.getBoundingClientRect();
+        tr.style.height = Math.max(40, pr.height * 0.62) + "px";
+        tr.style.left = (pr.right - sr.left + 4) + "px";
+        tr.style.bottom = Math.max(0, sr.bottom - (pr.top + pr.height * 0.85)) + "px";
+      }
+      tr.hidden = false; wag(true);
+      await sleep(500);
+      for (let i = 1; i <= 5; i++) {
+        if (real) { lick.classList.remove("licking"); void lick.offsetWidth; lick.classList.add("licking"); }
+        else { setPose(i % 2 ? "eat" : "sit"); }
+        slurp();
+        await sleep(650);
+        tr.style.setProperty("--eat", Math.min(100, i * 21) + "%");
+        await sleep(350);
+      }
+      tr.hidden = true;
+      if (real) { lick.classList.remove("licking"); lick.hidden = true; pet.style.visibility = ""; }
+      bump("hambre", 15); bump("carino", 10); setPose("happy"); hearts(3);
+      talk(pick(["¡Qué rico el helado, {a}!", "Más helado, porfa.", "Gracias, {a}. Estaba fresquito."]));
+      say(kind === "agua" ? "¡Fresquito!" : "¡Rico!"); await sleep(1200); wag(false); setPose("sit");
+    });
+  }
+  $("iceAgua").onclick = () => giveIce("agua");
+  $("iceCrema").onclick = () => giveIce("crema");
   $("aWater").onclick = () => guard(async () => {
     await walkTo(44); flip.classList.add("left"); setDepth(17, 0.85); setPose("eat");
     await sleep(2000); bump("sed", 100); setPose("happy"); talk(pick(SAY.gracias)); await sleep(700); setPose("sit");
@@ -1720,6 +1777,33 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     else if (k === "foto") takePhoto();
     if (k !== "foto") maybeFact();
   });
+  /* ---------- versión de muestra o comprada ---------- */
+  function useDrawn(color) { pet.classList.remove("hasreal"); S.fur = color; }
+  function applyMode() {
+    if (MODE === "demo") {
+      $("demobar").hidden = false; $("cfgPanel").hidden = true;
+      return;
+    }
+    if (MODE !== "play") return;
+    const dm = $("demo"); dm.checked = false; dm.dispatchEvent(new Event("change")); dm.closest(".switch").hidden = true;
+    if (S.elegida && S.elegida !== "curri") useDrawn(S.elegida);
+    if (!LIC.c) { $("demobar").hidden = false; $("demoText").textContent = "Este link está incompleto. Abrí el link que te mandamos."; return; }
+    fetch("/api/mascota?accion=estado&id=" + encodeURIComponent(LIC.c) + "&k=" + encodeURIComponent(LIC.k)).then((r) => r.json()).then((j) => {
+      if (!j.pagado) { $("demobar").hidden = false; $("demoText").textContent = "Todavía no se confirmó el pago. Probá de nuevo en un rato."; $("demoLink").hidden = true; return; }
+      $("demobar").hidden = true;
+      if (!S.licensed) {
+        S.licensed = true; S.elegida = j.elegida || "curri";
+        if (j.mascota) S.name = j.mascota;
+        if (j.apodo) S.amo = j.apodo;
+        if (["tranquila", "juguetona", "inquieta"].includes(j.caracter)) S.char = j.caracter;
+        S.photo = null; S.visits = []; S.greets = 0;
+        save();
+      }
+      if (S.elegida !== "curri") useDrawn(S.elegida);
+      $("cName").value = S.name; $("cChar").value = S.char; $("cAmo").value = S.amo || "mamá";
+      paint(); renderLearned(); updateReal();
+    }).catch(() => {});
+  }
   async function enterBath() {
     if (inPatio || out || inCar || inBath || (typeof inWalk !== "undefined" && inWalk)) { toast("Primero volvé a casa con " + S.name + "."); return; }
     while (busy) await sleep(150);
@@ -1762,6 +1846,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
   $("bTeeth").onclick = () => guard(async () => {
     scrubbing = false; scene.classList.remove("scrub"); bathBtn("bTeeth");
     const lick = $("lick");
+    if (!REAL()) { setPose("happy"); wag(true); for (let i = 0; i < 6; i++) tone(2200, 1800, 0.12, "triangle", 0.03, i * 0.35); toast("Le lavaste los dientes a " + S.name + ".", 2500); await sleep(2000); wag(false); talk("¡Qué fresquito!"); bathBtn(""); return; }
     pet.style.visibility = "hidden"; lick.hidden = false; $("brush").hidden = false;
     for (let i = 0; i < 8; i++) tone(2200, 1800, 0.12, "triangle", 0.03, i * 0.35);
     toast("Le estás lavando los dientes a " + S.name + ".", 3000);
@@ -2057,7 +2142,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
   }, 1000);
 
   /* ---------- inicio ---------- */
-  paint(); updateReal(); if (S.kids) setTimeout(() => setKids(true), 50); renderSwatches(); renderNeeds(); renderTricks(); renderLearned(); place(); setPose("sit"); wag(true);
+  applyMode(); paint(); updateReal(); if (S.kids) setTimeout(() => setKids(true), 50); renderSwatches(); renderNeeds(); renderTricks(); renderLearned(); place(); setPose("sit"); wag(true);
   setTimeout(() => {
     const h = usualHour();
     const now = new Date().getHours();

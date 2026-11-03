@@ -73,13 +73,31 @@ input[type=file] { font: inherit; font-size: .9rem; max-width: 100%; }
 .bar { grid-column: 1 / -1; height: 8px; border-radius: 99px; background: var(--accent-soft); overflow: hidden; }
 .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; }
 .done { text-align: center; align-items: center; }
+.uses { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.use { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 8px; }
+.use .ico { font-size: 1.8rem; line-height: 1; }
+.opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.opt { position: relative; display: flex; flex-direction: column; gap: 6px; background: var(--bg); border: 2px solid var(--line); border-radius: 16px; padding: 16px 18px; cursor: pointer; }
+.opt input { position: absolute; opacity: 0; pointer-events: none; }
+.opt:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.opt:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
+.opt .op { font-family: var(--display); font-weight: 700; font-size: clamp(1.8rem, 5vw, 2.3rem); line-height: 1; }
+.opt .tag { align-self: flex-start; font-size: .8rem; font-weight: 700; border-radius: 99px; padding: 2px 10px; background: var(--surface); border: 1px solid var(--line); }
+.cat { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+.cat label { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 6px; border: 2px solid var(--line); border-radius: 14px; background: var(--bg); cursor: pointer; font-weight: 700; font-size: .9rem; text-align: center; }
+.cat input { position: absolute; opacity: 0; pointer-events: none; }
+.cat label:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.cat label:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
+.cat img { width: 100%; aspect-ratio: 5 / 3.4; object-fit: contain; }
+.soon { grid-column: 1 / -1; font-size: .9rem; }
 .faq { display: grid; gap: 10px; }
 .faq details { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; }
 .faq summary { font-weight: 700; cursor: pointer; }
 .faq p { margin-top: 8px; color: var(--muted); }
 footer { text-align: center; font-size: .85rem; color: var(--muted); }
 @media (max-width: 760px) {
-  .hero, .steps, .does, form { grid-template-columns: 1fr; }
+  .hero, .steps, .does, form, .uses, .opts { grid-template-columns: 1fr; }
+  .cat { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .stage { order: -1; }
 }
 </style>
@@ -92,9 +110,9 @@ footer { text-align: center; font-size: .85rem; color: var(--muted); }
   <section class="hero">
     <div>
       <h1>Tu mascota, en tu casa y siempre con vos</h1>
-      <p class="lead">Tu perro o tu gato, igual a como era, viviendo en tu computadora y tu celular. Te espera, te pide comida o agua, sale al patio a jugar, te trae la pelota y te dice que te quiere.</p>
+      <p class="lead">Una mascota que vive en tu computadora y tu celular. Te espera, te pide comida o agua, sale al patio a jugar, te trae la pelota y te dice que te quiere. Puede ser igual a la tuya, o una de las nuestras para los chicos.</p>
       <div class="cta">
-        <a class="btn main" href="#pedido">Quiero la de mi mascota</a>
+        <a class="btn main" href="#pedido">Quiero una</a>
         <a class="btn sec" href="curri/">Ver a Curri en su casa</a>
       </div>
     </div>
@@ -104,12 +122,12 @@ footer { text-align: center; font-size: .85rem; color: var(--muted); }
     </div>
   </section>
 
-  <section class="panel">
-    <h2>Así funciona</h2>
-    <div class="steps">
-      <div class="step"><h3>Pedís y pagás</h3><p class="muted">Completás el formulario de abajo y pagás con Mercado Pago. Es un solo pago.</p></div>
-      <div class="step"><h3>Nos mandás sus fotos</h3><p class="muted">Subís 3 o 4 fotos de tu mascota, un video si tenés, y fotos de tu casa y tu patio. Nos contás cómo era.</p></div>
-      <div class="step"><h3>Te armamos todo</h3><p class="muted">Creamos sus movimientos con inteligencia artificial y te mandamos el link de su casa por WhatsApp.</p></div>
+  <section>
+    <h2 style="margin-bottom:16px">Para quién es</h2>
+    <div class="uses">
+      <div class="use"><span class="ico" aria-hidden="true">🕊️</span><h3>Tu mascota que ya no está</h3><p class="muted">La armamos igual a como era, con sus fotos y su forma de ser, para tenerla cerca y recordarla con cariño.</p></div>
+      <div class="use"><span class="ico" aria-hidden="true">🏡</span><h3>Tu mascota de hoy</h3><p class="muted">Que te acompañe en la compu y el celular mientras estás trabajando o lejos de casa.</p></div>
+      <div class="use"><span class="ico" aria-hidden="true">🧸</span><h3>Una mascota para los chicos</h3><p class="muted">Elegís una de las nuestras y la tienen al instante. Aprenden a cuidarla antes de tener una de verdad.</p></div>
     </div>
   </section>
 
@@ -128,36 +146,58 @@ footer { text-align: center; font-size: .85rem; color: var(--muted); }
   </section>
 
   <section class="panel" id="pedido">
-    <div class="price"><b id="precio">$14.900</b><span class="muted">pago único · precio de lanzamiento</span></div>
-    <p class="muted">Incluye su casa con tus fotos, sus movimientos hechos con IA, el patio y la voz. Te la entregamos en pocos días por WhatsApp.</p>
+    <h2>Elegí cómo la querés</h2>
+    <div class="opts" role="radiogroup" aria-label="Tipo de mascota">
+      <label class="opt"><input type="radio" name="tipo" value="generica" checked>
+        <span class="tag">Al instante</span>
+        <h3>Una de nuestras mascotas</h3>
+        <span class="op" id="pGen">$7.900</span>
+        <span class="muted">Elegís un perrito, pagás y ya la tenés. Ideal para los chicos. Pago único.</span></label>
+      <label class="opt"><input type="radio" name="tipo" value="propia">
+        <span class="tag">Hecha a mano</span>
+        <h3>Igual a tu mascota</h3>
+        <span class="op" id="pPropia">$15.800</span>
+        <span class="muted">Con sus fotos, tu casa y tu patio. Te la armamos en pocos días y te la mandamos por WhatsApp. Pago único.</span></label>
+    </div>
 
     <form id="form" novalidate>
-      <label class="field"><span>Nombre de tu mascota</span><input type="text" id="mascota" maxlength="40" autocomplete="off" required></label>
-      <label class="field"><span>¿Qué es?</span>
+      <div class="cat gen" role="radiogroup" aria-label="Elegí tu mascota">
+        <label><input type="radio" name="elegida" value="curri" checked><img src="curri-espera.webp" alt="">Caniche real</label>
+        <label><input type="radio" name="elegida" value="dorado"><img src="cat-dorado.webp" alt="">Dorado</label>
+        <label><input type="radio" name="elegida" value="marron"><img src="cat-marron.webp" alt="">Marrón</label>
+        <label><input type="radio" name="elegida" value="negro"><img src="cat-negro.webp" alt="">Negro</label>
+        <label><input type="radio" name="elegida" value="blanco"><img src="cat-blanco.webp" alt="">Blanco</label>
+        <label><input type="radio" name="elegida" value="gris"><img src="cat-gris.webp" alt="">Gris</label>
+        <p class="soon muted">Pronto: gatitos y más animales.</p>
+      </div>
+      <label class="field"><span id="lNombre">Nombre de tu mascota</span><input type="text" id="mascota" maxlength="40" autocomplete="off" required></label>
+      <label class="field prop"><span>¿Qué es?</span>
         <select id="especie"><option value="perro">Perro</option><option value="gato">Gato</option><option value="otro">Otra mascota</option></select></label>
-      <label class="field"><span>¿Cómo era?</span>
+      <label class="field"><span id="lCar">¿Cómo era?</span>
         <select id="caracter"><option value="tranquila">Tranquila, dormilona</option><option value="juguetona">Juguetona, cariñosa</option><option value="inquieta">Inquieta, no paraba nunca</option></select></label>
       <label class="field"><span>¿Cómo te dice?</span><input type="text" id="apodo" maxlength="30" placeholder="mamá, papá, tu nombre…"></label>
-      <label class="field full"><span>Contanos cómo era</span><textarea id="cuenta" maxlength="1500" placeholder="Qué le gustaba, cómo te recibía, cómo pedía las cosas, dónde dormía, su juguete preferido…"></textarea></label>
-      <label class="field full"><span>Fotos y videos de tu mascota</span>
+      <label class="field full prop"><span>Contanos cómo era</span><textarea id="cuenta" maxlength="1500" placeholder="Qué le gustaba, cómo te recibía, cómo pedía las cosas, dónde dormía, su juguete preferido…"></textarea></label>
+      <label class="field full prop"><span>Fotos y videos de tu mascota</span>
         <input type="file" id="fotos" accept="image/*,video/*" multiple>
         <small>3 o 4 fotos con buena luz (de frente, de costado, la carita) y, si tenés, un video corto. Mejor si sale sola, sin personas.</small></label>
-      <label class="field full"><span>Fotos de tu casa y tu patio (opcional)</span>
+      <label class="field full prop"><span>Fotos de tu casa y tu patio (opcional)</span>
         <input type="file" id="casa" accept="image/*" multiple>
         <small>Una de la pared donde estaba siempre, una del piso y una del patio. Con el celular acostado.</small></label>
-      <div class="files" id="lista"></div>
+      <div class="files prop" id="lista"></div>
       <label class="field"><span>Tu nombre</span><input type="text" id="nombre" maxlength="60" autocomplete="name" required></label>
       <label class="field"><span>Tu WhatsApp</span><input type="tel" id="whatsapp" maxlength="30" autocomplete="tel" placeholder="11 2345 6789" required></label>
       <label class="field full"><span>Tu mail</span><input type="email" id="email" maxlength="120" autocomplete="email" required></label>
-      <label class="check"><input type="checkbox" id="acepta"> <span>Acepto que usen estas fotos solo para armar la casa de mi mascota. No se publican ni se comparten.</span></label>
+      <label class="check prop"><input type="checkbox" id="acepta"> <span>Acepto que usen estas fotos solo para armar la casa de mi mascota. No se publican ni se comparten.</span></label>
       <div class="bar" id="bar" hidden><i></i></div>
       <p class="err" id="err" role="alert" hidden></p>
-      <div class="field full"><button class="btn main" type="submit" id="enviar">Pagar y enviar el pedido</button></div>
+      <div class="field full"><button class="btn main" type="submit" id="enviar">Pagar y tenerla ya</button></div>
     </form>
 
     <div class="done" id="gracias" hidden>
       <h2 id="gTitulo">¡Gracias!</h2>
       <p id="gTexto" class="muted"></p>
+      <a class="btn main" id="gLink" href="#" hidden>Abrir mi mascota</a>
+      <p id="gNota" class="muted" hidden>Guardá esta página en favoritos: ese link es tu mascota. Si lo perdés, escribinos por WhatsApp y te lo pasamos.</p>
     </div>
   </section>
 
@@ -174,11 +214,13 @@ footer { text-align: center; font-size: .85rem; color: var(--muted); }
 
   <section class="faq">
     <h2>Preguntas</h2>
+    <details><summary>¿Cuál es la diferencia entre las dos?</summary><p>La de nuestras mascotas la elegís de la lista y la tenés al instante, apenas pagás. La igual a tu mascota la armamos a mano con sus fotos y videos, con tu casa y tu patio de fondo, y te la mandamos en pocos días.</p></details>
     <details><summary>¿Se parece de verdad a mi mascota?</summary><p>Usamos sus fotos y videos para crear sus movimientos con inteligencia artificial: su color, su pelo, sus orejas y su forma de moverse. Cuantas más fotos claras mandes, más se parece.</p></details>
     <details><summary>¿Sirve si mi mascota ya no está?</summary><p>Sí. Muchas personas la usan para tenerla cerca y recordarla con cariño. Si querés, te la armamos en modo tranquilo, sin que pase hambre ni sed.</p></details>
     <details><summary>¿Dónde la veo?</summary><p>Te mandamos un link. Funciona en la computadora y en el celular, sin bajar ninguna aplicación.</p></details>
-    <details><summary>¿Cuánto tarda?</summary><p>Unos pocos días después de que recibimos las fotos. Te avisamos por WhatsApp.</p></details>
-    <details><summary>¿Es un pago por mes?</summary><p>No. Es un solo pago de $14.900.</p></details>
+    <details><summary>¿Cuánto tarda?</summary><p>La de nuestras mascotas, al instante. La igual a la tuya, unos pocos días después de que recibimos las fotos; te avisamos por WhatsApp.</p></details>
+    <details><summary>Compré una de las de ustedes, ¿después puedo pedir la mía?</summary><p>Sí. Escribinos por WhatsApp y te armamos la tuya.</p></details>
+    <details><summary>¿Es un pago por mes?</summary><p>No. Es un solo pago: <span class="fGen">$7.900</span> la de nuestras mascotas y <span class="fProp">$15.800</span> la igual a la tuya.</p></details>
   </section>
 
   <footer>Siempre Conmigo · hecho en Argentina</footer>
@@ -194,6 +236,22 @@ footer { text-align: center; font-size: .85rem; color: var(--muted); }
     $("lista").innerHTML = fs.length ? fs.slice(0, MAX).map((f) => "<span>· " + f.name.replace(/[<>&]/g, "") + " (" + Math.round(f.size / 1e5) / 10 + " MB)</span>").join("") + (fs.length > MAX ? "<span>Solo se suben las primeras " + MAX + ".</span>" : "") : "";
   }
   $("fotos").addEventListener("change", lista); $("casa").addEventListener("change", lista);
+  const tipo = () => (document.querySelector('input[name="tipo"]:checked') || {}).value || "generica";
+  function modo() {
+    const gen = tipo() === "generica";
+    document.querySelectorAll(".prop").forEach((el) => (el.hidden = gen));
+    document.querySelectorAll(".gen").forEach((el) => (el.hidden = !gen));
+    $("lNombre").textContent = gen ? "¿Cómo le vas a poner?" : "Nombre de tu mascota";
+    $("lCar").textContent = gen ? "¿Cómo querés que sea?" : "¿Cómo era?";
+    $("enviar").textContent = gen ? "Pagar y tenerla ya" : "Pagar y enviar el pedido";
+    error("");
+  }
+  document.querySelectorAll('input[name="tipo"]').forEach((r) => r.addEventListener("change", modo));
+  modo();
+  fetch("/api/mascota?accion=precios").then((r) => r.json()).then((j) => {
+    if (j.generica) { $("pGen").textContent = fmt(j.generica); document.querySelectorAll(".fGen").forEach((e) => (e.textContent = fmt(j.generica))); }
+    if (j.propia) { $("pPropia").textContent = fmt(j.propia); document.querySelectorAll(".fProp").forEach((e) => (e.textContent = fmt(j.propia))); }
+  }).catch(() => {});
   function error(t) { const e = $("err"); e.textContent = t; e.hidden = !t; }
   async function post(accion, body) {
     const r = await fetch("/api/mascota?accion=" + accion, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -205,13 +263,16 @@ footer { text-align: center; font-size: .85rem; color: var(--muted); }
     e.preventDefault(); error("");
     const d = {
       mascota: $("mascota").value.trim(), especie: $("especie").value, caracter: $("caracter").value, apodo: $("apodo").value.trim(),
-      cuenta: $("cuenta").value.trim(), nombre: $("nombre").value.trim(), whatsapp: $("whatsapp").value.trim(), email: $("email").value.trim(), acepta: $("acepta").checked
+      cuenta: $("cuenta").value.trim(), nombre: $("nombre").value.trim(), whatsapp: $("whatsapp").value.trim(), email: $("email").value.trim(), acepta: $("acepta").checked,
+      tipo: tipo(), elegida: (document.querySelector('input[name="elegida"]:checked') || {}).value || "curri"
     };
-    const fotos = [...$("fotos").files];
-    const archivos = [...fotos.map((f) => ["m", f]), ...[...$("casa").files].map((f) => ["c", f])].slice(0, MAX);
-    if (!d.mascota || !d.nombre || !d.whatsapp || !d.email) return error("Completá el nombre de tu mascota, tu nombre, tu WhatsApp y tu mail.");
-    if (!fotos.length) return error("Subí al menos una foto de tu mascota.");
-    if (!d.acepta) return error("Marcá que aceptás el uso de las fotos para armar su casa.");
+    const gen = d.tipo === "generica";
+    if (gen) { d.especie = "perro"; d.cuenta = ""; d.acepta = false; }
+    const fotos = gen ? [] : [...$("fotos").files];
+    const archivos = gen ? [] : [...fotos.map((f) => ["m", f]), ...[...$("casa").files].map((f) => ["c", f])].slice(0, MAX);
+    if (!d.mascota || !d.nombre || !d.whatsapp || !d.email) return error("Completá el nombre de la mascota, tu nombre, tu WhatsApp y tu mail.");
+    if (!gen && !fotos.length) return error("Subí al menos una foto de tu mascota.");
+    if (!gen && !d.acepta) return error("Marcá que aceptás el uso de las fotos para armar su casa.");
     const big = archivos.find(([, f]) => f.size > 100 * 1024 * 1024);
     if (big) return error("El archivo " + big[1].name + " es muy grande (máximo 100 MB).");
     const btn = $("enviar"); btn.disabled = true; btn.textContent = "Enviando…";
@@ -234,12 +295,25 @@ footer { text-align: center; font-size: .85rem; color: var(--muted); }
       if (pay.url) { location.href = pay.url; return; }
       mostrar(pay.pagado ? "ok" : "recibido", d.mascota);
     } catch (x) {
-      error(x.message); btn.disabled = false; btn.textContent = "Pagar y enviar el pedido";
+      error(x.message); btn.disabled = false; modo(); error(x.message);
     }
   });
-  function mostrar(estado, nombre) {
+  function mostrar(estado, nombre, j) {
     $("form").hidden = true; $("gracias").hidden = false;
+    document.querySelector(".opts").hidden = true;
+    const h2 = document.querySelector("#pedido > h2"); if (h2) h2.hidden = true;
     const n = nombre || "tu mascota";
+    if (j && j.tipo === "generica") {
+      if (j.pagado && j.link) {
+        $("gTitulo").textContent = "¡Listo! " + n + " ya te está esperando.";
+        $("gTexto").textContent = "Tocá el botón para conocerla.";
+        $("gLink").href = j.link; $("gLink").hidden = false; $("gNota").hidden = false;
+        try { localStorage.setItem("mascota-link", j.link); } catch (x) {}
+      } else if (estado === "error") { $("gTitulo").textContent = "El pago no se completó"; $("gTexto").textContent = "Podés volver a intentarlo, o escribinos por WhatsApp y te ayudamos."; }
+      else { $("gTitulo").textContent = "Tu pago está en proceso"; $("gTexto").textContent = "Apenas Mercado Pago lo confirme, vas a poder abrir a " + n + ". Volvé a esta página en un rato."; setTimeout(() => location.reload(), 20000); }
+      $("pedido").scrollIntoView({ behavior: "smooth" });
+      return;
+    }
     if (estado === "ok") { $("gTitulo").textContent = "¡Gracias! Ya recibimos tu pago."; $("gTexto").textContent = "Empezamos a armar la casa de " + n + ". Te escribimos por WhatsApp en pocos días con su link."; }
     else if (estado === "pendiente") { $("gTitulo").textContent = "Tu pago está en proceso"; $("gTexto").textContent = "Cuando Mercado Pago lo confirme, empezamos con la casa de " + n + ". Te avisamos por WhatsApp."; }
     else if (estado === "error") { $("gTitulo").textContent = "El pago no se completó"; $("gTexto").textContent = "Tus fotos quedaron guardadas. Escribinos por WhatsApp y te pasamos otra forma de pago."; }
@@ -250,7 +324,7 @@ footer { text-align: center; font-size: .85rem; color: var(--muted); }
   const qs = new URLSearchParams(location.search);
   if (qs.get("pedido") && qs.get("k")) {
     fetch("/api/mascota?accion=estado&id=" + encodeURIComponent(qs.get("pedido")) + "&k=" + encodeURIComponent(qs.get("k")))
-      .then((r) => r.json()).then((j) => mostrar(j.pagado ? "ok" : (qs.get("pago") === "error" ? "error" : "pendiente"), j.mascota))
+      .then((r) => r.json()).then((j) => mostrar(j.pagado ? "ok" : (qs.get("pago") === "error" ? "error" : "pendiente"), j.mascota, j))
       .catch(() => mostrar(qs.get("pago") || "recibido"));
   }
 })();

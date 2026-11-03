@@ -49,11 +49,11 @@ button { cursor: pointer; font-weight: 700; }
       if (!ok) { msg.textContent = j.error || 'No se pudieron cargar los pedidos.'; return; }
       const ps = j.pedidos || [];
       const pagos = ps.filter((p) => p.pagado).length;
-      msg.textContent = ps.length ? ps.length + ' pedidos · ' + pagos + ' pagados · precio actual $' + Number(j.precio).toLocaleString('es-AR') : 'Todavía no hay pedidos.';
+      msg.textContent = ps.length ? ps.length + ' pedidos · ' + pagos + ' pagados · precios: propia $' + Number(j.precio).toLocaleString('es-AR') + ', catálogo $' + Number(j.precio_generica).toLocaleString('es-AR') : 'Todavía no hay pedidos.';
       document.getElementById('lista').innerHTML = ps.map((p) => {
         const wa = String(p.whatsapp || '').replace(/\D/g, '');
         return '<div class="card" data-id="' + esc(p.id) + '">' +
-          '<div class="top"><b>' + esc(p.mascota) + ' <span class="muted">(' + esc(p.especie) + ', ' + esc(p.caracter) + ')</span></b>' +
+          '<div class="top"><b>' + esc(p.mascota) + ' <span class="muted">(' + (p.tipo === 'generica' ? 'de catálogo: ' + esc(p.elegida) : esc(p.especie)) + ', ' + esc(p.caracter) + ')</span></b>' +
           '<span class="pill ' + (p.pagado ? 'pagado' : 'sin') + '">' + (p.pagado ? 'Pagado' : 'Sin pagar') + '</span></div>' +
           '<div class="muted">' + fecha(p.creado) + ' · ' + esc(p.nombre) + ' · te dice “' + esc(p.apodo || '—') + '”</div>' +
           '<div>WhatsApp: <b>' + esc(p.whatsapp) + '</b> · Mail: ' + esc(p.email) + (wa ? ' · <a href="https://wa.me/' + (wa.startsWith('54') ? wa : '54' + wa) + '" target="_blank" rel="noopener">Abrir WhatsApp</a>' : '') + '</div>' +

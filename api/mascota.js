@@ -3,7 +3,7 @@
 //   POST ?accion=crear  {mascota, especie, caracter, cuenta, apodo, nombre, email, whatsapp, acepta} → {id, k}
 //   POST ?accion=subir  {id, k, nombre, tipo}            → {url}  (link para subir un archivo directo a la carpeta privada)
 //   POST ?accion=pagar  {id, k, archivos: [nombres]}      → {url}  (pago único con Mercado Pago)
-//   GET  ?accion=estado&id&k                              → {pagado}
+//   GET  ?accion=estado&id&k                              → {pagado, tipo, elegida}  (tipo 'generica': elige una mascota del catálogo, sin fotos)
 //   POST ?accion=aviso                                    (Mercado Pago avisa un pago)
 //   GET  ?accion=admin                                    (el dueño) → lista de pedidos con links a las fotos
 //   POST ?accion=marcar {id, estado, link}                (el dueño) → entregado / link de su casa
@@ -13,7 +13,9 @@ const { cuerpo, usuario, stHeaders } = require('./_comun');
 const SURL = () => String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const ST = () => SURL() + '/storage/v1';
 const B = 'mascota-pedidos';
-const PRECIO = () => Number(process.env.PRECIO_MASCOTA || 14900);
+const PRECIO = () => Number(process.env.PRECIO_MASCOTA || 15800);           // con su propia mascota
+const PRECIO_GEN = () => Number(process.env.PRECIO_MASCOTA_GENERICA || 7900); // eligiendo una de las nuestras
+const CATALOGO = ['curri', 'dorado', 'marron', 'negro', 'blanco', 'gris'];
 const MAX_ARCHIVOS = 12;
 const ADMINS = () => String(process.env.ADMIN_EMAILS || process.env.IA_SIN_LIMITE || '').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
 const limpio = (v, n) => String(v == null ? '' : v).replace(/[\u0000-\u001f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n);
@@ -58,6 +60,7 @@ async function revisarPago(p) {
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
+  if (String((req.query || {}).accion) === 'precios') return res.status(200).json({ propia: PRECIO(), generica: PRECIO_GEN(), catalogo: CATALOGO });
   if (!process.env.SUPABASE_SERVICE_KEY) return res.status(503).json({ error: 'Los pedidos todavía no están activados.' });
   const q = req.query || {}, a = String(q.accion || '');
   const host = 'https://' + (req.headers['x-forwarded-host'] || req.headers.host || 'vitrina360-kappa.vercel.app');
@@ -74,10 +77,11 @@ module.exports = async (req, res) => {
         mascota: limpio(b.mascota, 40), especie: limpio(b.especie, 20), caracter: limpio(b.caracter, 30),
         cuenta: texto(b.cuenta, 1500), apodo: limpio(b.apodo, 30),
         nombre: limpio(b.nombre, 60), email, whatsapp: limpio(b.whatsapp, 30).replace(/[^\d+ ()-]/g, ''),
-        archivos: [], pagado: false, estado: 'nuevo', precio: PRECIO()
+        archivos: [], pagado: false, estado: 'nuevo', precio: PRECIO(), tipo: 'propia'
       };
+      if (b.tipo === 'generica') { p.tipo = 'generica'; p.elegida = CATALOGO.includes(b.elegida) ? b.elegida : 'curri'; p.precio = PRECIO_GEN(); p.especie = 'perro'; p.link = host + '/mascota/jugar/?c=' + p.id + '&k=' + p.k; }
       if (!p.mascota || !p.nombre || !email || !p.whatsapp) return res.status(400).json({ error: 'Completá el nombre de tu mascota, tu nombre, tu mail y tu WhatsApp.' });
-      if (!b.acepta) return res.status(400).json({ error: 'Tenés que aceptar que usemos las fotos para armar su casa.' });
+      if (!b.acepta && b.tipo !== 'generica') return res.status(400).json({ error: 'Tenés que aceptar que usemos las fotos para armar su casa.' });
       await guardar(p);
       return res.status(200).json({ id: p.id, k: p.k, precio: p.precio });
     }
@@ -127,7 +131,7 @@ module.exports = async (req, res) => {
       let p = await leer(q.id);
       if (!p || p.k !== String(q.k || '')) return res.status(404).json({ error: 'No encontramos el pedido.' });
       p = await revisarPago(p);
-      return res.status(200).json({ pagado: !!p.pagado, mascota: p.mascota, estado: p.estado, link: p.link || null });
+      return res.status(200).json({ pagado: !!p.pagado, mascota: p.mascota, estado: p.estado, tipo: p.tipo || 'propia', elegida: p.elegida || null, apodo: p.apodo || '', caracter: p.caracter || '', link: p.pagado || p.tipo !== 'generica' ? (p.link || null) : null });
     }
 
     if (a === 'aviso') {
@@ -170,7 +174,7 @@ module.exports = async (req, res) => {
         return Object.assign(resto, { archivos });
       }));
       pedidos.sort((x, y) => String(y.creado).localeCompare(String(x.creado)));
-      return res.status(200).json({ precio: PRECIO(), pedidos });
+      return res.status(200).json({ precio: PRECIO(), precio_generica: PRECIO_GEN(), pedidos });
     }
 
     return res.status(404).json({ error: 'No encontrado.' });
