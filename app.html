@@ -2061,6 +2061,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
         <button class="btn primary" type="button" id="installBtn" hidden>📲 Instalar la app</button>
         <button class="btn ownerbtn" type="button" id="toolsBtn" aria-expanded="false" aria-controls="toolsWrap">🧰 Redes y mapa</button>
         <button class="btn ownerbtn" type="button" id="ordersBtn" hidden>📋 Pedidos <span class="ordn" id="ordersN" hidden></span></button>
+        <button class="btn" type="button" id="snapBtn" title="Sacar una foto de lo que se ve">📸 Foto</button>
         <button class="btn" type="button" id="clientBtn">👁 Ver como cliente</button>
         <button class="btn ownerbtn" type="button" id="webBtn" hidden>🌐 Llevar a la web</button>
         <button class="btn" type="button" id="brandBtn" aria-expanded="false" aria-controls="brandPanel">Personalizar mi comercio</button>
@@ -8666,6 +8667,46 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
 })();
 </script>
 
+<div id="snapModal" hidden style="position:fixed;inset:0;z-index:9999;background:rgba(15,15,25,.6);display:grid;place-items:center;padding:16px">
+  <div style="background:var(--card,#fff);color:inherit;border-radius:18px;padding:14px;max-width:min(760px,100%);width:100%;max-height:92vh;overflow:auto;display:flex;flex-direction:column;gap:10px">
+    <b id="snapTitle">Foto lista</b>
+    <img id="snapImg" alt="Foto de la tienda" style="width:100%;height:auto;border-radius:12px;border:1px solid rgba(0,0,0,.12)">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
+      <a class="btn primary" id="snapSave" download="vitrina.jpg" href="#">Guardar la foto</a>
+      <button class="btn" type="button" id="snapShare">Compartir</button>
+      <button class="btn" type="button" id="snapClose">Cerrar</button>
+    </div>
+    <p style="margin:0;font-size:.85rem;opacity:.75;text-align:center">En el celular también podés mantener apretada la foto para guardarla.</p>
+  </div>
+</div>
+<script>
+(function(){
+  var btn=document.getElementById('snapBtn'); if(!btn) return;
+  function lib(){ return window.html2canvas ? Promise.resolve() : new Promise(function(ok,no){ var s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'; s.onload=ok; s.onerror=no; document.head.appendChild(s); }); }
+  function target(){ var fv=document.getElementById('flyerView'); if(fv && !fv.hidden && fv.offsetHeight) return fv; var st=document.getElementById('stage'); if(st && st.offsetHeight && st.getBoundingClientRect().bottom>0) return st; return document.querySelector('.wrap') || document.body; }
+  async function snap(){
+    var old=btn.textContent; btn.textContent='📸 …'; btn.disabled=true;
+    try{
+      await lib();
+      var el=target(), fl=document.createElement('div');
+      fl.style.cssText='position:fixed;inset:0;background:#fff;z-index:9998;pointer-events:none;transition:opacity .4s'; document.body.appendChild(fl); requestAnimationFrame(function(){fl.style.opacity=0}); setTimeout(function(){fl.remove()},500);
+      var cv=await html2canvas(el,{backgroundColor:getComputedStyle(document.body).backgroundColor||'#fff',scale:Math.min(2,window.devicePixelRatio||1),useCORS:true,logging:false,ignoreElements:function(e){return e.id==='snapModal'||e.classList&&e.classList.contains('backfab')}});
+      var name=(document.getElementById('brandName')||{}).textContent||'Vitrina 360';
+      var c=cv.getContext('2d'); c.font='600 '+Math.round(cv.width*0.022)+'px sans-serif'; c.fillStyle='rgba(255,255,255,.9)'; c.strokeStyle='rgba(0,0,0,.35)'; c.lineWidth=3; c.textAlign='right';
+      c.strokeText(name+' · '+location.host+location.pathname,cv.width*0.97,cv.height*0.965); c.fillText(name+' · '+location.host+location.pathname,cv.width*0.97,cv.height*0.965);
+      var url=cv.toDataURL('image/jpeg',0.9);
+      document.getElementById('snapImg').src=url; var a=document.getElementById('snapSave'); a.href=url; a.download=(name.toLowerCase().replace(/[^a-z0-9]+/g,'-')||'vitrina')+'-'+Date.now().toString(36)+'.jpg';
+      document.getElementById('snapShare').hidden=!(navigator.canShare&&window.File);
+      document.getElementById('snapModal').hidden=false;
+    }catch(e){ alert('No se pudo sacar la foto. Probá de nuevo.'); }
+    btn.textContent=old; btn.disabled=false;
+  }
+  btn.addEventListener('click',snap);
+  document.getElementById('snapClose').onclick=function(){document.getElementById('snapModal').hidden=true};
+  document.getElementById('snapModal').addEventListener('click',function(e){if(e.target.id==='snapModal')e.target.hidden=true});
+  document.getElementById('snapShare').onclick=async function(){ try{ var b=await (await fetch(document.getElementById('snapImg').src)).blob(); var f=new File([b],'vitrina.jpg',{type:'image/jpeg'}); if(navigator.canShare&&navigator.canShare({files:[f]})) await navigator.share({files:[f],title:document.title}); }catch(e){} };
+})();
+</script>
 <script src="/estad.js" data-p="tienda" defer></script>
 </body>
 </html>
