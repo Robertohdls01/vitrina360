@@ -284,6 +284,7 @@ footer { text-align: center; font-size: .85rem; color: var(--muted); }
     const bar = $("bar"); bar.hidden = false; const fill = bar.firstElementChild;
     try {
       const p = await post("crear", d);
+      if (PRUEBA && p.precio !== 1000) throw new Error("No se activó la compra de prueba: entrá a tu panel con tu mail de dueño y volvé a esta página.");
       try { localStorage.setItem("mascota-pedido", JSON.stringify({ id: p.id, k: p.k })); } catch (x) {}
       const subidos = [];
       for (let i = 0; i < archivos.length; i++) {
