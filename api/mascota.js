@@ -1,4 +1,4 @@
-// Tu mascota de siempre · pedidos (servicio: el cliente manda fotos y videos de su mascota, paga, y se le arma su casa).
+// Siempre Conmigo · pedidos (servicio: el cliente manda fotos y videos de su mascota, paga, y se le arma su casa).
 // Todo se guarda en una carpeta PRIVADA de Supabase ("mascota-pedidos"): pedidos/<id>.json y fotos/<id>/...
 //   POST ?accion=crear  {mascota, especie, caracter, cuenta, apodo, nombre, email, whatsapp, acepta} → {id, k}
 //   POST ?accion=subir  {id, k, nombre, tipo}            → {url}  (link para subir un archivo directo a la carpeta privada)
@@ -108,13 +108,13 @@ module.exports = async (req, res) => {
       if (!tok) { await guardar(p); return res.status(200).json({ sinPago: true }); }
       const back = host + '/mascota/?pedido=' + p.id + '&k=' + p.k;
       const r = await fetch('https://api.mercadopago.com/checkout/preferences', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok }, body: JSON.stringify({
-        items: [{ id: 'mascota-' + p.id, title: ('Tu mascota de siempre · ' + p.mascota).slice(0, 60), quantity: 1, unit_price: p.precio, currency_id: 'ARS' }],
+        items: [{ id: 'mascota-' + p.id, title: ('Siempre Conmigo · ' + p.mascota).slice(0, 60), quantity: 1, unit_price: p.precio, currency_id: 'ARS' }],
         payer: { email: p.email, name: p.nombre },
         external_reference: 'mascota/' + p.id,
         notification_url: host + '/api/mascota?accion=aviso',
         back_urls: { success: back + '&pago=ok', pending: back + '&pago=pendiente', failure: back + '&pago=error' },
         auto_return: 'approved',
-        statement_descriptor: 'MASCOTA'
+        statement_descriptor: 'SIEMPRECONMIGO'
       }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok || !j.init_point) { console.error('mascota pagar', r.status, JSON.stringify(j).slice(0, 300)); await guardar(p); return res.status(502).json({ error: 'Mercado Pago no respondió. Probá de nuevo en un rato.' }); }
