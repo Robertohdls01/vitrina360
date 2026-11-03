@@ -80,6 +80,10 @@ module.exports = async (req, res) => {
         archivos: [], pagado: false, estado: 'nuevo', precio: PRECIO(), tipo: 'propia'
       };
       if (b.tipo === 'generica') { p.tipo = 'generica'; p.elegida = CATALOGO.includes(b.elegida) ? b.elegida : 'curri'; p.precio = PRECIO_GEN(); p.especie = 'perro'; p.link = host + '/mascota/jugar/?c=' + p.id + '&k=' + p.k; }
+      if (b.prueba) { // compra de prueba: solo el dueño (con su sesión del panel), por $1.000
+        const u = await usuario(req).catch(() => null);
+        if (u && ADMINS().includes(String(u.email).toLowerCase())) { p.precio = 1000; p.prueba = true; }
+      }
       if (!p.mascota || !p.nombre || !email || !p.whatsapp) return res.status(400).json({ error: 'Completá el nombre de tu mascota, tu nombre, tu mail y tu WhatsApp.' });
       if (!b.acepta && b.tipo !== 'generica') return res.status(400).json({ error: 'Tenés que aceptar que usemos las fotos para armar su casa.' });
       await guardar(p);

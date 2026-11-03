@@ -253,8 +253,13 @@ footer { text-align: center; font-size: .85rem; color: var(--muted); }
     if (j.propia) { $("pPropia").textContent = fmt(j.propia); document.querySelectorAll(".fProp").forEach((e) => (e.textContent = fmt(j.propia))); }
   }).catch(() => {});
   function error(t) { const e = $("err"); e.textContent = t; e.hidden = !t; }
+  const PRUEBA = new URLSearchParams(location.search).has("prueba");
+  let TOK = ""; try { TOK = (JSON.parse(localStorage.getItem("v360-sesion") || "null") || {}).access_token || ""; } catch (x) {}
+  if (PRUEBA) { const n = document.createElement("p"); n.className = "err"; n.textContent = TOK ? "Compra de prueba: se cobra $1.000 (solo para vos)." : "Para la compra de prueba, primero entrá a tu panel."; document.querySelector(".opts").before(n); }
   async function post(accion, body) {
-    const r = await fetch("/api/mascota?accion=" + accion, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (PRUEBA && accion === "crear") body.prueba = 1;
+    const h = { "Content-Type": "application/json" }; if (PRUEBA && TOK) h.Authorization = "Bearer " + TOK;
+    const r = await fetch("/api/mascota?accion=" + accion, { method: "POST", headers: h, body: JSON.stringify(body) });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || "Algo falló. Probá de nuevo.");
     return j;
