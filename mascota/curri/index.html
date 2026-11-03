@@ -282,6 +282,39 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 4vw
 .walkpick .opts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .scene.inwalk .pet { width: 21%; }
 .scene.inwalk :is(.sofa, .tv, .bowl, .door, .floor, .paws, .bed, .plush, .ball) { visibility: hidden; }
+.camBtn { position: absolute; right: max(10px, 1.5%); top: max(10px, 2%); z-index: 11; width: 42px; height: 42px; border-radius: 50%; padding: 0; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 3px 8px rgba(0,0,0,.12); }
+.camBtn svg { width: 22px; height: 22px; }
+.flash { position: absolute; inset: 0; background: #fff; z-index: 20; pointer-events: none; animation: flash .45s ease-out forwards; }
+@keyframes flash { from { opacity: .9; } to { opacity: 0; } }
+.photomodal { position: fixed; inset: 0; z-index: 50; background: rgba(20, 28, 22, .55); display: grid; place-items: center; padding: 16px; }
+.photomodal .box { background: var(--surface); color: var(--ink); border-radius: 18px; padding: 14px; max-width: min(720px, 100%); width: 100%; display: flex; flex-direction: column; gap: 10px; max-height: 92vh; overflow: auto; }
+.photomodal img.shot { width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--line); }
+.photomodal .row { justify-content: center; }
+.photomodal a.btnlike { font-weight: 700; color: var(--surface); background: var(--accent); border-radius: 10px; padding: 8px 12px; text-decoration: none; }
+.album { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 6px; }
+.album img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); cursor: pointer; }
+.pool, .poolfront { position: absolute; left: 55%; bottom: 3%; width: 34%; height: 19%; display: none; pointer-events: none; }
+.scene.outside .pool, .scene.outside .poolfront { display: block; }
+.pool { z-index: 4; border-radius: 50%; background: radial-gradient(ellipse at 50% 45%, #a9daf0 0 55%, #86c6e6 70%, #6fb6dc 100%); box-shadow: 0 0 0 7px #8fc3e8, 0 0 0 9px #6aa6d1, 0 10px 14px rgba(0,0,0,.18); overflow: hidden; }
+.pool::after { content: ""; position: absolute; inset: 18% 12%; border-radius: 50%; border: 2px solid rgba(255,255,255,.55); animation: ripple 2.4s ease-out infinite; }
+@keyframes ripple { from { transform: scale(.4); opacity: .9; } to { transform: scale(1.1); opacity: 0; } }
+.poolfront { z-index: 7; clip-path: inset(36% 0 0 0); border-radius: 50%; background: radial-gradient(ellipse at 50% 0%, rgba(150, 205, 235, .92) 0 60%, #7fbfe3 80%); box-shadow: 0 0 0 7px #8fc3e8, 0 0 0 9px #6aa6d1; }
+.pet.swim .flip { animation: swimbob 1.1s ease-in-out infinite alternate; }
+@keyframes swimbob { from { transform: translateY(0) rotate(-2deg); } to { transform: translateY(-4%) rotate(2deg); } }
+.pet.swim .flip.left { animation-name: swimbobL; }
+@keyframes swimbobL { from { transform: scaleX(-1) translateY(0) rotate(-2deg); } to { transform: scaleX(-1) translateY(-4%) rotate(2deg); } }
+.splash { position: absolute; z-index: 9; width: 1.4%; aspect-ratio: 1; border-radius: 50%; background: #9fd0ea; pointer-events: none; transition: transform .8s cubic-bezier(.2,.7,.4,1), opacity .8s; }
+.nails { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -54%); width: min(46%, 320px); z-index: 12; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 10px 12px 12px; text-align: center; box-shadow: 0 10px 24px rgba(0,0,0,.18); }
+.nails b { font-family: var(--display); }
+.nails svg { display: block; width: 100%; height: auto; }
+.nails .nail { cursor: pointer; transform-box: fill-box; transform-origin: 50% 100%; transition: transform .2s; }
+.nails .nail.cut { transform: scaleY(.4); cursor: default; }
+.nails .nail:focus-visible { outline: 3px solid var(--accent); }
+.pet.shiny .real, .pet.shiny svg { filter: brightness(1.08) saturate(1.1) drop-shadow(0 0 6px rgba(255,255,255,.9)); }
+.comb { position: absolute; width: 14%; z-index: 9; pointer-events: none; animation: comb .5s ease-in-out infinite alternate; }
+.comb svg { display: block; width: 100%; height: auto; }
+@keyframes comb { from { transform: translate(-30%, 0) rotate(-8deg); } to { transform: translate(60%, 20%) rotate(6deg); } }
+.spark { position: absolute; z-index: 9; color: #fff7c2; font-size: 1.2rem; pointer-events: none; text-shadow: 0 0 6px #fff; animation: float 1.2s ease-out forwards; }
 .atdoor { position: absolute; left: 68%; bottom: 19%; width: 23%; max-width: none; z-index: 6; pointer-events: none; }
 .hand { position: absolute; left: 60%; top: -42%; width: 36%; opacity: 0; pointer-events: none; transform-origin: 50% 100%; z-index: 2; transition: opacity .3s; }
 .hand svg { width: 100%; height: auto; display: block; }
@@ -405,6 +438,8 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     <svg class="leash" id="leash" hidden viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path id="leashPath" d="" fill="none" stroke="#b5654f" stroke-width="3" vector-effect="non-scaling-stroke" stroke-linecap="round"/></svg>
     <div class="walkpick" id="walkpick" hidden><b>¿A dónde salen a pasear?</b><div class="opts"><button type="button" data-w="parque">Al parque</button><button type="button" data-w="playa">A la playa</button><button type="button" data-w="centro">Al centro</button><button type="button" data-w="vereda">Por la vereda</button></div><button type="button" id="walkCancel">Mejor no</button></div>
     <div class="bathbar" id="walkbar" hidden><button type="button" id="wStop">Parar un ratito</button><button type="button" id="wGo">Seguir caminando</button><button type="button" id="wChange">Cambiar de lugar</button><button type="button" id="wHome">Volver a casa</button></div>
+    <div class="bathbar" id="groombar" hidden><button type="button" id="gNails">Cortarle las uñas</button><button type="button" id="gBrush">Cepillarlo</button><button type="button" id="gHair">Cortes de pelo</button><button type="button" id="gDone">Listo</button></div>
+    <div class="nails" id="nails" hidden><b>Tocá cada uña para cortarla</b><svg viewBox="0 -24 200 214" aria-label="Pata de tu mascota"><g fill="#f3ece1" stroke="#d9ccb8" stroke-width="3"><ellipse cx="100" cy="128" rx="70" ry="54"/><circle cx="36" cy="72" r="26"/><circle cx="76" cy="44" r="27"/><circle cx="124" cy="44" r="27"/><circle cx="164" cy="72" r="26"/></g><g fill="#e3a3a6"><ellipse cx="100" cy="134" rx="34" ry="26"/><ellipse cx="38" cy="76" rx="11" ry="12"/><ellipse cx="77" cy="49" rx="11" ry="12"/><ellipse cx="123" cy="49" rx="11" ry="12"/><ellipse cx="162" cy="76" rx="11" ry="12"/></g><g fill="#6b6460" stroke="#4d4743" stroke-width="2"><path class="nail" tabindex="0" role="button" aria-label="Uña 1" d="M28 52 Q 30 20 22 6 Q 40 18 44 50 Z"/><path class="nail" tabindex="0" role="button" aria-label="Uña 2" d="M70 22 Q 72 -6 64 -18 Q 84 -4 86 20 Z"/><path class="nail" tabindex="0" role="button" aria-label="Uña 3" d="M116 20 Q 118 -4 136 -18 Q 128 -4 132 22 Z"/><path class="nail" tabindex="0" role="button" aria-label="Uña 4" d="M156 50 Q 160 18 178 6 Q 170 20 172 52 Z"/></g></svg></div>
     <div class="bath" id="bath" hidden><div class="head"></div><div class="faucet"></div></div>
     <div class="tub" id="tub" hidden></div>
     <div class="foam" id="foam"></div>
@@ -417,13 +452,16 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     <div class="ball" id="ball"></div>
     <div class="arm" id="arm" hidden aria-hidden="true"><svg viewBox="0 0 160 300"><g stroke="#c99a76" stroke-width="3" stroke-linejoin="round"><path d="M52 300 L58 150 Q60 128 80 126 Q100 128 104 150 L112 300 Z" fill="#7f9db8"/><path d="M58 150 Q60 128 80 126 Q100 128 104 150 L100 168 L62 168 Z" fill="#efc6a3"/><ellipse cx="80" cy="104" rx="34" ry="30" fill="#efc6a3"/><rect x="48" y="70" width="14" height="40" rx="7" fill="#efc6a3"/><rect x="64" y="60" width="14" height="44" rx="7" fill="#efc6a3"/><rect x="80" y="60" width="14" height="44" rx="7" fill="#efc6a3"/><rect x="96" y="66" width="13" height="40" rx="6.5" fill="#efc6a3"/></g><image id="armToy" x="50" y="44" width="60" height="44" href="" preserveAspectRatio="xMidYMid meet"/><circle id="armBall" cx="80" cy="66" r="20" fill="#e6d35f" stroke="#b8a23a" stroke-width="3"/><path d="M114 98 Q128 92 126 112 Q118 122 108 116 Z" fill="#efc6a3" stroke="#c99a76" stroke-width="3"/></svg></div>
     <div class="choice" id="choice" hidden><span id="choiceText">Curri salió afuera.</span><button type="button" class="primary" id="goPatio">Ir al patio con él</button><button type="button" id="stayIn">Que salga solo</button></div>
-    <button type="button" class="backin" id="backIn" hidden>Volver adentro</button>
+    <div class="pool" id="pool"></div>
+    <div class="poolfront" id="poolfront"></div>
+    <div class="bathbar" id="patiobar" hidden><button type="button" id="poolBtn">Meterlo a la pileta</button><button type="button" id="backIn">Volver adentro</button></div>
     <div class="nose" id="nose"></div>
     <img class="closeup" id="closeup" alt="" hidden>
     <div class="lick" id="lick" hidden><img src="curri-cerca.webp" alt=""><div class="tongue"></div></div>
     <div class="paw" id="paw" hidden aria-hidden="true"><svg viewBox="0 0 120 130"><g fill="#f3ece1" stroke="#d9ccb8" stroke-width="3"><ellipse cx="60" cy="88" rx="44" ry="38"/><circle cx="20" cy="50" r="17"/><circle cx="44" cy="30" r="18"/><circle cx="76" cy="30" r="18"/><circle cx="100" cy="50" r="17"/></g><g fill="#e3a3a6"><ellipse cx="60" cy="92" rx="22" ry="17"/><ellipse cx="22" cy="52" rx="8" ry="9"/><ellipse cx="45" cy="33" rx="8" ry="9"/><ellipse cx="75" cy="33" rx="8" ry="9"/><ellipse cx="98" cy="52" rx="8" ry="9"/></g></svg></div>
     <div class="wet" id="wet"></div>
     <img class="atdoor" id="atdoor" src="curri-rasguna.webp" alt="" hidden>
+    <button type="button" class="camBtn" id="camBtn" aria-label="Sacarle una foto" title="Sacarle una foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
     <div class="toast"><span id="toast"></span></div>
     <div class="speech" id="speech" hidden></div>
     <div class="replies" id="replies" hidden></div>
@@ -474,7 +512,10 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     <button id="aKiss">Pedirle un besito</button>
     <button id="aCar">Pasear en auto</button>
     <button id="aWalk">Salir a pasear</button>
+    <button id="aPhoto">Sacarle una foto</button>
+    <button id="aAlbum">Ver sus fotos</button>
     <button id="aBath">Bañarlo</button>
+    <button id="aGroom">Peluquería</button>
     <button id="aSound">Sonido: activado</button>
   </div>
 
@@ -536,6 +577,8 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
   </div>
 </div>
 
+<div class="photomodal" id="photomodal" hidden role="dialog" aria-label="Foto"><div class="box"><b id="pmTitle">¡Qué linda foto!</b><img class="shot" id="pmImg" alt="Foto de tu mascota"><div class="row"><a class="btnlike" id="pmSave" download="mascota.jpg" href="#">Guardar la foto</a><button type="button" id="pmShare">Compartir</button><button type="button" id="pmClose">Cerrar</button></div><p class="note" id="pmNote">En el celular también podés mantener apretada la foto para guardarla.</p><div class="album" id="pmAlbum"></div></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -926,8 +969,10 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     const c = CHAR[S.char] || CHAR.juguetona;
     let act = c.acts[Math.floor(Math.random() * c.acts.length)];
     if (inBath) { busy = false; nextAuto = Date.now() + 5000; return; }
+    if (inGroom) { busy = false; nextAuto = Date.now() + 5000; return; }
     if (inWalk) { await walkLife(); busy = false; nextAuto = Date.now() + (4000 + Math.random() * 4000); return; }
     if (inCar) { await carLife(); busy = false; nextAuto = Date.now() + (3000 + Math.random() * 4000); return; }
+    if (inPool) { await swimLife(); busy = false; nextAuto = Date.now() + (1500 + Math.random() * 2000); return; }
     if (inPatio) {
       const P = ["plantas", "plantas", "pasto", "necesidad", "explorar", "run", "roll", "alerta"];
       act = P[Math.floor(Math.random() * P.length)];
@@ -1150,12 +1195,13 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     await walkTo(48, true);
     setPose("happy"); say("¡Al patio!"); hearts(3);
     toast("Están en el patio. Tirale la pelota o tocá \"Volver adentro\" cuando quieras.", 4500);
-    $("backIn").hidden = false;
+    $("patiobar").hidden = false;
     await sleep(1200); wag(false); busy = false; nextAuto = Date.now() + 3000;
   }
   async function leavePatio() {
     while (busy) await sleep(150);
-    busy = true; $("backIn").hidden = true;
+    busy = true; $("patiobar").hidden = true;
+    if (inPool) await poolOut(true);
     clearDepth(); place(); pet.style.opacity = "";
     await walkTo(78, true);
     pet.classList.add("gone");
@@ -1403,6 +1449,143 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
   $("wGo").onclick = () => { if (inWalk) setMoving(true); };
   $("wChange").onclick = () => { if (inWalk) $("walkpick").hidden = false; };
   $("wHome").onclick = leaveWalk;
+  /* ---------- fotos ---------- */
+  function album() { try { return JSON.parse(localStorage.getItem("mascota-album") || "[]"); } catch (e) { return []; } }
+  function saveAlbum(a) { for (let n = a.length; n >= 0; n--) { try { localStorage.setItem("mascota-album", JSON.stringify(a.slice(0, n))); return; } catch (e) {} } }
+  function showPhoto(url, title) {
+    $("pmImg").src = url; $("pmTitle").textContent = title || "¡Qué linda foto!";
+    $("pmSave").href = url; $("pmSave").download = (S.name || "mascota").toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-" + Date.now().toString(36) + ".jpg";
+    const a = album();
+    $("pmAlbum").innerHTML = a.length > 1 ? a.map((u, i) => '<img alt="Foto ' + (i + 1) + '" src="' + u + '">').join("") : "";
+    $("pmAlbum").querySelectorAll("img").forEach((im) => im.onclick = () => showPhoto(im.src, "Foto de " + S.name));
+    $("pmShare").hidden = !(navigator.canShare && window.File);
+    $("photomodal").hidden = false;
+  }
+  async function takePhoto() {
+    if (!window.html2canvas) { toast("La cámara todavía está cargando. Probá de nuevo en un segundo."); return; }
+    const f = document.createElement("div"); f.className = "flash"; scene.appendChild(f); setTimeout(() => f.remove(), 500);
+    noise(0.05, 0.3, 0, 4000); noise(0.08, 0.2, 0.08, 2500);
+    $("camBtn").style.visibility = "hidden";
+    try {
+      const cv = await html2canvas(scene, { backgroundColor: null, scale: Math.min(2, window.devicePixelRatio || 1), useCORS: true, logging: false, ignoreElements: (el) => el.classList && (el.classList.contains("flash") || el.classList.contains("bathbar") || el.id === "camBtn") });
+      // marca suave abajo
+      const c = cv.getContext("2d"); c.font = "600 " + Math.round(cv.width * 0.022) + "px sans-serif"; c.fillStyle = "rgba(255,255,255,.85)"; c.textAlign = "right";
+      c.fillText(S.name + " · " + new Date().toLocaleDateString("es-AR"), cv.width * 0.97, cv.height * 0.96);
+      const url = cv.toDataURL("image/jpeg", 0.88);
+      const small = document.createElement("canvas"); small.width = 640; small.height = Math.round(640 * cv.height / cv.width); small.getContext("2d").drawImage(cv, 0, 0, small.width, small.height);
+      const a = album(); a.unshift(small.toDataURL("image/jpeg", 0.72)); saveAlbum(a.slice(0, 12));
+      showPhoto(url, "¡Qué linda foto de " + S.name + "!");
+    } catch (e) { toast("No se pudo sacar la foto. Probá de nuevo."); }
+    $("camBtn").style.visibility = "";
+  }
+  $("camBtn").onclick = takePhoto; $("aPhoto").onclick = takePhoto;
+  $("aAlbum").onclick = () => { const a = album(); if (!a.length) { toast("Todavía no le sacaste fotos. Tocá la camarita."); return; } showPhoto(a[0], "Fotos de " + S.name); };
+  $("pmClose").onclick = () => { $("photomodal").hidden = true; };
+  $("photomodal").addEventListener("click", (e) => { if (e.target.id === "photomodal") $("photomodal").hidden = true; });
+  $("pmShare").onclick = async () => {
+    try { const b = await (await fetch($("pmImg").src)).blob(); const file = new File([b], "foto-" + (S.name || "mascota") + ".jpg", { type: "image/jpeg" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], title: "Foto de " + S.name });
+      else toast("Tu navegador no deja compartir desde acá. Usá \"Guardar la foto\".");
+    } catch (e) {}
+  };
+  /* ---------- la pileta ---------- */
+  let inPool = false;
+  async function arcTo(tx, tb, ms, h) {
+    const fx = x, fb = petB, n = Math.max(10, Math.round(ms / 30));
+    pet.style.transition = "none"; flip.classList.toggle("left", tx < x);
+    for (let i = 1; i <= n; i++) { const t = i / n; x = fx + (tx - fx) * t; place(); setDepth(fb + (tb - fb) * t + Math.sin(Math.PI * t) * h, 1); await sleep(ms / n); }
+  }
+  function splash(cx, cb, n) {
+    for (let i = 0; i < n; i++) {
+      const d = document.createElement("i"); d.className = "splash";
+      d.style.left = cx + "%"; d.style.bottom = cb + "%"; d.style.width = (0.8 + Math.random() * 1.6) + "%";
+      scene.appendChild(d);
+      requestAnimationFrame(() => { d.style.transform = "translate(" + ((Math.random() - .5) * 1600) + "%," + (-(200 + Math.random() * 900)) + "%)"; d.style.opacity = 0; });
+      setTimeout(() => d.remove(), 900);
+    }
+    noise(0.5, 0.35, 0, 500); noise(0.3, 0.2, 0.1, 1500);
+  }
+  async function poolIn() {
+    if (!inPatio || inPool) return;
+    while (busy) await sleep(150);
+    busy = true; $("poolBtn").textContent = "Sacarlo de la pileta";
+    talk(pick(["¿A la pileta? ¡Sí!", "¡Allá voy, {a}!"])); wag(true);
+    await moveTo(44, 8, 1, 800);
+    setPose("happy"); await sleep(400);
+    await arcTo(71, 4, 650, 18);
+    splash(72, 12, 26); screenDrops(12); inPool = true; pet.classList.add("swim");
+    toast(S.name + " se tiró a la pileta y salpicó todo.", 3000);
+    await sleep(800); busy = false; nextAuto = Date.now() + 2500;
+  }
+  async function poolOut(fromLeave) {
+    if (!inPool) return;
+    if (!fromLeave) { while (busy) await sleep(150); busy = true; }
+    pet.classList.remove("swim");
+    await arcTo(46, 8, 600, 12);
+    inPool = false; $("poolBtn").textContent = "Meterlo a la pileta";
+    flip.animate([{ transform: "translateX(0)" }, { transform: "translateX(-5%) rotate(-4deg)" }, { transform: "translateX(5%) rotate(4deg)" }, { transform: "translateX(0)" }], { duration: 200, iterations: 4 });
+    screenDrops(20);
+    toast(S.name + " salió de la pileta y se sacudió encima tuyo.", 3000);
+    talk(pick(["¡Qué lindo, {a}! Estoy empapado.", "¡Otra vez, {a}!"]));
+    bump("juego", 40); hearts(3);
+    await sleep(900); wag(false); setPose("happy sit");
+    if (!fromLeave) { busy = false; nextAuto = Date.now() + 5000; }
+  }
+  async function swimLife() {
+    const tx = 64 + Math.random() * 14;
+    pet.style.transition = "left 1.6s ease-in-out"; flip.classList.toggle("left", tx < x); x = tx; place();
+    if (Math.random() < .3) { splash(x, 12, 8); }
+    if (Math.random() < .25) talk(pick(["¡Mirá cómo nado, {a}!", "El agua está rica."]));
+    await sleep(1700);
+  }
+  $("poolBtn").onclick = () => { inPool ? poolOut(false) : poolIn(); };
+  /* ---------- peluquería ---------- */
+  let inGroom = false;
+  async function enterGroom() {
+    if (inPatio || out || inCar || inBath || inWalk || inGroom) { toast("Primero volvé a casa con " + S.name + "."); return; }
+    while (busy) await sleep(150);
+    busy = true; inGroom = true;
+    await walkTo(50); flip.classList.remove("left"); setPose("sit");
+    $("groombar").hidden = false;
+    talk(pick(["¿Me vas a poner lindo, {a}?", "¿Peluquería? Bueno…"]));
+    busy = false;
+  }
+  function closeGroom() { inGroom = false; $("groombar").hidden = true; $("nails").hidden = true; nextAuto = Date.now() + 4000; }
+  $("aGroom").onclick = enterGroom;
+  $("gDone").onclick = () => { closeGroom(); setPose("happy sit"); wag(true); talk(pick(["¿Estoy lindo, {a}?", "Gracias, {a}. Te amo."])); hearts(3); setTimeout(() => wag(false), 1500); };
+  $("gNails").onclick = () => {
+    const n = $("nails"); n.hidden = false;
+    n.querySelectorAll(".nail").forEach((el) => el.classList.remove("cut"));
+    toast("Tocá cada uña para cortarla. Despacito.", 2600);
+  };
+  let pulled = false;
+  document.querySelectorAll("#nails .nail").forEach((el) => {
+    const cut = () => {
+      if (el.classList.contains("cut")) return;
+      if (!pulled && Math.random() < 0.25) { pulled = true; $("nails").animate([{ transform: "translate(-50%,-54%)" }, { transform: "translate(-30%,-54%) rotate(8deg)" }, { transform: "translate(-50%,-54%)" }], { duration: 500 }); toast(S.name + " sacó la pata. Probá de nuevo.", 2000); whine(); return; }
+      el.classList.add("cut"); noise(0.03, 0.45, 0, 3500); tone(1800, 900, 0.05, "square", 0.05, 0);
+      if (document.querySelectorAll("#nails .nail.cut").length === 4) {
+        setTimeout(() => { $("nails").hidden = true; pulled = false; talk(pick(["¡Ya está, {a}! No dolió nada.", "Gracias, {a}."])); hearts(4); bump("carino", 8); toast("Le cortaste las uñas a " + S.name + ".", 2500); }, 500);
+      }
+    };
+    el.addEventListener("click", cut); el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); cut(); } });
+  });
+  $("gBrush").onclick = () => guard(async () => {
+    $("nails").hidden = true;
+    const r = pet.getBoundingClientRect(), sc = scene.getBoundingClientRect();
+    const comb = document.createElement("div"); comb.className = "comb";
+    comb.innerHTML = '<svg viewBox="0 0 120 50"><rect x="0" y="0" width="120" height="18" rx="9" fill="#c98f86"/><g fill="#8a6b5a">' + Array.from({ length: 14 }, (_, i) => '<rect x="' + (6 + i * 8) + '" y="16" width="4" height="26" rx="2"/>').join("") + '</g></svg>';
+    comb.style.left = ((r.left - sc.left) / sc.width * 100 + 4) + "%"; comb.style.top = ((r.top - sc.top) / sc.height * 100 + 8) + "%";
+    scene.appendChild(comb); setPose("happy"); wag(true);
+    for (let i = 0; i < 6; i++) noise(0.18, 0.06, i * 0.4, 3000);
+    await sleep(2400); comb.remove();
+    pet.classList.add("shiny");
+    for (let i = 0; i < 8; i++) { const sp = document.createElement("span"); sp.className = "spark"; sp.textContent = "✦"; sp.style.left = ((r.left - sc.left) / sc.width * 100 + Math.random() * r.width / sc.width * 100) + "%"; sp.style.top = ((r.top - sc.top) / sc.height * 100 + Math.random() * r.height / sc.height * 60) + "%"; sp.style.animationDelay = (i * 0.1) + "s"; scene.appendChild(sp); setTimeout(() => sp.remove(), 1600); }
+    talk(pick(["Quedé brillante, {a}.", "¡Qué suavecito!"]));
+    setTimeout(() => pet.classList.remove("shiny"), 6000);
+    await sleep(900); wag(false); setPose("sit");
+  });
+  $("gHair").onclick = () => { toast("Los cortes de pelo se arman con videos de " + S.name + " con cada corte. Pedilos y te los agregamos.", 4500); talk("¿Me vas a cortar el pelo, {a}?"); };
   async function enterBath() {
     if (inPatio || out || inCar || inBath || (typeof inWalk !== "undefined" && inWalk)) { toast("Primero volvé a casa con " + S.name + "."); return; }
     while (busy) await sleep(150);
@@ -1729,7 +1912,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     NEEDS.forEach(([k]) => { S.needs[k] = Math.max(0, S.needs[k] - rate * w[k] * (0.6 + Math.random() * 0.8)); });
     renderNeeds();
     const now = Date.now();
-    if (!busy && now > nextAsk && !asking && !inPatio && !inCar && !inBath && !inWalk) {
+    if (!busy && now > nextAsk && !asking && !inPatio && !inCar && !inBath && !inWalk && !inGroom) {
       const low = NEEDS.map(([k]) => k).filter((k) => S.needs[k] < 35).sort((a, b) => S.needs[a] - S.needs[b])[0];
       if (low) { nextAsk = now + (fast ? 11000 : 40000); ask(low); return; }
     }
