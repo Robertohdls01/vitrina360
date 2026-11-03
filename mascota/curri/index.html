@@ -315,6 +315,19 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 4vw
 .comb svg { display: block; width: 100%; height: auto; }
 @keyframes comb { from { transform: translate(-30%, 0) rotate(-8deg); } to { transform: translate(60%, 20%) rotate(6deg); } }
 .spark { position: absolute; z-index: 9; color: #fff7c2; font-size: 1.2rem; pointer-events: none; text-shadow: 0 0 6px #fff; animation: float 1.2s ease-out forwards; }
+.foodbox { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(92%, 560px); max-height: 94%; overflow: auto; z-index: 12; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 18px; padding: 12px 14px; display: grid; grid-template-columns: 150px 1fr; gap: 10px 14px; box-shadow: 0 10px 24px rgba(0,0,0,.18); }
+.foodbox h3 { grid-column: 1 / -1; margin: 0; font-family: var(--display); font-size: 1.1rem; }
+.plate { position: relative; width: 150px; aspect-ratio: 1; border-radius: 50%; background: #fbfaf7; box-shadow: inset 0 0 0 8px #e9e4da, 0 4px 10px rgba(0,0,0,.12); }
+.plate::before, .plate::after { content: ""; position: absolute; background: #e9e4da; }
+.plate::before { left: 50%; top: 8px; bottom: 8px; width: 4px; margin-left: -2px; }
+.plate::after { top: 50%; left: 8px; right: 8px; height: 4px; margin-top: -2px; }
+.plate span { position: absolute; width: 50%; height: 50%; display: grid; place-items: center; font-size: 1.9rem; }
+.plate span:nth-child(1) { left: 0; top: 0; } .plate span:nth-child(2) { right: 0; top: 0; } .plate span:nth-child(3) { left: 0; bottom: 0; } .plate span:nth-child(4) { right: 0; bottom: 0; }
+.foods { display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; min-width: 0; }
+.foods button { font-size: .85rem; padding: 5px 9px; }
+.foods button.on { background: var(--accent-soft); border-color: var(--accent); }
+.foodbox .acts { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; align-items: center; }
+@media (max-width: 560px) { .foodbox { grid-template-columns: 1fr; } .plate { margin: 0 auto; } }
 .atdoor { position: absolute; left: 68%; bottom: 19%; width: 23%; max-width: none; z-index: 6; pointer-events: none; }
 .hand { position: absolute; left: 60%; top: -42%; width: 36%; opacity: 0; pointer-events: none; transform-origin: 50% 100%; z-index: 2; transition: opacity .3s; }
 .hand svg { width: 100%; height: auto; display: block; }
@@ -440,6 +453,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     <div class="bathbar" id="walkbar" hidden><button type="button" id="wStop">Parar un ratito</button><button type="button" id="wGo">Seguir caminando</button><button type="button" id="wChange">Cambiar de lugar</button><button type="button" id="wHome">Volver a casa</button></div>
     <div class="bathbar" id="groombar" hidden><button type="button" id="gNails">Cortarle las uñas</button><button type="button" id="gBrush">Cepillarlo</button><button type="button" id="gHair">Cortes de pelo</button><button type="button" id="gDone">Listo</button></div>
     <div class="nails" id="nails" hidden><b>Tocá cada uña para cortarla</b><svg viewBox="0 -24 200 214" aria-label="Pata de tu mascota"><g fill="#f3ece1" stroke="#d9ccb8" stroke-width="3"><ellipse cx="100" cy="128" rx="70" ry="54"/><circle cx="36" cy="72" r="26"/><circle cx="76" cy="44" r="27"/><circle cx="124" cy="44" r="27"/><circle cx="164" cy="72" r="26"/></g><g fill="#e3a3a6"><ellipse cx="100" cy="134" rx="34" ry="26"/><ellipse cx="38" cy="76" rx="11" ry="12"/><ellipse cx="77" cy="49" rx="11" ry="12"/><ellipse cx="123" cy="49" rx="11" ry="12"/><ellipse cx="162" cy="76" rx="11" ry="12"/></g><g fill="#6b6460" stroke="#4d4743" stroke-width="2"><path class="nail" tabindex="0" role="button" aria-label="Uña 1" d="M28 52 Q 30 20 22 6 Q 40 18 44 50 Z"/><path class="nail" tabindex="0" role="button" aria-label="Uña 2" d="M70 22 Q 72 -6 64 -18 Q 84 -4 86 20 Z"/><path class="nail" tabindex="0" role="button" aria-label="Uña 3" d="M116 20 Q 118 -4 136 -18 Q 128 -4 132 22 Z"/><path class="nail" tabindex="0" role="button" aria-label="Uña 4" d="M156 50 Q 160 18 178 6 Q 170 20 172 52 Z"/></g></svg></div>
+    <div class="foodbox" id="foodbox" hidden role="dialog" aria-label="Preparar la comida"><h3>Prepará su plato <span class="note">(elegí hasta 4 cosas)</span></h3><div class="plate" id="plate" aria-label="Su plato"><span></span><span></span><span></span><span></span></div><div class="foods" id="foods"></div><div class="acts"><span class="note" id="foodNote"></span><button type="button" id="foodCancel">Cancelar</button><button type="button" class="primary" id="foodServe">Servir</button></div></div>
     <div class="bath" id="bath" hidden><div class="head"></div><div class="faucet"></div></div>
     <div class="tub" id="tub" hidden></div>
     <div class="foam" id="foam"></div>
@@ -454,7 +468,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     <div class="choice" id="choice" hidden><span id="choiceText">Curri salió afuera.</span><button type="button" class="primary" id="goPatio">Ir al patio con él</button><button type="button" id="stayIn">Que salga solo</button></div>
     <div class="pool" id="pool"></div>
     <div class="poolfront" id="poolfront"></div>
-    <div class="bathbar" id="patiobar" hidden><button type="button" id="poolBtn">Meterlo a la pileta</button><button type="button" id="backIn">Volver adentro</button></div>
+    <div class="bathbar" id="patiobar" hidden><button type="button" id="poolBtn">Meterlo a la pileta</button><button type="button" id="poolPlay" hidden>Salpicar</button><button type="button" id="poolBall" hidden>Tirarle la pelota al agua</button><button type="button" id="backIn">Volver adentro</button></div>
     <div class="nose" id="nose"></div>
     <img class="closeup" id="closeup" alt="" hidden>
     <div class="lick" id="lick" hidden><img src="curri-cerca.webp" alt=""><div class="tongue"></div></div>
@@ -1068,10 +1082,35 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
   /* ---------- acciones del dueño ---------- */
   async function guard(fn) { if (out) { toast(S.name + " está afuera paseando. Ya vuelve."); return; } while (busy) await sleep(150); busy = true; try { await fn(); } finally { busy = false; nextAuto = Date.now() + 6000; } }
 
-  $("aFood").onclick = () => guard(async () => {
-    await walkTo(36); flip.classList.add("left"); setDepth(17, 0.85); setPose("eat"); wag(true);
-    await sleep(2200); bump("hambre", 100); setPose("happy"); talk(pick(SAY.gracias)); say("¡Rico!"); await sleep(900); wag(false); setPose("sit");
+  const FOODS = [["balanceado", "🥣", "Balanceado"], ["pollo", "🍗", "Pollito"], ["carne", "🥩", "Carne"], ["pescado", "🐟", "Pescado"], ["huevo", "🥚", "Huevo"], ["arroz", "🍚", "Arroz"], ["fideos", "🍝", "Fideos"], ["zanahoria", "🥕", "Zanahoria"], ["zapallo", "🎃", "Zapallo"], ["brocoli", "🥦", "Brócoli"], ["arvejas", "🫛", "Arvejas"], ["manzana", "🍎", "Manzana"], ["banana", "🍌", "Banana"], ["sandia", "🍉", "Sandía"], ["frutilla", "🍓", "Frutillas"], ["galletita", "🦴", "Galletita"]];
+  let plate = [];
+  function renderPlate() {
+    const sp = $("plate").children;
+    for (let i = 0; i < 4; i++) { const f = FOODS.find((x) => x[0] === plate[i]); sp[i].textContent = f ? f[1] : ""; }
+    $("foods").querySelectorAll("button").forEach((b) => b.classList.toggle("on", plate.includes(b.dataset.f)));
+    $("foodNote").textContent = plate.length ? plate.map((k) => FOODS.find((x) => x[0] === k)[2].toLowerCase()).join(", ") : "Tocá lo que le quieras dar.";
+  }
+  $("foods").innerHTML = FOODS.map(([k, e, n]) => '<button type="button" data-f="' + k + '">' + e + " " + n + "</button>").join("");
+  $("foods").querySelectorAll("button").forEach((b) => b.onclick = () => {
+    const k = b.dataset.f, i = plate.indexOf(k);
+    if (i >= 0) plate.splice(i, 1); else if (plate.length < 4) plate.push(k); else toast("El plato tiene 4 lugares. Sacá algo para poner otra cosa.", 2200);
+    renderPlate();
   });
+  $("aFood").onclick = () => { if (out || inPatio || inCar || inBath || inWalk || inGroom) { toast("Primero volvé a casa con " + S.name + "."); return; } plate = (S.lastFood || ["balanceado", "pollo"]).slice(0, 4); renderPlate(); $("foodbox").hidden = false; };
+  $("foodCancel").onclick = () => { $("foodbox").hidden = true; };
+  $("foodServe").onclick = () => {
+    if (!plate.length) { toast("Elegí al menos una cosa para su plato.", 2000); return; }
+    $("foodbox").hidden = true; S.lastFood = plate.slice(); save();
+    const names = plate.map((k) => FOODS.find((x) => x[0] === k)[2].toLowerCase());
+    guard(async () => {
+      talk(pick(["¿Qué me preparaste, {a}?", "¡Comida! ¡Comida!"]));
+      await walkTo(36); flip.classList.add("left"); setDepth(17, 0.85); setPose("eat"); wag(true);
+      await sleep(2600); bump("hambre", 100); setPose("happy");
+      const fav = names[Math.floor(Math.random() * names.length)];
+      talk(pick(["¡Qué rico el " + fav + ", {a}!", "Me encanta cuando me das " + fav + ".", "Gracias, {a}. Estaba riquísimo."]));
+      say("¡Rico!"); await sleep(900); wag(false); setPose("sit");
+    });
+  };
   $("aWater").onclick = () => guard(async () => {
     await walkTo(44); flip.classList.add("left"); setDepth(17, 0.85); setPose("eat");
     await sleep(2000); bump("sed", 100); setPose("happy"); talk(pick(SAY.gracias)); await sleep(700); setPose("sit");
@@ -1513,7 +1552,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     await moveTo(44, 8, 1, 800);
     setPose("happy"); await sleep(400);
     await arcTo(71, 4, 650, 18);
-    splash(72, 12, 26); screenDrops(12); inPool = true; pet.classList.add("swim");
+    splash(72, 12, 26); screenDrops(12); inPool = true; pet.classList.add("swim"); $("poolPlay").hidden = false; $("poolBall").hidden = false;
     toast(S.name + " se tiró a la pileta y salpicó todo.", 3000);
     await sleep(800); busy = false; nextAuto = Date.now() + 2500;
   }
@@ -1522,7 +1561,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     if (!fromLeave) { while (busy) await sleep(150); busy = true; }
     pet.classList.remove("swim");
     await arcTo(46, 8, 600, 12);
-    inPool = false; $("poolBtn").textContent = "Meterlo a la pileta";
+    inPool = false; $("poolBtn").textContent = "Meterlo a la pileta"; $("poolPlay").hidden = true; $("poolBall").hidden = true;
     flip.animate([{ transform: "translateX(0)" }, { transform: "translateX(-5%) rotate(-4deg)" }, { transform: "translateX(5%) rotate(4deg)" }, { transform: "translateX(0)" }], { duration: 200, iterations: 4 });
     screenDrops(20);
     toast(S.name + " salió de la pileta y se sacudió encima tuyo.", 3000);
@@ -1539,6 +1578,28 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     await sleep(1700);
   }
   $("poolBtn").onclick = () => { inPool ? poolOut(false) : poolIn(); };
+  $("poolPlay").onclick = () => { if (!inPool) return; guard(async () => {
+    setPose("happy"); wag(true); bark(2);
+    for (let k = 0; k < 3; k++) { splash(x, 12, 18); screenDrops(8); flip.animate([{ transform: flip.classList.contains("left") ? "scaleX(-1)" : "none" }, { transform: (flip.classList.contains("left") ? "scaleX(-1) " : "") + "translateY(-6%) rotate(-6deg)" }, { transform: flip.classList.contains("left") ? "scaleX(-1)" : "none" }], { duration: 380 }); await sleep(450); }
+    toast(S.name + " chapotea y te salpica toda la pantalla.", 2800);
+    talk(pick(["¡Mojate vos también, {a}!", "¡Qué divertido!"])); bump("juego", 15);
+    await sleep(600); wag(false);
+  }); };
+  $("poolBall").onclick = () => { if (!inPool) return; guard(async () => {
+    const ball = $("ball"), tx = 62 + Math.random() * 16;
+    ball.style.transition = "none"; ball.style.opacity = 1; ball.classList.remove("hueso", "platillo", "soga");
+    await handThrow();
+    const fly = ball.animate([{ left: "80%", bottom: "30%", transform: "scale(1.7)" }, { left: ((80 + tx) / 2) + "%", bottom: "50%", transform: "scale(1.2)" }, { left: tx + "%", bottom: "9%", transform: "scale(1)" }], { duration: 800, easing: "ease-out" });
+    await fly.finished.catch(() => {}); fly.cancel();
+    ball.style.left = tx + "%"; ball.style.bottom = "9%"; ball.style.transform = ""; splash(tx, 9, 12);
+    const bob = ball.animate([{ transform: "translateY(0)" }, { transform: "translateY(-20%)" }], { duration: 600, iterations: Infinity, direction: "alternate" });
+    talk(pick(["¡La pelota! ¡Voy!", "¡Ahí voy, {a}!"]));
+    pet.style.transition = "left 1.2s ease-in-out"; flip.classList.toggle("left", tx < x); x = tx; place(); splash(x, 12, 6);
+    await sleep(1300); bob.cancel(); ball.style.opacity = 0;
+    setPose("happy"); wag(true); splash(x, 12, 10); screenDrops(6);
+    toast(S.name + " agarró la pelota en el agua.", 2500); bump("juego", 25); hearts(2);
+    await sleep(900); ball.style.left = "51%"; ball.style.bottom = "9%"; ball.style.opacity = 1; setToy(S.toy || "pelota"); wag(false);
+  }); };
   /* ---------- peluquería ---------- */
   let inGroom = false;
   async function enterGroom() {
