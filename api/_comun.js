@@ -2,8 +2,8 @@
 const SURL = () => String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const PLANES = () => ({
   emprendedora: { nombre: 'Start', precio: Number(process.env.PRECIO_START || process.env.PRECIO_EMPRENDEDORA || process.env.PRECIO_ARS || 7500), vitrinas: 10, tiendas: 1, productos: 30, fotos: 5, videos: 10 },
-  comercio: { nombre: 'Plus', precio: Number(process.env.PRECIO_PLUS || process.env.PRECIO_COMERCIO || 12900), vitrinas: 20, tiendas: 1, productos: 30, fotos: 8, videos: 30 },
-  pro: { nombre: 'Pro', precio: Number(process.env.PRECIO_PRO || 19900), vitrinas: 20, tiendas: 4, productos: 30, fotos: 8, videos: 60 }
+  comercio: { nombre: 'Plus', precio: Number(process.env.PRECIO_PLUS || process.env.PRECIO_COMERCIO || 10900), vitrinas: 20, tiendas: 1, productos: 30, fotos: 8, videos: 30 },
+  pro: { nombre: 'Pro', precio: Number(process.env.PRECIO_PRO || 14900), vitrinas: 20, tiendas: 4, productos: 30, fotos: 8, videos: 60 }
 });
 const PRECIO = () => PLANES().emprendedora.precio;
 
