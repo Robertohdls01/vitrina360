@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <base href="/mascota/">
 <title>Siempre Conmigo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%2064%2064%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22%235f8f66%22%3E%3Cellipse%20cx%3D%2214%22%20cy%3D%2226%22%20rx%3D%227%22%20ry%3D%229%22%20transform%3D%22rotate%28-20%2014%2026%29%22/%3E%3Cellipse%20cx%3D%2226%22%20cy%3D%2214%22%20rx%3D%227%22%20ry%3D%229%22%20transform%3D%22rotate%28-6%2026%2014%29%22/%3E%3Cellipse%20cx%3D%2240%22%20cy%3D%2214%22%20rx%3D%227%22%20ry%3D%229%22%20transform%3D%22rotate%286%2040%2014%29%22/%3E%3Cellipse%20cx%3D%2251%22%20cy%3D%2226%22%20rx%3D%227%22%20ry%3D%229%22%20transform%3D%22rotate%2820%2051%2026%29%22/%3E%3C/g%3E%3Cpath%20d%3D%22M32.5%2058%20C%2030%2055%2C%2015%2046%2C%2015%2036%20C%2015%2029.5%2C%2020%2026%2C%2024.5%2026%20C%2028%2026%2C%2031%2028%2C%2032.5%2031%20C%2034%2028%2C%2037%2026%2C%2040.5%2026%20C%2045%2026%2C%2050%2029.5%2C%2050%2036%20C%2050%2046%2C%2035%2055%2C%2032.5%2058%20Z%22%20fill%3D%22%23e08e86%22/%3E%3C/svg%3E">
 <meta name="description" content="Tu mascota, igual a como era, viviendo en tu casa: en la computadora y el celular. Te espera, te pide cosas, sale al patio y te habla.">
 <meta property="og:title" content="Siempre Conmigo">
 <meta property="og:description" content="Tu mascota en tu casa, igual a como era. Mandanos sus fotos y te armamos todo.">
@@ -19,6 +20,9 @@
   --display: "Baloo 2", "Trebuchet MS", system-ui, sans-serif; --body: "Nunito", "Segoe UI", system-ui, sans-serif;
 }
 @media (prefers-color-scheme: dark) { :root { --bg: #171e19; --surface: #1f2822; --line: #33413a; --ink: #e2eadf; --muted: #a3b6a6; --accent: #8dbb93; --accent-ink: #14201a; --accent-soft: #2a3a2e; --warn: #d9a26c; color-scheme: dark; } }
+.brandlogo { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 700; font-size: clamp(1.3rem, 3.4vw, 1.7rem); color: var(--ink); line-height: 1; }
+.brandlogo .logomark { width: 1.9em; height: 1.9em; flex: none; }
+.brandlogo .lheart { color: #e08e86; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
@@ -83,9 +87,11 @@ footer { text-align: center; font-size: .85rem; color: var(--muted); }
 <body>
 <div class="wrap">
 
+  <div class="brandlogo"><svg class="logomark" viewBox="0 0 64 64" aria-hidden="true"><g fill="#5f8f66"><ellipse cx="14" cy="26" rx="7" ry="9" transform="rotate(-20 14 26)"/><ellipse cx="26" cy="14" rx="7" ry="9" transform="rotate(-6 26 14)"/><ellipse cx="40" cy="14" rx="7" ry="9" transform="rotate(6 40 14)"/><ellipse cx="51" cy="26" rx="7" ry="9" transform="rotate(20 51 26)"/></g><path d="M32.5 58 C 30 55, 15 46, 15 36 C 15 29.5, 20 26, 24.5 26 C 28 26, 31 28, 32.5 31 C 34 28, 37 26, 40.5 26 C 45 26, 50 29.5, 50 36 C 50 46, 35 55, 32.5 58 Z" fill="#e08e86"/></svg><span>Siempre Conmigo <span class="lheart" aria-hidden="true">♥</span></span></div>
+
   <section class="hero">
     <div>
-      <h1>Siempre Conmigo: tu mascota, en tu casa</h1>
+      <h1>Tu mascota, en tu casa y siempre con vos</h1>
       <p class="lead">Tu perro o tu gato, igual a como era, viviendo en tu computadora y tu celular. Te espera, te pide comida o agua, sale al patio a jugar, te trae la pelota y te dice que te quiere.</p>
       <div class="cta">
         <a class="btn main" href="#pedido">Quiero la de mi mascota</a>
