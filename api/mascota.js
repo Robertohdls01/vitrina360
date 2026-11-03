@@ -26,7 +26,7 @@ const archivoLimpio = s => String(s || 'archivo').normalize('NFD').replace(/[̀-
 let listo = false;
 async function bucket() {
   if (listo) return;
-  try { await fetch(ST() + '/bucket', { method: 'POST', headers: stHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ id: B, name: B, public: false, file_size_limit: 104857600 }) }); } catch (e) {}
+  try { await fetch(ST() + '/bucket', { method: 'POST', headers: stHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ id: B, name: B, public: false, file_size_limit: 52428800 }) }); } catch (e) {}
   listo = true;
 }
 async function leer(id) {

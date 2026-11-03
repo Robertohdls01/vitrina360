@@ -278,8 +278,8 @@ footer { text-align: center; font-size: .85rem; color: var(--muted); }
     if (!d.mascota || !d.nombre || !d.whatsapp || !d.email) return error("Completá el nombre de la mascota, tu nombre, tu WhatsApp y tu mail.");
     if (!gen && !fotos.length) return error("Subí al menos una foto de tu mascota.");
     if (!gen && !d.acepta) return error("Marcá que aceptás el uso de las fotos para armar su casa.");
-    const big = archivos.find(([, f]) => f.size > 100 * 1024 * 1024);
-    if (big) return error("El archivo " + big[1].name + " es muy grande (máximo 100 MB).");
+    const big = archivos.find(([, f]) => f.size > 50 * 1024 * 1024);
+    if (big) return error("El archivo " + big[1].name + " es muy grande (máximo 50 MB).");
     const btn = $("enviar"); btn.disabled = true; btn.textContent = "Enviando…";
     const bar = $("bar"); bar.hidden = false; const fill = bar.firstElementChild;
     try {
