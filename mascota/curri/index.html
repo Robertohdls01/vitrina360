@@ -332,6 +332,19 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 4vw
 .foods button.on { background: var(--accent-soft); border-color: var(--accent); }
 .foodbox .acts { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; align-items: center; }
 @media (max-width: 560px) { .foodbox { grid-template-columns: 1fr; } .plate { margin: 0 auto; } }
+.kidsbar { display: none; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.kidsbar button { width: 84px; height: 84px; border-radius: 50%; font-size: 2.3rem; line-height: 1; padding: 0; display: grid; place-items: center; background: var(--surface); border: 3px solid var(--accent-soft); box-shadow: 0 4px 10px rgba(0,0,0,.1); }
+.kidsbar button:active { transform: scale(.94); }
+.kidsbar button.star { border-color: #e7c766; background: #fff9e4; }
+body.kids .kidsbar { display: flex; }
+body.kids :is(.board, .bowlsinfo, .actions, .cols, header .sub) { display: none; }
+.stars { position: absolute; left: max(10px, 1.5%); top: max(10px, 2%); z-index: 11; display: none; gap: 2px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; font-size: 1.35rem; line-height: 1; }
+body.kids .stars { display: flex; }
+.stars i { font-style: normal; filter: grayscale(1) opacity(.35); transition: filter .3s, transform .3s; }
+.stars i.on { filter: none; transform: scale(1.15); }
+.kidsToggle { font: inherit; font-weight: 700; border-radius: 999px; padding: 8px 14px; background: #fff9e4; border: 2px solid #e7c766; color: var(--ink); cursor: pointer; }
+.confetti { position: absolute; z-index: 13; font-size: 1.6rem; pointer-events: none; animation: conf 2.2s ease-in forwards; }
+@keyframes conf { from { transform: translateY(-20px) rotate(0); opacity: 1; } to { transform: translateY(110%) rotate(320deg); opacity: 0; } }
 .atdoor { position: absolute; left: 68%; bottom: 19%; width: 23%; max-width: none; z-index: 6; pointer-events: none; }
 .hand { position: absolute; left: 60%; top: -42%; width: 36%; opacity: 0; pointer-events: none; transform-origin: 50% 100%; z-index: 2; transition: opacity .3s; }
 .hand svg { width: 100%; height: auto; display: block; }
@@ -424,7 +437,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
       <div class="brandlogo" style="font-size:1rem;margin-bottom:6px"><svg class="logomark" viewBox="0 0 64 64" aria-hidden="true"><g fill="#5f8f66"><ellipse cx="14" cy="26" rx="7" ry="9" transform="rotate(-20 14 26)"/><ellipse cx="26" cy="14" rx="7" ry="9" transform="rotate(-6 26 14)"/><ellipse cx="40" cy="14" rx="7" ry="9" transform="rotate(6 40 14)"/><ellipse cx="51" cy="26" rx="7" ry="9" transform="rotate(20 51 26)"/></g><path d="M32.5 58 C 30 55, 15 46, 15 36 C 15 29.5, 20 26, 24.5 26 C 28 26, 31 28, 32.5 31 C 34 28, 37 26, 40.5 26 C 45 26, 50 29.5, 50 36 C 50 46, 35 55, 32.5 58 Z" fill="#e08e86"/></svg><span>Siempre Conmigo <span class="lheart" aria-hidden="true">♥</span></span></div>
       <h1 id="title">La casa de Curri</h1>
     </div>
-    <p class="sub">Tocá la pantalla una vez para activar los sonidos.</p>
+    <div class="row" style="justify-content:flex-end"><p class="sub">Tocá la pantalla una vez para activar los sonidos.</p><button type="button" class="kidsToggle" id="kidsToggle">Modo chicos</button></div>
   </header>
 
   <div class="scene" id="scene" aria-label="La habitación de la mascota">
@@ -480,6 +493,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     <div class="wet" id="wet"></div>
     <img class="atdoor" id="atdoor" src="curri-rasguna.webp" alt="" hidden>
     <button type="button" class="camBtn" id="camBtn" aria-label="Sacarle una foto" title="Sacarle una foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+    <div class="stars" id="stars" aria-label="Estrellitas de hoy"><i>⭐</i><i>⭐</i><i>⭐</i><i>⭐</i><i>⭐</i><i>⭐</i></div>
     <div class="toast"><span id="toast"></span></div>
     <div class="speech" id="speech" hidden></div>
     <div class="replies" id="replies" hidden></div>
@@ -515,6 +529,16 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     </div>
   </div>
 
+  <div class="kidsbar" role="group" aria-label="Cuidar a tu mascota">
+    <button type="button" data-k="comida" aria-label="Darle de comer">🍗</button>
+    <button type="button" data-k="agua" aria-label="Darle agua">💧</button>
+    <button type="button" data-k="pelota" aria-label="Tirarle la pelota">🎾</button>
+    <button type="button" data-k="mimos" aria-label="Hacerle mimos">❤️</button>
+    <button type="button" data-k="bano" aria-label="Bañarlo">🛁</button>
+    <button type="button" data-k="pasear" aria-label="Salir a pasear">🌳</button>
+    <button type="button" data-k="patio" aria-label="Salir al patio">🏡</button>
+    <button type="button" data-k="foto" aria-label="Sacarle una foto">📷</button>
+  </div>
   <div class="board">
     <div class="needs" id="needs"></div>
     <div class="switch"><input type="checkbox" id="demo" checked><label for="demo">Tiempo rápido (para probar)</label></div>
@@ -751,6 +775,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     $("todayName").textContent = S.name;
     S.done = S.done || {};
     $("ch-bano").classList.toggle("done", S.done.bano === today());
+    if (typeof renderStars === "function") renderStars();
     NEEDS.forEach(([k, label]) => {
       const done = S.done[k] === today();
       const c = $("ch-" + k); c.classList.toggle("done", done);
@@ -1218,6 +1243,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
       bump("salir", 100);
       await sleep(900); door.classList.remove("open");
     });
+    if (S.kids || S.kidsPatio) { S.kidsPatio = false; enterPatio(); return; }
     $("choiceText").textContent = S.name + " salió afuera.";
     $("goPatio").textContent = "Ir al patio con " + S.name;
     $("choice").hidden = false;
@@ -1651,6 +1677,49 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     await sleep(900); wag(false); setPose("sit");
   });
   $("gHair").onclick = () => { toast("Los cortes de pelo se arman con videos de " + S.name + " con cada corte. Pedilos y te los agregamos.", 4500); talk("¿Me vas a cortar el pelo, {a}?"); };
+  /* ---------- modo chicos ---------- */
+  const SABIAS = ["¿Sabías que los perros no pueden comer chocolate? Les hace mal.", "¿Sabías que hay que cambiarme el agua todos los días?", "¿Sabías que las uvas me hacen mal? Mejor dame manzana.", "¿Sabías que me encanta que me cepillen?", "¿Sabías que tengo que salir a pasear todos los días?", "¿Sabías que con la nariz huelo un montón de cosas?"];
+  const STARK = ["hambre", "sed", "juego", "salir", "carino", "bano"];
+  function renderStars() {
+    S.done = S.done || {};
+    const ii = $("stars").children; let n = 0;
+    STARK.forEach((k, i) => { const on = S.done[k] === today(); ii[i].classList.toggle("on", on); if (on) n++; });
+    if (S.kids && n === STARK.length && S.party !== today()) { S.party = today(); save(); party(); }
+  }
+  function party() {
+    const em = ["⭐", "🎉", "❤️", "🦴", "🐾"];
+    for (let i = 0; i < 26; i++) { const c = document.createElement("span"); c.className = "confetti"; c.textContent = em[i % em.length]; c.style.left = (Math.random() * 96) + "%"; c.style.top = "0"; c.style.animationDelay = (Math.random() * 0.8) + "s"; scene.appendChild(c); setTimeout(() => c.remove(), 3200); }
+    setTimeout(() => talk("¡Me cuidaste muy bien hoy! ¡Sos el mejor cuidador del mundo!", 5000), 600);
+    hearts(8); wag(true); setTimeout(() => wag(false), 2500);
+  }
+  function setKids(on) {
+    S.kids = on; document.body.classList.toggle("kids", on);
+    $("kidsToggle").textContent = on ? "Salir del modo chicos" : "Modo chicos";
+    if (on) { S.talk = true; $("cTalk").checked = true; talk("¡Hola! ¿Jugamos? Tocá los botones de abajo.", 4000); }
+    renderStars(); save();
+  }
+  function maybeFact() { if (S.kids && Math.random() < 0.35) setTimeout(() => talk(pick(SABIAS), 5500), 3500); }
+  $("kidsToggle").onclick = () => setKids(!S.kids);
+  document.querySelectorAll(".kidsbar button").forEach((b) => b.onclick = () => {
+    ac();
+    const k = b.dataset.k, busyMode = inPatio || out || inCar || inBath || inWalk || inGroom;
+    if (busyMode && !["foto", "pelota", "mimos"].includes(k)) {
+      if (inBath) return $("bOut").click();
+      if (inWalk) return leaveWalk();
+      if (inPatio) return leavePatio();
+      if (inCar) return leaveCar();
+      return;
+    }
+    if (k === "comida") { plate = ["balanceado", "pollo", "arroz", "zanahoria"]; renderPlate(); $("foodServe").click(); }
+    else if (k === "agua") $("aWater").click();
+    else if (k === "pelota") $("aBall").click();
+    else if (k === "mimos") $("aPet").click();
+    else if (k === "bano") enterBath();
+    else if (k === "pasear") enterWalk(pick(["parque", "playa", "vereda"]));
+    else if (k === "patio") { S.kidsPatio = true; goOut(); }
+    else if (k === "foto") takePhoto();
+    if (k !== "foto") maybeFact();
+  });
   async function enterBath() {
     if (inPatio || out || inCar || inBath || (typeof inWalk !== "undefined" && inWalk)) { toast("Primero volvé a casa con " + S.name + "."); return; }
     while (busy) await sleep(150);
@@ -1988,7 +2057,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
   }, 1000);
 
   /* ---------- inicio ---------- */
-  paint(); updateReal(); renderSwatches(); renderNeeds(); renderTricks(); renderLearned(); place(); setPose("sit"); wag(true);
+  paint(); updateReal(); if (S.kids) setTimeout(() => setKids(true), 50); renderSwatches(); renderNeeds(); renderTricks(); renderLearned(); place(); setPose("sit"); wag(true);
   setTimeout(() => {
     const h = usualHour();
     const now = new Date().getHours();
