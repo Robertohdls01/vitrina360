@@ -1300,7 +1300,11 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     await sleep(900);
     await askThrow();
   }
-  $("aBall").onclick = () => guard(throwBall);
+  $("aBall").onclick = () => {
+    if (inWalk) return walkBall();
+    if (inCar || inBath || inGroom) { toast("Ahora no puede jugar a la pelota. Primero volvé a casa con " + S.name + ".", 3000); return; }
+    guard(throwBall);
+  };
   $("ball").onclick = () => guard(throwBall);
   let inPatio = false;
   let waitingIn = false, outBarks = null, outAuto = null, knockLoop = null, coming = false;
@@ -1311,6 +1315,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     p.textContent = text;
   }
   async function goOut() {
+    if (inWalk || inCar || inBath || inGroom || inPatio || out) return;
     atdoor.hidden = true; pet.style.visibility = "";
     await guard(async () => {
       const door = $("door");
@@ -2024,6 +2029,10 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     await sleep(1600); wag(false); busy = false; nextAuto = Date.now() + 6000; renderNeeds();
   }
   function openDoor() {
+    if (inWalk) { toast("Están de paseo. Tocá “Volver a casa” y después abrile la puerta del patio.", 3200); return; }
+    if (inCar) { toast("Están en el auto. Primero volvé a casa con " + S.name + ".", 3000); return; }
+    if (inBath) { toast("Está en el baño. Primero sacalo del baño.", 3000); return; }
+    if (inGroom) { toast("Primero terminá de peinarlo y cortarle las uñas.", 3000); return; }
     if (inPatio) return leavePatio();
     if (!$("choice").hidden) return;
     if (out && waitingIn) return letIn();
