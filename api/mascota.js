@@ -14,7 +14,7 @@ const SURL = () => String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const ST = () => SURL() + '/storage/v1';
 const B = 'mascota-pedidos';
 const PRECIO = () => Number(process.env.PRECIO_MASCOTA || 15800);           // con su propia mascota
-const PRECIO_GEN = () => Number(process.env.PRECIO_MASCOTA_GENERICA || 1000); // eligiendo una de las nuestras
+const PRECIO_GEN = () => Number(process.env.PRECIO_MASCOTA_GENERICA || 7900); // eligiendo una de las nuestras
 const CATALOGO = ['curri', 'dorado', 'marron', 'negro', 'blanco', 'gris'];
 const MAX_ARCHIVOS = 12;
 const ADMINS = () => String(process.env.ADMIN_EMAILS || process.env.IA_SIN_LIMITE || '').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
