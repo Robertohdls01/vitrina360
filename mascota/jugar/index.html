@@ -91,6 +91,14 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 4vw
 .sofa .arm.l { left: -4%; } .sofa .arm.r { right: -4%; }
 .sofa .foot { position: absolute; bottom: 0; width: 5%; height: 14%; background: var(--wood); }
 .sofa .foot.l { left: 6%; } .sofa .foot.r { right: 6%; }
+.sofa.own > div { display: none; }
+.sofa > img { position: absolute; left: 0; bottom: 0; width: 100%; height: 118%; object-fit: contain; object-position: center bottom; }
+.things { position: absolute; inset: 0; pointer-events: none; }
+.thing { position: absolute; transform: translateX(-50%); pointer-events: auto; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+.thing img { display: block; height: 100%; width: auto; max-width: none; pointer-events: none; filter: drop-shadow(0 4px 3px rgba(0,0,0,.18)); }
+.thing.sel { outline: 2px dashed var(--accent); outline-offset: 4px; border-radius: 6px; }
+.thingbar { position: absolute; left: 50%; top: -42px; transform: translateX(-50%); display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 3px; box-shadow: 0 4px 10px rgba(0,0,0,.15); }
+.thingbar button { min-width: 32px; padding: 3px 8px; font-size: .9rem; border-radius: 99px; }
 .bowl { position: absolute; bottom: 22%; width: 6%; height: 4.5%; border-radius: 0 0 50% 50% / 0 0 100% 100%; background: var(--wood); display: grid; place-items: start center; }
 .bowl { place-items: end center; overflow: hidden; }
 .bowl span { width: 80%; height: 40%; border-radius: 40% 40% 0 0; margin-bottom: 18%; transition: height .6s; }
@@ -201,7 +209,7 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 4vw
 .scene.outside .pet { width: 21%; }
 .scene.outside .ball { width: 4.2%; }
 .scene.outside .ball.hueso, .scene.outside .ball.platillo { width: 8%; } .scene.outside .ball.soga { width: 9%; }
-.scene.outside :is(.sofa, .tv, .bowl, .door, .floor, .paws) { visibility: hidden; }
+.scene.outside :is(.sofa, .things, .tv, .bowl, .door, .floor, .paws) { visibility: hidden; }
 .choice { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 9; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; align-items: stretch; max-width: 80%; text-align: center; font-weight: 700; }
 .backin { position: absolute; left: max(12px, 2%); bottom: max(12px, 3%); z-index: 9; }
 .arm { position: absolute; right: 12%; bottom: -8%; width: 17%; z-index: 9; transform-origin: 50% 95%; pointer-events: none; transform: translateY(85%); }
@@ -245,7 +253,7 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 4vw
 .car .seat { position: absolute; left: 1.5%; right: 1.5%; bottom: 2%; height: 19%; border-radius: 18px; background: linear-gradient(#94897c, #7c7165); box-shadow: inset 0 6px 10px rgba(255,255,255,.12); }
 .car .belt { position: absolute; left: 31%; bottom: 19%; width: 1.5%; height: 38%; background: #2d2f33; transform: rotate(14deg); border-radius: 2px; }
 .scene.incar .pet { width: 19%; }
-.scene.incar :is(.sofa, .tv, .bowl, .door, .floor, .paws, .bed, .plush, .ball) { visibility: hidden; }
+.scene.incar :is(.sofa, .things, .tv, .bowl, .door, .floor, .paws, .bed, .plush, .ball) { visibility: hidden; }
 .bath { position: absolute; inset: 0; z-index: 4; overflow: hidden;
   background: linear-gradient(transparent 70%, #c9d6d3 70% 71%, #b7c8c5 71%), repeating-linear-gradient(90deg, transparent 0 7.9%, rgba(255,255,255,.75) 7.9% 8.1%), repeating-linear-gradient(0deg, transparent 0 13.8%, rgba(255,255,255,.75) 13.8% 14.2%), linear-gradient(#dcebec, #d2e4e4); }
 .tub { position: absolute; left: 22%; right: 22%; bottom: 5%; height: 30%; border-radius: 10px 10px 60px 60px; background: linear-gradient(#ffffff, #e8eef0); box-shadow: 0 8px 16px rgba(0,0,0,.15), inset 0 6px 0 #f6fafb; z-index: 7; }
@@ -274,7 +282,7 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 4vw
 .bathbar button { font-size: .85rem; padding: 6px 10px; }
 .bathbar button.on { background: var(--accent); color: var(--surface); border-color: var(--accent); }
 .scene.inbath .pet { width: 20%; }
-.scene.inbath :is(.sofa, .tv, .bowl, .door, .floor, .paws, .bed, .plush, .ball) { visibility: hidden; }
+.scene.inbath :is(.sofa, .things, .tv, .bowl, .door, .floor, .paws, .bed, .plush, .ball) { visibility: hidden; }
 .scene.scrub { cursor: grab; }
 .walk { position: absolute; inset: 0; z-index: 4; background: #cfe6f2; }
 .walk canvas { display: block; width: 100%; height: 100%; }
@@ -293,7 +301,7 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 4vw
 .walkpick b { font-family: var(--display); font-size: 1.15rem; }
 .walkpick .opts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .scene.inwalk .pet { width: 21%; }
-.scene.inwalk :is(.sofa, .tv, .bowl, .door, .floor, .paws, .bed, .plush, .ball) { visibility: hidden; }
+.scene.inwalk :is(.sofa, .things, .tv, .bowl, .door, .floor, .paws, .bed, .plush, .ball) { visibility: hidden; }
 .camBtn { position: absolute; right: max(10px, 1.5%); top: max(10px, 2%); z-index: 11; width: 42px; height: 42px; border-radius: 50%; padding: 0; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 3px 8px rgba(0,0,0,.12); }
 .camBtn svg { width: 22px; height: 22px; }
 .flash { position: absolute; inset: 0; background: #fff; z-index: 20; pointer-events: none; animation: flash .45s ease-out forwards; }
@@ -315,6 +323,9 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 4vw
 @keyframes swimbob { from { transform: translateY(0) rotate(-2deg); } to { transform: translateY(-4%) rotate(2deg); } }
 .pet.swim .flip.left { animation-name: swimbobL; }
 @keyframes swimbobL { from { transform: scaleX(-1) translateY(0) rotate(-2deg); } to { transform: scaleX(-1) translateY(-4%) rotate(2deg); } }
+.wball { position: absolute; z-index: 6; width: 3.4%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff6b0, #e6d35f 45%, #b8a23a); pointer-events: none; transform-origin: 50% 100%; }
+.pet.wetfur { filter: brightness(.9) saturate(.85) contrast(1.06); }
+.pet.wetfur .flip::after { content: ""; position: absolute; inset: 20% 15% 10%; background: radial-gradient(circle at 30% 40%, rgba(170,210,235,.35) 0 6%, transparent 7%), radial-gradient(circle at 60% 60%, rgba(170,210,235,.3) 0 5%, transparent 6%), radial-gradient(circle at 75% 35%, rgba(170,210,235,.3) 0 4%, transparent 5%); pointer-events: none; }
 .splash { position: absolute; z-index: 9; width: 1.4%; aspect-ratio: 1; border-radius: 50%; background: #9fd0ea; pointer-events: none; transition: transform .8s cubic-bezier(.2,.7,.4,1), opacity .8s; }
 .nails { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -54%); width: min(46%, 320px); z-index: 12; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 10px 12px 12px; text-align: center; box-shadow: 0 10px 24px rgba(0,0,0,.18); }
 .nails b { font-family: var(--display); }
@@ -458,6 +469,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     <div class="frame wallart" id="frame">Su foto</div>
     <div class="floor"></div>
     <div class="sofa" aria-hidden="true"><div class="back"></div><div class="seat"></div><div class="arm l"></div><div class="arm r"></div><div class="foot l"></div><div class="foot r"></div></div>
+    <div class="things" id="things"></div>
     <div class="tv" id="tv" hidden role="button" tabindex="0" aria-label="Prender o apagar la tele"><div class="screen"></div></div>
     <div class="bed" id="bed"></div>
     <div class="plush" id="plush"><svg viewBox="0 0 100 110" aria-hidden="true"><g fill="#c9a27a" stroke="#9c7a56" stroke-width="3"><circle cx="24" cy="20" r="13"/><circle cx="76" cy="20" r="13"/><ellipse cx="50" cy="78" rx="30" ry="28"/><circle cx="50" cy="40" r="28"/><ellipse cx="22" cy="72" rx="10" ry="14"/><ellipse cx="78" cy="72" rx="10" ry="14"/><ellipse cx="34" cy="102" rx="12" ry="8"/><ellipse cx="66" cy="102" rx="12" ry="8"/></g><ellipse cx="50" cy="50" rx="13" ry="10" fill="#ead2b4"/><circle cx="50" cy="46" r="4" fill="#3b2b22"/><circle cx="40" cy="35" r="3.5" fill="#3b2b22"/><circle cx="60" cy="35" r="3.5" fill="#3b2b22"/><circle cx="24" cy="20" r="6" fill="#ead2b4"/><circle cx="76" cy="20" r="6" fill="#ead2b4"/></svg></div>
@@ -480,7 +492,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     </svg></div>
     <svg class="leash" id="leash" hidden viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path id="leashPath" d="" fill="none" stroke="#b5654f" stroke-width="3" vector-effect="non-scaling-stroke" stroke-linecap="round"/></svg>
     <div class="walkpick" id="walkpick" hidden><b>¿A dónde salen a pasear?</b><div class="opts"><button type="button" data-w="parque">Al parque</button><button type="button" data-w="playa">A la playa</button><button type="button" data-w="centro">Al centro</button><button type="button" data-w="vereda">Por la vereda</button></div><button type="button" id="walkCancel">Mejor no</button></div>
-    <div class="bathbar" id="walkbar" hidden><button type="button" id="wStop">Parar un ratito</button><button type="button" id="wGo">Seguir caminando</button><button type="button" id="wChange">Cambiar de lugar</button><button type="button" id="wHome">Volver a casa</button></div>
+    <div class="bathbar" id="walkbar" hidden><button type="button" id="wStop">Parar un ratito</button><button type="button" id="wGo">Seguir caminando</button><button type="button" id="wBall">Tirarle la pelota</button><button type="button" id="wChange">Cambiar de lugar</button><button type="button" id="wHome">Volver a casa</button></div>
     <div class="bathbar" id="groombar" hidden><button type="button" id="gNails">Cortarle las uñas</button><button type="button" id="gBrush">Cepillarlo</button><button type="button" id="gHair">Cortes de pelo</button><button type="button" id="gDone">Listo</button></div>
     <div class="nails" id="nails" hidden><b>Tocá cada uña para cortarla</b><svg viewBox="0 -24 200 214" aria-label="Pata de tu mascota"><g fill="#f3ece1" stroke="#d9ccb8" stroke-width="3"><ellipse cx="100" cy="128" rx="70" ry="54"/><circle cx="36" cy="72" r="26"/><circle cx="76" cy="44" r="27"/><circle cx="124" cy="44" r="27"/><circle cx="164" cy="72" r="26"/></g><g fill="#e3a3a6"><ellipse cx="100" cy="134" rx="34" ry="26"/><ellipse cx="38" cy="76" rx="11" ry="12"/><ellipse cx="77" cy="49" rx="11" ry="12"/><ellipse cx="123" cy="49" rx="11" ry="12"/><ellipse cx="162" cy="76" rx="11" ry="12"/></g><g fill="#6b6460" stroke="#4d4743" stroke-width="2"><path class="nail" tabindex="0" role="button" aria-label="Uña 1" d="M28 52 Q 30 20 22 6 Q 40 18 44 50 Z"/><path class="nail" tabindex="0" role="button" aria-label="Uña 2" d="M70 22 Q 72 -6 64 -18 Q 84 -4 86 20 Z"/><path class="nail" tabindex="0" role="button" aria-label="Uña 3" d="M116 20 Q 118 -4 136 -18 Q 128 -4 132 22 Z"/><path class="nail" tabindex="0" role="button" aria-label="Uña 4" d="M156 50 Q 160 18 178 6 Q 170 20 172 52 Z"/></g></svg></div>
     <div class="foodbox" id="foodbox" hidden role="dialog" aria-label="Preparar la comida"><h3>Prepará su plato <span class="note">(elegí hasta 4 cosas)</span></h3><div class="plate" id="plate" aria-label="Su plato"><span></span><span></span><span></span><span></span></div><div class="foods" id="foods"></div><div class="treats"><span class="note">Un gustito:</span><button type="button" id="iceAgua">🍧 Helado de agua</button><button type="button" id="iceCrema">🍦 Helado de crema</button></div><div class="acts"><span class="note" id="foodNote"></span><button type="button" id="foodCancel">Cancelar</button><button type="button" class="primary" id="foodServe">Servir</button></div></div>
@@ -494,6 +506,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     <div class="car" id="car" hidden><div class="view"><canvas id="landscape"></canvas></div><div class="handle"></div><div class="headrest l"></div><div class="headrest r"></div><div class="seatback"></div><div class="seat"></div><div class="belt"></div></div>
     <button type="button" class="backin" id="backCar" hidden>Volver a casa</button>
     <div class="ball" id="ball"></div>
+    <div class="wball" id="wball" hidden></div>
     <div class="arm" id="arm" hidden aria-hidden="true"><svg viewBox="0 0 160 300"><g stroke="#c99a76" stroke-width="3" stroke-linejoin="round"><path d="M52 300 L58 150 Q60 128 80 126 Q100 128 104 150 L112 300 Z" fill="#7f9db8"/><path d="M58 150 Q60 128 80 126 Q100 128 104 150 L100 168 L62 168 Z" fill="#efc6a3"/><ellipse cx="80" cy="104" rx="34" ry="30" fill="#efc6a3"/><rect x="48" y="70" width="14" height="40" rx="7" fill="#efc6a3"/><rect x="64" y="60" width="14" height="44" rx="7" fill="#efc6a3"/><rect x="80" y="60" width="14" height="44" rx="7" fill="#efc6a3"/><rect x="96" y="66" width="13" height="40" rx="6.5" fill="#efc6a3"/></g><image id="armToy" x="50" y="44" width="60" height="44" href="" preserveAspectRatio="xMidYMid meet"/><circle id="armBall" cx="80" cy="66" r="20" fill="#e6d35f" stroke="#b8a23a" stroke-width="3"/><path d="M114 98 Q128 92 126 112 Q118 122 108 116 Z" fill="#efc6a3" stroke="#c99a76" stroke-width="3"/></svg></div>
     <div class="choice" id="choice" hidden><span id="choiceText">Curri salió afuera.</span><button type="button" class="primary" id="goPatio">Ir al patio con él</button><button type="button" id="stayIn">Que salga solo</button></div>
     <div class="pool" id="pool"></div>
@@ -606,6 +619,14 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
       <div class="field"><span>Color del pelo</span><div class="swatches" id="swatches"></div></div>
       <label class="field"><span>Su foto (va en el cuadro de la pared)</span><input type="file" id="cPhoto" accept="image/*"></label>
       <label class="field"><span>Foto de tu casa, donde andaba siempre (de fondo)</span><input type="file" id="cHouse" accept="image/*"></label>
+      <div class="field"><span>Tus cosas en la casa</span>
+        <div class="row">
+          <label class="field" style="flex:1;min-width:150px"><span class="note">Tu sillón (foto del sillón solo)</span><input type="file" id="cSofa" accept="image/*"></label>
+          <label class="field" style="flex:1;min-width:150px"><span class="note">Otra cosa: una planta, una mesa, una lámpara…</span><input type="file" id="cThing" accept="image/*"></label>
+        </div>
+        <span class="note">Sacale la foto entera, contra una pared lisa. Le sacamos el fondo solos. Después la movés con el dedo y la tocás para agrandarla, achicarla o sacarla.</span>
+        <button type="button" id="cSofaReset" hidden style="align-self:flex-start">Volver al sillón de antes</button>
+      </div>
       <div class="row"><label class="switch"><input type="checkbox" id="cTalk"> Que te hable con voz</label>
       <label class="field" style="flex:1;min-width:120px"><span>Cómo te dice (tu nombre o apodo)</span><input type="text" id="cAmo" value="mamá"></label></div>
       <div class="row">
@@ -1575,6 +1596,69 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
   $("wGo").onclick = () => { if (inWalk) setMoving(true); };
   $("wChange").onclick = () => { if (inWalk) $("walkpick").hidden = false; };
   $("wHome").onclick = leaveWalk;
+  /* ---------- jugar a la pelota en el paseo (y en la playa, al agua) ---------- */
+  let wetTimer = null;
+  async function walkBall() {
+    if (!inWalk) return;
+    while (busy) await sleep(150);
+    busy = true;
+    try {
+      const beach = walkScene === "playa" && !S["walk_playa"];
+      setMoving(false); $("leash").setAttribute("hidden", "");
+      talk(pick(["¡Pelota! ¡Tirala, {a}!", "¡Dale, tirala lejos!"])); wag(true); bark(1);
+      const wb = $("wball");
+      await handThrow();
+      const sea = beach && Math.random() < 0.8;
+      const tx = 38 + Math.random() * 30, tb = sea ? 44 : 14 + Math.random() * 10, ts = sea ? 0.5 : 0.7;
+      wb.hidden = false;
+      const fly = wb.animate([
+        { left: "80%", bottom: "30%", transform: "scale(1.7)" },
+        { left: ((80 + tx) / 2) + "%", bottom: (sea ? 78 : 66) + "%", transform: "scale(1.1)", offset: .5 },
+        { left: tx + "%", bottom: tb + "%", transform: "scale(" + ts + ")" }
+      ], { duration: 1000, easing: "ease-out", fill: "forwards" });
+      await sleep(250);
+      const go = moveTo(tx + 3 * ts, sea ? tb - 16 : tb - 2, ts * 0.95, Math.max(700, Math.abs(tx - x) * 22 + 600), () => { if (sea && petB > 18 && !pet.style.clipPath) { pet.style.clipPath = "inset(0 0 38% 0)"; pet.classList.add("swim"); splash(x, petB + 2, 16); } });
+      await fly.finished.catch(() => {});
+      if (sea) {
+        splash(tx, tb, 18);
+        const bob = wb.animate([{ transform: "scale(" + ts + ") translateY(0)" }, { transform: "scale(" + ts + ") translateY(-25%)" }], { duration: 600, iterations: Infinity, direction: "alternate" });
+        await go;
+        // se mete al agua y nada hasta la pelota
+        pet.classList.add("swim"); pet.style.clipPath = "inset(0 0 38% 0)";
+        splash(x, petB, 22); toast(S.name + " se metió al agua a buscar la pelota.", 2600);
+        await sleep(1400); bob.cancel(); setPose("eat"); await sleep(400);
+      } else {
+        await go; setPose("eat"); await sleep(450);
+      }
+      wb.getAnimations().forEach((a) => a.cancel());
+      // la trae en la boca
+      const carry = () => { const left = flip.classList.contains("left"); wb.style.left = (x + (left ? -4 : 4) * petS) + "%"; wb.style.bottom = (petB + 7 * petS + 20 * (1 - petS)) + "%"; wb.style.transform = "scale(" + petS + ")"; };
+      carry();
+      if (sea) {
+        await moveTo(x + 6, Math.max(12, petB - 10), 0.75, 1000, carry);
+        pet.classList.remove("swim"); pet.style.clipPath = ""; splash(x, petB, 14);
+      }
+      await moveTo(60, 6, 1, Math.max(700, Math.abs(60 - x) * 20 + 500), carry);
+      flip.classList.remove("left");
+      wb.style.transition = "left .4s ease-out, bottom .3s ease-in"; wb.style.left = "66%"; wb.style.bottom = "6%";
+      await sleep(400); wb.style.transition = "";
+      if (sea) {
+        // se sacude y te moja
+        setPose("happy"); pet.classList.add("wetfur");
+        flip.animate([{ transform: "translateX(0)" }, { transform: "translateX(-5%) rotate(-5deg)" }, { transform: "translateX(5%) rotate(5deg)" }, { transform: "translateX(0)" }], { duration: 200, iterations: 5 });
+        splash(x, petB + 8, 20); screenDrops(22);
+        toast(S.name + " volvió todo mojado y se sacudió encima tuyo.", 3200);
+        talk(pick(["¡Estoy empapado, {a}!", "¡El agua está buenísima!", "¡Otra vez, otra vez!"]));
+        clearTimeout(wetTimer); wetTimer = setTimeout(() => pet.classList.remove("wetfur"), 25000);
+        bump("juego", 15);
+      } else { say("¡Ahí está!"); }
+      setPose("happy sit"); hearts(2); bump("juego", 25); bump("carino", 5);
+      await sleep(1200);
+      setDepth(6, 1); wb.hidden = true; $("leash").removeAttribute("hidden");
+      wag(false); setPose("sit");
+    } finally { busy = false; nextAuto = Date.now() + 5000; }
+  }
+  $("wBall").onclick = walkBall;
   /* ---------- fotos ---------- */
   function album() { try { return JSON.parse(localStorage.getItem("mascota-album") || "[]"); } catch (e) { return []; } }
   function saveAlbum(a) { for (let n = a.length; n >= 0; n--) { try { localStorage.setItem("mascota-album", JSON.stringify(a.slice(0, n))); return; } catch (e) {} } }
@@ -1781,7 +1865,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
   function useDrawn(color) { pet.classList.remove("hasreal"); S.fur = color; }
   function applyMode() {
     if (MODE === "demo") {
-      $("demobar").hidden = false; $("cfgPanel").hidden = true;
+      $("demobar").hidden = false;
       return;
     }
     if (MODE !== "play") return;
@@ -2100,6 +2184,118 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
   $("cTv").addEventListener("change", () => { S.tv = $("cTv").checked; $("tv").hidden = !S.tv; save(); });
   $("cName").addEventListener("input", () => { S.name = $("cName").value.trim() || "Curri"; paint(); renderLearned(); save(); });
   $("cChar").addEventListener("change", () => { S.char = $("cChar").value; renderLearned(); save(); });
+  /* ---------- tus cosas: foto de un objeto, le sacamos el fondo ---------- */
+  function cutout(img, max) {
+    const sc = Math.min(1, max / Math.max(img.width, img.height));
+    const w = Math.max(1, Math.round(img.width * sc)), h = Math.max(1, Math.round(img.height * sc));
+    const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+    const cx = cv.getContext("2d"); cx.drawImage(img, 0, 0, w, h);
+    const id = cx.getImageData(0, 0, w, h), d = id.data;
+    // color del fondo: el promedio de los bordes
+    let r = 0, g = 0, b = 0, n = 0;
+    const add = (i) => { r += d[i]; g += d[i + 1]; b += d[i + 2]; n++; };
+    for (let x = 0; x < w; x++) { add(x * 4); add(((h - 1) * w + x) * 4); }
+    for (let y = 0; y < h; y++) { add(y * w * 4); add((y * w + w - 1) * 4); }
+    r /= n; g /= n; b /= n;
+    const dist = (i, R, G, B) => Math.abs(d[i] - R) + Math.abs(d[i + 1] - G) + Math.abs(d[i + 2] - B);
+    const bg = new Uint8Array(w * h), q = [];
+    const seed = (p) => { if (!bg[p] && dist(p * 4, r, g, b) < 120) { bg[p] = 1; q.push(p); } };
+    for (let x = 0; x < w; x++) { seed(x); seed((h - 1) * w + x); }
+    for (let y = 0; y < h; y++) { seed(y * w); seed(y * w + w - 1); }
+    while (q.length) {
+      const p = q.pop(), px = p % w, py = (p - px) / w, i = p * 4;
+      const nb = [px > 0 ? p - 1 : -1, px < w - 1 ? p + 1 : -1, py > 0 ? p - w : -1, py < h - 1 ? p + w : -1];
+      for (const o of nb) {
+        if (o < 0 || bg[o]) continue;
+        const j = o * 4;
+        if (dist(j, d[i], d[i + 1], d[i + 2]) < 26 && dist(j, r, g, b) < 150) { bg[o] = 1; q.push(o); }
+      }
+    }
+    let cut = 0, x0 = w, y0 = h, x1 = -1, y1 = -1;
+    for (let p = 0; p < w * h; p++) {
+      if (bg[p]) { d[p * 4 + 3] = 0; cut++; continue; }
+      const px = p % w, py = (p - px) / w;
+      // borde suave
+      if ((px > 0 && bg[p - 1]) || (px < w - 1 && bg[p + 1]) || (py > 0 && bg[p - w]) || (py < h - 1 && bg[p + w])) d[p * 4 + 3] = 150;
+      if (px < x0) x0 = px; if (px > x1) x1 = px; if (py < y0) y0 = py; if (py > y1) y1 = py;
+    }
+    if (x1 < 0 || cut / (w * h) < 0.04 || cut / (w * h) > 0.97) return { src: cv.toDataURL("image/jpeg", 0.85), ar: w / h, cut: false };
+    cx.putImageData(id, 0, 0);
+    const out = document.createElement("canvas"); out.width = x1 - x0 + 1; out.height = y1 - y0 + 1;
+    out.getContext("2d").drawImage(cv, x0, y0, out.width, out.height, 0, 0, out.width, out.height);
+    let src = out.toDataURL("image/webp", 0.85);
+    if (!src.startsWith("data:image/webp")) src = out.toDataURL("image/png");
+    return { src, ar: out.width / out.height, cut: true };
+  }
+  function loadFile(input, cb) {
+    input.addEventListener("change", () => {
+      const f = input.files && input.files[0]; if (!f) return;
+      const fr = new FileReader();
+      fr.onload = () => { const img = new Image(); img.onload = () => { cb(img); input.value = ""; }; img.src = fr.result; };
+      fr.readAsDataURL(f);
+    });
+  }
+  function trySave() { try { localStorage.setItem(STORE, JSON.stringify(S)); return true; } catch (e) { return false; } }
+  function renderSofa() {
+    const so = document.querySelector(".sofa");
+    so.querySelectorAll("img").forEach((i) => i.remove());
+    so.classList.toggle("own", !!S.sofaImg);
+    if (S.sofaImg) { const i = document.createElement("img"); i.alt = ""; i.src = S.sofaImg; so.appendChild(i); }
+    $("cSofaReset").hidden = !S.sofaImg;
+  }
+  let selThing = -1;
+  function renderThings() {
+    const box = $("things"); box.innerHTML = "";
+    (S.things || []).forEach((t, k) => {
+      const el = document.createElement("div"); el.className = "thing" + (k === selThing ? " sel" : "");
+      el.style.left = t.x + "%"; el.style.bottom = t.b + "%"; el.style.height = t.h + "%";
+      el.innerHTML = '<img alt="" src="' + t.src + '">' + (k === selThing ? '<div class="thingbar"><button type="button" data-a="-" aria-label="Achicar">−</button><button type="button" data-a="+" aria-label="Agrandar">+</button><button type="button" data-a="x" aria-label="Sacar">✕</button></div>' : "");
+      el.querySelectorAll(".thingbar button").forEach((bt) => bt.onpointerdown = (e) => {
+        e.stopPropagation(); e.preventDefault();
+        const a = bt.dataset.a;
+        if (a === "x") { S.things.splice(k, 1); selThing = -1; }
+        else t.h = Math.max(6, Math.min(80, t.h * (a === "+" ? 1.15 : 0.87)));
+        save(); renderThings();
+      });
+      let start = null, moved = false;
+      el.onpointerdown = (e) => {
+        if (e.target.closest(".thingbar")) return;
+        e.preventDefault(); el.setPointerCapture(e.pointerId);
+        const r = scene.getBoundingClientRect();
+        start = { x: e.clientX, y: e.clientY, tx: t.x, tb: t.b, w: r.width, h: r.height }; moved = false;
+      };
+      el.onpointermove = (e) => {
+        if (!start) return;
+        const dx = e.clientX - start.x, dy = e.clientY - start.y;
+        if (Math.abs(dx) + Math.abs(dy) > 4) moved = true;
+        t.x = Math.max(2, Math.min(98, start.tx + dx / start.w * 100));
+        t.b = Math.max(0, Math.min(70, start.tb - dy / start.h * 100));
+        el.style.left = t.x + "%"; el.style.bottom = t.b + "%";
+      };
+      el.onpointerup = () => {
+        if (!start) return; start = null;
+        if (moved) save(); else { selThing = selThing === k ? -1 : k; renderThings(); }
+      };
+      box.appendChild(el);
+    });
+  }
+  scene.addEventListener("pointerdown", (e) => { if (selThing >= 0 && !e.target.closest(".thing")) { selThing = -1; renderThings(); } });
+  loadFile($("cSofa"), (img) => {
+    const c = cutout(img, 520), old = S.sofaImg;
+    S.sofaImg = c.src;
+    if (!trySave()) { S.sofaImg = old; toast("No entra más en la memoria. Sacá alguna cosa y probá de nuevo.", 3500); return; }
+    renderSofa(); toast(c.cut ? "Listo, ese es tu sillón." : "No pude sacarle el fondo. Probá con una foto contra una pared lisa.", 3500);
+  });
+  $("cSofaReset").onclick = () => { S.sofaImg = null; save(); renderSofa(); };
+  loadFile($("cThing"), (img) => {
+    S.things = S.things || [];
+    if (S.things.length >= 6) { toast("Ya tenés 6 cosas. Sacá una para poner otra.", 3000); return; }
+    const c = cutout(img, 420);
+    S.things.push({ src: c.src, x: 40 + Math.random() * 25, b: 22, h: Math.max(14, Math.min(40, 26 / Math.max(0.6, c.ar))) });
+    if (!trySave()) { S.things.pop(); toast("No entra más en la memoria. Sacá alguna cosa y probá de nuevo.", 3500); return; }
+    selThing = S.things.length - 1; renderThings();
+    toast(c.cut ? "Listo. Movela con el dedo hasta donde quieras." : "No pude sacarle el fondo. Probá con una foto contra una pared lisa.", 3500);
+  });
   function readImg(input, keyArg) {
     input.addEventListener("change", () => {
       const f = input.files && input.files[0]; if (!f) return;
@@ -2142,7 +2338,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
   }, 1000);
 
   /* ---------- inicio ---------- */
-  applyMode(); paint(); updateReal(); if (S.kids) setTimeout(() => setKids(true), 50); renderSwatches(); renderNeeds(); renderTricks(); renderLearned(); place(); setPose("sit"); wag(true);
+  applyMode(); paint(); renderSofa(); renderThings(); updateReal(); if (S.kids) setTimeout(() => setKids(true), 50); renderSwatches(); renderNeeds(); renderTricks(); renderLearned(); place(); setPose("sit"); wag(true);
   setTimeout(() => {
     const h = usualHour();
     const now = new Date().getHours();
