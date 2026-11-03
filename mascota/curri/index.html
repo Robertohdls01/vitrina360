@@ -234,6 +234,36 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 4vw
 .car .belt { position: absolute; left: 31%; bottom: 19%; width: 1.5%; height: 38%; background: #2d2f33; transform: rotate(14deg); border-radius: 2px; }
 .scene.incar .pet { width: 19%; }
 .scene.incar :is(.sofa, .tv, .bowl, .door, .floor, .paws, .bed, .plush, .ball) { visibility: hidden; }
+.bath { position: absolute; inset: 0; z-index: 4; overflow: hidden;
+  background: linear-gradient(transparent 70%, #c9d6d3 70% 71%, #b7c8c5 71%), repeating-linear-gradient(90deg, transparent 0 7.9%, rgba(255,255,255,.75) 7.9% 8.1%), repeating-linear-gradient(0deg, transparent 0 13.8%, rgba(255,255,255,.75) 13.8% 14.2%), linear-gradient(#dcebec, #d2e4e4); }
+.tub { position: absolute; left: 22%; right: 22%; bottom: 5%; height: 30%; border-radius: 10px 10px 60px 60px; background: linear-gradient(#ffffff, #e8eef0); box-shadow: 0 8px 16px rgba(0,0,0,.15), inset 0 6px 0 #f6fafb; z-index: 7; }
+.tub::before { content: ""; position: absolute; left: 3%; right: 3%; top: -4%; height: 12%; border-radius: 50%; background: radial-gradient(ellipse at 50% 60%, #bfe0ef, #9fcde3); }
+.bath .faucet { position: absolute; right: 24%; bottom: 35%; width: 7%; height: 9%; border-radius: 0 40px 0 0; border: 6px solid #b9c3c7; border-left: 0; border-bottom: 0; }
+.bath .head { position: absolute; left: 46%; top: 4%; width: 8%; height: 4%; border-radius: 0 0 40px 40px; background: #b9c3c7; }
+.bath .head::before { content: ""; position: absolute; left: 45%; top: -100%; width: 10%; height: 100%; background: #b9c3c7; }
+.shower { position: absolute; left: 43%; top: 8%; width: 14%; height: 62%; z-index: 8; pointer-events: none; opacity: 0;
+  background: repeating-linear-gradient(90deg, transparent 0 9%, rgba(150, 200, 230, .75) 9% 11%); -webkit-mask: repeating-linear-gradient(180deg, #000 0 14px, transparent 14px 22px); mask: repeating-linear-gradient(180deg, #000 0 14px, transparent 14px 22px); transition: opacity .3s; }
+.shower.on { opacity: 1; animation: rain .35s linear infinite; }
+@keyframes rain { from { -webkit-mask-position: 0 0; mask-position: 0 0; } to { -webkit-mask-position: 0 22px; mask-position: 0 22px; } }
+.foam { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
+.sdrop { position: absolute; z-index: 12; pointer-events: none; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.95) 0 12%, rgba(200,230,250,.35) 30%, rgba(120,170,210,.25) 70%, rgba(80,130,180,.35)); box-shadow: inset -2px -3px 4px rgba(60,100,140,.25), 0 2px 3px rgba(0,0,0,.08); animation: dropin .15s ease-out, slide 4.5s ease-in .6s forwards; }
+@keyframes dropin { from { transform: scale(.2); } }
+@keyframes slide { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(160%) scaleY(1.3); opacity: 0; } }
+.foam i { position: absolute; width: 4.5%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff, #eef6fb 60%, #d9e9f2); box-shadow: 0 0 0 1px rgba(160,190,210,.4); transform: translate(-50%, -50%) scale(.2); animation: pop .25s ease-out forwards; transition: opacity .8s, transform .8s; }
+@keyframes pop { to { transform: translate(-50%, -50%) scale(1); } }
+.foam i.gone { opacity: 0; transform: translate(-50%, 40%) scale(.6); }
+.towel { position: absolute; left: 50%; top: 20%; width: 26%; aspect-ratio: 1.3; transform: translateX(-50%) rotate(-8deg); z-index: 8; pointer-events: none; border-radius: 10px;
+  background: repeating-linear-gradient(0deg, #f3e3d3 0 10%, #ecd6c0 10% 12%); box-shadow: 0 6px 14px rgba(0,0,0,.15); animation: rub2 .4s ease-in-out infinite alternate; }
+@keyframes rub2 { to { transform: translateX(-38%) rotate(6deg) translateY(6%); } }
+.brush { position: absolute; left: 30%; top: 58%; width: 44%; z-index: 9; pointer-events: none; animation: brush .35s ease-in-out infinite alternate; }
+.brush svg { display: block; width: 100%; height: auto; }
+@keyframes brush { from { transform: translateX(-6%) rotate(-3deg); } to { transform: translateX(10%) rotate(3deg); } }
+.bathbar { position: absolute; left: 50%; bottom: 3%; transform: translateX(-50%); z-index: 10; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; width: 94%; }
+.bathbar button { font-size: .85rem; padding: 6px 10px; }
+.bathbar button.on { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+.scene.inbath .pet { width: 20%; }
+.scene.inbath :is(.sofa, .tv, .bowl, .door, .floor, .paws, .bed, .plush, .ball) { visibility: hidden; }
+.scene.scrub { cursor: grab; }
 .atdoor { position: absolute; left: 68%; bottom: 19%; width: 23%; max-width: none; z-index: 6; pointer-events: none; }
 .hand { position: absolute; left: 60%; top: -42%; width: 36%; opacity: 0; pointer-events: none; transform-origin: 50% 100%; z-index: 2; transition: opacity .3s; }
 .hand svg { width: 100%; height: auto; display: block; }
@@ -341,6 +371,13 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     <div class="bowl water" id="bowlWater"><span></span></div>
     <div class="door" id="door" role="button" tabindex="0" aria-label="Abrir la puerta"><div class="panel"><div class="knob"></div></div></div>
     <div class="patio" id="patio" hidden></div>
+    <div class="bath" id="bath" hidden><div class="head"></div><div class="faucet"></div></div>
+    <div class="tub" id="tub" hidden></div>
+    <div class="foam" id="foam"></div>
+    <div class="shower" id="shower"></div>
+    <div class="towel" id="towel" hidden></div>
+    <div class="brush" id="brush" hidden><svg viewBox="0 0 300 60" aria-hidden="true"><rect x="70" y="24" width="225" height="16" rx="8" fill="#8fc3c9"/><rect x="10" y="20" width="70" height="22" rx="6" fill="#e9f3f4"/><g fill="#ffffff" stroke="#cfe3e6" stroke-width="2"><rect x="12" y="4" width="10" height="18" rx="3"/><rect x="26" y="4" width="10" height="18" rx="3"/><rect x="40" y="4" width="10" height="18" rx="3"/><rect x="54" y="4" width="10" height="18" rx="3"/></g><circle cx="30" cy="4" r="8" fill="#fff"/><circle cx="48" cy="2" r="7" fill="#fff"/></svg></div>
+    <div class="bathbar" id="bathbar" hidden><button type="button" id="bSoap">Enjabonar</button><button type="button" id="bRinse">Enjuagar</button><button type="button" id="bDry">Secar</button><button type="button" id="bTeeth">Lavarle los dientes</button><button type="button" id="bOut">Salir del baño</button></div>
     <div class="car" id="car" hidden><div class="view"><canvas id="landscape"></canvas></div><div class="handle"></div><div class="headrest l"></div><div class="headrest r"></div><div class="seatback"></div><div class="seat"></div><div class="belt"></div></div>
     <button type="button" class="backin" id="backCar" hidden>Volver a casa</button>
     <div class="ball" id="ball"></div>
@@ -402,6 +439,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     <button id="aPet" data-need="carino">Acariciarla</button>
     <button id="aKiss">Pedirle un besito</button>
     <button id="aCar">Pasear en auto</button>
+    <button id="aBath">Bañarlo</button>
     <button id="aSound">Sonido: activado</button>
   </div>
 
@@ -602,10 +640,11 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     const wrap = $("needs");
     if (!wrap.dataset.built) {
       wrap.dataset.built = "1";
-      wrap.innerHTML = '<span class="today-label">Hoy con <b id="todayName"></b>:</span>' + NEEDS.map(([k, label]) => '<span class="chip" id="ch-' + k + '">' + label + '</span>').join("");
+      wrap.innerHTML = '<span class="today-label">Hoy con <b id="todayName"></b>:</span>' + NEEDS.map(([k, label]) => '<span class="chip" id="ch-' + k + '">' + label + '</span>').join("") + '<span class="chip" id="ch-bano">Baño</span>';
     }
     $("todayName").textContent = S.name;
     S.done = S.done || {};
+    $("ch-bano").classList.toggle("done", S.done.bano === today());
     NEEDS.forEach(([k, label]) => {
       const done = S.done[k] === today();
       const c = $("ch-" + k); c.classList.toggle("done", done);
@@ -841,6 +880,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     busy = true;
     const c = CHAR[S.char] || CHAR.juguetona;
     let act = c.acts[Math.floor(Math.random() * c.acts.length)];
+    if (inBath) { busy = false; nextAuto = Date.now() + 5000; return; }
     if (inCar) { await carLife(); busy = false; nextAuto = Date.now() + (3000 + Math.random() * 4000); return; }
     if (inPatio) {
       const P = ["plantas", "plantas", "pasto", "necesidad", "explorar", "run", "roll", "alerta"];
@@ -1130,8 +1170,103 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
   }
   function startLand() { cancelAnimationFrame(landRAF); landT0 = performance.now(); landRAF = requestAnimationFrame(drawLand); }
   function stopLand() { cancelAnimationFrame(landRAF); landRAF = null; }
+  /* ---------- el baño ---------- */
+  let inBath = false, scrubbing = false, foamCount = 0;
+  const foamBox = $("foam");
+  function addFoam(cx, cy) {
+    const sc = scene.getBoundingClientRect();
+    const i = document.createElement("i");
+    i.style.left = ((cx - sc.left) / sc.width * 100) + "%"; i.style.top = ((cy - sc.top) / sc.height * 100) + "%";
+    i.style.width = (1.6 + Math.random() * 2.2) + "%";
+    foamBox.appendChild(i); foamCount++;
+    if (foamCount % 6 === 0) noise(0.08, 0.05, 0, 2600);
+    if (foamCount === 30) { toast(S.name + " ya está todo enjabonado. Ahora enjuagalo.", 3000); talk(pick(["Me hace cosquillas, {a}.", "No me gusta el agua…"])); }
+  }
+  function onScrub(e) {
+    if (!scrubbing) return;
+    const r = pet.getBoundingClientRect(), p = e.touches ? e.touches[0] : e;
+    if (p.clientX < r.left || p.clientX > r.right || p.clientY < r.top || p.clientY > r.bottom - r.height * 0.25) return;
+    if (e.type === "pointermove" && e.pointerType === "mouse" && !e.buttons) { if (Math.random() > 0.35) return; }
+    addFoam(p.clientX + (Math.random() - .5) * 20, p.clientY + (Math.random() - .5) * 20);
+  }
+  scene.addEventListener("pointermove", onScrub);
+  scene.addEventListener("pointerdown", onScrub);
+  function bathBtn(id) { ["bSoap", "bRinse", "bDry", "bTeeth"].forEach((b) => $(b).classList.toggle("on", b === id)); }
+  function screenDrops(n) {
+    for (let i = 0; i < n; i++) setTimeout(() => {
+      const d = document.createElement("i"); d.className = "sdrop";
+      const w = 1.5 + Math.random() * 3.5;
+      d.style.width = w + "%"; d.style.aspectRatio = "0.85";
+      d.style.left = (5 + Math.random() * 88) + "%"; d.style.top = (5 + Math.random() * 70) + "%";
+      d.style.animationDuration = ".15s, " + (3.5 + Math.random() * 3) + "s";
+      scene.appendChild(d); setTimeout(() => d.remove(), 7500);
+      noise(0.04, 0.05, 0, 1200 + Math.random() * 1500);
+    }, i * 45);
+  }
+  async function enterBath() {
+    if (inPatio || out || inCar || inBath) { toast("Primero volvé a casa con " + S.name + "."); return; }
+    while (busy) await sleep(150);
+    busy = true;
+    talk(pick(["¿El baño? No, {a}…", "¿Me vas a bañar, {a}?"]));
+    await walkTo(30, false); pet.classList.add("gone"); await sleep(500);
+    scene.classList.add("inbath"); $("bath").hidden = false; $("tub").hidden = false; inBath = true;
+    pet.style.transition = "none"; x = 50; place(); setDepth(27, 1); flip.classList.remove("left");
+    pet.classList.remove("gone"); setPose("sit"); whine();
+    $("bathbar").hidden = false;
+    toast("Están en el baño. Tocá \"Enjabonar\" y pasá el dedo o el mouse por " + S.name + ".", 4000);
+    busy = false;
+  }
+  $("bSoap").onclick = () => { scrubbing = !scrubbing; bathBtn(scrubbing ? "bSoap" : ""); scene.classList.toggle("scrub", scrubbing);
+    if (scrubbing) toast("Pasá el dedo o el mouse por " + S.name + " para hacer espuma.", 3000); };
+  $("bRinse").onclick = () => guard(async () => {
+    scrubbing = false; scene.classList.remove("scrub"); bathBtn("bRinse");
+    $("shower").classList.add("on");
+    for (let i = 0; i < 6; i++) noise(0.5, 0.06, i * 0.45, 5000);
+    [...foamBox.children].forEach((f, n) => setTimeout(() => { f.classList.add("gone"); setTimeout(() => f.remove(), 900); }, 300 + n * 25));
+    talk(pick(["¡Está fría, {a}!", "Uy, el agua…"]));
+    await sleep(2600); $("shower").classList.remove("on"); foamCount = 0;
+    flip.animate([{ transform: "translateX(0)" }, { transform: "translateX(-5%) rotate(-3deg)" }, { transform: "translateX(5%) rotate(3deg)" }, { transform: "translateX(0)" }], { duration: 200, iterations: 3 });
+    screenDrops(10); bathBtn("");
+  });
+  $("bDry").onclick = () => guard(async () => {
+    scrubbing = false; scene.classList.remove("scrub"); bathBtn("bDry");
+    $("towel").hidden = false; setPose("happy"); wag(true);
+    await sleep(2200); $("towel").hidden = true;
+    // se sacude
+    const f = flip.animate([{ transform: "translateX(0)" }, { transform: "translateX(-6%) rotate(-4deg)" }, { transform: "translateX(6%) rotate(4deg)" }, { transform: "translateX(0)" }], { duration: 220, iterations: 4 });
+    for (let i = 0; i < 10; i++) { const d = document.createElement("i"); d.style.cssText = "position:absolute;width:1.2%;aspect-ratio:1;border-radius:50%;background:#9fcde3;left:" + (45 + Math.random() * 10) + "%;top:" + (40 + Math.random() * 15) + "%;transition:transform .7s ease-out, opacity .7s"; foamBox.appendChild(d); requestAnimationFrame(() => { d.style.transform = "translate(" + ((Math.random() - .5) * 600) + "%," + ((Math.random() - .3) * 500) + "%)"; d.style.opacity = 0; }); setTimeout(() => d.remove(), 800); }
+    screenDrops(22);
+    await f.finished.catch(() => {});
+    toast(S.name + " se sacudió y te mojó toda la pantalla.", 3000);
+    await sleep(1200);
+    talk(pick(["¡Ya estoy limpito, {a}!", "Qué rico olor."])); hearts(4); bump("carino", 10);
+    await sleep(900); wag(false); bathBtn("");
+  });
+  $("bTeeth").onclick = () => guard(async () => {
+    scrubbing = false; scene.classList.remove("scrub"); bathBtn("bTeeth");
+    const lick = $("lick");
+    pet.style.visibility = "hidden"; lick.hidden = false; $("brush").hidden = false;
+    for (let i = 0; i < 8; i++) tone(2200, 1800, 0.12, "triangle", 0.03, i * 0.35);
+    toast("Le estás lavando los dientes a " + S.name + ".", 3000);
+    await sleep(3000);
+    $("brush").hidden = true; lick.hidden = true; pet.style.visibility = "";
+    talk(pick(["Gracias, {a}. Tengo los dientes blanquitos.", "¡Qué fresquito!"])); bathBtn("");
+  });
+  $("bOut").onclick = async () => {
+    while (busy) await sleep(150);
+    busy = true; scrubbing = false; scene.classList.remove("scrub"); bathBtn("");
+    $("bathbar").hidden = true; [...foamBox.children].forEach((f) => f.remove()); foamCount = 0;
+    pet.classList.add("gone"); await sleep(400);
+    scene.classList.remove("inbath"); $("bath").hidden = true; $("tub").hidden = true; inBath = false; clearDepth();
+    x = 30; place(); pet.classList.remove("gone");
+    await walkTo(52, true); setPose("happy sit"); wag(true);
+    toast(S.name + " quedó limpito y perfumado.", 3000); talk(pick(["Gracias por bañarme, {a}. Te amo.", "¡Estoy limpito!"])); hearts(5);
+    S.done = S.done || {}; S.done.bano = today(); renderNeeds();
+    await sleep(1400); wag(false); busy = false; nextAuto = Date.now() + 6000;
+  };
+  $("aBath").onclick = enterBath;
   async function enterCar() {
-    if (inPatio || out || inCar) { toast("Primero volvé a casa con " + S.name + "."); return; }
+    if (inPatio || out || inCar || inBath) { toast("Primero volvé a casa con " + S.name + "."); return; }
     while (busy) await sleep(150);
     busy = true;
     talk(pick(["¡Vamos a pasear, {a}!", "¿Vamos en el auto? ¡Sí!"]));
@@ -1391,14 +1526,14 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     NEEDS.forEach(([k]) => { S.needs[k] = Math.max(0, S.needs[k] - rate * w[k] * (0.6 + Math.random() * 0.8)); });
     renderNeeds();
     const now = Date.now();
-    if (!busy && now > nextAsk && !asking && !inPatio && !inCar) {
+    if (!busy && now > nextAsk && !asking && !inPatio && !inCar && !inBath) {
       const low = NEEDS.map(([k]) => k).filter((k) => S.needs[k] < 35).sort((a, b) => S.needs[a] - S.needs[b])[0];
       if (low) { nextAsk = now + (fast ? 11000 : 40000); ask(low); return; }
     }
     if (asking && !busy && now > nextAsk) { const k = asking; asking = null; document.querySelectorAll(".call").forEach((b) => b.classList.remove("call")); }
     if (!busy && now > nextAuto) autonomous();
     if (++ticks % 5 === 0) save();
-    if (S.talk && !busy && !out && !inCar && Math.random() < (fast ? 0.035 : 0.012)) chatter();
+    if (S.talk && !busy && !out && !inCar && !inBath && Math.random() < (fast ? 0.035 : 0.012)) chatter();
   }, 1000);
 
   /* ---------- inicio ---------- */
