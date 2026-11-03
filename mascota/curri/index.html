@@ -264,6 +264,24 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 4vw
 .scene.inbath .pet { width: 20%; }
 .scene.inbath :is(.sofa, .tv, .bowl, .door, .floor, .paws, .bed, .plush, .ball) { visibility: hidden; }
 .scene.scrub { cursor: grab; }
+.walk { position: absolute; inset: 0; z-index: 4; background: #cfe6f2; }
+.walk canvas { display: block; width: 100%; height: 100%; }
+.avatar { position: absolute; left: 18%; bottom: 5%; height: 64%; aspect-ratio: 100 / 220; z-index: 6; pointer-events: none; }
+.avatar svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.avatar svg * { transform-box: fill-box; }
+.avatar .lg { transform-origin: 50% 0; }
+.avatar .armb { transform-origin: 50% 0; }
+.avatar.walking .lg.a { animation: step .5s ease-in-out infinite alternate; }
+.avatar.walking .lg.b { animation: step .5s ease-in-out infinite alternate-reverse; }
+.avatar.walking .armb { animation: step .5s ease-in-out infinite alternate-reverse; }
+.avatar.walking svg { animation: bob .25s ease-in-out infinite alternate; }
+@keyframes bob { to { transform: translateY(-1.2%); } }
+.leash { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 6; pointer-events: none; overflow: visible; }
+.walkpick { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 11; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; max-width: 92%; }
+.walkpick b { font-family: var(--display); font-size: 1.15rem; }
+.walkpick .opts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.scene.inwalk .pet { width: 21%; }
+.scene.inwalk :is(.sofa, .tv, .bowl, .door, .floor, .paws, .bed, .plush, .ball) { visibility: hidden; }
 .atdoor { position: absolute; left: 68%; bottom: 19%; width: 23%; max-width: none; z-index: 6; pointer-events: none; }
 .hand { position: absolute; left: 60%; top: -42%; width: 36%; opacity: 0; pointer-events: none; transform-origin: 50% 100%; z-index: 2; transition: opacity .3s; }
 .hand svg { width: 100%; height: auto; display: block; }
@@ -371,6 +389,22 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     <div class="bowl water" id="bowlWater"><span></span></div>
     <div class="door" id="door" role="button" tabindex="0" aria-label="Abrir la puerta"><div class="panel"><div class="knob"></div></div></div>
     <div class="patio" id="patio" hidden></div>
+    <div class="walk" id="walk" hidden><canvas id="walkcv"></canvas></div>
+    <div class="avatar" id="avatar" hidden><svg viewBox="0 0 100 220" aria-hidden="true">
+      <defs><clipPath id="avClip"><circle cx="54" cy="40" r="22"/></clipPath></defs>
+      <g class="armb" id="avArmB"><rect x="40" y="76" width="11" height="52" rx="5.5" fill="#e8bf9c"/></g>
+      <g class="lg a"><rect x="40" y="134" width="13" height="70" rx="6" fill="#55657a"/><ellipse cx="50" cy="206" rx="11" ry="6" fill="#3a3f47"/></g>
+      <g class="lg b"><rect x="53" y="134" width="13" height="70" rx="6" fill="#4b5a6e"/><ellipse cx="63" cy="206" rx="11" ry="6" fill="#33383f"/></g>
+      <rect id="avShirt" x="34" y="66" width="40" height="76" rx="16" fill="#7aa883"/>
+      <path d="M66 78 Q 82 96 86 116" stroke="#e8bf9c" stroke-width="11" stroke-linecap="round" fill="none"/>
+      <circle id="avHand" cx="87" cy="119" r="6.5" fill="#e8bf9c"/>
+      <rect x="49" y="56" width="11" height="12" rx="4" fill="#e0b48f"/>
+      <g id="avFace"><circle cx="54" cy="40" r="22" fill="#efc9a6"/><path d="M32 36 Q 36 14 56 16 Q 76 17 76 36 Q 66 26 50 28 Q 40 29 32 36 Z" fill="#5a4334"/><circle cx="62" cy="40" r="2.4" fill="#2a2420"/><path d="M60 50 Q 66 53 71 48" stroke="#a5624f" stroke-width="2.4" fill="none" stroke-linecap="round"/></g>
+      <image id="avPhoto" x="32" y="18" width="44" height="44" clip-path="url(#avClip)" preserveAspectRatio="xMidYMid slice" href="" style="display:none"/>
+    </svg></div>
+    <svg class="leash" id="leash" hidden viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path id="leashPath" d="" fill="none" stroke="#b5654f" stroke-width="3" vector-effect="non-scaling-stroke" stroke-linecap="round"/></svg>
+    <div class="walkpick" id="walkpick" hidden><b>¿A dónde salen a pasear?</b><div class="opts"><button type="button" data-w="parque">Al parque</button><button type="button" data-w="playa">A la playa</button><button type="button" data-w="centro">Al centro</button><button type="button" data-w="vereda">Por la vereda</button></div><button type="button" id="walkCancel">Mejor no</button></div>
+    <div class="bathbar" id="walkbar" hidden><button type="button" id="wStop">Parar un ratito</button><button type="button" id="wGo">Seguir caminando</button><button type="button" id="wChange">Cambiar de lugar</button><button type="button" id="wHome">Volver a casa</button></div>
     <div class="bath" id="bath" hidden><div class="head"></div><div class="faucet"></div></div>
     <div class="tub" id="tub" hidden></div>
     <div class="foam" id="foam"></div>
@@ -439,6 +473,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     <button id="aPet" data-need="carino">Acariciarla</button>
     <button id="aKiss">Pedirle un besito</button>
     <button id="aCar">Pasear en auto</button>
+    <button id="aWalk">Salir a pasear</button>
     <button id="aBath">Bañarlo</button>
     <button id="aSound">Sonido: activado</button>
   </div>
@@ -486,6 +521,14 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
       <label class="switch"><input type="checkbox" id="cBed"> Tiene su cucha</label>
       <label class="switch"><input type="checkbox" id="cPlush"> Tiene un peluche que muerde y lleva a la cucha</label>
       <label class="field"><span>Foto de su peluche (opcional)</span><input type="file" id="cPlushPhoto" accept="image/*"></label>
+      <div class="row">
+        <label class="field" style="flex:1;min-width:150px"><span>Tu cara para el avatar del paseo</span><input type="file" id="cAvatar" accept="image/*"></label>
+        <label class="field" style="flex:1;min-width:120px"><span>Color de tu remera</span><select id="cShirt"><option value="#7aa883">Verde</option><option value="#7f9db8">Celeste</option><option value="#c98f86">Coral</option><option value="#9b8bb0">Lila suave</option><option value="#8a8f96">Gris</option></select></label>
+      </div>
+      <div class="row">
+        <label class="field" style="flex:1;min-width:120px"><span>Foto propia de un lugar de paseo</span><select id="cWalkPlace"><option value="parque">Parque</option><option value="playa">Playa</option><option value="centro">Centro</option><option value="vereda">Vereda</option></select></label>
+        <label class="field" style="flex:1;min-width:150px"><span>&nbsp;</span><input type="file" id="cWalkPhoto" accept="image/*"></label>
+      </div>
       <label class="field"><span>Foto del interior del auto (sin personas)</span><input type="file" id="cCar" accept="image/*"></label>
       <label class="field"><span>Foto del patio o del parque donde jugaba</span><input type="file" id="cPatio" accept="image/*"></label>
       <p class="note">En la versión final, con sus fotos y videos la IA la dibuja y la mueve igual que tu mascota. Curri ya es el real, hecho con IA a partir de sus fotos: espera, mueve la cola, camina, come, duerme, rasguña la puerta, golpea la pantalla con el hocico y se deja acariciar.</p>
@@ -589,6 +632,8 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     $("frame").style.backgroundImage = "url(" + (S.photo || PHOTO_DEFAULT) + ")"; $("frame").textContent = "";
     if (S.plushPhoto) $("plush").innerHTML = '<img alt="Su peluche" src="' + S.plushPhoto + '">';
     if (S.carPhoto) { $("car").classList.add("photo"); $("car").style.backgroundImage = "url(" + S.carPhoto + ")"; }
+    if (S.avatarPhoto) { $("avPhoto").setAttribute("href", S.avatarPhoto); $("avPhoto").style.display = ""; $("avFace").style.display = "none"; }
+    $("avShirt").setAttribute("fill", S.shirt || "#7aa883");
     $("patio").classList.add("photo"); $("patio").style.backgroundImage = "url(" + (S.patio || "patio-curri.jpg") + ")";
     scene.classList.add("photo"); scene.style.backgroundImage = "url(" + (S.house || "pared-curri.jpg") + ")";
   }
@@ -881,6 +926,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     const c = CHAR[S.char] || CHAR.juguetona;
     let act = c.acts[Math.floor(Math.random() * c.acts.length)];
     if (inBath) { busy = false; nextAuto = Date.now() + 5000; return; }
+    if (inWalk) { await walkLife(); busy = false; nextAuto = Date.now() + (4000 + Math.random() * 4000); return; }
     if (inCar) { await carLife(); busy = false; nextAuto = Date.now() + (3000 + Math.random() * 4000); return; }
     if (inPatio) {
       const P = ["plantas", "plantas", "pasto", "necesidad", "explorar", "run", "roll", "alerta"];
@@ -1128,6 +1174,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     try { const o = c.createOscillator(), g = c.createGain(); o.type = "sawtooth"; o.frequency.value = 42; g.gain.value = 0.025; o.connect(g).connect(c.destination); o.start(); engine = { o, g }; } catch (e) {}
   }
   function engineOff() { try { if (engine) { engine.o.stop(); engine = null; } } catch (e) {} }
+  function E(c, x, y, rx, ry) { c.moveTo(x + rx, y); c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); }
   let landRAF = null, landT0 = 0;
   const hsh = (n) => { const x = Math.sin(n * 127.1) * 43758.5453; return x - Math.floor(x); };
   function drawLand(ts) {
@@ -1141,7 +1188,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     // nubes
     c.fillStyle = "rgba(255,255,255,.85)";
     for (let i = 0; i < 4; i++) { const sp = W * 0.6, x = ((i * sp - t * W * 0.012 * slow) % (sp * 4) + sp * 4) % (sp * 4) - sp * 0.5, y = H * (0.1 + 0.08 * hsh(i));
-      c.beginPath(); c.ellipse(x, y, W * 0.08, H * 0.05, 0, 0, 7); c.ellipse(x + W * 0.06, y + H * 0.01, W * 0.06, H * 0.04, 0, 0, 7); c.ellipse(x - W * 0.05, y + H * 0.015, W * 0.05, H * 0.035, 0, 0, 7); c.fill(); }
+      c.beginPath(); E(c, x, y, W * 0.08, H * 0.05, 0, 0, 7); E(c, x + W * 0.06, y + H * 0.01, W * 0.06, H * 0.04, 0, 0, 7); E(c, x - W * 0.05, y + H * 0.015, W * 0.05, H * 0.035, 0, 0, 7); c.fill(); }
     // lomas lejanas
     const o1 = t * W * 0.03 * slow;
     c.fillStyle = "#b5d2a7"; c.beginPath(); c.moveTo(0, H);
@@ -1150,7 +1197,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     // árboles del fondo
     const sp2 = W * 0.11, o2 = t * W * 0.08 * slow;
     for (let k = -1; k < W / sp2 + 2; k++) { const idx = k + Math.floor(o2 / sp2), x = k * sp2 - (o2 % sp2), s = 0.6 + hsh(idx) * 0.6, y = H * 0.58;
-      c.fillStyle = "#8db37f"; c.beginPath(); c.ellipse(x, y - H * 0.06 * s, W * 0.035 * s, H * 0.09 * s, 0, 0, 7); c.fill(); }
+      c.fillStyle = "#8db37f"; c.beginPath(); E(c, x, y - H * 0.06 * s, W * 0.035 * s, H * 0.09 * s, 0, 0, 7); c.fill(); }
     // pasto del parque
     c.fillStyle = "#a7c98c"; c.fillRect(0, H * 0.62, W, H);
     // árboles cercanos
@@ -1159,12 +1206,12 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
       const x = k * sp3 - (o3 % sp3) + hsh(idx) * sp3 * 0.4, s = 0.8 + hsh(idx + 3) * 0.5, base = H * 0.8;
       c.fillStyle = "#7a5a3c"; c.fillRect(x - W * 0.008 * s, base - H * 0.3 * s, W * 0.016 * s, H * 0.3 * s);
       c.fillStyle = hsh(idx + 5) < 0.5 ? "#5f8f5a" : "#6c9c62"; c.beginPath();
-      c.ellipse(x, base - H * 0.38 * s, W * 0.07 * s, H * 0.17 * s, 0, 0, 7); c.ellipse(x - W * 0.045 * s, base - H * 0.3 * s, W * 0.05 * s, H * 0.12 * s, 0, 0, 7); c.ellipse(x + W * 0.045 * s, base - H * 0.3 * s, W * 0.05 * s, H * 0.12 * s, 0, 0, 7); c.fill(); }
+      E(c, x, base - H * 0.38 * s, W * 0.07 * s, H * 0.17 * s, 0, 0, 7); E(c, x - W * 0.045 * s, base - H * 0.3 * s, W * 0.05 * s, H * 0.12 * s, 0, 0, 7); E(c, x + W * 0.045 * s, base - H * 0.3 * s, W * 0.05 * s, H * 0.12 * s, 0, 0, 7); c.fill(); }
     // caminito y arbustos que pasan rápido
     c.fillStyle = "#d8cbb0"; c.fillRect(0, H * 0.84, W, H * 0.05);
     const sp4 = W * 0.18, o4 = t * W * 0.6 * slow;
     for (let k = -1; k < W / sp4 + 2; k++) { const idx = k + Math.floor(o4 / sp4), x = k * sp4 - (o4 % sp4), s = 0.7 + hsh(idx + 7) * 0.6;
-      c.fillStyle = "#79a867"; c.beginPath(); c.ellipse(x, H * 0.97, W * 0.07 * s, H * 0.09 * s, 0, 0, 7); c.fill();
+      c.fillStyle = "#79a867"; c.beginPath(); E(c, x, H * 0.97, W * 0.07 * s, H * 0.09 * s, 0, 0, 7); c.fill();
       if (hsh(idx + 11) < 0.35) { c.fillStyle = hsh(idx) < 0.5 ? "#f3e3a0" : "#f2c4c8"; c.beginPath(); c.arc(x + W * 0.02, H * 0.93, W * 0.006, 0, 7); c.arc(x - W * 0.025, H * 0.95, W * 0.006, 0, 7); c.fill(); } }
     if (inCar) landRAF = requestAnimationFrame(drawLand);
   }
@@ -1203,8 +1250,161 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
       noise(0.04, 0.05, 0, 1200 + Math.random() * 1500);
     }, i * 45);
   }
+  /* ---------- paseos con tu avatar ---------- */
+  let inWalk = false, walkScene = "parque", walkMoving = true, walkOff = 0, walkLast = 0, walkRAF = null;
+  const walkImgs = {};
+  function walkImg(k) {
+    const src = S["walk_" + k]; if (!src) return null;
+    if (!walkImgs[k] || walkImgs[k].src !== src) { const im = new Image(); im.src = src; walkImgs[k] = im; }
+    return walkImgs[k].complete ? walkImgs[k] : null;
+  }
+  const PEOPLE = ["#c98f86", "#7f9db8", "#9b8bb0", "#d9b27a", "#7aa883", "#8a8f96"];
+  function drawWalk(ts) {
+    if (!inWalk) return;
+    const cv = $("walkcv"), r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+    const W = Math.max(10, Math.round(r.width * dpr)), H = Math.max(10, Math.round(r.height * dpr));
+    if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+    const dt = walkLast ? Math.min(0.05, (ts - walkLast) / 1000) : 0; walkLast = ts;
+    if (walkMoving) walkOff += dt * W * 0.18;
+    const c = cv.getContext("2d"), o = walkOff, t = ts / 1000, G = H * 0.74;
+    const img = walkImg(walkScene);
+    if (img) {
+      const sc = Math.max(W / img.width, H / img.height) * 1.15, iw = img.width * sc, ih = img.height * sc;
+      const px = (W - iw) / 2 + Math.sin(o / W * 0.6) * (iw - W) / 2;
+      c.drawImage(img, px, (H - ih) / 2, iw, ih);
+    } else if (walkScene === "playa") {
+      const sk = c.createLinearGradient(0, 0, 0, H * 0.45); sk.addColorStop(0, "#bfe0f2"); sk.addColorStop(1, "#e9f4f3"); c.fillStyle = sk; c.fillRect(0, 0, W, H);
+      c.fillStyle = "#7fb9d6"; c.fillRect(0, H * 0.42, W, H * 0.2);
+      c.strokeStyle = "rgba(255,255,255,.7)"; c.lineWidth = Math.max(1, H * 0.006);
+      for (let k = 0; k < 4; k++) { const y = H * (0.47 + k * 0.035); c.beginPath(); for (let x = 0; x <= W; x += 8) c.lineTo(x, y + Math.sin((x + o * 0.15 + k * 40) / W * 18 + t * 1.5) * H * 0.006); c.stroke(); }
+      c.fillStyle = "#e9d8b4"; c.fillRect(0, H * 0.6, W, H);
+      c.fillStyle = "rgba(255,255,255,.75)"; c.beginPath(); c.moveTo(0, H * 0.6);
+      for (let x = 0; x <= W; x += 8) c.lineTo(x, H * 0.605 + Math.sin(x / W * 9 + t * 1.2) * H * 0.01); c.lineTo(W, H * 0.6); c.fill();
+      const sp = W * 0.45; for (let k = -1; k < W / sp + 2; k++) { const idx = k + Math.floor(o * 0.5 / sp), x = k * sp - ((o * 0.5) % sp);
+        if (hsh(idx) < 0.5) { c.fillStyle = "#8a6b4a"; c.fillRect(x, H * 0.52, W * 0.006, H * 0.18); c.fillStyle = hsh(idx + 1) < 0.5 ? "#e8a58f" : "#9fc3d8"; c.beginPath(); c.moveTo(x - W * 0.06, H * 0.53); c.quadraticCurveTo(x, H * 0.44, x + W * 0.06, H * 0.53); c.fill(); } }
+      c.fillStyle = "#dcc79f"; c.fillRect(0, G, W, H - G);
+    } else if (walkScene === "centro") {
+      c.fillStyle = "#dfe9ef"; c.fillRect(0, 0, W, H);
+      const sp = W * 0.2, oo = o * 0.6;
+      for (let k = -1; k < W / sp + 2; k++) { const idx = k + Math.floor(oo / sp), x = k * sp - (oo % sp), h = H * (0.38 + hsh(idx) * 0.3);
+        c.fillStyle = ["#d8cbbb", "#c9d3d8", "#e3d3c4", "#cbd6c7", "#d6cfd9"][Math.floor(hsh(idx + 2) * 5)]; c.fillRect(x, G - h, sp - W * 0.004, h);
+        c.fillStyle = "rgba(90,120,140,.35)"; for (let wy = G - h + H * 0.04; wy < G - H * 0.16; wy += H * 0.07) for (let wx = x + sp * 0.12; wx < x + sp * 0.85; wx += sp * 0.26) c.fillRect(wx, wy, sp * 0.14, H * 0.04);
+        c.fillStyle = hsh(idx + 4) < 0.5 ? "#b5654f" : "#5f8f66"; c.fillRect(x, G - H * 0.15, sp - W * 0.004, H * 0.025);
+        c.fillStyle = "rgba(255,255,255,.55)"; for (let sx = x; sx < x + sp; sx += sp * 0.1) c.fillRect(sx, G - H * 0.15, sp * 0.05, H * 0.025);
+        c.fillStyle = "rgba(60,70,80,.25)"; c.fillRect(x + sp * 0.15, G - H * 0.12, sp * 0.5, H * 0.12); }
+      c.fillStyle = "#c8c6c0"; c.fillRect(0, G, W, H - G);
+      c.strokeStyle = "rgba(0,0,0,.08)"; c.lineWidth = 2; const ts2 = W * 0.08; for (let x = -((o) % ts2); x < W; x += ts2) { c.beginPath(); c.moveTo(x, G); c.lineTo(x - W * 0.04, H); c.stroke(); }
+      const ps = W * 0.23, po = o * 1.6 + t * W * 0.06;
+      for (let k = -1; k < W / ps + 2; k++) { const idx = k + Math.floor(po / ps); if (hsh(idx + 21) < 0.35) continue;
+        const x = k * ps - (po % ps) + hsh(idx) * ps * 0.4, s = 0.85 + hsh(idx + 5) * 0.3, base = G + H * 0.06, bob = Math.abs(Math.sin(t * 6 + idx)) * H * 0.008;
+        c.fillStyle = PEOPLE[Math.floor(hsh(idx + 7) * PEOPLE.length)];
+        c.beginPath(); E(c, x, base - H * 0.2 * s - bob, W * 0.022 * s, H * 0.1 * s, 0, 0, 7); c.fill();
+        c.fillStyle = "#5a5f66"; c.fillRect(x - W * 0.012 * s, base - H * 0.12 * s - bob, W * 0.01 * s, H * 0.12 * s); c.fillRect(x + W * 0.002 * s, base - H * 0.12 * s - bob, W * 0.01 * s, H * 0.12 * s);
+        c.fillStyle = "#e3bf9d"; c.beginPath(); c.arc(x, base - H * 0.33 * s - bob, H * 0.035 * s, 0, 7); c.fill(); }
+    } else if (walkScene === "vereda") {
+      const sk = c.createLinearGradient(0, 0, 0, H * 0.5); sk.addColorStop(0, "#c6e1ef"); sk.addColorStop(1, "#edf4ee"); c.fillStyle = sk; c.fillRect(0, 0, W, H);
+      const sp = W * 0.34, oo = o * 0.55;
+      for (let k = -1; k < W / sp + 2; k++) { const idx = k + Math.floor(oo / sp), x = k * sp - (oo % sp), hw = sp * 0.8, hh = H * 0.24, top = G - H * 0.08 - hh;
+        c.fillStyle = ["#efe4d2", "#e2ead9", "#f1dfd6", "#dfe6ea"][Math.floor(hsh(idx) * 4)]; c.fillRect(x, top, hw, hh);
+        c.fillStyle = ["#b5654f", "#8a6b5a", "#9a7f6a"][Math.floor(hsh(idx + 1) * 3)]; c.beginPath(); c.moveTo(x - sp * 0.04, top); c.lineTo(x + hw / 2, top - H * 0.12); c.lineTo(x + hw + sp * 0.04, top); c.fill();
+        c.fillStyle = "#8a6b4a"; c.fillRect(x + hw * 0.1, top + hh * 0.35, hw * 0.16, hh * 0.65);
+        c.fillStyle = "#a9c7d6"; c.fillRect(x + hw * 0.45, top + hh * 0.3, hw * 0.35, hh * 0.3);
+        c.fillStyle = "#d8d2c6"; for (let fx = x - sp * 0.1; fx < x + sp; fx += W * 0.018) c.fillRect(fx, G - H * 0.12, W * 0.008, H * 0.07);
+        c.fillRect(x - sp * 0.1, G - H * 0.1, sp * 1.1, H * 0.01); }
+      const tsp = W * 0.5, to = o;
+      for (let k = -1; k < W / tsp + 2; k++) { const idx = k + Math.floor(to / tsp), x = k * tsp - (to % tsp) + W * 0.1;
+        c.fillStyle = "#7a5a3c"; c.fillRect(x, G - H * 0.28, W * 0.014, H * 0.3); c.fillStyle = hsh(idx) < 0.5 ? "#6c9c62" : "#5f8f5a"; c.beginPath(); E(c, x + W * 0.007, G - H * 0.36, W * 0.07, H * 0.13, 0, 0, 7); c.fill(); }
+      c.fillStyle = "#cfcac0"; c.fillRect(0, G, W, H - G);
+      c.strokeStyle = "rgba(0,0,0,.09)"; c.lineWidth = 2; const ts2 = W * 0.09; for (let x = -(o % ts2); x < W; x += ts2) { c.beginPath(); c.moveTo(x, G); c.lineTo(x - W * 0.03, H); c.stroke(); }
+    } else {
+      const sk = c.createLinearGradient(0, 0, 0, H * 0.6); sk.addColorStop(0, "#bfdcef"); sk.addColorStop(1, "#e7f2ea"); c.fillStyle = sk; c.fillRect(0, 0, W, H);
+      c.fillStyle = "rgba(255,255,255,.85)";
+      for (let i = 0; i < 4; i++) { const sp = W * 0.6, x = ((i * sp - o * 0.05) % (sp * 4) + sp * 4) % (sp * 4) - sp * 0.5, y = H * (0.08 + 0.06 * hsh(i)); c.beginPath(); E(c, x, y, W * 0.08, H * 0.045, 0, 0, 7); E(c, x + W * 0.06, y + H * 0.01, W * 0.06, H * 0.035, 0, 0, 7); c.fill(); }
+      c.fillStyle = "#b5d2a7"; c.beginPath(); c.moveTo(0, H); for (let x = 0; x <= W; x += 6) c.lineTo(x, H * 0.45 + Math.sin((x + o * 0.15) / W * 5) * H * 0.04); c.lineTo(W, H); c.fill();
+      const sp2 = W * 0.38, o2 = o * 0.5;
+      for (let k = -1; k < W / sp2 + 2; k++) { const idx = k + Math.floor(o2 / sp2), x = k * sp2 - (o2 % sp2) + hsh(idx) * sp2 * 0.3, s = 0.8 + hsh(idx + 3) * 0.5, base = G - H * 0.02;
+        c.fillStyle = "#7a5a3c"; c.fillRect(x - W * 0.008 * s, base - H * 0.3 * s, W * 0.016 * s, H * 0.3 * s);
+        c.fillStyle = hsh(idx + 5) < 0.5 ? "#5f8f5a" : "#6c9c62"; c.beginPath(); E(c, x, base - H * 0.38 * s, W * 0.07 * s, H * 0.16 * s, 0, 0, 7); E(c, x - W * 0.045 * s, base - H * 0.3 * s, W * 0.05 * s, H * 0.11 * s, 0, 0, 7); E(c, x + W * 0.045 * s, base - H * 0.3 * s, W * 0.05 * s, H * 0.11 * s, 0, 0, 7); c.fill(); }
+      c.fillStyle = "#a7c98c"; c.fillRect(0, G - H * 0.02, W, H);
+      c.fillStyle = "#dccfb2"; c.fillRect(0, G + H * 0.03, W, H);
+    }
+    // correa: de la mano del avatar al cuello de la mascota
+    const sc = scene.getBoundingClientRect(), hand = $("avHand").getBoundingClientRect(), pr = pet.getBoundingClientRect();
+    if (sc.width) {
+      const hx = (hand.left + hand.width / 2 - sc.left) / sc.width * 100, hy = (hand.top + hand.height / 2 - sc.top) / sc.height * 100;
+      const lf = flip.classList.contains("left"), nx = (pr.left + pr.width * (lf ? 0.3 : 0.7) - sc.left) / sc.width * 100, ny = (pr.top + pr.height * 0.42 - sc.top) / sc.height * 100;
+      const mx = (hx + nx) / 2, my = Math.max(hy, ny) + (walkMoving ? 4 : 9);
+      $("leashPath").setAttribute("d", "M" + hx.toFixed(2) + " " + hy.toFixed(2) + " Q " + mx.toFixed(2) + " " + my.toFixed(2) + " " + nx.toFixed(2) + " " + ny.toFixed(2));
+    }
+    walkRAF = requestAnimationFrame(drawWalk);
+  }
+  function setMoving(m) {
+    walkMoving = m;
+    $("avatar").classList.toggle("walking", m);
+    pet.classList.toggle("walking", m);
+    if (!m) setPose("sit");
+  }
+  function showWalkPick() {
+    if (inPatio || out || inCar || inBath || (typeof inWalk !== "undefined" && inWalk)) { toast("Primero volvé a casa con " + S.name + "."); return; }
+    $("walkpick").hidden = false;
+  }
+  async function enterWalk(where) {
+    $("walkpick").hidden = true;
+    while (busy) await sleep(150);
+    busy = true;
+    walkScene = where;
+    if (!inWalk) {
+      talk(pick(["¡Vamos a pasear, {a}!", "¡Sí! ¡Paseo!"])); wag(true); bark(1);
+      const door = $("door"); door.classList.add("open");
+      await walkTo(84, true); pet.classList.add("gone"); await sleep(400); door.classList.remove("open");
+      scene.classList.add("inwalk"); $("walk").hidden = false; $("avatar").hidden = false; $("leash").removeAttribute("hidden"); $("walkbar").hidden = false;
+      inWalk = true; pet.style.transition = "none"; x = 60; place(); setDepth(6, 1); flip.classList.remove("left");
+      pet.classList.remove("gone");
+      walkLast = 0; cancelAnimationFrame(walkRAF); walkRAF = requestAnimationFrame(drawWalk);
+    }
+    setMoving(true);
+    toast({ parque: "Salieron a pasear por el parque.", playa: "Salieron a caminar por la playa.", centro: "Salieron a pasear por el centro.", vereda: "Salieron a dar una vuelta por la vereda." }[where], 3000);
+    await sleep(1200); wag(false); busy = false; nextAuto = Date.now() + 4000;
+  }
+  async function leaveWalk() {
+    while (busy) await sleep(150);
+    busy = true; inWalk = false; cancelAnimationFrame(walkRAF);
+    ["walk", "avatar", "walkbar", "walkpick"].forEach((id) => { $(id).hidden = true; }); $("leash").setAttribute("hidden", "");
+    $("avatar").classList.remove("walking"); pet.classList.remove("walking");
+    scene.classList.remove("inwalk"); clearDepth();
+    const door = $("door"); door.classList.add("open"); pet.classList.add("gone"); x = 86; place(); await sleep(300); pet.classList.remove("gone");
+    await walkTo(55, true); door.classList.remove("open");
+    bump("salir", 100); S.needs.sed = Math.max(0, S.needs.sed - 18); renderNeeds();
+    setPose("happy sit"); talk(pick(["Qué lindo paseo, {a}. Te amo.", "Gracias por sacarme, {a}."])); hearts(4); wag(true);
+    await sleep(1400); wag(false); busy = false; nextAuto = Date.now() + 6000;
+  }
+  async function walkLife() {
+    const r = Math.random();
+    if (!walkMoving) { if (r < 0.5) { setPose("happy"); wag(true); await sleep(1500); wag(false); setPose("sit"); } return; }
+    if (r < 0.28) {
+      setMoving(false); setPose("tilt"); toast(S.name + " se paró a olfatear algo.", 2400);
+      await sleep(2600); setMoving(true);
+    } else if (r < 0.48) {
+      setPose(""); angryBark();
+      toast({ parque: S.name + " le ladra a una paloma.", playa: S.name + " le ladra a las gaviotas.", centro: S.name + " le ladra a un perro que pasó.", vereda: S.name + " le ladra al perro del vecino." }[walkScene], 2600);
+      await sleep(1800); pet.classList.add("walking");
+    } else if (r < 0.66) {
+      toast(S.name + " tira de la correa, quiere ir más rápido.", 2400);
+      const a = pet.animate([{ transform: pet.style.transform }, { transform: pet.style.transform + " translateX(14%)" }, { transform: pet.style.transform }], { duration: 1600, easing: "ease-in-out" });
+      await a.finished.catch(() => {});
+    } else if (r < 0.8) {
+      talk(pick(["¡Qué lindo, {a}!", "Me encanta pasear con vos.", "¿Vamos más lejos, {a}?"]));
+    }
+  }
+  $("aWalk").onclick = showWalkPick;
+  $("walkCancel").onclick = () => { $("walkpick").hidden = true; };
+  document.querySelectorAll("#walkpick [data-w]").forEach((b) => b.onclick = () => enterWalk(b.dataset.w));
+  $("wStop").onclick = () => { if (inWalk) setMoving(false); };
+  $("wGo").onclick = () => { if (inWalk) setMoving(true); };
+  $("wChange").onclick = () => { if (inWalk) $("walkpick").hidden = false; };
+  $("wHome").onclick = leaveWalk;
   async function enterBath() {
-    if (inPatio || out || inCar || inBath) { toast("Primero volvé a casa con " + S.name + "."); return; }
+    if (inPatio || out || inCar || inBath || (typeof inWalk !== "undefined" && inWalk)) { toast("Primero volvé a casa con " + S.name + "."); return; }
     while (busy) await sleep(150);
     busy = true;
     talk(pick(["¿El baño? No, {a}…", "¿Me vas a bañar, {a}?"]));
@@ -1266,7 +1466,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
   };
   $("aBath").onclick = enterBath;
   async function enterCar() {
-    if (inPatio || out || inCar || inBath) { toast("Primero volvé a casa con " + S.name + "."); return; }
+    if (inPatio || out || inCar || inBath || (typeof inWalk !== "undefined" && inWalk)) { toast("Primero volvé a casa con " + S.name + "."); return; }
     while (busy) await sleep(150);
     busy = true;
     talk(pick(["¡Vamos a pasear, {a}!", "¿Vamos en el auto? ¡Sí!"]));
@@ -1488,6 +1688,8 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
   $("cVoice").addEventListener("change", () => { S.voice = $("cVoice").value; findVoice(); save(); });
   $("cTry").onclick = () => { const was = S.talk; S.talk = true; ac(); talk(pick(["Te amo mucho, {a}.", "Vení, vamos a jugar.", "{a}, dame agua."])); S.talk = was; };
   $("cTv").checked = !!S.tv; $("tv").hidden = !S.tv;
+  $("cShirt").value = S.shirt || "#7aa883";
+  $("cShirt").addEventListener("change", () => { S.shirt = $("cShirt").value; paint(); save(); });
   if (S.bed === undefined) S.bed = true; if (S.plush === undefined) S.plush = true;
   $("cBed").checked = S.bed; $("bed").hidden = !S.bed;
   $("cPlush").checked = S.plush; $("plush").hidden = !S.plush;
@@ -1496,25 +1698,26 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
   $("cTv").addEventListener("change", () => { S.tv = $("cTv").checked; $("tv").hidden = !S.tv; save(); });
   $("cName").addEventListener("input", () => { S.name = $("cName").value.trim() || "Curri"; paint(); renderLearned(); save(); });
   $("cChar").addEventListener("change", () => { S.char = $("cChar").value; renderLearned(); save(); });
-  function readImg(input, key) {
+  function readImg(input, keyArg) {
     input.addEventListener("change", () => {
       const f = input.files && input.files[0]; if (!f) return;
+      const key = typeof keyArg === "function" ? keyArg() : keyArg;
       const fr = new FileReader();
       fr.onload = () => {
         const img = new Image();
         img.onload = () => {
-          const max = key === "photo" || key === "plushPhoto" ? 500 : 1400, sc = Math.min(1, max / Math.max(img.width, img.height));
+          const max = key === "photo" || key === "plushPhoto" || key === "avatarPhoto" ? 500 : 1400, sc = Math.min(1, max / Math.max(img.width, img.height));
           const cv = document.createElement("canvas"); cv.width = img.width * sc; cv.height = img.height * sc;
           cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
           S[key] = cv.toDataURL("image/jpeg", 0.82); paint(); save();
-          toast({ house: "Ahora vive en tu casa.", patio: "Listo: ese es su patio.", carPhoto: "Listo: ese es el auto para pasear.", plushPhoto: "Listo: ese es su peluche." }[key] || "Su foto quedó en el cuadro.");
+          toast({ house: "Ahora vive en tu casa.", patio: "Listo: ese es su patio.", carPhoto: "Listo: ese es el auto para pasear.", plushPhoto: "Listo: ese es su peluche.", avatarPhoto: "Listo: ese sos vos en el paseo." }[key] || (String(key).startsWith("walk_") ? "Listo: ese es su lugar de paseo." : "") || "Su foto quedó en el cuadro.");
         };
         img.src = fr.result;
       };
       fr.readAsDataURL(f);
     });
   }
-  readImg($("cPhoto"), "photo"); readImg($("cHouse"), "house"); readImg($("cPatio"), "patio"); readImg($("cCar"), "carPhoto"); readImg($("cPlushPhoto"), "plushPhoto");
+  readImg($("cPhoto"), "photo"); readImg($("cHouse"), "house"); readImg($("cPatio"), "patio"); readImg($("cCar"), "carPhoto"); readImg($("cPlushPhoto"), "plushPhoto"); readImg($("cAvatar"), "avatarPhoto"); readImg($("cWalkPhoto"), () => "walk_" + $("cWalkPlace").value);
 
   /* ---------- reloj ---------- */
   let ticks = 0;
@@ -1526,14 +1729,14 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     NEEDS.forEach(([k]) => { S.needs[k] = Math.max(0, S.needs[k] - rate * w[k] * (0.6 + Math.random() * 0.8)); });
     renderNeeds();
     const now = Date.now();
-    if (!busy && now > nextAsk && !asking && !inPatio && !inCar && !inBath) {
+    if (!busy && now > nextAsk && !asking && !inPatio && !inCar && !inBath && !inWalk) {
       const low = NEEDS.map(([k]) => k).filter((k) => S.needs[k] < 35).sort((a, b) => S.needs[a] - S.needs[b])[0];
       if (low) { nextAsk = now + (fast ? 11000 : 40000); ask(low); return; }
     }
     if (asking && !busy && now > nextAsk) { const k = asking; asking = null; document.querySelectorAll(".call").forEach((b) => b.classList.remove("call")); }
     if (!busy && now > nextAuto) autonomous();
     if (++ticks % 5 === 0) save();
-    if (S.talk && !busy && !out && !inCar && !inBath && Math.random() < (fast ? 0.035 : 0.012)) chatter();
+    if (S.talk && !busy && !out && !inCar && !inBath && !inWalk && Math.random() < (fast ? 0.035 : 0.012)) chatter();
   }, 1000);
 
   /* ---------- inicio ---------- */
