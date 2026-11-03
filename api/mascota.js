@@ -130,6 +130,28 @@ module.exports = async (req, res) => {
       return res.status(200).json({ url: j.init_point });
     }
 
+    if (a === 'manifest') { // para instalar SU mascota en el celular, con su nombre y su link
+      const c = String(q.c || ''), k = String(q.k || '');
+      const p = okId(c) ? await leer(c) : null;
+      const ok = p && p.k === k;
+      const nombre = ok ? (p.mascota || 'Mi mascota') : 'Siempre Conmigo';
+      res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+      return res.status(200).send(JSON.stringify({
+        name: nombre + ' · Siempre Conmigo', short_name: nombre.slice(0, 12),
+        description: 'Tu mascota, siempre con vos.',
+        id: '/mascota/jugar/?c=' + (ok ? c : ''),
+        start_url: ok ? '/mascota/jugar/?c=' + c + '&k=' + k : '/mascota/jugar/',
+        scope: '/mascota/jugar/', display: 'standalone', orientation: 'any',
+        background_color: '#eef3ec', theme_color: '#5f8f66', lang: 'es',
+        icons: [
+          { src: '/mascota/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/mascota/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/mascota/icons/maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+          { src: '/mascota/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+        ]
+      }));
+    }
+
     if (a === 'estado') {
       if (!okId(q.id)) return res.status(400).json({ error: 'Pedido inválido.' });
       let p = await leer(q.id);

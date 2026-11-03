@@ -367,6 +367,7 @@ body.kids .stars { display: flex; }
 .confetti { position: absolute; z-index: 13; font-size: 1.6rem; pointer-events: none; animation: conf 2.2s ease-in forwards; }
 @keyframes conf { from { transform: translateY(-20px) rotate(0); opacity: 1; } to { transform: translateY(110%) rotate(320deg); opacity: 0; } }
 .demobar { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; justify-content: center; background: #fff9e4; border: 1px solid #e7c766; color: var(--ink); border-radius: 12px; padding: 8px 14px; font-weight: 700; }
+.demobar button { font: inherit; font-weight: 700; color: var(--ink); background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 999px; padding: 4px 12px; cursor: pointer; }
 .demobar a { color: var(--ink); background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 999px; padding: 4px 12px; text-decoration: none; }
 .atdoor { position: absolute; left: 68%; bottom: 19%; width: 23%; max-width: none; z-index: 6; pointer-events: none; }
 .hand { position: absolute; left: 60%; top: -42%; width: 36%; opacity: 0; pointer-events: none; transform-origin: 50% 100%; z-index: 2; transition: opacity .3s; }
@@ -463,6 +464,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     <div class="row" style="justify-content:flex-end"><p class="sub">Tocá la pantalla una vez para activar los sonidos.</p><button type="button" class="kidsToggle" id="kidsToggle">Modo chicos</button></div>
   </header>
 
+  <div class="demobar" id="installbar" hidden><span id="installText">📲 Guardala en tu celular y la abrís siempre con un toque, sin buscar el link.</span> <button type="button" id="installBtn">Guardar en el celular</button></div>
   <div class="demobar" id="demobar" hidden><span id="demoText">Esta es Curri, una mascota de muestra.</span> <a href="/mascota/#pedido" id="demoLink">Quiero la mía</a></div>
   <div class="scene" id="scene" aria-label="La habitación de la mascota">
     <div class="window wallart"></div>
@@ -684,7 +686,37 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
   };
   const MODE = window.SC_MODE || "full";   // full (prototipo), demo (Curri de muestra), play (la comprada)
   const QS = new URLSearchParams(location.search), LIC = { c: QS.get("c") || "", k: QS.get("k") || "" };
+  if (MODE === "play" && !LIC.c) {
+    try { const u = JSON.parse(localStorage.getItem("sc-ultima") || "null"); if (u && u.c) { location.replace("/mascota/jugar/?c=" + encodeURIComponent(u.c) + "&k=" + encodeURIComponent(u.k)); return; } } catch (e) {}
+  }
   const STORE = MODE === "play" && /^[a-z0-9]{10,24}$/.test(LIC.c) ? "sc-" + LIC.c : "mascota-v2";
+  /* ---------- guardarla en el celular como app ---------- */
+  let installEv = null;
+  const standalone = () => (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (MODE === "play" && LIC.c) {
+    const add = (tag, at) => { const el = document.createElement(tag); Object.keys(at).forEach((k) => el.setAttribute(k, at[k])); document.head.appendChild(el); };
+    add("link", { rel: "manifest", href: "/api/mascota?accion=manifest&c=" + encodeURIComponent(LIC.c) + "&k=" + encodeURIComponent(LIC.k) });
+    add("link", { rel: "apple-touch-icon", href: "/mascota/icons/apple-180.png" });
+    add("meta", { name: "theme-color", content: "#5f8f66" });
+    add("meta", { name: "apple-mobile-web-app-capable", content: "yes" });
+    if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("/mascota/jugar/sw.js", { scope: "/mascota/jugar/" }).catch(() => {}));
+    window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEv = e; offerInstall(); });
+    window.addEventListener("appinstalled", () => { document.getElementById("installbar").hidden = true; });
+  }
+  function offerInstall() {
+    if (MODE !== "play" || !LIC.c || standalone()) return;
+    const bar = document.getElementById("installbar");
+    if (!installEv && !isIOS) return;
+    bar.hidden = false;
+  }
+  document.getElementById("installBtn").onclick = async () => {
+    if (installEv) { installEv.prompt(); try { const r = await installEv.userChoice; if (r && r.outcome === "accepted") document.getElementById("installbar").hidden = true; } catch (e) {} installEv = null; return; }
+    document.getElementById("installText").textContent = isIOS
+      ? "En el iPhone: tocá el botón Compartir (el cuadrado con la flecha para arriba) y elegí “Agregar a inicio”."
+      : "En el menú del navegador (los tres puntitos) elegí “Agregar a la pantalla principal” o “Instalar app”.";
+    document.getElementById("installBtn").hidden = true;
+  };
   let S = Object.assign({}, defaults);
   try {
     const raw = localStorage.getItem(STORE);
@@ -1880,6 +1912,9 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     fetch("/api/mascota?accion=estado&id=" + encodeURIComponent(LIC.c) + "&k=" + encodeURIComponent(LIC.k)).then((r) => r.json()).then((j) => {
       if (!j.pagado) { $("demobar").hidden = false; $("demoText").textContent = "Todavía no se confirmó el pago. Probá de nuevo en un rato."; $("demoLink").hidden = true; return; }
       $("demobar").hidden = true;
+      try { localStorage.setItem("sc-ultima", JSON.stringify({ c: LIC.c, k: LIC.k })); } catch (e) {}
+      document.title = (j.mascota || S.name) + " · Siempre Conmigo";
+      offerInstall();
       if (!S.licensed) {
         S.licensed = true; S.elegida = j.elegida || "curri";
         if (j.mascota) S.name = j.mascota;
