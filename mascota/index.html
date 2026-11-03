@@ -249,12 +249,13 @@ footer { text-align: center; font-size: .85rem; color: var(--muted); }
   document.querySelectorAll('input[name="tipo"]').forEach((r) => r.addEventListener("change", modo));
   modo();
   fetch("/api/mascota?accion=precios").then((r) => r.json()).then((j) => {
-    if (j.generica) { $("pGen").textContent = fmt(j.generica); document.querySelectorAll(".fGen").forEach((e) => (e.textContent = fmt(j.generica))); }
+    if (j.generica) { if (!(PRUEBA && TOK)) $("pGen").textContent = fmt(j.generica); document.querySelectorAll(".fGen").forEach((e) => (e.textContent = fmt(j.generica))); }
     if (j.propia) { $("pPropia").textContent = fmt(j.propia); document.querySelectorAll(".fProp").forEach((e) => (e.textContent = fmt(j.propia))); }
   }).catch(() => {});
   function error(t) { const e = $("err"); e.textContent = t; e.hidden = !t; }
   const PRUEBA = new URLSearchParams(location.search).has("prueba");
   let TOK = ""; try { TOK = (JSON.parse(localStorage.getItem("v360-sesion") || "null") || {}).access_token || ""; } catch (x) {}
+  if (PRUEBA && TOK) $("pGen").textContent = "$1.000 (prueba)";
   if (PRUEBA) { const n = document.createElement("p"); n.className = "err"; n.textContent = TOK ? "Compra de prueba: se cobra $1.000 (solo para vos)." : "Para la compra de prueba, primero entrá a tu panel."; document.querySelector(".opts").before(n); }
   async function post(accion, body) {
     if (PRUEBA && accion === "crear") body.prueba = 1;
