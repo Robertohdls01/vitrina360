@@ -349,6 +349,11 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 4vw
 .foods { display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; min-width: 0; }
 .foods button { font-size: .85rem; padding: 5px 9px; }
 .foods button.on { background: var(--accent-soft); border-color: var(--accent); }
+.dressbox { display: flex; flex-direction: column; gap: 10px; }
+.dressbox .drow { display: flex; flex-direction: column; gap: 4px; }
+.dsw { display: flex; flex-wrap: wrap; gap: 8px; }
+.dsw button { width: 34px; height: 34px; border-radius: 50%; padding: 0; border: 2px solid var(--line); }
+.dsw button.on { outline: 3px solid var(--accent); outline-offset: 2px; }
 .foodbox .treats { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; border-top: 1px dashed var(--line); padding-top: 8px; }
 .foodbox .treats button { font-size: .85rem; padding: 5px 9px; }
 .foodbox .acts { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; align-items: center; }
@@ -497,6 +502,13 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     <div class="bathbar" id="walkbar" hidden><button type="button" id="wStop">Parar un ratito</button><button type="button" id="wGo">Seguir caminando</button><button type="button" id="wBall">Tirarle la pelota</button><button type="button" id="wChange">Cambiar de lugar</button><button type="button" id="wHome">Volver a casa</button></div>
     <div class="bathbar" id="groombar" hidden><button type="button" id="gNails">Cortarle las uñas</button><button type="button" id="gBrush">Cepillarlo</button><button type="button" id="gHair">Cortes de pelo</button><button type="button" id="gDone">Listo</button></div>
     <div class="nails" id="nails" hidden><b>Tocá cada uña para cortarla</b><svg viewBox="0 -24 200 214" aria-label="Pata de tu mascota"><g fill="#f3ece1" stroke="#d9ccb8" stroke-width="3"><ellipse cx="100" cy="128" rx="70" ry="54"/><circle cx="36" cy="72" r="26"/><circle cx="76" cy="44" r="27"/><circle cx="124" cy="44" r="27"/><circle cx="164" cy="72" r="26"/></g><g fill="#e3a3a6"><ellipse cx="100" cy="134" rx="34" ry="26"/><ellipse cx="38" cy="76" rx="11" ry="12"/><ellipse cx="77" cy="49" rx="11" ry="12"/><ellipse cx="123" cy="49" rx="11" ry="12"/><ellipse cx="162" cy="76" rx="11" ry="12"/></g><g fill="#6b6460" stroke="#4d4743" stroke-width="2"><path class="nail" tabindex="0" role="button" aria-label="Uña 1" d="M28 52 Q 30 20 22 6 Q 40 18 44 50 Z"/><path class="nail" tabindex="0" role="button" aria-label="Uña 2" d="M70 22 Q 72 -6 64 -18 Q 84 -4 86 20 Z"/><path class="nail" tabindex="0" role="button" aria-label="Uña 3" d="M116 20 Q 118 -4 136 -18 Q 128 -4 132 22 Z"/><path class="nail" tabindex="0" role="button" aria-label="Uña 4" d="M156 50 Q 160 18 178 6 Q 170 20 172 52 Z"/></g></svg></div>
+    <div class="foodbox dressbox" id="dressbox" hidden role="dialog" aria-label="Vestirlo"><h3>Vestilo como quieras</h3>
+      <p class="note" id="dressNote" hidden></p>
+      <div class="drow" id="dRopaRow"><span class="note">Ropa</span><div class="foods" id="dRopa"></div></div>
+      <div class="drow" id="dColorRow"><span class="note">Color de la ropa</span><div class="dsw" id="dColor"></div></div>
+      <div class="drow" id="dCabezaRow"><span class="note">En la cabeza</span><div class="foods" id="dCabeza"></div></div>
+      <div class="drow"><span class="note">Pechera y correa</span><div class="dsw" id="dPechera"></div></div>
+      <div class="acts"><button type="button" class="primary" id="dressOk">Listo</button></div></div>
     <div class="foodbox" id="foodbox" hidden role="dialog" aria-label="Preparar la comida"><h3>Prepará su plato <span class="note">(elegí hasta 4 cosas)</span></h3><div class="plate" id="plate" aria-label="Su plato"><span></span><span></span><span></span><span></span></div><div class="foods" id="foods"></div><div class="treats"><span class="note">Un gustito:</span><button type="button" id="iceAgua">🍧 Helado de agua</button><button type="button" id="iceCrema">🍦 Helado de crema</button></div><div class="acts"><span class="note" id="foodNote"></span><button type="button" id="foodCancel">Cancelar</button><button type="button" class="primary" id="foodServe">Servir</button></div></div>
     <div class="bath" id="bath" hidden><div class="head"></div><div class="faucet"></div></div>
     <div class="tub" id="tub" hidden></div>
@@ -543,7 +555,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
           <rect class="leg b back fur" x="72" y="80" width="15" height="46" rx="7"/>
           <rect class="leg b front2 fur2" x="118" y="78" width="15" height="48" rx="7"/>
           <rect class="leg a front1 fur" x="138" y="80" width="15" height="46" rx="7"/>
-          <g id="bodyg"><ellipse cx="100" cy="72" rx="60" ry="30" class="fur"/><ellipse cx="108" cy="84" rx="34" ry="12" class="belly"/><rect x="128" y="44" width="11" height="58" rx="5" fill="#2f74d8"/><rect x="124" y="64" width="20" height="8" rx="4" fill="#2f74d8"/></g>
+          <g id="bodyg"><ellipse cx="100" cy="72" rx="60" ry="30" class="fur"/><ellipse cx="108" cy="84" rx="34" ry="12" class="belly"/><g id="cloth"></g><rect class="harness" x="128" y="44" width="11" height="58" rx="5" fill="#2f74d8"/><rect class="harness" x="124" y="64" width="20" height="8" rx="4" fill="#2f74d8"/><g id="neckwear"></g></g>
           <g id="head">
             <circle cx="160" cy="46" r="27" class="fur"/>
             <ellipse cx="184" cy="57" rx="18" ry="12" class="fur"/>
@@ -552,6 +564,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
             <circle cx="199" cy="53" r="5.5" fill="#2a2420"/>
             <circle id="eye" cx="168" cy="40" r="3.8" fill="#2a2420"/>
             <g id="ear"><path d="M150 22 C 130 22, 124 58, 134 80 C 150 80, 156 48, 158 26 Z" class="fur2"/><circle cx="134" cy="76" r="8" class="fur2"/><circle cx="141" cy="80" r="7" class="fur2"/><circle cx="131" cy="64" r="7" class="fur2"/></g>
+            <g id="hat"></g>
           </g>
         </svg>
       </div>
@@ -587,6 +600,7 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
     <button id="aAlbum">Ver sus fotos</button>
     <button id="aBath">Bañarlo</button>
     <button id="aGroom">Peluquería</button>
+    <button id="aDress">Vestirlo</button>
     <button id="aSound">Sonido: activado</button>
   </div>
 
@@ -1212,6 +1226,62 @@ input[type=file] { font-size: .8rem; color: var(--muted); max-width: 100%; }
       say("¡Rico!"); await sleep(900); wag(false); setPose("sit");
     });
   };
+  /* ---------- vestirlo: ropa, gorrito o moño, color de pechera y correa ---------- */
+  const DCOL = { coral: "#e8957b", celeste: "#8fb8d8", verde: "#8fc49a", amarillo: "#f2d27a", rosa: "#f0b8b8", rojo: "#d9705f", gris: "#a9b0b5", azul: "#2f74d8" };
+  const ROPAS = [["nada", "Nada"], ["remera", "👕 Remerita"], ["buzo", "🧥 Buzo"], ["impermeable", "🌧️ Impermeable"], ["panuelo", "🧣 Pañuelo"]];
+  const CABEZAS = [["nada", "Nada"], ["gorrito", "🧶 Gorrito"], ["mono", "🎀 Moño"]];
+  function shade(hex, k) { const n = parseInt(hex.slice(1), 16); const c = (v) => Math.max(0, Math.min(255, Math.round(v * k))); return "#" + [n >> 16, (n >> 8) & 255, n & 255].map((v) => c(v).toString(16).padStart(2, "0")).join(""); }
+  function renderDress() {
+    const d = S.dress || {}, col = DCOL[d.color] || DCOL.coral, dark = shade(col, 0.82), pech = DCOL[d.pechera] || DCOL.azul;
+    document.querySelectorAll("#dog .harness").forEach((el) => el.setAttribute("fill", pech));
+    const lp = $("leashPath"); if (lp) lp.setAttribute("stroke", d.pechera ? pech : "#b5654f");
+    const body = '<clipPath id="bodyclip"><ellipse cx="100" cy="72" rx="61" ry="31"/></clipPath>';
+    let c = "";
+    if (d.ropa === "remera") c = body + '<g clip-path="url(#bodyclip)"><rect x="78" y="38" width="76" height="70" fill="' + col + '"/><rect x="78" y="38" width="5" height="70" fill="' + dark + '"/></g>';
+    else if (d.ropa === "buzo" || d.ropa === "impermeable") {
+      c = body + '<g clip-path="url(#bodyclip)"><rect x="56" y="38" width="100" height="70" fill="' + col + '"/><rect x="56" y="38" width="5" height="70" fill="' + dark + '"/>' + (d.ropa === "buzo" ? '<rect x="66" y="40" width="3" height="66" fill="' + dark + '" opacity=".5"/><rect x="88" y="40" width="3" height="66" fill="' + dark + '" opacity=".5"/>' : '<ellipse cx="96" cy="56" rx="30" ry="7" fill="#fff" opacity=".35"/>') + '</g>'
+        + '<rect x="117" y="76" width="17" height="15" rx="5" fill="' + col + '"/><rect x="137" y="78" width="17" height="15" rx="5" fill="' + col + '"/>'
+        + (d.ropa === "buzo" ? '<rect x="136" y="46" width="16" height="40" rx="7" fill="' + dark + '"/>' : '');
+    }
+    $("cloth").innerHTML = c;
+    $("neckwear").innerHTML = "";
+    let h = d.ropa === "panuelo" ? '<path d="M136 64 L178 70 L154 98 Z" fill="' + col + '"/><path d="M136 64 L178 70 L176 76 L137 70 Z" fill="' + dark + '"/><circle cx="150" cy="77" r="2.4" fill="#fff" opacity=".75"/><circle cx="162" cy="80" r="2.4" fill="#fff" opacity=".75"/><circle cx="155" cy="88" r="2.4" fill="#fff" opacity=".75"/>' : "";
+    if (d.cabeza === "gorrito") h += '<path d="M136 32 C 138 6, 182 6, 184 32 Z" fill="' + col + '"/><rect x="133" y="27" width="54" height="9" rx="4.5" fill="' + dark + '"/><circle cx="160" cy="7" r="7" fill="#fff" stroke="' + dark + '" stroke-width="2"/>';
+    else if (d.cabeza === "mono") h += '<g transform="translate(166 20)"><path d="M0 0 L-14 -9 L-14 9 Z" fill="' + col + '"/><path d="M0 0 L14 -9 L14 9 Z" fill="' + col + '"/><circle r="4.5" fill="' + dark + '"/></g>';
+    $("hat").innerHTML = h;
+  }
+  function chips(box, list, key) {
+    $(box).innerHTML = list.map(([k, n]) => '<button type="button" data-v="' + k + '">' + n + "</button>").join("");
+    $(box).querySelectorAll("button").forEach((b) => b.onclick = () => { S.dress = Object.assign({}, S.dress, { [key]: b.dataset.v }); save(); renderDress(); syncDress(); if (b.dataset.v !== "nada") { wag(true); setTimeout(() => wag(false), 1200); } });
+  }
+  function swatches(box, key, keys) {
+    $(box).innerHTML = keys.map((k) => '<button type="button" data-v="' + k + '" aria-label="' + k + '" style="background:' + DCOL[k] + '"></button>').join("");
+    $(box).querySelectorAll("button").forEach((b) => b.onclick = () => { S.dress = Object.assign({}, S.dress, { [key]: b.dataset.v }); save(); renderDress(); syncDress(); });
+  }
+  function syncDress() {
+    const d = S.dress || {};
+    $("dRopa").querySelectorAll("button").forEach((b) => b.classList.toggle("on", (d.ropa || "nada") === b.dataset.v));
+    $("dCabeza").querySelectorAll("button").forEach((b) => b.classList.toggle("on", (d.cabeza || "nada") === b.dataset.v));
+    $("dColor").querySelectorAll("button").forEach((b) => b.classList.toggle("on", (d.color || "coral") === b.dataset.v));
+    $("dPechera").querySelectorAll("button").forEach((b) => b.classList.toggle("on", (d.pechera || "azul") === b.dataset.v));
+  }
+  chips("dRopa", ROPAS, "ropa"); chips("dCabeza", CABEZAS, "cabeza");
+  swatches("dColor", "color", ["coral", "rojo", "rosa", "amarillo", "verde", "celeste", "gris"]);
+  swatches("dPechera", "pechera", ["azul", "rojo", "coral", "verde", "celeste", "amarillo", "gris"]);
+  $("aDress").onclick = () => {
+    if (out || inPatio || inCar || inBath || inWalk || inGroom) { toast("Primero volvé a casa con " + S.name + "."); return; }
+    const real = REAL();
+    ["dRopaRow", "dColorRow", "dCabezaRow"].forEach((id) => { $(id).hidden = real; });
+    $("dressNote").hidden = !real;
+    $("dressNote").textContent = real ? S.name + " es de verdad: la ropa se le pone con videos nuevos de " + S.name + " vestido. Por ahora podés elegir el color de la correa para los paseos." : "";
+    syncDress(); $("dressbox").hidden = false;
+  };
+  $("dressOk").onclick = () => {
+    $("dressbox").hidden = true;
+    const d = S.dress || {};
+    if (!REAL() && ((d.ropa && d.ropa !== "nada") || (d.cabeza && d.cabeza !== "nada"))) { setPose("happy"); wag(true); hearts(3); talk(pick(["¡Qué lindo estoy, {a}!", "¿Me queda bien, {a}?", "¡Gracias por la ropa, {a}!"])); setTimeout(() => wag(false), 1500); }
+  };
+  renderDress();
   /* ---------- helado: se lo das con la mano y lo lame ---------- */
   function giveIce(kind) {
     $("foodbox").hidden = true;
