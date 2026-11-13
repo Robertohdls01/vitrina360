@@ -374,7 +374,7 @@
     const link = `${location.origin}/t/${slug}`;
     const bar = document.createElement('div'); bar.className = 'v3bar';
     // Todo lo de la cuenta (link, plan, salir) va en un solo botón "Mi cuenta", para dejar lugar a la tienda.
-    bar.innerHTML = `<span class="grp"><button type="button" data-acct aria-expanded="false">👤 <span data-acctl>${T('Mi cuenta', 'My account', 'Minha conta')}</span> ▾</button><span class="st" aria-live="polite"></span></span>
+    bar.innerHTML = `<span class="grp"><button type="button" data-acct aria-expanded="false">👤 <span data-acctl>${T('Mi cuenta', 'My account', 'Minha conta')}</span> ▾</button><button type="button" data-qr>📲 <span data-qrl>${T('QR de mi tienda', 'My store QR', 'QR da minha loja')}</span></button><span class="st" aria-live="polite"></span></span>
       <div class="v3more" hidden>
       <span class="grp">🌐 <span data-lbl>${T('Tu tienda', 'Your store', 'Sua loja')}</span>: <a href="${esc(link)}" target="_blank" rel="noopener">${esc(location.host + '/t/' + slug)}</a>
       <button type="button" data-copy>${T('Copiar link', 'Copy link', 'Copiar link')}</button></span>
@@ -386,6 +386,41 @@
     const wrap = document.querySelector('.wrap'); (wrap ? wrap.parentNode : document.body).insertBefore(bar, wrap || document.body.firstChild);
     statusEl = bar.querySelector('.st'); setStatus(T('Todo guardado en internet', 'Everything saved online', 'Tudo salvo na internet') + ' ✓');
     bar.querySelector('[data-acct]').onclick = e => { const more = bar.querySelector('.v3more'); more.hidden = !more.hidden; e.currentTarget.setAttribute('aria-expanded', String(!more.hidden)); };
+    // QR de mi tienda: un cartel para imprimir y pegar en el mostrador o la vidriera (los clientes lo escanean y compran).
+    bar.querySelector('[data-qr]').onclick = async () => {
+      const loadQR = () => window.qrcode ? Promise.resolve() : new Promise((ok, ko) => { const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'; sc.onload = ok; sc.onerror = ko; document.head.appendChild(sc); });
+      try{ await loadQR(); }catch(e){ alert(T('No se pudo armar el QR. Revisá tu conexión e intentá de nuevo.', 'Could not create the QR. Check your connection and try again.', 'Não foi possível criar o QR.')); return; }
+      const q = window.qrcode(0, 'M'); q.addData(link); q.make();
+      const name = (document.getElementById('brandName') || {}).textContent || '';
+      let ov = document.getElementById('qrOv'); if(ov) ov.remove();
+      ov = document.createElement('div'); ov.id = 'qrOv';
+      ov.innerHTML = `<style>#qrOv{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:16px}
+#qrOv .qrc{background:#fff;color:#111;border-radius:18px;padding:22px 20px;max-width:360px;width:100%;text-align:center;font-family:system-ui,sans-serif;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+#qrOv .qrc h2{margin:0 0 4px;font-size:22px}#qrOv .qrc p{margin:4px 0;font-size:15px}#qrOv .qrq svg{width:100%;height:auto;max-width:260px}
+#qrOv .qru{font-size:12px;color:#555;word-break:break-all}#qrOv .qrb{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+#qrOv .qrb button{border:0;border-radius:999px;padding:10px 16px;font:600 14px system-ui;cursor:pointer;background:#eee}#qrOv .qrb .pri{background:#15803d;color:#fff}
+#qrOv .qrby{font-size:11px;color:#888;margin-top:8px}
+@media print{body>*:not(#qrOv){display:none!important}#qrOv{position:static;background:none;padding:0}#qrOv .qrc{box-shadow:none;max-width:none;margin:30px auto}#qrOv .qrb{display:none}#qrOv .qrq svg{max-width:380px}#qrOv .qrc h2{font-size:30px}#qrOv .qrc p{font-size:20px}}</style>
+<div class="qrc"><h2>${esc(name)}</h2><p>🛍 ${T('Escaneá y comprá online', 'Scan and shop online', 'Escaneie e compre online')}</p>
+<div class="qrq">${q.createSvgTag({cellSize: 6, margin: 2, scalable: true})}</div>
+<div class="qru">${esc(location.host + '/t/' + slug)}</div><div class="qrby">⚡ ShopFlash</div>
+<div class="qrb"><button type="button" class="pri" data-qrp>🖨 ${T('Imprimir', 'Print', 'Imprimir')}</button><button type="button" data-qrd>⬇ ${T('Guardar imagen', 'Save image', 'Salvar imagem')}</button><button type="button" data-qrx>✕ ${T('Cerrar', 'Close', 'Fechar')}</button></div></div>`;
+      document.body.appendChild(ov);
+      ov.onclick = e => { if(e.target === ov) ov.remove(); };
+      ov.querySelector('[data-qrx]').onclick = () => ov.remove();
+      ov.querySelector('[data-qrp]').onclick = () => window.print();
+      ov.querySelector('[data-qrd]').onclick = () => {
+        const n = q.getModuleCount(), cell = 12, pad = 40, W = n * cell + pad * 2, H = W + 170;
+        const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
+        c.fillStyle = '#fff'; c.fillRect(0, 0, W, H); c.fillStyle = '#111'; c.textAlign = 'center';
+        c.font = 'bold 34px system-ui,sans-serif'; c.fillText(name.slice(0, 28), W / 2, 56);
+        c.font = '24px system-ui,sans-serif'; c.fillText(T('Escaneá y comprá online', 'Scan and shop online', 'Escaneie e compre online'), W / 2, 96);
+        for(let r = 0; r < n; r++) for(let k = 0; k < n; k++) if(q.isDark(r, k)) c.fillRect(pad + k * cell, 120 + r * cell, cell, cell);
+        c.font = '18px system-ui,sans-serif'; c.fillStyle = '#555'; c.fillText(location.host + '/t/' + slug, W / 2, 120 + n * cell + 34);
+        c.fillText('⚡ ShopFlash', W / 2, 120 + n * cell + 62);
+        const a = document.createElement('a'); a.download = 'QR-' + slug + '.png'; a.href = cv.toDataURL('image/png'); a.click();
+      };
+    };
     bar.querySelector('[data-copy]').onclick = e => { const b = e.currentTarget; navigator.clipboard?.writeText(link).then(() => { b.textContent = T('¡Copiado!', 'Copied!', 'Copiado!'); }, () => { b.textContent = link; }); };
     bar.querySelector('[data-out]').onclick = async () => { if(latest || saving){ clearTimeout(timer); await flush(); } try{ await api('POST', '/auth/v1/logout', {tok: ses.access_token}); }catch(e){} keep(null); location.reload(); };
     plan(bar.querySelector('[data-plan]'));
@@ -426,6 +461,7 @@
       bar.querySelector('[data-lbl]').textContent = T('Tu tienda', 'Your store', 'Sua loja');
       bar.querySelector('[data-acctl]').textContent = T('Mi cuenta', 'My account', 'Minha conta');
       bar.querySelector('[data-copy]').textContent = T('Copiar link', 'Copy link', 'Copiar link');
+      bar.querySelector('[data-qrl]').textContent = T('QR de mi tienda', 'My store QR', 'QR da minha loja');
       bar.querySelector('[data-out]').textContent = T('Salir', 'Sign out', 'Sair');
       setStatus(T('Todo guardado en internet', 'Everything saved online', 'Tudo salvo na internet') + ' ✓');
       plan(bar.querySelector('[data-plan]'));
