@@ -19,6 +19,36 @@
   const $ = id => document.getElementById(id), fmt = n => '$' + Number(n || 0).toLocaleString('es-AR');
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const fecha = d => { try{ return new Date(d).toLocaleDateString('es-AR'); }catch(e){ return ''; } };
+  // QR propio del vendedor: lleva su link con el código, así cada comercio que lo escanea y se anota queda como su cliente
+  const loadQR = () => window.qrcode ? Promise.resolve() : new Promise((ok, ko) => { const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'; sc.onload = ok; sc.onerror = ko; document.head.appendChild(sc); });
+  async function qrTarjeta(link, code, nombre){
+    await loadQR(); await (document.fonts ? document.fonts.ready : Promise.resolve());
+    const q = qrcode(0, 'M'); q.addData(link); q.make();
+    const W = 1000, H = 1500, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+    const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#ecfdf5'); g.addColorStop(1, '#fefce8'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+    x.fillStyle = '#15803d'; x.fillRect(0, 0, W, 210);
+    x.textAlign = 'center'; x.fillStyle = '#fff'; x.font = '800 92px "Bricolage Grotesque", system-ui, sans-serif'; x.fillText('⚡ ShopFlash', W / 2, 135);
+    x.fillStyle = '#14532d'; x.font = '700 54px "Bricolage Grotesque", system-ui, sans-serif'; x.fillText('Tu tienda online', W / 2, 315); x.fillText('con solo una foto', W / 2, 380);
+    const n = q.getModuleCount(), size = 640, cell = Math.floor(size / n), qs = cell * n, ox = (W - qs) / 2, oy = 440;
+    x.fillStyle = '#fff'; x.beginPath(); x.roundRect ? x.roundRect(ox - 40, oy - 40, qs + 80, qs + 80, 36) : x.rect(ox - 40, oy - 40, qs + 80, qs + 80); x.fill();
+    x.fillStyle = '#111'; for(let r = 0; r < n; r++) for(let k = 0; k < n; k++) if(q.isDark(r, k)) x.fillRect(ox + k * cell, oy + r * cell, cell, cell);
+    const yb = oy + qs + 120;
+    x.fillStyle = '#14532d'; x.font = '700 52px Figtree, system-ui, sans-serif'; x.fillText('📲 Escaneá y probala', W / 2, yb); x.fillText('7 días GRATIS', W / 2, yb + 66);
+    x.fillStyle = '#334155'; x.font = '500 38px Figtree, system-ui, sans-serif';
+    if(nombre) x.fillText('Te la recomienda: ' + nombre, W / 2, yb + 150);
+    x.font = '500 34px "IBM Plex Mono", monospace'; x.fillText('Código de vendedor: ' + code, W / 2, yb + (nombre ? 210 : 150));
+    return c.toDataURL('image/png');
+  }
+  async function qrMostrar(box, link, code, nombre){
+    try{
+      const url = await qrTarjeta(link, code, nombre);
+      box.innerHTML = `<img src="${url}" alt="Tu código QR de vendedor" style="width:100%;max-width:300px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.15);display:block;margin:6px auto">
+        <div class="row" style="justify-content:center"><a class="btn primary" href="${url}" download="ShopFlash_QR_${code}.png">⬇ Descargar mi QR</a><button class="btn" type="button" data-qrprint>🖨 Imprimir</button><button class="btn wa" type="button" data-qrshare>Compartir</button></div>
+        <p class="note">Tamaño ideal para imprimir: 10 x 15 cm (como una foto). Llevalo a los comercios o dejalo pegado en el mostrador: cada comercio que lo escanee y se anote queda como tu cliente.</p>`;
+      box.querySelector('[data-qrprint]').onclick = () => { const w = open(''); if(!w) return; w.document.write(`<html><head><title>QR ShopFlash</title><style>@page{size:10cm 15cm;margin:0}body{margin:0}img{width:10cm;height:15cm;display:block}</style></head><body><img src="${url}" onload="setTimeout(()=>print(),200)"></body></html>`); w.document.close(); };
+      box.querySelector('[data-qrshare]').onclick = async () => { try{ const f = new File([await (await fetch(url)).blob()], `ShopFlash_QR_${code}.png`, {type: 'image/png'}); if(navigator.canShare && navigator.canShare({files: [f]})) await navigator.share({files: [f], text: 'Probá ShopFlash 7 días gratis 👉 ' + link}); else location.href = 'https://wa.me/?text=' + encodeURIComponent('Probá ShopFlash 7 días gratis 👉 ' + link); }catch(e){} };
+    }catch(e){ box.innerHTML = '<p class="note">No se pudo armar el QR. Revisá tu conexión y recargá la página.</p>'; }
+  }
   // textos listos para publicar (llevan el link del vendedor)
   const TEXTOS = link => [
     {titulo: 'Para tu estado de WhatsApp', texto: '¿Vendés algo? 📸 Sacale una foto y ShopFlash te arma tu tienda solita: vitrinas que giran, precios y pedidos por WhatsApp. Probala 7 días gratis 👉 ' + link},
@@ -73,6 +103,11 @@
         <div class="row"><button class="btn primary" type="button" id="copy">Copiar mi link</button><a class="btn wa" href="${share}" target="_blank" rel="noopener">Compartir por WhatsApp</a></div>
         <p class="note">Tu código: <b>${esc(j.code)}</b>. Si alguien se anota sin tu link, puede escribir el código en “Mi cuenta” dentro de su tienda.</p>
       </section>
+      <section class="card">
+        <h2>📲 Tu código QR</h2>
+        <p class="note">Lleva tu link adentro: el comercio lo escanea con la cámara del celular, se anota y te queda a vos.</p>
+        <div id="qrBox"><p class="note">Armando tu QR…</p></div>
+      </section>
       <section class="card" id="kit">
         <h2>Material para publicar</h2>
         <p class="note">Todo listo para copiar y publicar. Los textos ya llevan tu link, así que cada persona que se anote desde ahí te suma a vos.</p>
@@ -102,6 +137,7 @@
     const txts = TEXTOS(j.link);
     document.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => navigator.clipboard?.writeText(txts[+b.dataset.copy].texto).then(() => { b.textContent = '¡Copiado!'; setTimeout(() => b.textContent = 'Copiar', 2000); }));
     cargarKit(j.link).then(() => { if(location.hash === '#kit') setTimeout(() => $('kit').scrollIntoView({behavior: 'smooth'}), 300); });
+    qrMostrar($('qrBox'), j.link, j.code, (j.nombre || '').trim().split(/\s+/)[0]);
     $('copy').onclick = () => navigator.clipboard?.writeText(j.link).then(() => { $('copy').textContent = '¡Copiado!'; });
   }).catch(() => { $('msg').textContent = 'No se pudo abrir tu panel. Revisá tu conexión y probá de nuevo.'; });
 })();
