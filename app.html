@@ -733,6 +733,32 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 .flhead button{border:0;background:transparent;font-size:18px;cursor:pointer;color:inherit;padding:2px 6px}
 .flav{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#15803d;color:#fef3c7;font-size:22px;animation:flbob 2.4s ease-in-out infinite}
 @keyframes flbob{50%{transform:translateY(-3px) rotate(-6deg)}}
+.flface svg{width:100%;height:100%;display:block}
+.fleyes{animation:flblink 4s infinite;transform-origin:50% 55%}
+@keyframes flblink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+.flav.flface{background:transparent;padding:0}
+.flfab .flface{width:30px;height:30px;display:inline-block}
+.flbuddy{position:fixed;left:0;top:0;z-index:9985;width:66px;height:74px;pointer-events:none;transition:transform .75s cubic-bezier(.3,1.4,.5,1);filter:drop-shadow(0 6px 10px rgba(0,0,0,.28))}
+.flbuddy[hidden]{display:none}
+.flbuddy .flface{position:absolute;inset:0;animation:flfloat 2.2s ease-in-out infinite}
+.flbuddy .flhand{position:absolute;font-size:30px;line-height:1;animation:flpoint .8s ease-in-out infinite}
+.flbuddy[data-dir="down"] .flhand{left:18px;bottom:-26px}.flbuddy[data-dir="down"] .flhand::before{content:"👇"}
+.flbuddy[data-dir="left"] .flhand{left:-30px;top:24px}.flbuddy[data-dir="left"] .flhand::before{content:"👈"}
+.flbuddy[data-dir="right"] .flhand{right:-30px;top:24px}.flbuddy[data-dir="right"] .flhand::before{content:"👉"}
+.flbuddy[data-dir="wave"] .flhand{right:-14px;top:-6px;animation:flwave 1s ease-in-out infinite}.flbuddy[data-dir="wave"] .flhand::before{content:"👋"}
+@keyframes flfloat{50%{transform:translateY(-5px) rotate(-4deg)}}
+@keyframes flpoint{50%{translate:0 5px}}
+.flbuddy[data-dir="left"] .flhand{animation-name:flpointx}.flbuddy[data-dir="right"] .flhand{animation-name:flpointx2}
+@keyframes flpointx{50%{translate:-6px 0}}@keyframes flpointx2{50%{translate:6px 0}}
+@keyframes flwave{50%{rotate:22deg}}
+.flbox.bub{background:#fff;border:2px solid #facc15;border-radius:22px;padding:10px 12px;left:calc(84px + env(safe-area-inset-left, 0px));width:min(330px,calc(100vw - 96px));max-height:42vh;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.flbox.bub::before{content:"";position:absolute;left:-11px;bottom:22px;border:10px solid transparent;border-right-color:#facc15;border-left:0}
+.flbox.bub .flhead b,.flbox.bub .flhead small,.flbox.bub .flav{display:none}
+.flbox.bub .flhead{justify-content:flex-end;margin:-4px -6px -6px 0}.flbox.bub .flhead button{font-size:15px}
+.flbox.bub .flsay{font-size:15px}
+.flmode{font-size:13px!important;border:1px solid #9cc7a8!important;border-radius:999px!important;padding:3px 9px!important;margin-right:auto}
+.flbox.bub .flmode{margin-right:auto}
+
 .flsay{margin:0;font-size:15.5px}
 .flin{display:flex;gap:6px}.flin:empty{display:none}.flin input{flex:1;min-width:0;border:1px solid #9cc7a8;border-radius:12px;padding:9px 11px;font:inherit;background:#fff;color:#111}
 .flin button,.flchips button{border:1px solid #9cc7a8;background:#fff;color:#13241a;border-radius:999px;padding:8px 12px;font:600 14px var(--body,system-ui);cursor:pointer}
@@ -2773,9 +2799,10 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
   <button type="button" data-ld="imp"><b>📥 Traer de otra tienda</b><small>Tiendanube, Mercado Libre, Excel…</small></button>
   <button type="button" class="lsx" data-ld="x">Cerrar</button>
 </div></div>
-<button class="flfab" type="button" id="flFab" hidden aria-label="Flashi, tu ayudante">⚡<span>¿Te ayudo?</span></button>
+<button class="flfab" type="button" id="flFab" hidden aria-label="Flashi, tu ayudante"><span class="flface"><svg viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="flg2" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fde68a"/><stop offset=".6" stop-color="#facc15"/><stop offset="1" stop-color="#eab308"/></radialGradient></defs><path d="M52 2 38 26h12l-6 16 18-24H50l8-16z" fill="#16a34a" stroke="#14532d" stroke-width="2" stroke-linejoin="round"/><circle cx="50" cy="60" r="36" fill="url(#flg2)" stroke="#ca8a04" stroke-width="2.5"/><g class="fleyes"><ellipse cx="37" cy="55" rx="6.5" ry="8.5" fill="#1f2937"/><ellipse cx="63" cy="55" rx="6.5" ry="8.5" fill="#1f2937"/><circle cx="39.5" cy="51.5" r="2.6" fill="#fff"/><circle cx="65.5" cy="51.5" r="2.6" fill="#fff"/></g><circle cx="27" cy="69" r="5.5" fill="#fb7185" opacity=".55"/><circle cx="73" cy="69" r="5.5" fill="#fb7185" opacity=".55"/><path d="M38 72q12 12 24 0" fill="#7f1d1d" stroke="#1f2937" stroke-width="2.5" stroke-linecap="round"/><path d="M43 76q7 4 14 0" fill="#fb7185"/></svg></span><span>¿Te ayudo?</span></button>
+<div class="flbuddy" id="flBuddy" hidden data-dir="wave" aria-hidden="true"><span class="flface"><svg viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="flg" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fde68a"/><stop offset=".6" stop-color="#facc15"/><stop offset="1" stop-color="#eab308"/></radialGradient></defs><path d="M52 2 38 26h12l-6 16 18-24H50l8-16z" fill="#16a34a" stroke="#14532d" stroke-width="2" stroke-linejoin="round"/><circle cx="50" cy="60" r="36" fill="url(#flg)" stroke="#ca8a04" stroke-width="2.5"/><g class="fleyes"><ellipse cx="37" cy="55" rx="6.5" ry="8.5" fill="#1f2937"/><ellipse cx="63" cy="55" rx="6.5" ry="8.5" fill="#1f2937"/><circle cx="39.5" cy="51.5" r="2.6" fill="#fff"/><circle cx="65.5" cy="51.5" r="2.6" fill="#fff"/></g><circle cx="27" cy="69" r="5.5" fill="#fb7185" opacity=".55"/><circle cx="73" cy="69" r="5.5" fill="#fb7185" opacity=".55"/><path d="M38 72q12 12 24 0" fill="#7f1d1d" stroke="#1f2937" stroke-width="2.5" stroke-linecap="round"/><path d="M43 76q7 4 14 0" fill="#fb7185"/></svg></span><span class="flhand"></span></div>
 <section class="flbox" id="flBox" hidden role="dialog" aria-label="Flashi, tu ayudante de ShopFlash">
-  <div class="flhead"><span class="flav" aria-hidden="true">⚡</span><b>Flashi</b><small>tu ayudante</small><button type="button" class="flmute" id="flMute" aria-label="Voz">🔊</button><button type="button" id="flX" aria-label="Cerrar">✕</button></div>
+  <div class="flhead"><span class="flav flface" aria-hidden="true"><svg viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="flg3" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fde68a"/><stop offset=".6" stop-color="#facc15"/><stop offset="1" stop-color="#eab308"/></radialGradient></defs><path d="M52 2 38 26h12l-6 16 18-24H50l8-16z" fill="#16a34a" stroke="#14532d" stroke-width="2" stroke-linejoin="round"/><circle cx="50" cy="60" r="36" fill="url(#flg3)" stroke="#ca8a04" stroke-width="2.5"/><g class="fleyes"><ellipse cx="37" cy="55" rx="6.5" ry="8.5" fill="#1f2937"/><ellipse cx="63" cy="55" rx="6.5" ry="8.5" fill="#1f2937"/><circle cx="39.5" cy="51.5" r="2.6" fill="#fff"/><circle cx="65.5" cy="51.5" r="2.6" fill="#fff"/></g><circle cx="27" cy="69" r="5.5" fill="#fb7185" opacity=".55"/><circle cx="73" cy="69" r="5.5" fill="#fb7185" opacity=".55"/><path d="M38 72q12 12 24 0" fill="#7f1d1d" stroke="#1f2937" stroke-width="2.5" stroke-linecap="round"/><path d="M43 76q7 4 14 0" fill="#fb7185"/></svg></span><b>Flashi</b><small>tu ayudante</small><button type="button" class="flmode" id="flMode" title="Cambiar cómo se ve Flashi">🙂 Muñequito</button><button type="button" class="flmute" id="flMute" aria-label="Voz">🔊</button><button type="button" id="flX" aria-label="Cerrar">✕</button></div>
   <p class="flsay" id="flSay" aria-live="polite"></p>
   <div class="flin" id="flIn"></div>
   <div class="flchips" id="flChips"></div>
@@ -4616,33 +4643,60 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     const slotOf = el => el ? (el.closest('.slot, .presets, .ownerbtn') || el) : null;
     const byTitle = t => { const h = [...document.querySelectorAll('summary, strong, label')].find(x => x.textContent.trim().replace(/^[^\wÁÉÍÓÚáéíóúÑñ]+/, '').startsWith(t)); if(!h) return null; if(h.tagName === 'SUMMARY'){ h.parentElement.open = true; return h.parentElement; } return slotOf(h); };
     const openBrand = () => { const bp = $('brandPanel'); if(bp && bp.hidden && $('brandBtn')) $('brandBtn').click(); };
-    const show = (el, focus) => {
+    // modo: 'muneco' (carita que vuela y señala) o 'cuadro' (cuadrito abajo); cada comerciante elige
+    const buddy = $('flBuddy');
+    const isMun = () => st().modo !== 'cuadro';
+    let aim = null;
+    const placeBuddy = () => {
+      if(!isMun() || box.hidden){ buddy.hidden = true; return; }
+      buddy.hidden = false;
+      const W = innerWidth, H = innerHeight, bw = 66, bh = 74;
+      let x, y, dir;
+      const r = aim && aim.isConnected ? aim.getBoundingClientRect() : null;
+      if(r && r.height > 0 && r.bottom > 0 && r.top < H){
+        if(r.top > bh + 34){ x = Math.min(Math.max(8, r.left + Math.min(r.width, 300) / 2 - bw / 2), W - bw - 8); y = r.top - bh - 30; dir = 'down'; }
+        else if(r.right + bw + 40 < W){ x = r.right + 34; y = Math.max(8, r.top + Math.min(r.height, 60) / 2 - bh / 2); dir = 'left'; }
+        else if(r.left > bw + 40){ x = r.left - bw - 34; y = Math.max(8, r.top + Math.min(r.height, 60) / 2 - bh / 2); dir = 'right'; }
+        else { x = W - bw - 10; y = Math.max(8, r.top - 10); dir = 'left'; }
+      } else { const br = box.getBoundingClientRect(); x = 10; y = Math.max(8, br.bottom - bh); dir = 'wave'; }
+      buddy.dataset.dir = dir;
+      buddy.style.transform = `translate(${Math.round(x)}px,${Math.round(y)}px)`;
+    };
+    let rafB = 0; const reB = () => { if(rafB) return; rafB = requestAnimationFrame(() => { rafB = 0; placeBuddy(); }); };
+    addEventListener('scroll', reB, {passive: true}); addEventListener('resize', reB);
+    const applyMode = () => { const m = isMun(); box.classList.toggle('bub', m); $('flMode').textContent = m ? '💬 Cuadrito' : '🙂 Muñequito'; $('flMode').title = m ? 'Ver a Flashi como cuadrito' : 'Ver a Flashi como muñequito que te señala'; placeBuddy(); };
+    const show = (el, focus, at) => {
       document.querySelectorAll('.flhi').forEach(x => x.classList.remove('flhi'));
+      aim = null; reB();
       if(!el) return;
       for(let d = el.closest('details'); d; d = d.parentElement && d.parentElement.closest('details')) d.open = true;
       const inner = el.querySelector && el.querySelector(':scope > details.bsec'); if(inner) inner.open = true;
       el.classList.add('flhi');
-      setTimeout(() => { const tgt = (focus && focus.getBoundingClientRect().height) ? (focus.closest('label') || focus) : el; const y = tgt.getBoundingClientRect().top + scrollY - 70; window.scrollTo({top: Math.max(0, y), behavior: 'smooth'}); }, 350);
+      const ptr = at || (focus && (focus.closest('label') || focus)) || el;
+      setTimeout(() => { const tgt = (ptr && ptr.getBoundingClientRect().height) ? ptr : el; const y = tgt.getBoundingClientRect().top + scrollY - (isMun() ? 130 : 70); window.scrollTo({top: Math.max(0, y), behavior: 'smooth'}); aim = tgt; setTimeout(reB, 500); setTimeout(reB, 1100); }, 350);
       if(focus){ setTimeout(() => { try{ focus.focus({preventScroll: true}); }catch(e){} }, 600); }
       setTimeout(() => el.classList.remove('flhi'), 9000);
     };
     const STEPS = [
-      {id: 'nombre', em: '🏪', t: 'Nombre y logo', go: () => { openBrand(); show(slotOf($('b-name')), $('b-name')); return 'Escribí acá el nombre de tu negocio, como lo conocen tus clientes. Un poco más abajo, en “Logo”, tocá “Subir logo” y elegí la foto de tu logo o de tu cartel.'; }},
-      {id: 'rubro', em: '🧩', t: 'Tipo de negocio', go: () => { openBrand(); show(slotOf($('presetGrid'))); return 'Elegí qué tipo de negocio tenés: le pongo nombre a tus vitrinas y el estilo del mueble. Tus productos no se borran.'; }},
-      {id: 'productos', em: '📸', t: 'Cargar productos', go: () => { show(null); $('loadFab').click(); return '¡Lo más importante! Elegí cómo cargar: un producto con su foto, varias fotos juntas, una foto del folleto, o una lista lista de verdulería o panadería donde solo ponés los precios.'; }},
+      {id: 'nombre', em: '🏪', t: 'Nombre y logo', go: () => { openBrand(); const l = $('b-name').closest('label') || $('b-name'); show(l, $('b-name'), l); return 'Escribí acá el nombre de tu negocio, como lo conocen tus clientes. Un poco más abajo, en “Logo”, tocá “Subir logo” y elegí la foto de tu logo o de tu cartel.'; }},
+      {id: 'rubro', em: '🧩', t: 'Tipo de negocio', go: () => { openBrand(); show(slotOf($('presetGrid')), null, $('presetGrid')); return 'Elegí qué tipo de negocio tenés: le pongo nombre a tus vitrinas y el estilo del mueble. Tus productos no se borran.'; }},
+      {id: 'productos', em: '📸', t: 'Cargar productos', go: () => { show(null); setTimeout(() => $('loadFab').click(), 300); return '¡Lo más importante! Elegí cómo cargar: un producto con su foto, varias fotos juntas, una foto del folleto, o una lista lista de verdulería o panadería donde solo ponés los precios.'; }},
       {id: 'cantidades', em: '⚖️', t: 'Vender por kilo o docena', go: () => { show(null); return 'Si vendés por kilo, por unidad o por docena: abrí un producto, tocá “Ver fotos y detalles” y en “Formas de venta” elegí Por kilo o Por docena. Los precios se calculan solos.'; }},
-      {id: 'whatsapp', em: '📱', t: 'Mi WhatsApp', go: () => { openBrand(); show(slotOf($('b-wa')), $('b-wa')); return 'Escribí tu WhatsApp con código de área, sin 0 ni 15. Por ahí te llegan los pedidos de tus clientes. Es muy importante.'; }},
-      {id: 'cobros', em: '💳', t: 'Cómo cobro', go: () => { openBrand(); show(slotOf($('mpConnect')) || slotOf($('b-alias'))); return 'Acá elegís cómo te pagan. Con “Conectar con Mercado Pago” el cliente paga con tarjeta y el pedido se confirma solo. Un poco más arriba podés poner tu alias o CBU.'; }},
-      {id: 'entregas', em: '🛵', t: 'Entregas y horario', go: () => { openBrand(); show(byTitle('Formas de entrega')); return 'Elegí cómo entregás: retiro en el local, delivery propio o envíos. Más arriba, en “Horario de atención”, poné a qué hora abrís y cerrás.'; }},
-      {id: 'colores', em: '🎨', t: 'Colores', go: () => { openBrand(); show(byTitle('Color de fondo de la página')); return 'Tocá un color para el fondo de tu tienda. Abajo podés elegir el color de los botones. Probá hasta que te guste.'; }},
-      {id: 'vendedores', em: '🛍', t: 'Vendedores virtuales', go: () => { openBrand(); show(slotOf($('helperBar'))); return 'Elegí tus vendedores virtuales: atienden a tus clientes, responden preguntas y les cargan el pedido. Más abajo podés escribir tus preguntas y respuestas frecuentes.'; }},
-      {id: 'musica', em: '🎵', t: 'Música y videos', go: () => { openBrand(); show(byTitle('Música de la tienda')); return 'Elegí música para tu tienda. Para tus redes, YouTube o Spotify, tocá “Redes y mapa” arriba y pegá el link en un recuadro.'; }},
-      {id: 'compartir', em: '🔗', t: 'Compartir mi tienda', go: () => { const q = document.querySelector('[data-qr]'); show(q); return 'Tocá “QR de mi tienda” para imprimir tu código y pegarlo en el mostrador. En “Mi cuenta” está “Copiar link” para mandarlo por WhatsApp e Instagram.'; }}
+      {id: 'whatsapp', em: '📱', t: 'Mi WhatsApp', go: () => { openBrand(); show(slotOf($('b-wa')), $('b-wa'), $('b-wa')); return 'Escribí tu WhatsApp con código de área, sin 0 ni 15. Por ahí te llegan los pedidos de tus clientes. Es muy importante.'; }},
+      {id: 'cobros', em: '💳', t: 'Cómo cobro', go: () => { openBrand(); show(slotOf($('mpConnect')) || slotOf($('b-alias')), null, $('mpConnect')); return 'Acá elegís cómo te pagan. Con “Conectar con Mercado Pago” el cliente paga con tarjeta y el pedido se confirma solo. Un poco más arriba podés poner tu alias o CBU.'; }},
+      {id: 'entregas', em: '🛵', t: 'Entregas y horario', go: () => { openBrand(); show(byTitle('Formas de entrega'), null, $('shipGrid')); return 'Elegí cómo entregás: retiro en el local, delivery propio o envíos. Más arriba, en “Horario de atención”, poné a qué hora abrís y cerrás.'; }},
+      {id: 'colores', em: '🎨', t: 'Colores', go: () => { openBrand(); show(byTitle('Color de fondo de la página'), null, $('pageBgBar')); return 'Tocá uno de estos círculos y el fondo de tu tienda cambia al instante. Con 📷 podés poner una foto tuya. Probá hasta que te guste.'; }},
+      {id: 'botones', em: '🔘', t: 'Color de los botones', go: () => { openBrand(); show(byTitle('Color de los botones flotantes'), null, $('btnColorBar')); return 'Acá elegís el color de los botones “Ver pedido” y “← Vitrinas”, para que combinen con tu tienda.'; }},
+      {id: 'vendedores', em: '🛍', t: 'Vendedores virtuales', go: () => { openBrand(); show(slotOf($('helperBar')), null, $('helperBar')); return 'Elegí tus vendedores virtuales: atienden a tus clientes, responden preguntas y les cargan el pedido. Más abajo podés escribir tus preguntas y respuestas frecuentes.'; }},
+      {id: 'musica', em: '🎵', t: 'Música y videos', go: () => { openBrand(); show(byTitle('Música de la tienda'), null, $('musicBar')); return 'Tocá una música y suena de fondo en tu tienda, como en un local. Si querés, subí un MP3 tuyo con el botón de abajo.'; }},
+      {id: 'redes', em: '📲', t: 'Mis redes y links', go: () => { const bp = $('brandPanel'); if(bp && !bp.hidden && $('brandBtn')) $('brandBtn').click(); if($('toolsBtn')) $('toolsBtn').click(); show(null); setTimeout(() => { const g = document.querySelector('#toolsWrap .gempty .gadd'); if(g && !g.closest('.gempty').classList.contains('pick')) g.click(); setTimeout(() => { const i = document.querySelector('#toolsWrap .gempty.pick .gform input') || [...document.querySelectorAll('#toolsWrap .gform input')].find(x => x.getBoundingClientRect().height); const w = $('gStrip') || $('toolsWrap'); show(i ? i.closest('.gform') : w, null, i ? i.closest('.gform') : w); }, 250); }, 700); return 'Pegá en este recuadro el link de tu Instagram, Facebook, YouTube o Spotify y tocá ▶. Queda guardado en tu tienda y lo abrís con un toque.'; }},
+      {id: 'compartir', em: '🔗', t: 'Compartir mi tienda', go: () => { const q = document.querySelector('[data-qr]'); show(q, null, q); return 'Tocá “QR de mi tienda” para imprimir tu código y pegarlo en el mostrador. En “Mi cuenta” está “Copiar link” para mandarlo por WhatsApp e Instagram.'; }}
     ];
     const ASK = {nombre: /nombre|logo|cartel/, rubro: /rubro|tipo de negocio|plantilla/, productos: /producto|foto|cargar|subir|folleto|catalogo|lista/, cantidades: /kilo|docena|unidad|cantidad|gramo/, whatsapp: /whats|wsp|telefono|celular/,
-      cobros: /cobr|pag|mercado ?pago|tarjeta|alias|cbu|transfer/, entregas: /envio|entrega|delivery|horario|retiro|moto/, colores: /color|fondo|lindo|estilo/, vendedores: /vendedor|avatar|munequ|asistent|pregunta/, musica: /music|cancion|youtube|spotify|video|redes|instagram|facebook/, compartir: /compart|qr|link|difund/};
+      cobros: /cobr|pag|mercado ?pago|tarjeta|alias|cbu|transfer/, entregas: /envio|entrega|delivery|horario|retiro|moto/, colores: /color|fondo|lindo|estilo/, vendedores: /vendedor|avatar|munequ|asistent|pregunta/, musica: /music|cancion|mp3/, redes: /youtube|spotify|video|redes|instagram|facebook|tiktok|link de/, botones: /boton/, compartir: /compart|qr|mi link|difund/};
     const menu = (pre) => {
       const f = st(), left = STEPS.filter(x => !f.done.includes(x.id));
+      aim = null; setTimeout(reB, 50);
       inp.innerHTML = '';
       if(!left.length){ talk(`¡Felicitaciones${f.name ? ', ' + f.name : ''}! 🎉 Tu tienda está lista. Ahora compartila con tus clientes y empezá a recibir pedidos.`); }
       else talk(pre || `${f.name ? f.name + ', ¿' : '¿'}por dónde querés seguir? Te recomiendo: ${left[0].t}.`);
@@ -4650,7 +4704,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     };
     const step = id => {
       const x = STEPS.find(s => s.id === id); if(!x) return menu();
-      const txt = x.go(); talk('👉 ' + txt);
+      const txt = x.go(); talk((isMun() ? '' : '👉 ') + txt);
       inp.innerHTML = '';
       chips.innerHTML = `<button type="button" class="pri" data-fl="ok:${x.id}">✅ Listo, ¿qué sigue?</button><button type="button" data-fl="menu">↩ Ver todos los pasos</button>`;
     };
@@ -4666,9 +4720,10 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       chips.innerHTML = `<button type="button" data-fl="menu">↩ Ver todos los pasos</button>`;
       setTimeout(() => { const i = $('flQ'); if(i) i.focus(); }, 200);
     };
-    const openFl = () => { box.hidden = false; $('flFab').hidden = true; const f = st(); if(!f.name && !f.noname) askName(); else menu(f.done.length ? '' : `¡Hola${f.name ? ', ' + f.name : ''}! ¿Empezamos a armar tu tienda? Te recomiendo arrancar por el nombre y el logo.`); };
-    const closeFl = () => { box.hidden = true; $('flFab').hidden = false; try{ speechSynthesis.cancel(); }catch(e){} document.querySelectorAll('.flhi').forEach(x => x.classList.remove('flhi')); };
+    const openFl = () => { box.hidden = false; $('flFab').hidden = true; applyMode(); const f = st(); if(!f.name && !f.noname) askName(); else menu(f.done.length ? '' : `¡Hola${f.name ? ', ' + f.name : ''}! ¿Empezamos a armar tu tienda? Te recomiendo arrancar por el nombre y el logo.`); };
+    const closeFl = () => { box.hidden = true; aim = null; placeBuddy(); $('flFab').hidden = false; try{ speechSynthesis.cancel(); }catch(e){} document.querySelectorAll('.flhi').forEach(x => x.classList.remove('flhi')); };
     $('flFab').onclick = openFl; $('flX').onclick = closeFl;
+    $('flMode').onclick = () => { const f = st(); f.modo = isMun() ? 'cuadro' : 'muneco'; save(); applyMode(); talk(isMun() ? '¡Listo! Ahora te acompaño como muñequito y te señalo dónde está cada cosa 🙂' : 'Listo, ahora te hablo desde este cuadrito.'); };
     $('flMute').onclick = () => { muted = !muted; $('flMute').textContent = muted ? '🔇' : '🔊'; try{ localStorage.setItem('flashi-mudo', muted ? '1' : '0'); speechSynthesis.cancel(); }catch(e){} };
     box.addEventListener('keydown', e => { if(e.key === 'Enter' && e.target.matches('input')){ e.preventDefault(); const b = inp.querySelector('.pri'); if(b) b.click(); } if(e.key === 'Escape') closeFl(); });
     box.addEventListener('click', e => {
