@@ -4685,7 +4685,9 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       step(k);
     });
     // aparece solo la primera vez (tiendas nuevas); después queda el botón "¿Te ayudo?"
-    setTimeout(() => { $('flFab').hidden = false; const f = st(); if(!f.name && !f.noname && !(f.done || []).length && !document.body.classList.contains('clientmode')) openFl(); }, 3500);
+    // solo con la sesión iniciada (no sobre la pantalla de ingreso)
+    const flStart = () => { if(document.querySelector('.v3o') || !window.VITRINA_TOKEN){ setTimeout(flStart, 3000); return; } $('flFab').hidden = false; const f = st(); if(!f.name && !f.noname && !(f.done || []).length && !document.body.classList.contains('clientmode')) openFl(); };
+    setTimeout(flStart, 3500);
   }
   // ---- Botón grande y siempre a la vista para cargar productos (antes estaba escondido al costado en el celular) ----
   if($('loadFab') && !PUBLIC){
