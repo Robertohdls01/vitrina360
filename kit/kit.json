@@ -12,11 +12,11 @@
   ],
   "imagenes": [
     {
-      "src": "/kit/estado.jpg",
+      "src": "/kit/shopflash-estado.jpg",
       "titulo": "Vertical, para estados e historias"
     },
     {
-      "src": "/og.png",
+      "src": "/kit/shopflash-horizontal.png",
       "titulo": "Horizontal, para grupos y Facebook"
     }
   ]
