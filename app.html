@@ -68,7 +68,9 @@
   .v3bar .grp{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;min-width:0}
   .v3bar{padding:5px 10px}
   .v3more{flex-basis:100%;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;border-top:1px solid var(--line,#ddd);padding-top:8px}
-  .v3more[hidden]{display:none}`;
+  .v3more[hidden]{display:none}
+  .v3help{position:sticky;top:0;z-index:60;background:#fef3c7;color:#3b2a05;border-bottom:2px solid #f59e0b;padding:8px 14px;font:500 14px/1.4 var(--body,system-ui,sans-serif);text-align:center}
+  .v3help a{color:#92400e;font-weight:700}`;
   onReady(() => { const st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st); });
   function overlay(html){
     const d = document.createElement('div'); d.className = 'v3o'; d.innerHTML = `<div class="card">${html}</div>`;
@@ -234,6 +236,19 @@
     try{ tok = await token(); const u = await api('GET', '/auth/v1/user', {tok}); uid = u.id; userEmail = u.email || ''; }
     catch(e){ keep(null); onReady(() => showLogin(T('Tu sesión venció. Pedí un link nuevo.', 'Your session expired. Request a new link.', 'Sua sessão expirou. Peça um novo link.'))); return; }
     let row = null;
+    // Modo ayuda: el equipo de ShopFlash entra a la tienda de un comerciante que le dio permiso
+    const AYUDA = new URLSearchParams(location.search).get('ayuda');
+    if(AYUDA){
+      try{
+        const r = await fetch('/api/ayuda?slug=' + encodeURIComponent(AYUDA), {headers: {Authorization: 'Bearer ' + tok}});
+        const j = await r.json().catch(() => ({}));
+        if(!r.ok) throw new Error(j.error || 'No se pudo abrir esa tienda.');
+        ayudaSlug = j.slug; slug = j.slug;
+        if(j.data && Array.isArray(j.data.stores) && j.data.stores.length) window.VITRINA_REMOTE_DATA = j.data;
+        onReady(() => { const b = document.createElement('div'); b.className = 'v3help'; b.innerHTML = `🛟 Estás ayudando a <b>${esc(j.nombre || j.slug)}</b>. Lo que cambies se guarda en <b>su</b> tienda. <a href="/t/${esc(j.slug)}" target="_blank" rel="noopener">Ver su tienda</a> · <a href="/panel">Volver a mi tienda</a>`; document.body.insertBefore(b, document.body.firstChild); });
+        window.__v3ok(); return;
+      }catch(e){ onReady(() => overlay(`<h2>🛟 Modo ayuda</h2><p>${esc(e.message)}</p><button class="pri" type="button" onclick="location.href='/panel'">Ir a mi tienda</button>`)); return; }
+    }
     try{ const rows = await api('GET', `/rest/v1/tiendas?owner=eq.${uid}&select=slug,nombre,data`, {tok}); row = rows && rows[0]; }
     catch(e){ onReady(() => overlay(`<h2>${T('No pudimos abrir tu tienda', "We couldn't open your store", 'Não conseguimos abrir sua loja')}</h2><p>${esc(e.message)}</p><button class="pri" type="button" onclick="location.reload()">${T('Probar de nuevo', 'Try again', 'Tentar de novo')}</button>`)); return; }
     if(row){
@@ -246,7 +261,7 @@
   }
 
   // ---------- Guardar en internet ----------
-  let latest = null, timer = null, saving = false, again = false, firstPush = false, statusEl = null;
+  let latest = null, timer = null, saving = false, again = false, firstPush = false, statusEl = null, ayudaSlug = '';
   const urlCache = new Map();
   const setStatus = (t, err) => { if(statusEl){ statusEl.textContent = t; statusEl.className = 'st' + (err ? ' err' : ''); } };
   async function sha(s){ const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return [...new Uint8Array(b)].slice(0, 16).map(x => x.toString(16).padStart(2, '0')).join(''); }
@@ -278,6 +293,10 @@
     try{
       const data = await externalize(JSON.parse(JSON.stringify(snap)));
       const name = data.stores?.[data.active || 0]?.brand?.name;
+      if(ayudaSlug){
+        const r = await fetch('/api/ayuda?slug=' + encodeURIComponent(ayudaSlug), {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await token()}, body: JSON.stringify({data, nombre: name || ''})});
+        if(!r.ok){ const j = await r.json().catch(() => ({})); if(r.status === 403){ setStatus(j.error || 'El dueño sacó el permiso de ayuda.', true); saving = false; return; } throw new Error(j.error || 'HTTP ' + r.status); }
+      } else
       await api('PATCH', `/rest/v1/tiendas?owner=eq.${uid}`, {tok: await token(), body: Object.assign({data, actualizada: new Date().toISOString()}, name ? {nombre: name} : {}), headers: {Prefer: 'return=minimal'}});
       const d = new Date(); setStatus(T('Guardado', 'Saved', 'Salvo') + ` ✓ ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`);
     }catch(e){
@@ -380,11 +399,18 @@
       <button type="button" data-copy>${T('Copiar link', 'Copy link', 'Copiar link')}</button></span>
       <span class="grp" data-plan hidden></span>
       <span class="grp" data-ref>🤝 ${T('Código de vendedor', 'Seller code', 'Código de vendedor')}: <input data-refin maxlength="16" placeholder="${T('Ej: JUAN', 'E.g. JUAN', 'Ex: JUAN')}" style="width:110px;text-transform:uppercase;border:1px solid var(--line,#ddd);border-radius:999px;padding:4px 10px;font:inherit;background:transparent;color:inherit"><button type="button" data-refok>${T('Guardar', 'Save', 'Salvar')}</button> <small data-refmsg></small></span>
+      <span class="grp" data-ayuda hidden><label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" data-ayin> 🛟 ${T('Permitir ayuda de ShopFlash', 'Allow ShopFlash support', 'Permitir ajuda da ShopFlash')}</label><small data-aymsg style="color:var(--muted,#666)"></small></span>
       <span class="grp" data-admin hidden><a href="/admin-vendedores.html">💼 ${T('Vendedores', 'Sellers', 'Vendedores')}</a> · <a href="/admin-estadisticas.html">📊 ${T('Estadísticas', 'Stats', 'Estatísticas')}</a></span>
       <span class="grp"><button type="button" data-out>${T('Salir', 'Sign out', 'Sair')}</button></span>
       </div>`;
     const wrap = document.querySelector('.wrap'); (wrap ? wrap.parentNode : document.body).insertBefore(bar, wrap || document.body.firstChild);
     statusEl = bar.querySelector('.st'); setStatus(T('Todo guardado en internet', 'Everything saved online', 'Tudo salvo na internet') + ' ✓');
+    if(!ayudaSlug){
+      const ay = bar.querySelector('[data-ayuda]'), ain = bar.querySelector('[data-ayin]'), amsg = bar.querySelector('[data-aymsg]');
+      const aTxt = on => { amsg.textContent = on ? T('Activada: el equipo de ShopFlash puede entrar a ayudarte a configurar tu tienda. Sacala cuando quieras.', 'On: the ShopFlash team can help you set up your store.', 'Ativada: a equipe ShopFlash pode ajudar.') : T('Si la activás, te ayudamos a cargar y configurar tu tienda.', 'Turn it on and we will help you set up your store.', 'Ative e ajudamos a configurar sua loja.'); };
+      (async () => { try{ const r = await fetch('/api/ayuda?accion=estado', {headers: {Authorization: 'Bearer ' + await token()}}); if(r.ok){ const j = await r.json(); ain.checked = !!j.on; aTxt(j.on); ay.hidden = false; } }catch(e){} })();
+      ain.onchange = async () => { const on = ain.checked; amsg.textContent = '…'; try{ const r = await fetch('/api/ayuda?accion=permitir', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await token()}, body: JSON.stringify({on})}); if(!r.ok) throw 0; aTxt(on); }catch(e){ ain.checked = !on; amsg.textContent = T('No se pudo guardar. Probá de nuevo.', 'Could not save. Try again.', 'Não foi possível salvar.'); } };
+    }
     bar.querySelector('[data-acct]').onclick = e => { const more = bar.querySelector('.v3more'); more.hidden = !more.hidden; e.currentTarget.setAttribute('aria-expanded', String(!more.hidden)); };
     // QR de mi tienda: un cartel para imprimir y pegar en el mostrador o la vidriera (los clientes lo escanean y compran).
     bar.querySelector('[data-qr]').onclick = async () => {
