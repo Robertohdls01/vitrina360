@@ -2,12 +2,8 @@
   "_como": "Material para que los vendedores publiquen. Para sumar un video: subir el .mp4 a esta carpeta (kit/) y agregarlo en 'videos'.",
   "videos": [
     {
-      "src": "/kit/vitrina360-1min.mp4",
-      "titulo": "Video animado 3D de 1 minuto (vertical, para estados, Reels y TikTok)"
-    },
-    {
-      "src": "/kit/vitrina360-anuncio.mp4",
-      "titulo": "Anuncio corto de 28 segundos"
+      "src": "/kit/shopflash-reel-rayos.mp4",
+      "titulo": "Reel de ShopFlash de 20 segundos (vertical, para estados, Reels y TikTok)"
     }
   ],
   "imagenes": [
