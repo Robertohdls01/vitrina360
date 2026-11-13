@@ -2813,8 +2813,34 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
   let selVar = {};
   const variantOf = p => (p.variants || []).find(v => v.id === selVar[p.id]) || null;
   const curImg = p => { const v = variantOf(p); return v ? v.img : p.img; };
-  const curPrice = p => { const v = variantOf(p); return v && v.price ? v.price : p.price; };
-  const cartKey = p => { const v = variantOf(p); return v ? p.id + '|' + v.id : p.id; };
+  // Formas de venta (presentaciones): por kilo, por docena, por unidad… cada una con su precio. La primera queda elegida por defecto.
+  let selUnit = {};
+  const unitOf = p => { const us = p.units || []; return us.find(u => u.id === selUnit[p.id]) || us[0] || null; };
+  const curPrice = p => { const u = unitOf(p); if(u && u.price) return u.price; const v = variantOf(p); return v && v.price ? v.price : p.price; };
+  const cartKey = p => { const v = variantOf(p), u = unitOf(p); const base = v ? p.id + '|' + v.id : p.id; return u ? (v ? base : p.id + '|') + '|' + u.id : base; };
+  // Arma las formas de venta típicas a partir de un precio de referencia (por kilo, por unidad o por docena).
+  function unitPreset(kind, ref){
+    const n = priceNum(ref), fin = isFinite(n) && n > 0, money = k => fin ? '$' + Math.round(n * k).toLocaleString('es-AR') : '';
+    const mk = (name, k) => ({id: uid(), n: name, price: money(k)});
+    if(kind === 'kilo') return [mk('¼ kg', 0.25), mk('½ kg', 0.5), mk('1 kg', 1), mk('2 kg', 2)];
+    if(kind === 'docena') return [mk('1 unidad', 1), mk('Media docena', 6), mk('1 docena', 12)];
+    if(kind === 'docenaP') return [mk('Media docena', 0.5), mk('1 docena', 1)];
+    return [mk('1 unidad', 1), mk('2 unidades', 2), mk('3 unidades', 3)];
+  }
+  function unitsHTML(p, attr, owner){
+    const us = p.units || [], cur = unitOf(p);
+    const chips = us.length ? `<div class="mchips">${us.map(u => `<button class="mchip uchip" type="button" ${attr}="unit" data-u="${u.id}" aria-pressed="${cur && cur.id === u.id}"><span><b>${esc(u.n)}</b>${u.price ? ' · ' + esc(u.price) : ''}</span></button>`).join('')}</div>` : '';
+    if(!owner) return us.length ? `<div class="models"><span class="lbl">${esc(L('Elegí la cantidad', 'Choose the amount', 'Escolha a quantidade'))}</span>${chips}</div>` : '';
+    return `<div class="models uedit"><span class="lbl">⚖️ Formas de venta <small style="font-weight:400">(por kilo, por docena, por unidad…)</small></span>
+      ${us.map(u => `<div class="vedit"><input type="text" data-un="${u.id}" maxlength="30" value="${esc(u.n)}" aria-label="Cantidad" placeholder="½ kg"><input type="text" data-up="${u.id}" maxlength="20" value="${esc(u.price || '')}" aria-label="Precio" placeholder="$"><button class="linkbtn" type="button" data-m="udel" data-u="${u.id}" style="color:var(--danger)">Quitar</button></div>`).join('')}
+      <div class="mchips">${us.length ? `<button class="mchip addv" type="button" data-m="uadd"><b>＋</b>Agregar otra</button>` : `
+        <button class="mchip addv" type="button" data-m="upreset" data-k="kilo"><b>⚖️</b>Por kilo (el precio es por kg)</button>
+        <button class="mchip addv" type="button" data-m="upreset" data-k="docena"><b>🥚</b>Por unidad y docena (el precio es por unidad)</button>
+        <button class="mchip addv" type="button" data-m="upreset" data-k="docenaP"><b>🥐</b>Media docena y docena (el precio es por docena)</button>
+        <button class="mchip addv" type="button" data-m="upreset" data-k="unidad"><b>🔢</b>1, 2 o 3 unidades</button>
+        <button class="mchip addv" type="button" data-m="uadd"><b>＋</b>A mano</button>`}
+      </div><p class="note" style="margin:4px 0 0">${us.length ? 'El cliente elige una antes de agregarla al pedido. Podés cambiar los nombres y los precios.' : 'Ej.: verdulería por kilo, huevos por unidad y docena, facturas por media docena.'}</p></div>`;
+  }
   function modelsHTML(p, attr, withAdd){
     const vs = p.variants || [];
     if(!vs.length && !withAdd) return '';
@@ -3537,6 +3563,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
           <span class="row"><button class="btn primary" type="button" data-act="rephoto">📷 ${L('Sacar foto de nuevo', 'Retake photo', 'Tirar foto de novo')}</button><button class="btn" type="button" data-act="edit">✏️ ${L('Escribirlo a mano', 'Type it in', 'Digitar à mão')}</button></span>
           <span class="note" id="rvMsg" role="status"></span></div>` : ''}
         ${modelsHTML(p, 'data-act', false)}
+        ${unitsHTML(p, 'data-act', false)}
         ${p.featured ? `<label class="ownerbtn promobox" for="promoIn">🗣 Lo que dice la voz de este destacado <small>Ej: “20% de descuento”, “2x1 hasta el domingo”. Se escucha si está prendido “La voz anuncia los destacados”.</small>
           <span class="row" style="flex-wrap:nowrap"><input type="text" id="promoIn" maxlength="80" value="${esc(p.promo || '')}" placeholder="20% de descuento"><button class="btn" type="button" data-act="hear">▶</button></span></label>` : ''}
         ${feats ? `<ul class="feats">${feats}</ul>` : `<p class="nofeat">Sin características cargadas. Tocá “Editar” para agregarlas.</p>`}
@@ -3701,6 +3728,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
         ${curPrice(p) ? `<div class="price">${esc(curPrice(p))}</div>` : ''}
         ${stockLine(p)}
         ${modelsHTML(p, 'data-m', true)}
+        ${unitsHTML(p, 'data-m', !PUBLIC && !clientMode)}
         ${variantOf(p) ? `<div class="vedit"><input type="text" id="mv-name" maxlength="40" value="${esc(variantOf(p).name)}" aria-label="Nombre del modelo"><input type="text" id="mv-price" maxlength="20" value="${esc(variantOf(p).price || '')}" placeholder="Precio (si cambia)" aria-label="Precio del modelo"></div>
           <button class="linkbtn" type="button" data-m="delvar" style="color:var(--danger);justify-self:start">${delArmed ? '¿Seguro? Tocá de nuevo' : 'Quitar este modelo'}</button>` : ''}
         <p class="note" id="varMsg" role="status"></p>
@@ -3783,6 +3811,10 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
     else if(m === 'delspin'){ delete p.spin; if(modalMode === 'spin') modalMode = 'photos'; save(); renderModal(); renderDetail(); }
     else if(m === 'delvideo'){ delete p.video; if(modalMode === 'video') modalMode = 'photos'; save(); renderModal(); renderDetail(); }
     else if(m === 'var'){ selVar[p.id] = b.dataset.v; photoIdx = 0; delArmed = false; renderModal(); renderDetail(); }
+    else if(m === 'unit'){ selUnit[p.id] = b.dataset.u; renderModal(); renderDetail(); }
+    else if(m === 'upreset'){ p.units = unitPreset(b.dataset.k, p.price); selUnit[p.id] = ''; save(); render(); renderModal(); renderDetail(); }
+    else if(m === 'uadd'){ p.units = p.units || []; if(p.units.length < 12){ const u = {id: uid(), n: '', price: ''}; p.units.push(u); save(); renderModal(); const i = $('modal').querySelector(`[data-un="${u.id}"]`); if(i) i.focus(); } }
+    else if(m === 'udel'){ p.units = (p.units || []).filter(u => u.id !== b.dataset.u); if(!p.units.length) delete p.units; selUnit[p.id] = ''; save(); render(); renderModal(); renderDetail(); }
     else if(m === 'delvar'){
       if(!delArmed){ delArmed = true; renderModal(); return; }
       p.variants = (p.variants || []).filter(v => v.id !== selVar[p.id]); selVar[p.id] = ''; delArmed = false;
@@ -3885,11 +3917,13 @@ Respondé SOLO con JSON: {"name": "nombre corto del modelo, de 1 a 4 palabras, q
   });
   $('modal').addEventListener('input', e => {
     const p = products.find(x => x.id === modalId); if(!p) return;
+    const un = e.target.dataset && (e.target.dataset.un || e.target.dataset.up);
+    if(un){ const u = (p.units || []).find(x => x.id === un); if(u){ if(e.target.dataset.un) u.n = e.target.value.trim(); else u.price = e.target.value.trim(); save(); } return; }
     const v = variantOf(p); if(!v) return;
     if(e.target.id === 'mv-name'){ v.name = e.target.value.trim() || v.name; save(); }
     if(e.target.id === 'mv-price'){ v.price = e.target.value.trim(); save(); }
   });
-  $('modal').addEventListener('change', e => { if(e.target.id === 'mv-name' || e.target.id === 'mv-price'){ render(); renderModal(); } });
+  $('modal').addEventListener('change', e => { if(e.target.id === 'mv-name' || e.target.id === 'mv-price' || (e.target.dataset && (e.target.dataset.un || e.target.dataset.up))){ const p = products.find(x => x.id === modalId); if(p && p.units) p.units = p.units.filter(u => u.n || u.price); render(); renderModal(); renderDetail(); } });
   $('m-photo').addEventListener('change', async e => {
     const p = products.find(x => x.id === modalId); if(!p) return;
     const files = [...e.target.files].filter(f => f.type.startsWith('image/'));
@@ -4334,6 +4368,7 @@ Respondé SOLO con JSON: {"letras": [ ... ]} con ${n} letra${n === 1 ? '' : 's'}
       return;
     }
     if(act === 'var'){ const bb = e.target.closest('[data-v]'); selVar[p.id] = bb.dataset.v; renderDetail(); return; }
+    if(act === 'unit'){ const bb = e.target.closest('[data-u]'); selUnit[p.id] = bb.dataset.u; renderDetail(); return; }
     if(act === 'cart'){ const okc = addToCart(cartKey(p), (variantOf(p) ? null : prodImg(p.id)) || $('detail').querySelector('.pic img')); e.target.textContent = okc === false ? (p.stock > 0 ? L('Ya tenés todo el stock', 'All stock in your order', 'Todo o estoque no pedido') : L('Sin stock', 'Out of stock', 'Sem estoque')) : '✓ Agregado'; setTimeout(() => renderDetail(), 1200); }
     if(act === 'edit') startEdit(p);
     if(act === 'remove'){ e.target.textContent = '¿Seguro? Tocá de nuevo'; e.target.dataset.act = 'confirm'; }
@@ -6086,11 +6121,13 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   const saveCart = () => { try{ localStorage.setItem(CART_KEY, JSON.stringify(cart)); }catch(e){} };
   function cartItems(){
     return Object.entries(cart).map(([key, q]) => {
-      const [pid, vid] = key.split('|'), p = products.find(x => x.id === pid);
+      const [pid, vid, uidd] = key.split('|'), p = products.find(x => x.id === pid);
       if(!p || q <= 0) return null;
       const v = vid ? (p.variants || []).find(x => x.id === vid) : null;
       if(vid && !v) return null;
-      return {key, p, q, img: v ? v.img : p.img, name: p.name + (v ? ' — ' + v.name : ''), price: v && v.price ? v.price : p.price};
+      const u = uidd ? (p.units || []).find(x => x.id === uidd) : null;
+      if(uidd && !u) return null;
+      return {key, p, q, img: v ? v.img : p.img, name: p.name + (v ? ' — ' + v.name : '') + (u ? ' · ' + u.n : ''), price: u && u.price ? u.price : v && v.price ? v.price : p.price};
     }).filter(Boolean);
   }
   // PayPal: con el usuario de paypal.me arma el link con el total exacto del pedido (si todos los productos tienen precio).
@@ -8527,6 +8564,26 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     const b = document.createElement('button'); b.className = 'btn primary hcaja'; b.type = 'button'; b.dataset.hcaja = '1';
     b.textContent = `🧾 Ir a la caja (${cartCount()})`; $('hRes').appendChild(b);
   }
+  // Cantidades dichas por voz: "medio kilo", "media docena", "2 sándwiches", "una docena de huevos"…
+  let hQty = 1;
+  const UCANON = t => norm(t).replace(/½|1\/2/g, ' medio ').replace(/¼|1\/4/g, ' cuarto ').replace(/\bkg\b|kilos?\b/g, ' kilo ').replace(/\bmedia\b/g, ' medio ').replace(/docenas\b/g, 'docena').replace(/unidades\b/g, 'unidad').replace(/\s+/g, ' ').trim();
+  const NUMW = {un: 1, uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10, doce: 12};
+  function hAmount(p, q){
+    const t = ' ' + UCANON(q).replace(/\b(un|uno|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|doce)\b/g, (m) => NUMW[m]) + ' ';
+    let unit = null, best = 0;
+    (p.units || []).forEach(u => {
+      const c = UCANON(String(u.n).replace(/\b(un|uno|una)\b/g, '1')), ws = c.split(' ').filter(Boolean);
+      if(!ws.length) return;
+      const hit = ws.every(w => t.includes(' ' + w + ' ')) ? ws.length + 1 : ws.filter(w => w.length > 2 && t.includes(' ' + w + ' ')).length;
+      if(hit > best || (hit === best && hit && c.length > UCANON(unit ? unit.n : '').length)){ best = hit; unit = u; }
+    });
+    // si nombró la presentación ("medio kilo"), la cantidad es 1; si no ("2 sándwiches"), toma el número que dijo
+    let qty = 1;
+    const unitWords = unit ? UCANON(unit.n) : '';
+    const m = t.match(/ (\d{1,2}) /);
+    if(m && !(unit && unitWords.split(' ').includes(m[1]))) qty = Math.min(20, Math.max(1, +m[1]));
+    return {unit: best > 0 ? unit : null, qty};
+  }
   function hYesNo(p){
     hPending = p;
     const box = document.createElement('div'); box.className = 'hyn';
@@ -8536,7 +8593,9 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   function hAddPending(){
     const p = hPending || hLast; hPending = null;
     if(!p) return hSpeak('¡Dale! Decime cuál: tocá el producto que querés y te lo agrego.');
-    addToCart(cartKey(p)); $('hRes').querySelectorAll('.hyn').forEach(x => x.remove());
+    const nq = Math.max(1, hQty || 1); hQty = 1;
+    for(let i = 0; i < nq; i++){ if(addToCart(cartKey(p)) === false) break; }
+    $('hRes').querySelectorAll('.hyn').forEach(x => x.remove());
     const b = $('hRes').querySelector(`[data-hadd="${p.id}"]`); if(b) b.textContent = '✓ Agregado';
     hCajaChip(); hAskCaja = true;
     hSpeak(M('added', {p: p.name}));
@@ -8628,7 +8687,12 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(found.length){
       hLast = found.length === 1 ? found[0] : null; hShow(found, found.length === 1); hWalk(found[0].cat);
       const p = found[0];
-      if(found.length === 1) hYesNo(p);
+      hQty = 1;
+      if(found.length === 1){
+        const am = hAmount(p, q); if(am.unit) selUnit[p.id] = am.unit.id; else if(am.qty > 1) selUnit[p.id] = ''; hQty = am.qty;
+        hYesNo(p);
+        if(am.unit || am.qty > 1){ const u = unitOf(p); return hSpeak(`Acá tenés ${p.name}. ¿Te agrego ${am.qty > 1 ? am.qty + ' × ' : ''}${u ? u.n : ''}${curPrice(p) ? ', a ' + curPrice(p) + (am.qty > 1 ? ' cada uno' : '') : ''}?`); }
+      }
       return hSpeak(found.length === 1 ? `Acá tenés ${p.name}${p.promo ? ', ' + p.promo : ''}${curPrice(p) ? ', a ' + curPrice(p) : ''}. ¿Lo agrego a tu pedido?` : `Encontré ${found.length} opciones. La primera es ${p.name}${curPrice(p) ? ', a ' + curPrice(p) : ''}. Tocá la que quieras ver en grande.`);
     }
     if(waNumber() && n.split(' ').length > 2) return hHandoff(q);
