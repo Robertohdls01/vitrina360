@@ -4677,6 +4677,15 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       if(focus){ setTimeout(() => { try{ focus.focus({preventScroll: true}); }catch(e){} }, 600); }
       setTimeout(() => el.classList.remove('flhi'), 9000);
     };
+    const closePanels = () => { const bp = $('brandPanel'); if(bp && !bp.hidden && $('brandBtn')) $('brandBtn').click(); };
+    const qOpen = () => { const qp = $('quickPanel'); if(qp && qp.hidden && $('quickBtn')) $('quickBtn').click(); };
+    const openTools = () => { const bp = $('brandPanel'); if(bp && !bp.hidden && $('brandBtn')) $('brandBtn').click(); if($('toolsBtn')) $('toolsBtn').click(); };
+    const tCard = (id, sel, txt, name) => {
+      const c = document.querySelector(`#toolsColL > .tcard[data-card="${id}"], #toolsColR > .tcard[data-card="${id}"]`);
+      if(c){ const t = c.querySelector(sel) || c; show(c, null, t); return txt; }
+      const e = document.querySelector('#toolsWrap .gempty'); show(e, null, e && e.querySelector('.gadd'));
+      return txt + ` Ahora no lo tenés puesto: tocá “＋ Poner algo” en un lugar vacío y elegí “${name}”.`;
+    };
     const STEPS = [
       {id: 'nombre', em: '🏪', t: 'Nombre y logo', go: () => { openBrand(); const l = $('b-name').closest('label') || $('b-name'); show(l, $('b-name'), l); return 'Escribí acá el nombre de tu negocio, como lo conocen tus clientes. Un poco más abajo, en “Logo”, tocá “Subir logo” y elegí la foto de tu logo o de tu cartel.'; }},
       {id: 'rubro', em: '🧩', t: 'Tipo de negocio', go: () => { openBrand(); show(slotOf($('presetGrid')), null, $('presetGrid')); return 'Elegí qué tipo de negocio tenés: le pongo nombre a tus vitrinas y el estilo del mueble. Tus productos no se borran.'; }},
@@ -4689,11 +4698,38 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       {id: 'botones', em: '🔘', t: 'Color de los botones', go: () => { openBrand(); show(byTitle('Color de los botones flotantes'), null, $('btnColorBar')); return 'Acá elegís el color de los botones “Ver pedido” y “← Vitrinas”, para que combinen con tu tienda.'; }},
       {id: 'vendedores', em: '🛍', t: 'Vendedores virtuales', go: () => { openBrand(); show(slotOf($('helperBar')), null, $('helperBar')); return 'Elegí tus vendedores virtuales: atienden a tus clientes, responden preguntas y les cargan el pedido. Más abajo podés escribir tus preguntas y respuestas frecuentes.'; }},
       {id: 'musica', em: '🎵', t: 'Música y videos', go: () => { openBrand(); show(byTitle('Música de la tienda'), null, $('musicBar')); return 'Tocá una música y suena de fondo en tu tienda, como en un local. Si querés, subí un MP3 tuyo con el botón de abajo.'; }},
-      {id: 'redes', em: '📲', t: 'Mis redes y links', go: () => { const bp = $('brandPanel'); if(bp && !bp.hidden && $('brandBtn')) $('brandBtn').click(); if($('toolsBtn')) $('toolsBtn').click(); show(null); setTimeout(() => { const g = document.querySelector('#toolsWrap .gempty .gadd'); if(g && !g.closest('.gempty').classList.contains('pick')) g.click(); setTimeout(() => { const i = document.querySelector('#toolsWrap .gempty.pick .gform input') || [...document.querySelectorAll('#toolsWrap .gform input')].find(x => x.getBoundingClientRect().height); const w = $('gStrip') || $('toolsWrap'); show(i ? i.closest('.gform') : w, null, i ? i.closest('.gform') : w); }, 250); }, 700); return 'Pegá en este recuadro el link de tu Instagram, Facebook, YouTube o Spotify y tocá ▶. Queda guardado en tu tienda y lo abrís con un toque.'; }},
+      {id: 'redes', em: '🧰', t: 'Redes, mapa y links (16 lugares)', tour: [
+        () => { openTools(); show(null); setTimeout(() => show($('gStrip'), null, $('gStrip')), 750); return 'Esta es tu caja de herramientas 🧰. La tira de arriba son tus accesos rápidos: WhatsApp, Instagram, Messenger, correos y más. Tocás uno y se abre al costado, sin cerrar tu tienda. Deslizala con el dedo para ver todos.'; },
+        () => { const c = document.querySelector('#toolsColL > .tcard, #toolsColL > .gempty'); show(c, null, c && (c.querySelector('.tcardh, .gadd') || c)); return 'Abajo tenés 16 lugares numerados para armar a tu gusto. En cada cuadro, con el numerito de arriba elegís en qué lugar va, y con ✕ lo sacás. Te muestro cada uno.'; },
+        () => tCard('mapa', '#mapForm', 'Este es Google Maps 🗺. Escribí la dirección de un pedido y tocá “Buscar”. Con 🧭 te marca cómo llegar desde tu local, y con ↗ lo abrís grande en Google Maps.', '🗺 Mapa'),
+        () => tCard('fb', '#fbForm', 'Tu página de Facebook 📘: pegá acá el link de tu página y tocá “Mostrar”. Queda a la vista adentro de tu tienda.', '📘 Facebook'),
+        () => tCard('links', '#myLinkForm', 'Tus otros links 🔗: escribí un nombre (por ejemplo “Proveedor” o “Mi Instagram”), pegá el link en el segundo recuadro y tocá “＋ Agregar”. Cada uno queda como un botón para abrirlo con un toque.', '🔗 Links'),
+        () => tCard('redes', '#netBtns', 'Redes y chats 💬: WhatsApp, Instagram, Messenger y más. Se abren al costado: atendés los mensajes de un lado y armás el pedido del otro.', '💬 Redes'),
+        () => tCard('envios', '.netbtns', 'Correos 📮, Ventas 🛒 y Encomiendas 🚌: accesos directos a Correo Argentino, Andreani, OCA, Mercado Libre, Mercado Pago y más, para seguir tus envíos y tus cobros.', '📮 Correos'),
+        () => tCard('ia', '#aiForm', 'Ayuda con IA 🤖: escribile lo que necesites y tocá “Enviar”. Por ejemplo: “escribime una descripción para la remera azul” o “armame un posteo para Instagram”.', '🤖 IA'),
+        () => { const g = document.querySelector('#toolsWrap .gempty .gadd'); if(!g){ show($('gStrip'), null, $('gStrip')); return 'Tus 16 lugares ya están llenos 👏. Para poner algo nuevo, sacá uno con ✕ y en el lugar vacío tocá “＋ Poner algo”.'; }
+          if(!g.closest('.gempty').classList.contains('pick')) g.click();
+          setTimeout(() => { const f = document.querySelector('#toolsWrap .gempty.pick .gform'); const e = document.querySelector('#toolsWrap .gempty.pick'); show(e, null, f || e); }, 250);
+          return 'Para agregar algo nuevo: en un lugar vacío tocá “＋ Poner algo”. Elegís uno de los botones, o pegás en el recuadro el link de YouTube, Spotify, TikTok, una radio o cualquier página y tocás ▶. ¡Y listo!'; }
+      ]},
+      {id: 'tv', em: '📺', t: 'Pantalla de ofertas', tour: [
+        () => { openBrand(); const v = $('b-tvvideo'); show(byTitle('Pantalla LED de ofertas'), null, v ? v.closest('.row') : null); return 'Esta es tu pantalla LED de ofertas 📺, como el televisor de un local. Pasa sola tus productos destacados (★) con su precio. Acá podés subir un video 🎬 (la presentación de tu negocio o el producto del día) o fotos 🖼 para que también las muestre.'; },
+        () => { openBrand(); const t = $('b-tvtext'); show(byTitle('Pantalla LED de ofertas'), t, t ? (t.closest('label') || t) : null); return 'Escribí acá el texto que corre abajo, por ejemplo “¡Ofertas de hoy! Envíos gratis”. Con “✋ Mover la pantalla” la ponés donde quieras y con la barrita cambiás el tamaño. Con “🎟 turnero” muestra los pedidos: el listo en verde y el que se prepara en amarillo.'; }
+      ]},
+      {id: 'reparto', em: '🛵', t: 'Mis repartidores', go: () => { openBrand(); const b = $('riderAdd'); show(b ? b.closest('.riderbox') : byTitle('Formas de entrega'), null, b); return 'Si tenés delivery, tocá “+ Agregar repartidor”, poné su nombre y elegí si es chico o chica. Aparece con casco al lado de la caja, y cuando marcás que salió un pedido, se va en la motito 🛵. Arriba elegís si tus clientes lo ven como repartidor, cadete o mensajero.'; }},
+      {id: 'precios', em: '💰', t: 'Precios, ganancia y stock', tour: [
+        () => { closePanels(); qOpen(); const i = $('qBulkPct'); show(i ? i.closest('.qbrand') : null, null, i); return 'Si tu proveedor aumentó: escribí acá el porcentaje (por ejemplo 10, o -5 para bajar) y tocá “Aplicar a todos”. Todos los precios de tu tienda se actualizan juntos. Te pide tocar dos veces para confirmar.'; },
+        () => { closePanels(); qOpen(); const i = $('qMarkup'); show(i ? i.closest('label') : null, i, i); return 'Tu ganancia 💰: poné acá tu porcentaje, por ejemplo 30. Después sacale una foto a la boleta o a la lista de precios del proveedor con “📖 Foto de catálogo”: la IA carga cada producto y ya le suma tu ganancia al precio.'; },
+        () => { closePanels(); let w = 0; if($('shopView').hidden){ const t = document.querySelector('#homegrid .mini[data-cat]'); if(t){ t.click(); w = 700; } } setTimeout(() => { const i = $('f-stock'); const l = i && i.closest('label'); show(l, i, l); }, w); return 'Stock 📦: cuando cargás o editás un producto, escribí acá cuántas unidades tenés. Cuando vendés se descuenta solo, y si se agota tus clientes lo ven “sin stock”. Si lo dejás vacío, no se controla.'; }
+      ]},
+      {id: 'pedidos', em: '📋', t: 'Pedidos y ver como cliente', tour: [
+        () => { closePanels(); const b = $('ordersBtn'); show(b && !b.hidden ? b : null, null, b && !b.hidden ? b : null); return 'Acá, en “📋 Pedidos”, te llegan los pedidos de tus clientes. Los vas marcando: en preparación, listo, entregado. El numerito te avisa cuántos hay nuevos. (Aparece cuando entra el primer pedido.)'; },
+        () => { closePanels(); const b = $('clientBtn'); show(b, null, b); return 'Con “👁 Ver como cliente” ves tu tienda tal cual la ven tus clientes, para revisar que quede linda. Para volver, tocá el botón de arriba.'; }
+      ]},
       {id: 'compartir', em: '🔗', t: 'Compartir mi tienda', go: () => { const q = document.querySelector('[data-qr]'); show(q, null, q); return 'Tocá “QR de mi tienda” para imprimir tu código y pegarlo en el mostrador. En “Mi cuenta” está “Copiar link” para mandarlo por WhatsApp e Instagram.'; }}
     ];
-    const ASK = {nombre: /nombre|logo|cartel/, rubro: /rubro|tipo de negocio|plantilla/, productos: /producto|foto|cargar|subir|folleto|catalogo|lista/, cantidades: /kilo|docena|unidad|cantidad|gramo/, whatsapp: /whats|wsp|telefono|celular/,
-      cobros: /cobr|pag|mercado ?pago|tarjeta|alias|cbu|transfer/, entregas: /envio|entrega|delivery|horario|retiro|moto/, colores: /color|fondo|lindo|estilo/, vendedores: /vendedor|avatar|munequ|asistent|pregunta/, musica: /music|cancion|mp3/, redes: /youtube|spotify|video|redes|instagram|facebook|tiktok|link de/, botones: /boton/, compartir: /compart|qr|mi link|difund/};
+    const ASK = {nombre: /nombre|logo|cartel/, rubro: /rubro|tipo de negocio|plantilla/, precios: /porcentaje|aument|subir precio|bajar precio|ganancia|stock|lista de precio|proveedor|costo/, pedidos: /pedido|como cliente|ver como/, productos: /producto|foto|cargar|subir|folleto|catalogo|lista/, cantidades: /kilo|docena|unidad|cantidad|gramo/, whatsapp: /whats|wsp|telefono|celular/,
+      cobros: /cobr|pag|mercado ?pago|tarjeta|alias|cbu|transfer/, reparto: /repart|cadete|mensajero|moto|delivery/, tv: /tele|televisor|pantalla|led|oferta|turnero/, 'redes@2': /mapa|maps|google|direccion/, 'redes@3': /facebook/, 'redes@4': /(?<!mi )(?<!tienda )link/, 'redes@7': /ia|inteligencia/, entregas: /envio|entrega|horario|retiro/, colores: /color|fondo|lindo|estilo/, vendedores: /vendedor|avatar|munequ|asistent|pregunta/, musica: /music|cancion|mp3/, redes: /youtube|spotify|video|redes|instagram|tiktok|herramienta|lugares|16/, botones: /boton/, compartir: /compart|qr|mi link|difund/};
     const menu = (pre) => {
       const f = st(), left = STEPS.filter(x => !f.done.includes(x.id));
       aim = null; setTimeout(reB, 50);
@@ -4702,11 +4738,15 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       else talk(pre || `${f.name ? f.name + ', ¿' : '¿'}por dónde querés seguir? Te recomiendo: ${left[0].t}.`);
       chips.innerHTML = STEPS.map(x => `<button type="button" data-fl="${x.id}"${left[0] && x.id === left[0].id ? ' class="pri"' : ''}>${f.done.includes(x.id) ? '✅' : x.em} ${esc(x.t)}</button>`).join('') + `<button type="button" data-fl="?">❓ Otra pregunta</button>`;
     };
-    const step = id => {
+    const step = (id, n) => {
       const x = STEPS.find(s => s.id === id); if(!x) return menu();
-      const txt = x.go(); talk((isMun() ? '' : '👉 ') + txt);
+      n = n || 0; const tot = x.tour ? x.tour.length : 1;
+      const txt = x.tour ? x.tour[n]() : x.go(); talk((isMun() ? '' : '👉 ') + txt);
       inp.innerHTML = '';
-      chips.innerHTML = `<button type="button" class="pri" data-fl="ok:${x.id}">✅ Listo, ¿qué sigue?</button><button type="button" data-fl="menu">↩ Ver todos los pasos</button>`;
+      chips.innerHTML = (n < tot - 1
+        ? `<button type="button" class="pri" data-fl="t:${x.id}:${n + 1}">➡ Siguiente (${n + 1} de ${tot})</button>${n ? `<button type="button" data-fl="t:${x.id}:${n - 1}">⬅ Anterior</button>` : ''}<button type="button" data-fl="ok:${x.id}">⏭ Ya lo sé</button>`
+        : `<button type="button" class="pri" data-fl="ok:${x.id}">✅ Listo, ¿qué sigue?</button>${n ? `<button type="button" data-fl="t:${x.id}:${n - 1}">⬅ Anterior</button>` : ''}`)
+        + `<button type="button" data-fl="menu">↩ Ver todos los pasos</button>`;
     };
     const askName = () => {
       talk('¡Hola! Soy Flashi ⚡, tu ayudante de ShopFlash. Te voy a acompañar a dejar tu tienda lista, paso a paso. ¿Cómo te llamás?');
@@ -4733,8 +4773,9 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       if(k === 'skipname'){ f.noname = true; save(); return menu('¡Dale! ¿Por dónde querés empezar? Si no sabés, arrancamos por el nombre y el logo de tu negocio.'); }
       if(k === 'menu') return menu();
       if(k === '?') return question();
-      if(k === 'q'){ const n = norm($('flQ').value || ''); const hit = Object.keys(ASK).find(id => ASK[id].test(n)); if(hit) return step(hit);
+      if(k === 'q'){ const n = norm($('flQ').value || ''); const hit = Object.keys(ASK).find(id => ASK[id].test(n)); if(hit){ const [hid, hn] = hit.split('@'); return step(hid, +hn || 0); }
         return menu('Esa no la sé todavía 🙈. Elegí uno de estos pasos, o escribile a quien te vendió ShopFlash: te ayuda con gusto.'); }
+      if(k.startsWith('t:')){ const [, id, n] = k.split(':'); return step(id, +n); }
       if(k.startsWith('ok:')){ const id = k.slice(3); if(!f.done.includes(id)) f.done.push(id); save(); document.querySelectorAll('.flhi').forEach(x => x.classList.remove('flhi'));
         const left = STEPS.filter(x => !f.done.includes(x.id)); return left.length ? menu(`¡Muy bien${f.name ? ', ' + f.name : ''}! ✅ Seguimos con: ${left[0].t}. ¿O preferís otro?`) : menu(); }
       step(k);
