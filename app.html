@@ -699,6 +699,14 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 .contactgrid{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 @media (max-width:820px){.contactgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:480px){.contactgrid{grid-template-columns:1fr}}
+.loadfab{position:fixed;left:calc(14px + env(safe-area-inset-left, 0px));bottom:calc(14px + env(safe-area-inset-bottom, 0px));z-index:41;border:0;border-radius:999px;padding:14px 22px;font:700 16px var(--body,system-ui);color:#fff;background:#15803d;box-shadow:0 6px 20px rgba(0,0,0,.25);cursor:pointer;white-space:nowrap}
+body.clientmode .loadfab,body.clientmode .loadsheet{display:none!important}
+.loadsheet{position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+.loadsheet .lsbox{background:var(--surface,#fff);color:var(--ink,#111);width:min(520px,100%);border-radius:20px 20px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom, 0px));display:grid;gap:8px;max-height:90vh;overflow:auto}
+.loadsheet h3{margin:0 0 4px;font-size:19px}
+.loadsheet button{display:grid;gap:2px;text-align:left;border:1px solid var(--line,#ddd);background:var(--bg,#fafafa);color:inherit;border-radius:14px;padding:12px 14px;font:inherit;cursor:pointer}
+.loadsheet button b{font-size:16px}.loadsheet button small{opacity:.75;font-size:13px}.loadsheet .lsx{text-align:center;font-weight:700}
+@media (min-width:900px){.loadsheet{align-items:center}.loadsheet .lsbox{border-radius:20px}}
 .cartfab{position:fixed;right:calc(16px + env(safe-area-inset-right, 0px));bottom:calc(16px + env(safe-area-inset-bottom, 0px));z-index:40;
   border:0;border-radius:999px;background:var(--fab-bg, var(--ink));color:var(--fab-ink, var(--bg));padding:12px 18px;font-weight:600;cursor:pointer;box-shadow:0 10px 24px -8px var(--shadow);display:flex;gap:10px;align-items:center}
 .cartfab .n{background:var(--price-bg);color:var(--price-ink);border-radius:999px;padding:1px 8px;font:500 13px var(--mono)}
@@ -2452,9 +2460,9 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
             <p class="note" style="margin:6px 0 0">Si un producto ya está en tu tienda con el mismo nombre, le actualizo el precio y el stock en vez de duplicarlo. Las fotos se traen si el archivo tiene el link.</p>
           </details>
         </span>
-        <span class="row" style="gap:6px;flex-basis:100%;flex-wrap:wrap;margin-top:4px"><span>✂️ ¿Das servicios? Cargá los conocidos y solo ponés los precios:</span>
-          <select id="qSvcKind" aria-label="Tipo de servicios"><option value="canina">🐶 Peluquería canina</option><option value="pelu">💇 Peluquería</option><option value="barber">💈 Barbería</option><option value="unas">💅 Uñas y estética</option></select>
-          <button class="btn" type="button" id="qSvcGo">Cargar servicios</button></span>
+        <span class="row" style="gap:6px;flex-basis:100%;flex-wrap:wrap;margin-top:4px"><span>⚡ ¿Verdulería, panadería o servicios? Cargá los productos conocidos y solo ponés los precios:</span>
+          <select id="qSvcKind" aria-label="Tipo de comercio"><option value="verdu">🥬 Verdulería (frutas y verduras)</option><option value="pana">🥖 Panadería (panes, facturas, tortas)</option><option value="canina">🐶 Peluquería canina</option><option value="pelu">💇 Peluquería</option><option value="barber">💈 Barbería</option><option value="unas">💅 Uñas y estética</option></select>
+          <button class="btn" type="button" id="qSvcGo">Cargar la lista</button></span>
       </div>
       <label class="qbrand" for="qBrand">Marca del catálogo <small>(opcional, para “📖 Foto de catálogo”)</small>
         <input type="text" id="qBrand" maxlength="40" placeholder="Ej: Avon, Natura, Violetta Fabiani">
@@ -2712,6 +2720,16 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
 </div>
 <div class="gbigback" id="gBigBack" hidden></div>
 <div class="mediadock" id="mediaDock" hidden></div>
+<button class="loadfab" type="button" id="loadFab" hidden aria-haspopup="dialog">📸 Cargar productos</button>
+<div class="loadsheet" id="loadSheet" hidden role="dialog" aria-modal="true" aria-label="Cargar productos"><div class="lsbox">
+  <h3>📸 Cargar productos</h3>
+  <button type="button" data-ld="one"><b>📷 Un producto</b><small>Sacale una foto (o elegila) y poné el precio</small></button>
+  <button type="button" data-ld="many"><b>✦ Varios productos de una</b><small>Elegí muchas fotos juntas: la IA nombra cada uno</small></button>
+  <button type="button" data-ld="cat"><b>📖 Foto de folleto o catálogo</b><small>Una foto con muchos productos: los separa sola</small></button>
+  <button type="button" data-ld="kit"><b>🥬 Listas listas</b><small>Verdulería, panadería o servicios: solo ponés los precios</small></button>
+  <button type="button" data-ld="imp"><b>📥 Traer de otra tienda</b><small>Tiendanube, Mercado Libre, Excel…</small></button>
+  <button type="button" class="lsx" data-ld="x">Cerrar</button>
+</div></div>
 <button class="cartfab" type="button" id="cartFab" hidden>Ver pedido <span class="n" id="cartN">0</span></button>
 <div class="modal" id="askModal" hidden role="alertdialog" aria-modal="true" aria-labelledby="askTitle">
   <div class="sheet asksheet"><h2 id="askTitle"></h2><p class="note" id="askText"></p>
@@ -2825,6 +2843,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
     if(kind === 'kilo') return [mk('¼ kg', 0.25), mk('½ kg', 0.5), mk('1 kg', 1), mk('2 kg', 2)];
     if(kind === 'docena') return [mk('1 unidad', 1), mk('Media docena', 6), mk('1 docena', 12)];
     if(kind === 'docenaP') return [mk('Media docena', 0.5), mk('1 docena', 1)];
+    if(kind === 'docenaF') return [mk('1 unidad', 1 / 12), mk('Media docena', 0.5), mk('1 docena', 1)];
     return [mk('1 unidad', 1), mk('2 unidades', 2), mk('3 unidades', 3)];
   }
   function unitsHTML(p, attr, owner){
@@ -4530,6 +4549,24 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
   $('f-name').addEventListener('input', e => { e.target.dataset.auto = ''; });
   $('f-feats').addEventListener('input', e => { e.target.dataset.auto = ''; });
   $('f-photo').onchange = e => takeFiles(e.target.files);
+  // ---- Botón grande y siempre a la vista para cargar productos (antes estaba escondido al costado en el celular) ----
+  if($('loadFab') && !PUBLIC){
+    const lf = $('loadFab'), ls = $('loadSheet');
+    lf.hidden = false;
+    const openQuick = () => { const qp = $('quickPanel'); if(qp && qp.hidden && $('quickBtn')) $('quickBtn').click(); return qp; };
+    lf.onclick = () => { ls.hidden = false; };
+    ls.addEventListener('click', e => {
+      const b = e.target.closest('[data-ld]'); if(!b){ if(e.target === ls) ls.hidden = true; return; }
+      const k = b.dataset.ld; ls.hidden = true;
+      if(k === 'one'){ const fp = $('formPanel'); if(fp) fp.scrollIntoView({behavior: 'smooth', block: 'start'}); $('f-photo').click(); }
+      else if(k === 'many'){ openQuick(); $('q-photos').click(); }
+      else if(k === 'cat'){ openQuick(); $('q-catalog').click(); }
+      else if(k === 'kit'){ openQuick(); const el = $('qSvcKind'); if(el){ el.scrollIntoView({behavior: 'smooth', block: 'center'}); setTimeout(() => el.focus(), 400); } }
+      else if(k === 'imp'){ openQuick(); const el = $('q-import'); if(el) el.closest('.qimp').scrollIntoView({behavior: 'smooth', block: 'center'}); }
+    });
+    document.addEventListener('keydown', e => { if(e.key === 'Escape' && !ls.hidden) ls.hidden = true; });
+  }
+
   $('f-folder').onchange = e => { const fs = [...e.target.files]; e.target.value = ''; takeFiles(fs); };
   const drop = $('drop');
   ['dragenter','dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
@@ -4664,6 +4701,8 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     barber: {cat: 'Barbería', em: '💈', items: [
       ['Corte clásico', 'Tijera y máquina'], ['Fade / degradé', 'Degradé bajo, medio o alto'], ['Corte + barba', 'Combo'], ['Perfilado de barba', 'Con navaja'], ['Afeitado con navaja', 'Toalla caliente'],
       ['Diseño / rayas', 'Adicional'], ['Corte infantil', 'Hasta 12 años'], ['Color de barba', 'Adicional']]},
+    verdu: {cat: 'Verdulería', em: '🥬', prod: true, items: [["Papa", "Precio por kilo", 'kilo'], ["Batata", "Precio por kilo", 'kilo'], ["Cebolla", "Precio por kilo", 'kilo'], ["Cebolla morada", "Precio por kilo", 'kilo'], ["Zanahoria", "Precio por kilo", 'kilo'], ["Tomate", "Precio por kilo", 'kilo'], ["Tomate perita", "Precio por kilo", 'kilo'], ["Zapallo anco", "Precio por kilo", 'kilo'], ["Zapallito redondo", "Precio por kilo", 'kilo'], ["Zucchini", "Precio por kilo", 'kilo'], ["Berenjena", "Precio por kilo", 'kilo'], ["Morrón rojo", "Precio por kilo", 'kilo'], ["Morrón verde", "Precio por kilo", 'kilo'], ["Pepino", "Precio por kilo", 'kilo'], ["Remolacha", "Precio por kilo", 'kilo'], ["Chaucha", "Precio por kilo", 'kilo'], ["Arvejas", "Precio por kilo", 'kilo'], ["Jengibre", "Precio por kilo", 'kilo'], ["Limón", "Precio por kilo", 'kilo'], ["Naranja", "Precio por kilo", 'kilo'], ["Mandarina", "Precio por kilo", 'kilo'], ["Pomelo", "Precio por kilo", 'kilo'], ["Manzana roja", "Precio por kilo", 'kilo'], ["Manzana verde", "Precio por kilo", 'kilo'], ["Pera", "Precio por kilo", 'kilo'], ["Banana", "Precio por kilo", 'kilo'], ["Uva", "Precio por kilo", 'kilo'], ["Frutilla", "Precio por kilo", 'kilo'], ["Durazno", "Precio por kilo", 'kilo'], ["Ciruela", "Precio por kilo", 'kilo'], ["Kiwi", "Precio por kilo", 'kilo'], ["Cereza", "Precio por kilo", 'kilo'], ["Lechuga", "Precio por unidad", 'unidad'], ["Choclo", "Precio por unidad", 'unidad'], ["Acelga (atado)", "Precio por unidad", 'unidad'], ["Espinaca (atado)", "Precio por unidad", 'unidad'], ["Rúcula (atado)", "Precio por unidad", 'unidad'], ["Perejil (atado)", "Precio por unidad", 'unidad'], ["Albahaca (atado)", "Precio por unidad", 'unidad'], ["Cebolla de verdeo (atado)", "Precio por unidad", 'unidad'], ["Ajo (cabeza)", "Precio por unidad", 'unidad'], ["Apio", "Precio por unidad", 'unidad'], ["Brócoli", "Precio por unidad", 'unidad'], ["Coliflor", "Precio por unidad", 'unidad'], ["Repollo", "Precio por unidad", 'unidad'], ["Puerro", "Precio por unidad", 'unidad'], ["Palta", "Precio por unidad", 'unidad'], ["Ananá", "Precio por unidad", 'unidad'], ["Melón", "Precio por unidad", 'unidad'], ["Sandía", "Precio por unidad", 'unidad'], ["Mango", "Precio por unidad", 'unidad'], ["Coco", "Precio por unidad", 'unidad'], ['Huevos', 'Precio por unidad', 'docena']]},
+    pana: {cat: 'Panadería', em: '🥖', prod: true, items: [["Pan francés", "Precio por kilo", 'kilo'], ["Pan mignon", "Precio por kilo", 'kilo'], ["Felipe", "Precio por kilo", 'kilo'], ["Pan de salvado", "Precio por kilo", 'kilo'], ["Pan de viena", "Precio por kilo", 'kilo'], ["Grisines", "Precio por kilo", 'kilo'], ["Bizcochitos de grasa", "Precio por kilo", 'kilo'], ["Bizcochitos de manteca", "Precio por kilo", 'kilo'], ["Chipá", "Precio por kilo", 'kilo'], ["Masas finas", "Precio por kilo", 'kilo'], ["Masas secas", "Precio por kilo", 'kilo'], ["Galletitas de manteca", "Precio por kilo", 'kilo'], ["Medialuna de manteca", "Precio por docena", 'docenaF'], ["Medialuna de grasa", "Precio por docena", 'docenaF'], ["Vigilante", "Precio por docena", 'docenaF'], ["Cañoncito de dulce de leche", "Precio por docena", 'docenaF'], ["Bola de fraile", "Precio por docena", 'docenaF'], ["Sacramento", "Precio por docena", 'docenaF'], ["Tortita negra", "Precio por docena", 'docenaF'], ["Palmerita", "Precio por docena", 'docenaF'], ["Libro de membrillo", "Precio por docena", 'docenaF'], ["Churro", "Precio por docena", 'docenaF'], ["Berlinesa", "Precio por docena", 'docenaF'], ["Margarita", "Precio por docena", 'docenaF'], ["Facturas surtidas", "Precio por docena", 'docenaF'], ["Sándwich de miga (jamón y queso)", "Precio por docena", 'docenaF'], ["Sándwich de miga (surtido)", "Precio por docena", 'docenaF'], ["Alfajor de maicena", "Precio por docena", 'docenaF'], ["Pañuelito", "Precio por docena", 'docenaF'], ["Pan de campo", "Precio por unidad", 'unidad'], ["Pan lactal", "Precio por unidad", 'unidad'], ["Baguette", "Precio por unidad", 'unidad'], ["Pan de hamburguesa (x6)", "Precio por unidad", 'unidad'], ["Pan para pancho (x6)", "Precio por unidad", 'unidad'], ["Prepizza", "Precio por unidad", 'unidad'], ["Pastafrola", "Precio por unidad", 'unidad'], ["Budín", "Precio por unidad", 'unidad'], ["Torta de cumpleaños", "Precio por unidad", 'unidad'], ["Lemon pie", "Precio por unidad", 'unidad'], ["Chocotorta", "Precio por unidad", 'unidad'], ["Pan dulce", "Precio por unidad", 'unidad'], ["Rosca de Pascua", "Precio por unidad", 'unidad']]},
     unas: {cat: 'Uñas y estética', em: '💅', items: [
       ['Esmaltado semipermanente', 'Manos'], ['Kapping', 'Refuerzo con gel'], ['Uñas esculpidas', 'Acrílico o gel'], ['Manicura', 'Limado y cutículas'], ['Pedicura', 'Pies completos'],
       ['Nail art', 'Diseño por uña, adicional'], ['Perfilado de cejas', 'Con pinza o cera'], ['Lifting de pestañas', 'Con tinte'], ['Extensión de pestañas', 'Pelo por pelo o volumen'], ['Depilación', 'Por zona']]}
@@ -4676,16 +4715,16 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     let base = products.reduce((m, p) => Math.max(m, p.added), -1) + 1;
     const have = new Set(products.filter(p => p.cat === cat.id).map(p => norm(p.name)));
     const created = [];
-    kit.items.forEach(([name, desc]) => { if(have.has(norm(name))) return; const p = {id: uid(), cat: cat.id, added: base++, img: svcImg(kit.em, name), name, price: '', features: [desc ? 'Detalle: ' + desc : ''].filter(Boolean), service: true}; products.push(p); created.push(p); });
+    kit.items.forEach(([name, desc, uk]) => { if(have.has(norm(name))) return; const p = {id: uid(), cat: cat.id, added: base++, img: svcImg(kit.em, name), name, price: '', features: [desc ? (kit.prod ? desc : 'Detalle: ' + desc) : ''].filter(Boolean)}; if(!kit.prod) p.service = true; if(uk){ p.ukind = uk; p.units = unitPreset(uk, ''); } products.push(p); created.push(p); });
     save(); renderHome(); fillCatSelect(cat.id);
-    $('qMsg').textContent = created.length ? `Listo: cargué ${created.length} servicios en la vitrina “${kit.cat}”. Poné los precios abajo; los que no hacés, borralos, y los tuyos sumalos con su foto.` : 'Esos servicios ya estaban cargados.';
+    $('qMsg').textContent = created.length ? `Listo: cargué ${created.length} productos en la vitrina “${kit.cat}”. Poné los precios abajo; los que no tenés, borralos, y los tuyos sumalos con su foto.` : 'Esos productos ya estaban cargados.';
     if(created.length) showBulkPrices(created, $('qPrices'), $('qMsg'));
   });
   function showBulkPrices(list, box, msgEl){
     box = box || $('bulkPrices'); msgEl = msgEl || $('formMsg');
     box.innerHTML = `<strong>Poné los precios</strong><span class="note">Escribí el precio de cada uno y tocá “Guardar precios”. Los que dejes vacíos quedan “a consultar”.</span>
       <ul class="bplist">${list.map(p => `<li><img src="${p.img}" alt=""><div style="min-width:0">${p.review ? `<input type="text" class="bpname" data-bn="${p.id}" maxlength="80" value="${esc(p.name)}" aria-label="Nombre">` : `<div class="nm">${esc(p.name)}</div>`}<div class="note">${esc(p._where || (catOf(p.cat) || {}).name || '')}${p.review ? ` · <span class="review">⚠ ${L('Revisá el nombre', 'Check the name', 'Confira o nome')}</span>` : ''}</div></div>
-        <input type="text" data-bp="${p.id}" inputmode="decimal" maxlength="20" placeholder="$" value="${esc(p.price || '')}" aria-label="Precio de ${esc(p.name)}"></li>`).join('')}</ul>
+        <input type="text" data-bp="${p.id}" inputmode="decimal" maxlength="20" placeholder="${p.ukind === 'kilo' ? '$ por kg' : p.ukind === 'docenaF' ? '$ la docena' : p.ukind ? '$ c/u' : '$'}" value="${esc(p.price || '')}" aria-label="Precio de ${esc(p.name)}"></li>`).join('')}</ul>
       <div class="row"><button class="btn primary" type="button" data-bps>Guardar precios</button><button class="btn" type="button" data-bpc>Después</button></div>`;
     box.hidden = false;
     const first = box.querySelector('input'); if(first) first.focus();
@@ -4698,6 +4737,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
         const v = inp.value.trim(); if(!v) return;
         const p = findAny(inp.dataset.bp); if(!p) return;
         p.price = /^\$/.test(v) ? v : (isFinite(priceNum('$' + v)) ? '$' + Math.round(priceNum('$' + v)).toLocaleString('es-AR') : v); n++;
+        if(p.ukind && !(p.units || []).some(u => u.price)) p.units = unitPreset(p.ukind, p.price);
       });
       save(); render(); box.hidden = true;
       msgEl.textContent = n ? `Listo: ${n} precio${n===1?'':'s'} guardado${n===1?'':'s'}.` : 'No cargaste precios. Podés ponerlos después con “Editar”.';
