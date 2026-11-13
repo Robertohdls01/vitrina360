@@ -393,7 +393,7 @@
     const link = `${location.origin}/t/${slug}`;
     const bar = document.createElement('div'); bar.className = 'v3bar';
     // Todo lo de la cuenta (link, plan, salir) va en un solo botón "Mi cuenta", para dejar lugar a la tienda.
-    bar.innerHTML = `<span class="grp"><button type="button" data-acct aria-expanded="false">👤 <span data-acctl>${T('Mi cuenta', 'My account', 'Minha conta')}</span> ▾</button><button type="button" data-qr>📲 <span data-qrl>${T('QR de mi tienda', 'My store QR', 'QR da minha loja')}</span></button><span class="st" aria-live="polite"></span></span>
+    bar.innerHTML = `<span class="grp"><button type="button" data-acct aria-expanded="false">👤 <span data-acctl>${T('Mi cuenta', 'My account', 'Minha conta')}</span> ▾</button><button type="button" data-qr>📲 <span data-qrl>${T('Mi link y QR', 'My link & QR', 'Meu link e QR')}</span></button><span class="st" aria-live="polite"></span></span>
       <div class="v3more" hidden>
       <span class="grp">🌐 <span data-lbl>${T('Tu tienda', 'Your store', 'Sua loja')}</span>: <a href="${esc(link)}" target="_blank" rel="noopener">${esc(location.host + '/t/' + slug)}</a>
       <button type="button" data-copy>${T('Copiar link', 'Copy link', 'Copiar link')}</button></span>
@@ -426,14 +426,22 @@
 #qrOv .qru{font-size:12px;color:#555;word-break:break-all}#qrOv .qrb{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
 #qrOv .qrb button{border:0;border-radius:999px;padding:10px 16px;font:600 14px system-ui;cursor:pointer;background:#eee}#qrOv .qrb .pri{background:#15803d;color:#fff}
 #qrOv .qrby{font-size:11px;color:#888;margin-top:8px}
+#qrOv .qrc{max-height:92vh;overflow:auto}#qrOv .qrl{margin-top:14px;padding:12px;border-radius:14px;background:#f5f3ff;display:grid;gap:6px}#qrOv .qrl span{font-size:14px;word-break:break-all;color:#4c1d95;font-weight:600}#qrOv .qrl .qrb{margin-top:4px}#qrOv .qrb a.wa{border-radius:999px;padding:10px 16px;font:600 14px system-ui;background:#25d366;color:#fff;text-decoration:none}
+@media print{#qrOv .qrl{display:none}}
 @media print{body>*:not(#qrOv){display:none!important}#qrOv{position:static;background:none;padding:0}#qrOv .qrc{box-shadow:none;max-width:none;margin:30px auto}#qrOv .qrb{display:none}#qrOv .qrq svg{max-width:380px}#qrOv .qrc h2{font-size:30px}#qrOv .qrc p{font-size:20px}}</style>
 <div class="qrc"><h2>${esc(name)}</h2><p>🛍 ${T('Escaneá y comprá online', 'Scan and shop online', 'Escaneie e compre online')}</p>
 <div class="qrq">${q.createSvgTag({cellSize: 6, margin: 2, scalable: true})}</div>
 <div class="qru">${esc(location.host + '/t/' + slug)}</div><div class="qrby">⚡ ShopFlash</div>
+<div class="qrl"><b>🔗 ${T('Tu link para vender', 'Your store link', 'Seu link para vender')}</b><span>${esc(link)}</span>
+<div class="qrb"><button type="button" class="pri" data-qrc>📋 ${T('Copiar link', 'Copy link', 'Copiar link')}</button><a class="wa" data-qrw target="_blank" rel="noopener">💬 WhatsApp</a><button type="button" data-qrs hidden>📤 ${T('Compartir', 'Share', 'Compartilhar')}</button></div></div>
 <div class="qrb"><button type="button" class="pri" data-qrp>🖨 ${T('Imprimir', 'Print', 'Imprimir')}</button><button type="button" data-qrd>⬇ ${T('Guardar imagen', 'Save image', 'Salvar imagem')}</button><button type="button" data-qrx>✕ ${T('Cerrar', 'Close', 'Fechar')}</button></div></div>`;
       document.body.appendChild(ov);
       ov.onclick = e => { if(e.target === ov) ov.remove(); };
       ov.querySelector('[data-qrx]').onclick = () => ov.remove();
+      const msg = T('¡Hola! 👋 Mirá mi tienda online, elegí lo que quieras y hacé tu pedido acá: ', 'Hi! 👋 Check out my online store and order here: ', 'Oi! 👋 Veja minha loja online e faça seu pedido aqui: ') + link;
+      ov.querySelector('[data-qrw]').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+      ov.querySelector('[data-qrc]').onclick = e => { const b = e.currentTarget; navigator.clipboard?.writeText(link).then(() => { b.textContent = '✅ ' + T('¡Copiado!', 'Copied!', 'Copiado!'); }, () => { b.textContent = link; }); };
+      const shb = ov.querySelector('[data-qrs]'); if(navigator.share){ shb.hidden = false; shb.onclick = () => navigator.share({title: name, text: msg, url: link}).catch(() => {}); }
       ov.querySelector('[data-qrp]').onclick = () => window.print();
       ov.querySelector('[data-qrd]').onclick = () => {
         const n = q.getModuleCount(), cell = 12, pad = 40, W = n * cell + pad * 2, H = W + 170;
@@ -487,7 +495,7 @@
       bar.querySelector('[data-lbl]').textContent = T('Tu tienda', 'Your store', 'Sua loja');
       bar.querySelector('[data-acctl]').textContent = T('Mi cuenta', 'My account', 'Minha conta');
       bar.querySelector('[data-copy]').textContent = T('Copiar link', 'Copy link', 'Copiar link');
-      bar.querySelector('[data-qrl]').textContent = T('QR de mi tienda', 'My store QR', 'QR da minha loja');
+      bar.querySelector('[data-qrl]').textContent = T('Mi link y QR', 'My link & QR', 'Meu link e QR');
       bar.querySelector('[data-out]').textContent = T('Salir', 'Sign out', 'Sair');
       setStatus(T('Todo guardado en internet', 'Everything saved online', 'Tudo salvo na internet') + ' ✓');
       plan(bar.querySelector('[data-plan]'));
@@ -4726,7 +4734,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
         () => { closePanels(); const b = $('ordersBtn'); show(b && !b.hidden ? b : null, null, b && !b.hidden ? b : null); return 'Acá, en “📋 Pedidos”, te llegan los pedidos de tus clientes. Los vas marcando: en preparación, listo, entregado. El numerito te avisa cuántos hay nuevos. (Aparece cuando entra el primer pedido.)'; },
         () => { closePanels(); const b = $('clientBtn'); show(b, null, b); return 'Con “👁 Ver como cliente” ves tu tienda tal cual la ven tus clientes, para revisar que quede linda. Para volver, tocá el botón de arriba.'; }
       ]},
-      {id: 'compartir', em: '🔗', t: 'Compartir mi tienda', go: () => { const q = document.querySelector('[data-qr]'); show(q, null, q); return 'Tocá “QR de mi tienda” para imprimir tu código y pegarlo en el mostrador. En “Mi cuenta” está “Copiar link” para mandarlo por WhatsApp e Instagram.'; }}
+      {id: 'compartir', em: '🔗', t: 'Compartir mi tienda', go: () => { const q = document.querySelector('[data-qr]'); show(q, null, q); return 'Tocá “Mi link y QR”: ahí tenés tu código QR para imprimir y pegar en el mostrador, y tu link para copiar o mandar directo por WhatsApp, Instagram o donde quieras vender.'; }}
     ];
     const ASK = {nombre: /nombre|logo|cartel/, rubro: /rubro|tipo de negocio|plantilla/, precios: /porcentaje|aument|subir precio|bajar precio|ganancia|stock|lista de precio|proveedor|costo/, pedidos: /pedido|como cliente|ver como/, productos: /producto|foto|cargar|subir|folleto|catalogo|lista/, cantidades: /kilo|docena|unidad|cantidad|gramo/, whatsapp: /whats|wsp|telefono|celular/,
       cobros: /cobr|pag|mercado ?pago|tarjeta|alias|cbu|transfer/, reparto: /repart|cadete|mensajero|moto|delivery/, tv: /tele|televisor|pantalla|led|oferta|turnero/, 'redes@2': /mapa|maps|google|direccion/, 'redes@3': /facebook/, 'redes@4': /(?<!mi )(?<!tienda )link/, 'redes@7': /ia|inteligencia/, entregas: /envio|entrega|horario|retiro/, colores: /color|fondo|lindo|estilo/, vendedores: /vendedor|avatar|munequ|asistent|pregunta/, musica: /music|cancion|mp3/, redes: /youtube|spotify|video|redes|instagram|tiktok|herramienta|lugares|16/, botones: /boton/, compartir: /compart|qr|mi link|difund/};
