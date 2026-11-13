@@ -49,9 +49,9 @@ async function leerFila(owner) {
 async function guardarFila(owner, f) {
   try { await fetch(base() + '/object/' + BUCKET + '/fila/' + owner + '.json', { method: 'POST', headers: headers({ 'Content-Type': 'application/json', 'x-upsert': 'true', 'cache-control': 'no-cache' }), body: JSON.stringify(f) }); } catch (e) {}
 }
-const filaPublica = f => f.activos.slice(0, 15).map(a => ({ n: a.n, nombre: a.nombre || '' }));
+const filaPublica = f => f.activos.slice(0, 30).map(a => ({ n: a.n, nombre: a.nombre || '' }));
 // los últimos pedidos que quedaron listos o salieron (15 minutos), para el turnero
-const listosPublicos = f => (Array.isArray(f.listos) ? f.listos : []).filter(x => x && Date.now() - x.t < 15 * 60e3).slice(0, 4).map(x => ({ n: x.n, nombre: x.nombre || '', e: x.e }));
+const listosPublicos = f => (Array.isArray(f.listos) ? f.listos : []).filter(x => x && Date.now() - x.t < 15 * 60e3).slice(0, 10).map(x => ({ n: x.n, nombre: x.nombre || '', e: x.e }));
 // Lo que ve el cliente: sin los datos internos del comercio.
 const paraCliente = p => ({ turno: p.turno || null, estado: p.estado, paga_ahora: !!p.paga_ahora, pagado: !!p.pagado, repartidor: p.repartidor || '', salio_en: p.salio_en || null, creado: p.creado, envio: p.envio || '', demora: p.demora || '', digital: (p.items || []).some(it => it.d), servicio: !!p.servicio });
 // Links de descarga que vencen en 3 días, solo cuando el comercio marcó el pedido como pagado/listo.

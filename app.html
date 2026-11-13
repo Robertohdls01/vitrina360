@@ -828,6 +828,15 @@ body:not(.cartbig) .cartsheet .actions{gap:6px}
 .trk-ticket .tkt{min-width:64px}
 .trk-ticket .tkt b{font-size:22px}
 .trk-fila{font-size:12.5px}
+.foodb{margin:10px 0;padding:12px;border-radius:16px;background:var(--surface);border:1px solid var(--line)}
+.foodb h3{margin:0 0 4px;font-size:18px}.foodb .fbsub{margin:0 0 10px;font-size:13px;opacity:.75}
+.fbgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.fbsq{border-radius:12px;padding:8px 10px;border:2px solid #f59e0b;background:#fef3c7;color:#3b2a05;display:flex;flex-direction:column;gap:3px;font-size:13px;min-height:86px}
+.fbsq.listo{border-color:#16a34a;background:#dcfce7;color:#052e16}.fbsq.salio{border-color:#2563eb;background:#dbeafe;color:#0b1e4d}
+.fbsq.me{outline:3px solid #111;outline-offset:2px}
+.fbsq b.fbn{font-size:22px;line-height:1}.fbsq .fbst{font-weight:700;font-size:12px}.fbsq .fbit{font-size:12px;opacity:.85;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+.fbsq button{margin-top:auto;border:0;border-radius:999px;padding:6px 8px;font:700 12px var(--body,system-ui);cursor:pointer;background:#111;color:#fff}
+.fbsq .fbpos{font-size:11px;opacity:.7}
 .qbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 12px;font-size:13.5px}
 .qbar[hidden]{display:none}
 .qbar strong{white-space:nowrap}
@@ -2476,6 +2485,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
       <div class="bulkprices" id="qPrices" hidden></div>
     </section>
     <div class="homegrid" id="homegrid"></div>
+    <section class="foodb" id="foodBoard" aria-label="Tablero de pedidos" hidden></section>
     <section class="holo" id="holoBox" hidden aria-label="Ubicación del negocio"></section>
   </section>
 
@@ -6583,7 +6593,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   // fila pública: tickets en preparación con número y nombre de pila
   async function qBarPoll(){
     const bar = $('qBar'); if(!bar) return;
-    if(!PUBLIC || !window.VITRINA_SLUG || !brand.queueShow){ bar.hidden = true; return; }
+    if(!PUBLIC || !window.VITRINA_SLUG || !brand.queueShow || brand.foodMode){ bar.hidden = true; return; }
     let j = null; try{ const r = await fetch('/api/pedidos?fila=' + encodeURIComponent(window.VITRINA_SLUG), {cache: 'no-store'}); if(r.ok) j = await r.json(); }catch(e){}
     if(!j || !j.fila || !j.fila.length){ bar.hidden = true; return; }
     let mine = null; try{ const v = JSON.parse(localStorage.getItem(TRK) || 'null'); mine = v && v.turno; }catch(e){}
@@ -6605,6 +6615,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const n = $('ordersN'); if(n){ n.textContent = nuevos; n.hidden = !nuevos; }
     if(!$('ordersModal').hidden) renderOrders();
     try{ tvQueuePoll(); }catch(e){}
+    try{ foodRender(); }catch(e){}
     return ordList;
   }
   // Avisarle al cliente por WhatsApp en qué anda su pedido (en camino, listo para retirar, recibido)
@@ -6633,6 +6644,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
           <select id="ordMin">${[0, 5, 8, 10, 12, 15, 20, 25, 30, 40].map(m => `<option value="${m}"${m === mp ? ' selected' : ''}>${m ? m + ' min' : 'no sé'}</option>`).join('')}</select></label>
         ${mp && q.length ? `<span class="note" style="margin:0">El último sale en ~${q.length * mp} min</span>` : ''}
         <label class="note" style="margin:0;display:flex;gap:6px;align-items:center"><input type="checkbox" id="ordShowQ" ${brand.queueShow ? 'checked' : ''}> Mostrar la fila en mi tienda</label>
+        <label class="note" style="margin:0;display:flex;gap:6px;align-items:center"><input type="checkbox" id="ordFood" ${brand.foodMode ? 'checked' : ''}> 🍕 Modo comida: tablero grande de pedidos (pizzerías, rotiserías, restaurantes)</label>
       </div>`; })()}
       ${ordList.length ? `<div class="ordlist">${ordSorted().map(p => {
         const c = p.comprador || {}, moto = p.envio_id === 'moto', abierto = p.estado === 'preparando';
@@ -6666,7 +6678,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     };
     $('ordersModal').addEventListener('change', e => {
       if(e.target.id === 'ordMin'){ brand.minPedido = +e.target.value || 0; if(!brand.minPedido) delete brand.minPedido; save(); renderOrders(); }
-      if(e.target.id === 'ordShowQ'){ brand.queueShow = e.target.checked; if(!brand.queueShow) delete brand.queueShow; save(); }
+      if(e.target.id === 'ordShowQ'){ brand.queueShow = e.target.checked; if(!brand.queueShow) delete brand.queueShow; save(); try{ foodRender(); }catch(err){} }
+      if(e.target.id === 'ordFood'){ brand.foodMode = e.target.checked; if(brand.foodMode){ brand.queueShow = true; const q = $('ordShowQ'); if(q) q.checked = true; } else delete brand.foodMode; save(); try{ foodRender(); }catch(err){} }
     });
     $('ordersModal').addEventListener('click', async e => {
       const closeO = () => { $('ordersModal').hidden = true; document.documentElement.style.overflow = ''; };
@@ -6677,10 +6690,18 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       const ref = b.dataset.ref, estado = b.dataset.o; if(!ref) return;
       const sel = $('ordersSheet').querySelector(`[data-orider="${CSS.escape(ref)}"]`);
       b.disabled = true;
+      const ok = await ordSetEstado(ref, estado, sel ? sel.value : '');
+      if(ok) renderOrders(); else { b.disabled = false; const m = $('ordMsg'); if(m) m.textContent = 'No se pudo cambiar el pedido. Revisá internet y probá de nuevo.'; }
+    });
+    $('ordersModal').addEventListener('keydown', e => { if(e.key === 'Escape'){ $('ordersModal').hidden = true; document.documentElement.style.overflow = ''; } });
+    setTimeout(ordFetch, 2500); ordTimer = setInterval(ordFetch, 45000);
+  }
+  // Cambiar el estado de un pedido (lo usan la lista de pedidos y el tablero del modo comida)
+  async function ordSetEstado(ref, estado, repartidor){
       try{
-        const r = await fetch('/api/pedidos?accion=estado', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await window.VITRINA_TOKEN()}, body: JSON.stringify({ref, estado, repartidor: sel ? sel.value : ''})});
+        const r = await fetch('/api/pedidos?accion=estado', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await window.VITRINA_TOKEN()}, body: JSON.stringify({ref, estado, repartidor: repartidor || ''})});
         if(!r.ok) throw new Error();
-        const p = ordList.find(x => x.ref === ref); if(p){ if(estado === 'pagado') p.pagado = true; else p.estado = estado; if(estado === 'salio') p.repartidor = sel ? sel.value : ''; }
+        const p = ordList.find(x => x.ref === ref); if(p){ if(estado === 'pagado') p.pagado = true; else p.estado = estado; if(estado === 'salio') p.repartidor = repartidor || ''; }
         // Control de stock: cuando el pedido sale (o queda listo), se descuentan las unidades una sola vez
         if(p && ['salio', 'listo', 'entregado'].includes(estado)){
           let done = []; try{ done = JSON.parse(localStorage.getItem('v360-stock-desc') || '[]'); }catch(e){}
@@ -6695,11 +6716,60 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
             if(changed){ save(); try{ render(); }catch(e){} setTimeout(() => { const m = $('ordMsg'); if(m) m.textContent = 'Se descontó del stock lo que llevó este pedido.'; }, 60); }
           }
         }
-        renderOrders();
-      }catch(err){ b.disabled = false; const m = $('ordMsg'); if(m) m.textContent = 'No se pudo cambiar el pedido. Revisá internet y probá de nuevo.'; }
+        try{ foodRender(); }catch(e){}
+        return true;
+      }catch(err){ return false; }
+  }
+
+  // ---- Modo comida: tablero de pedidos en cuadraditos, del primero al último ----
+  // El dueño ve todo (qué pidió, entrega, botón para avanzar). El cliente, si el dueño muestra la fila, ve solo número, nombre de pila y estado.
+  let foodPub = null;
+  function foodRender(){
+    const el = $('foodBoard'); if(!el) return;
+    if(!brand.foodMode || (PUBLIC && !brand.queueShow)){ el.hidden = true; return; }
+    const hora = d => { try{ return new Date(d).toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit'}); }catch(e){ return ''; } };
+    const stTxt = {preparando: L('⏱ En preparación', '⏱ Being prepared', '⏱ Em preparo'), listo: L('✅ Listo', '✅ Ready', '✅ Pronto'), salio: L('🛵 En camino', '🛵 On its way', '🛵 A caminho')};
+    let html = '';
+    if(PUBLIC){
+      const j = foodPub; if(!j){ el.hidden = true; return; }
+      let mine = null; try{ const v = JSON.parse(localStorage.getItem('vitrina360-pedido') || 'null'); mine = v && v.turno; }catch(e){}
+      const sq = [...(j.listos || []).map(t => ({n: t.n, nombre: t.nombre, e: t.e === 'salio' ? 'salio' : 'listo'})), ...(j.fila || []).map((t, i) => ({n: t.n, nombre: t.nombre, e: 'preparando', pos: i + 1}))].slice(0, 30);
+      if(!sq.length){ el.hidden = true; return; }
+      html = `<h3>🍕 ${esc(L('Pedidos de hoy', "Today's orders", 'Pedidos de hoje'))}</h3><p class="fbsub">${esc(L('Buscá tu número: se actualiza solo.', 'Find your number: it updates by itself.', 'Procure seu número: atualiza sozinho.'))}</p><div class="fbgrid">${sq.map(t => `<div class="fbsq ${t.e}${t.n === mine ? ' me' : ''}"><b class="fbn">#${t.n}</b><span>${t.n === mine ? esc(L('VOS', 'YOU', 'VOCÊ')) : esc(t.nombre || '')}</span><span class="fbst">${stTxt[t.e]}</span>${t.pos ? `<span class="fbpos">${t.pos}º ${esc(L('en la fila', 'in line', 'na fila'))}</span>` : ''}</div>`).join('')}</div>`;
+    } else {
+      const recent = p => Date.now() - Date.parse(p.listo_en || p.salio_en || p.creado || 0) < 60 * 60e3;
+      const act = ordList.filter(p => p.estado === 'preparando' || ((p.estado === 'listo' || p.estado === 'salio') && recent(p)))
+        .sort((a, b) => String(a.creado).localeCompare(String(b.creado))).slice(0, 30);
+      const q = ordQueue();
+      html = `<h3>🍕 Tablero de pedidos <small style="font-weight:400;font-size:13px">(${act.length} activos)</small></h3><p class="fbsub">Del primero al último. Tocá el botón de cada cuadradito para avanzar el pedido. ${brand.queueShow ? 'Tus clientes ven en tu tienda solo el número, el nombre y el estado.' : 'La fila no se muestra a tus clientes.'}</p>
+        ${act.length ? `<div class="fbgrid">${act.map(p => { const c = p.comprador || {}, moto = p.envio_id === 'moto', pos = q.indexOf(p);
+          const next = p.estado === 'preparando' ? (moto ? ['salio', '🛵 Salió'] : ['listo', '✅ Listo']) : ['entregado', '📦 Entregado'];
+          return `<div class="fbsq ${esc(p.estado)}"><b class="fbn">#${esc(p.turno || '·')}</b><span><strong>${esc(c.nombre || 'Cliente')}</strong> · ${hora(p.creado)}</span>
+            <span class="fbst">${stTxt[p.estado] || ''}${pos >= 0 ? ` · ${pos + 1}º` : ''}</span>
+            <span class="fbit">${(p.items || []).map(it => `${it.q} ${esc(it.n)}`).join(' + ')}</span>
+            <span class="fbpos">${moto ? '🛵 Delivery' : (p.envio_id === 'retiro' || /retir/i.test(p.envio || '')) ? '🏪 Retira' : esc(p.envio || '')}${p.total ? ' · ' + esc(p.total) : ''}</span>
+            <button type="button" data-fb="${next[0]}" data-ref="${esc(p.ref)}">${next[1]}</button></div>`; }).join('')}</div>` : `<p class="fbsub">Todavía no hay pedidos activos. Cuando entre uno, aparece acá.</p>`}`;
+    }
+    el.innerHTML = html; el.hidden = false;
+  }
+  if($('foodBoard')){
+    $('foodBoard').addEventListener('click', async e => {
+      const b = e.target.closest('[data-fb]'); if(!b || PUBLIC) return;
+      b.disabled = true; b.textContent = '…';
+      const ok = await ordSetEstado(b.dataset.ref, b.dataset.fb, (ridersOf()[0] || ''));
+      if(!ok){ b.disabled = false; b.textContent = 'Reintentar'; }
     });
-    $('ordersModal').addEventListener('keydown', e => { if(e.key === 'Escape'){ $('ordersModal').hidden = true; document.documentElement.style.overflow = ''; } });
-    setTimeout(ordFetch, 2500); ordTimer = setInterval(ordFetch, 45000);
+    if(PUBLIC){
+      const foodPoll = async () => {
+        if(!brand.foodMode || !brand.queueShow || !window.VITRINA_SLUG){ foodRender(); return; }
+        try{ const r = await fetch('/api/pedidos?fila=' + encodeURIComponent(window.VITRINA_SLUG), {cache: 'no-store'}); if(r.ok) foodPub = await r.json(); }catch(e){}
+        foodRender();
+      };
+      setTimeout(foodPoll, 2000); setInterval(() => { if(!document.hidden) foodPoll(); }, 20000);
+    } else {
+      setTimeout(foodRender, 3000);
+      setInterval(() => { if(brand.foodMode && !document.hidden) ordFetch(); }, 20000);
+    }
   }
 
   // Cada pedido mandado por WhatsApp también queda guardado para el panel (tenga o no vendedores virtuales).
