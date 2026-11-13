@@ -80,7 +80,7 @@ module.exports = async (req, res) => {
       if (nombre.length < 2 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || wa.replace(/\D/g, '').length < 8) return res.status(400).json({ error: 'Completá tu nombre, tu mail y tu WhatsApp.' });
       const idx = (await leer('indice.json')) || { codigos: [] };
       const ya = idx.codigos.find(x => x.email === email);
-      if (ya) return res.status(409).json({ error: 'Ese mail ya está anotado como vendedor. Si perdiste el link de tu panel, escribile a Vitrina 360.' });
+      if (ya) return res.status(409).json({ error: 'Ese mail ya está anotado como vendedor. Si perdiste el link de tu panel, escribile a ShopFlash.' });
       const raiz = (nombre.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().match(/[A-Z0-9]+/g) || ['VENDE'])[0].slice(0, 10).padEnd(3, 'X');
       let code = raiz, n = 1;
       while (idx.codigos.some(x => x.code === code)) code = raiz + (++n);
@@ -130,8 +130,8 @@ module.exports = async (req, res) => {
 
     // ---- El dueño: todos los vendedores, lo que se debe y marcar pagos ----
     if (a === 'admin' || a === 'pagar') {
-      const u = await usuario(req); if (!u) return res.status(401).json({ error: 'Entrá primero a tu panel de Vitrina 360.' });
-      if (!ADMINS().includes(String(u.email).toLowerCase())) return res.status(403).json({ error: 'Esta pantalla es solo para el dueño de Vitrina 360.', email: u.email });
+      const u = await usuario(req); if (!u) return res.status(401).json({ error: 'Entrá primero a tu panel de ShopFlash.' });
+      if (!ADMINS().includes(String(u.email).toLowerCase())) return res.status(403).json({ error: 'Esta pantalla es solo para el dueño de ShopFlash.', email: u.email });
       if (req.method === 'POST' && a === 'pagar') {
         const c = String(cuerpo(req).code || '').toUpperCase(); if (!okCode(c)) return res.status(400).json({ error: 'Código inválido.' });
         const v = await leer('v/' + c + '.json'); if (!v) return res.status(404).json({ error: 'No existe ese vendedor.' });

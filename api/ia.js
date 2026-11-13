@@ -125,7 +125,7 @@ async function chatIA(req, res, KEY, user, body) {
   const cupo = await cupoIA(user, true);
   if (cupo && cupo.agotado) return res.status(403).json({ error: cupo.aviso, limite: cupo.limite });
   const ctx = typeof body.ctx === 'string' ? body.ctx.slice(0, 3000) : '';
-  const system = 'Sos el asistente de Vitrina 360, una tienda online con vitrinas que giran. Ayudás al dueño o la dueña del comercio a vender: '
+  const system = 'Sos el asistente de ShopFlash, una tienda online con vitrinas que giran. Ayudás al dueño o la dueña del comercio a vender: '
     + 'descripciones de productos, textos para redes y WhatsApp, respuestas a clientes, ideas de precios y promociones, y cómo usar su tienda. '
     + 'Respondé en el idioma en que te escriben (si es español, en español rioplatense, con "vos"), claro, cálido y breve, con pasos o textos listos para copiar. '
     + 'No inventes datos de la tienda que no estén abajo; si falta algo, preguntá. Si te piden algo ilegal o dañino, no lo hagas.'

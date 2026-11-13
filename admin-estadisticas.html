@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Estadísticas · Vitrina 360</title>
+<title>Estadísticas · ShopFlash</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <link rel="stylesheet" href="/vend.css">
@@ -33,7 +33,7 @@ a{color:var(--accent)}
 </head>
 <body>
 <main class="wrap" id="app">
-  <div class="top"><a href="/panel">Vitrina 360</a> · <span style="font-weight:600">Estadísticas</span></div>
+  <div class="top"><a href="/panel">ShopFlash</a> · <span style="font-weight:600">Estadísticas</span></div>
   <p class="msg" id="msg" role="status">Cargando…</p>
 </main>
 <script>
@@ -44,7 +44,7 @@ a{color:var(--accent)}
   const fecha = d => { try{ return d ? new Date(d).toLocaleDateString('es-AR') : ''; }catch(e){ return ''; } };
   const corta = d => { const [y, m, dd] = d.split('-'); return +dd + '/' + +m; };
   let tok = ''; try{ tok = (JSON.parse(localStorage.getItem('v360-sesion') || 'null') || {}).access_token || ''; }catch(e){}
-  if(!tok){ $('msg').innerHTML = 'Primero entrá a tu panel de Vitrina 360 con tu mail y después volvé a esta página. <a href="/panel">Ir a mi panel</a>'; return; }
+  if(!tok){ $('msg').innerHTML = 'Primero entrá a tu panel de ShopFlash con tu mail y después volvé a esta página. <a href="/panel">Ir a mi panel</a>'; return; }
 
   // gráfico de barras: visitantes por día (una sola serie, con aviso al pasar el dedo o el mouse)
   function grafico(serie, ancho){
@@ -77,8 +77,8 @@ a{color:var(--accent)}
     const prueba = cs.filter(c => c.estado === 'En prueba gratis').length, pagando = cs.filter(c => c.estado === 'Pagando').length;
     const tag = e => `<span class="st ${e === 'Pagando' ? 'ok' : e === 'En prueba gratis' ? 'pr' : ''}">${esc(e)}</span>`;
     $('app').innerHTML = `
-      <div class="top"><a href="/panel">Vitrina 360</a> · <span style="font-weight:600">Estadísticas</span> · <a href="/admin-vendedores.html" style="font-weight:600">Vendedores</a></div>
-      <h1>Cómo viene Vitrina 360</h1>
+      <div class="top"><a href="/panel">ShopFlash</a> · <span style="font-weight:600">Estadísticas</span> · <a href="/admin-vendedores.html" style="font-weight:600">Vendedores</a></div>
+      <h1>Cómo viene ShopFlash</h1>
       <div class="grid3">
         <div class="stat"><span>Visitantes hoy</span><b>${n(ult(1))}</b></div>
         <div class="stat"><span>Visitantes, últimos 7 días</span><b>${n(ult(7))}</b></div>

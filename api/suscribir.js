@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
     if (!rows || !rows[0]) return res.status(404).json({ error: 'Primero creá tu tienda.' });
     const origin = 'https://' + (req.headers['x-forwarded-host'] || req.headers.host);
     const pre = await mp('POST', '/preapproval', {
-      reason: 'Vitrina 360 · Plan ' + P[plan].nombre,
+      reason: 'ShopFlash · Plan ' + P[plan].nombre,
       external_reference: u.id,
       payer_email: email,
       back_url: origin + '/panel',

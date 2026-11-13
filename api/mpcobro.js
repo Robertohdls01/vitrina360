@@ -83,7 +83,7 @@ module.exports = async (req, res) => {
       const u = await usuario(req); if (!u) return res.status(401).json({ error: 'Entrá a tu panel primero.' });
       if (a === 'estado') { const t = await leer('mpcobro', 't/' + u.id + '.json'); return res.status(200).json({ conectado: !!t, disponible: !!(CID() && CSEC()) }); }
       if (a === 'desconectar') { await borrar('mpcobro', 't/' + u.id + '.json'); return res.status(200).json({ ok: true }); }
-      if (!CID() || !CSEC()) return res.status(503).json({ error: 'El cobro con Mercado Pago todavía no está activado en Vitrina 360.' });
+      if (!CID() || !CSEC()) return res.status(503).json({ error: 'El cobro con Mercado Pago todavía no está activado en ShopFlash.' });
       const state = crypto.randomBytes(16).toString('hex');
       await guardar('mpcobro', 's/' + state + '.json', { uid: u.id, t: Date.now() });
       const url = 'https://auth.mercadopago.com/authorization?client_id=' + encodeURIComponent(CID()) + '&response_type=code&platform_id=mp&state=' + state + '&redirect_uri=' + encodeURIComponent(REDIR);
@@ -106,7 +106,7 @@ module.exports = async (req, res) => {
       const slug = String(b.slug || '').replace(/[^a-z0-9-]/g, '').slice(0, 40);
       const back = slug ? host + '/t/' + slug : host;
       const r = await fetch('https://api.mercadopago.com/checkout/preferences', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok }, body: JSON.stringify({
-        items: [{ id: p.id, title: ('Pedido ' + (String(b.tienda || '').slice(0, 40) || 'Vitrina 360')).slice(0, 60), quantity: 1, unit_price: Math.round(total * 100) / 100, currency_id: moneda }],
+        items: [{ id: p.id, title: ('Pedido ' + (String(b.tienda || '').slice(0, 40) || 'ShopFlash')).slice(0, 60), quantity: 1, unit_price: Math.round(total * 100) / 100, currency_id: moneda }],
         external_reference: b.ref,
         notification_url: host + '/api/mpcobro?accion=aviso&u=' + owner,
         back_urls: { success: back + '?pago=ok', pending: back + '?pago=pendiente', failure: back + '?pago=error' },

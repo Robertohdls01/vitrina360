@@ -35,7 +35,7 @@ async function cuentaPorMail(email) {
 }
 
 module.exports = async (req, res) => {
-  if (req.method !== 'POST') return res.status(200).json({ ok: true, info: 'Vitrina 360 · Hotmart' });
+  if (req.method !== 'POST') return res.status(200).json({ ok: true, info: 'ShopFlash · Hotmart' });
   const tok = String(req.headers['x-hotmart-hottok'] || '');
   if (!process.env.HOTMART_HOTTOK || tok !== process.env.HOTMART_HOTTOK) return res.status(401).json({ error: 'hottok inválido' });
   if (!process.env.SUPABASE_SERVICE_KEY) return res.status(503).json({ error: 'Base de datos no configurada' });

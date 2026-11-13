@@ -70,7 +70,7 @@ module.exports = async (req, res) => {
   if (accion === 'admin' && req.method === 'GET') {
     const u = await usuario(req).catch(() => null);
     if (!u) return res.status(401).json({ error: 'Tu sesión venció.' });
-    if (!ADMINS().includes(String(u.email || '').toLowerCase())) return res.status(403).json({ error: 'Esta pantalla es solo para el dueño de Vitrina 360.', email: u.email });
+    if (!ADMINS().includes(String(u.email || '').toLowerCase())) return res.status(403).json({ error: 'Esta pantalla es solo para el dueño de ShopFlash.', email: u.email });
 
     // visitas de los últimos 30 días
     const hoy = Date.now(), dias = [];

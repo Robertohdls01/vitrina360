@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Vendedores · Vitrina 360</title>
+<title>Vendedores · ShopFlash</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <link rel="stylesheet" href="/vend.css">
 </head>
 <body>
 <main class="wrap" id="app">
-  <div class="top"><a href="/panel">Vitrina 360</a> · <span style="font-weight:600">Vendedores</span></div>
+  <div class="top"><a href="/panel">ShopFlash</a> · <span style="font-weight:600">Vendedores</span></div>
   <p class="msg" id="msg" role="status">Cargando…</p>
 </main>
 <script>
@@ -23,7 +23,7 @@
   const api = (accion, body) => fetch('/api/vendedores?accion=' + accion, {method: body ? 'POST' : 'GET', headers: Object.assign({Authorization: 'Bearer ' + tok}, body ? {'Content-Type': 'application/json'} : {}), body: body ? JSON.stringify(body) : undefined}).then(r => r.json().then(j => ({ok: r.ok, status: r.status, j})));
   const wa = n => { const d = String(n || '').replace(/\D/g, ''); return d ? 'https://wa.me/' + (d.length <= 10 ? '549' + d.replace(/^0/, '') : d) : ''; };
   function load(){
-    if(!tok){ $('msg').innerHTML = 'Primero entrá a tu panel de Vitrina 360 con tu mail y después volvé a esta página. <a href="/panel">Ir a mi panel</a>'; return; }
+    if(!tok){ $('msg').innerHTML = 'Primero entrá a tu panel de ShopFlash con tu mail y después volvé a esta página. <a href="/panel">Ir a mi panel</a>'; return; }
     api('admin').then(({ok, status, j}) => {
       if(!ok){
         $('msg').innerHTML = status === 401 ? 'Tu sesión venció. <a href="/panel">Entrá a tu panel</a> y volvé a esta página.'
@@ -37,7 +37,7 @@
       vs.forEach(v => (v.clientes || []).filter(c => Date.parse(c.desde || 0) > visto).forEach(c => nov.push(`🔔 <b>${esc(v.nombre)}</b> (${esc(v.code)}) trajo un cliente nuevo: ${esc(c.tienda || c.email)} · ${esc(c.estado)}`)));
       vs.filter(v => v.total > 0).forEach(v => nov.push(`💰 Le tenés que pagar <b>${fmt(v.total)}</b> a <b>${esc(v.nombre)}</b>${v.alias ? ' · alias ' + esc(v.alias) : ''}`));
       $('app').innerHTML = `
-        <div class="top"><a href="/panel">Vitrina 360</a> · <span style="font-weight:600">Vendedores</span> · <a href="/admin-estadisticas.html" style="font-weight:600">Estadísticas</a></div>
+        <div class="top"><a href="/panel">ShopFlash</a> · <span style="font-weight:600">Vendedores</span> · <a href="/admin-estadisticas.html" style="font-weight:600">Estadísticas</a></div>
         <h1>Vendedores</h1>
         ${nov.length ? `<section class="card"><h2>Novedades</h2><ul class="how">${nov.map(x => `<li>${x}</li>`).join('')}</ul><p class="note">Se anota todo solo: cuando alguien entra con el link de un vendedor y crea su tienda, queda como cliente de ese vendedor. Cuando paga, acá te aparece cuánto le debés.</p></section>` : `<p class="note">Sin novedades desde tu última visita.</p>`}
         <div class="grid3">
@@ -49,7 +49,7 @@
           <h2>Sumar vendedores</h2>
           <p class="note">Mandales este link: se anotan solos y reciben su link de venta al instante.</p>
           <div class="link">${esc(location.origin)}/vender.html</div>
-          <div class="row"><a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent('¿Querés generar ingresos compartiendo Vitrina 360? Anotate acá, recibí tu link al instante y cobrá por cada tienda que se suma: ' + location.origin + '/vender.html')}">Compartir por WhatsApp</a></div>
+          <div class="row"><a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent('¿Querés generar ingresos compartiendo ShopFlash? Anotate acá, recibí tu link al instante y cobrá por cada tienda que se suma: ' + location.origin + '/vender.html')}">Compartir por WhatsApp</a></div>
         </section>
         ${vs.length ? vs.map(v => `
         <section class="card">

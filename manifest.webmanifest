@@ -1,6 +1,6 @@
 {
-  "name": "Vitrina 360",
-  "short_name": "Vitrina 360",
+  "name": "ShopFlash",
+  "short_name": "ShopFlash",
   "description": "Tu tienda online con vitrinas que giran en 360°.",
   "id": "/panel",
   "start_url": "/panel",
