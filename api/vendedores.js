@@ -11,7 +11,7 @@
 //   GET  ?accion=admin                              (el dueño)       → todos los vendedores y cuánto debés a cada uno
 //   POST ?accion=pagar    {code}                    (el dueño)       → marca como pagado lo que le correspondía
 const crypto = require('crypto');
-const { cuerpo, usuario, db, stHeaders } = require('./_comun');
+const { cuerpo, usuario, db, stHeaders, PLANES } = require('./_comun');
 
 const SURL = () => String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const ST = () => SURL() + '/storage/v1';
@@ -19,8 +19,12 @@ const B = 'vendedores';
 const corto = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
 const nums = (env, def) => { const a = String(process.env[env] || '').split(',').map(Number); return a.length === 3 && a.every(x => x >= 0) ? a : def; };
 // Premio por venta (cuando el cliente paga por primera vez) y comisión mensual (desde el mes siguiente), por plan: Start, Plus, Pro
-const PREMIO = () => { const a = nums('VENDEDOR_PREMIOS', [5000, 7000, 10000]); return { emprendedora: a[0], comercio: a[1], pro: a[2] }; };
-const MENSUAL = () => { const a = nums('VENDEDOR_MENSUAL', [1000, 1500, 2000]); return { emprendedora: a[0], comercio: a[1], pro: a[2] }; };
+// Se calculan como porcentaje del precio de cada plan, así siguen bien aunque cambien los precios.
+// VENDEDOR_PCT_PREMIO (40 = 40% del primer mes) y VENDEDOR_PCT_MES (10 = 10% de cada mes siguiente).
+const PCT = () => ({ premio: Math.max(0, Number(process.env.VENDEDOR_PCT_PREMIO || 40)), mes: Math.max(0, Number(process.env.VENDEDOR_PCT_MES || 10)) });
+const porPlan = pct => { const P = PLANES(); return Object.fromEntries(['emprendedora', 'comercio', 'pro'].map(k => [k, Math.round(((P[k] && P[k].precio) || 0) * pct / 100)])); };
+const PREMIO = () => porPlan(PCT().premio);
+const MENSUAL = () => porPlan(PCT().mes);
 const NOMBRE_PLAN = { emprendedora: 'Start', comercio: 'Plus', pro: 'Pro' };
 const ADMINS = () => String(process.env.ADMIN_EMAILS || process.env.IA_SIN_LIMITE || '').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
 const mesDe = t => new Date(t).toISOString().slice(0, 7);
@@ -71,6 +75,8 @@ module.exports = async (req, res) => {
   if (!process.env.SUPABASE_SERVICE_KEY || !SURL()) return res.status(503).json({ error: 'Todavía no está configurado.' });
   const q = req.query || {}, a = q.accion || '';
   const base = 'https://' + (req.headers['x-forwarded-host'] || req.headers.host || 'vitrina360-kappa.vercel.app');
+  // tabla pública de comisiones (la página para vendedores la muestra siempre actualizada)
+  if (req.method === 'GET' && a === 'tabla') { const P = PLANES(); return res.status(200).json({ pct: PCT(), premios: PREMIO(), mensual: MENSUAL(), precios: { emprendedora: P.emprendedora.precio, comercio: P.comercio.precio, pro: P.pro.precio } }); }
   try {
     await bucket();
 

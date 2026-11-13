@@ -19,13 +19,13 @@
     <h1>Generá ingresos compartiendo ShopFlash</h1>
     <p class="lead">Compartí tu link. Por cada comercio que se suscribe con tu link ganás un premio, y además cobrás todos los meses mientras siga pagando. No tenés que invertir nada.</p>
     <div class="grid3" id="tabla">
-      <div class="stat"><span>Plan Start</span><b id="p0">$5.000</b><span>por venta + <b style="display:inline;font-size:inherit" id="m0">$1.000</b> por mes</span></div>
-      <div class="stat"><span>Plan Plus</span><b id="p1">$7.000</b><span>por venta + <b style="display:inline;font-size:inherit" id="m1">$1.500</b> por mes</span></div>
-      <div class="stat"><span>Plan Pro</span><b id="p2">$10.000</b><span>por venta + <b style="display:inline;font-size:inherit" id="m2">$2.000</b> por mes</span></div>
+      <div class="stat"><span>Plan Start · $7.500/mes</span><b id="p0">$3.000</b><span>por venta + <b style="display:inline;font-size:inherit" id="m0">$750</b> por mes</span></div>
+      <div class="stat"><span>Plan Plus · $10.900/mes</span><b id="p1">$4.360</b><span>por venta + <b style="display:inline;font-size:inherit" id="m1">$1.090</b> por mes</span></div>
+      <div class="stat"><span>Plan Pro · $14.900/mes</span><b id="p2">$5.960</b><span>por venta + <b style="display:inline;font-size:inherit" id="m2">$1.490</b> por mes</span></div>
     </div>
     <ul class="how">
-      <li>El premio se gana cuando tu cliente paga su primer mes.</li>
-      <li>Desde el mes siguiente cobrás la comisión mensual, mientras tu cliente siga pagando.</li>
+      <li>Premio: el <b id="pctP">40%</b> del primer mes, cuando tu cliente paga por primera vez.</li>
+      <li>Desde el mes siguiente cobrás el <b id="pctM">10%</b> todos los meses, mientras tu cliente siga pagando.</li>
       <li>En tu panel ves tus clientes, lo que ganaste y cada pago que te hacemos.</li>
       <li>Lo que ofrecés: cada comercio se lleva <b>su propia página web</b> para vender en toda Argentina y en el exterior, con vitrinas 360°, vendedores virtuales y pedidos por WhatsApp.</li>
     </ul>
@@ -79,5 +79,14 @@
 })();
 </script>
 <script src="/estad.js" data-p="vender" defer></script>
+<script>
+fetch('/api/vendedores?accion=tabla').then(r => r.ok ? r.json() : null).then(j => { if(!j) return;
+  const f = n => '$' + Math.round(n).toLocaleString('es-AR'), K = ['emprendedora', 'comercio', 'pro'], N = ['Start', 'Plus', 'Pro'];
+  K.forEach((k, i) => { const p = document.getElementById('p' + i), m = document.getElementById('m' + i);
+    if(p && j.premios) p.textContent = f(j.premios[k]); if(m && j.mensual) m.textContent = f(j.mensual[k]);
+    const sp = p && p.parentNode.querySelector('span'); if(sp && j.precios) sp.textContent = 'Plan ' + N[i] + ' · ' + f(j.precios[k]) + '/mes'; });
+  if(j.pct){ const a = document.getElementById('pctP'), b = document.getElementById('pctM'); if(a) a.textContent = j.pct.premio + '%'; if(b) b.textContent = j.pct.mes + '%'; }
+}).catch(() => {});
+</script>
 </body>
 </html>
