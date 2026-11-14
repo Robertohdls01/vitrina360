@@ -377,6 +377,12 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
           [[`➕ ${T('Sí, sumame', 'Yes, add', 'Sim, adiciona')} ${up.dn}`, () => { add(up.n, 1); talk(T(`¡Listo! Te sumé ${up.dn}.`, `Done! I added ${up.dn}.`, `Pronto! Adicionei ${up.dn}.`) + ' ' + otherQ(), [doneChip(), ...mainChips()]); }, true], [T('No, gracias', 'No, thanks', 'Não, obrigado'), () => talk(T('¡Dale! ', 'Sure! ', 'Tudo bem! ') + otherQ(), [doneChip(), ...mainChips()])], doneChip()]), opts.querySelector('button.pri') && (opts.querySelector('button.pri').dataset.up = '1');
         return talk(ok + ' ' + otherQ(), [doneChip(), ...mainChips()]);
       }
+      if(!found.length){
+        const toksN = toks(text);
+        const byName = CATS.filter(c => c.items.length && toks(c.n).some(w => w.length > 3 && toksN.includes(w)));
+        if(byName.length) return verCat(byName);
+        for(const [want, catRe] of GRUPOS) if(want.test(n)){ const cs = CATS.filter(c => c.items.length && catRe.test(norm(c.n))); if(cs.length) return verCat(cs.slice(0, 3)); return verCat(CATS.filter(c => c.items.length), T('¡Mirá todo lo que tenemos! ', 'Here\'s everything we have! ', 'Veja tudo o que temos! ')); }
+      }
       if(amb.length){ const a = amb[0]; return talk(T(`¿Cuál querés? Tengo ${a.map(i => i.dn).join(', ')}.`, `Which one? I have ${a.map(i => i.dn).join(', ')}.`, `Qual você quer? Tenho ${a.map(i => i.dn).join(', ')}.`), a.slice(0, 6).map(i => [i.dn, () => { add(i.n, 1); talk(T(`¡Listo! Te agregué ${i.dn}.`, `Done! I added ${i.dn}.`, `Pronto! Adicionei ${i.dn}.`) + ' ' + otherQ(), [doneChip(), ...mainChips()]); }])); }
       if(has(n, /\b(se puede|puedo|podes|podrian|hay|tienen|tenes|sin |con extra|agregarle|cambiar|can i|could you|do you have|is there|without|extra|da pra|pode|tem |sem )/)){
         return talk(T(`Buena pregunta 🤔. ¿Querés que le pregunte a la caja si se puede? Te contesto acá en un ratito.`, `Good question 🤔. Want me to ask the counter if that's possible? I'll answer you here shortly.`, `Boa pergunta 🤔. Quer que eu pergunte ao caixa se é possível? Respondo aqui em instantes.`), [['👨‍🍳 ' + T('Sí, preguntale', 'Yes, ask them', 'Sim, pergunte'), () => { ava(true); consulta(text); }, true], ['📖 ' + T('Ver la carta', 'See the menu', 'Ver o cardápio'), verCarta]]);
@@ -487,22 +493,47 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       try{ await api('/api/menu?accion=aviso', {id: ID, mesa: MESA, nombre, tipo}); talk(tipo === 'cuenta' ? T('¡Dale! Ya le avisé a la caja que querés la cuenta 💳. Enseguida te la traen.', 'Sure! I told the cashier you\'d like the bill 💳. They\'ll bring it right away.', 'Claro! Avisei o caixa que você quer a conta 💳. Já trazem.') : T('¡Listo! Ya le avisé al mozo, enseguida viene 🙋.', 'Done! I called the waiter, they\'ll be right there 🙋.', 'Pronto! Chamei o garçom, ele já vem 🙋.'), mainChips()); }
       catch(e){ talk(T('Uy, no pude avisar. Probá de nuevo en un ratito.', 'Oops, I couldn\'t send that. Try again in a moment.', 'Ops, não consegui avisar. Tente de novo.'), mainChips()); }
     }
-    function setName(t){ nombre = t.trim().split(/\s+/).slice(-1)[0].replace(/[^\p{L}]/gu, '').slice(0, 20); nombre = nombre ? nombre[0].toUpperCase() + nombre.slice(1).toLowerCase() : ''; keep(); step = ''; $('#iTxt').placeholder = T('Decime o escribime qué querés…', 'Tell me or type what you want…', 'Fale ou escreva o que você quer…'); promos(); }
+    function setName(t){ nombre = t.trim().split(/\s+/).slice(-1)[0].replace(/[^\p{L}]/gu, '').slice(0, 20); nombre = nombre ? nombre[0].toUpperCase() + nombre.slice(1).toLowerCase() : ''; keep(); step = ''; $('#iTxt').placeholder = T('Decime o escribime qué querés…', 'Tell me or type what you want…', 'Fale ou escreva o que você quer…'); pregunta(); }
+    // después de presentarse: pregunta qué quiere y espera la respuesta; recién ahí muestra esa parte de la carta
+    function pregunta(){
+      const hola = nombre ? T(`¡Un gusto, ${nombre}! 😊 `, `Nice to meet you, ${nombre}! 😊 `, `Prazer, ${nombre}! 😊 `) : T('¡Dale! 😊 ', 'Great! 😊 ', 'Ótimo! 😊 ');
+      area.innerHTML = '';
+      talk.listen = !mute;
+      talk(hola + T('¿Qué tenés ganas de comer o tomar hoy?', 'What would you like to eat or drink today?', 'O que você quer comer ou beber hoje?'),
+        CATS.filter(c => c.items.length).slice(0, 8).map(c => [c.n, () => verCat([c])]).concat([['📖 ' + T('Ver toda la carta', 'See the full menu', 'Ver o cardápio completo'), () => promos(true), true]]));
+    }
+    function verCat(cs, intro){
+      const its = [].concat(...cs.map(c => c.items)).sort((a, b) => b.promo - a.promo);
+      area.innerHTML = cs.map(c => `<div class="sec2"><h3>${esc(c.n)}</h3>${c.items.slice().sort((a, b) => b.promo - a.promo).map(dishHTML).join('')}</div>`).join('');
+      const pr = its.filter(i => i.promo).slice(0, 2);
+      const nl = (arr, y) => arr.length > 1 ? arr.slice(0, -1).join(', ') + y + arr[arr.length - 1] : arr[0] || ''; const ns = cs.map(c => c.n.toLowerCase());
+      talk((intro || '') + (cs.length > 3 ? '' : T(`Te muestro ${nl(ns, ' y ')}.`, `Here's our ${nl(ns, ' and ')}.`, `Veja ${nl(ns, ' e ')}.`)) + (pr.length ? ' ' + T(`Te recomiendo ${pr.map(i => i.dn).join(' o ')}, que hoy ${pr.length > 1 ? 'están' : 'está'} en promo.`, `I recommend ${pr.map(i => i.dn).join(' or ')}, on special today.`, `Recomendo ${pr.map(i => i.dn).join(' ou ')}, em promoção hoje.`) : '') + ' ' + T('¿Qué te traigo?', 'What can I get you?', 'O que eu trago?'), mainChips());
+      talk.listen = false;
+    }
+    const GRUPOS = [
+      [/\b(tomar|beber|bebida|toma|drink|beverage|bebe|cafe|cafecito|coffee)\b/, /caf|bebid|botell|jug|trago|cerve|vino|gaseos|licuad|drink|ice|fri|calient|te\b|infus|cafeter/i],
+      [/\b(dulce|postre|torta|algo rico|sweet|dessert|doce|sobremesa|merienda)\b/, /dulce|postre|pastel|torta|factur|panader|sweet|dessert|doce|bakery|mediaal/i],
+      [/\b(salado|comer|comida|almorzar|cenar|hambre|sandwich|tostado|eat|food|lunch|dinner|hungry|comer|salgado|almoco|jantar)\b/, /sandw|tostad|pizza|empan|plato|minut|ensalad|hambur|comida|salad|food|principal|entrad|pasta|salgad|bagel|panini/i]];
+
     function promos(again){
       const hola = again ? '' : nombre ? T(`¡Un gusto, ${nombre}! 😊 `, `Nice to meet you, ${nombre}! 😊 `, `Prazer, ${nombre}! 😊 `) : T('¡Dale! 😊 ', 'Great! 😊 ', 'Ótimo! 😊 ');
-      if(PROMOS.length){ area.innerHTML = `<div class="sec2"><h3>⭐ ${T('Hoy te recomendamos', 'Today\'s specials', 'Hoje recomendamos')}</h3>${PROMOS.map(dishHTML).join('')}</div>`; talk(hola + T(`Hoy te recomendamos: ${PROMOS.slice(0, 3).map(i => i.dn + (i.p ? ' a ' + i.p : '')).join(', ')}. Podés tocar ➕ o pedirme lo que quieras hablando 🎤.`, `Today's specials: ${PROMOS.slice(0, 3).map(i => i.dn + (i.p ? ' for ' + i.p : '')).join(', ')}. Tap ➕ or just tell me what you'd like 🎤.`, `Hoje recomendamos: ${PROMOS.slice(0, 3).map(i => i.dn + (i.p ? ' por ' + i.p : '')).join(', ')}. Toque ➕ ou me peça falando 🎤.`), mainChips()); }
-      else { verCarta(); talk(hola + T('¿Qué te traigo? Pedime hablando 🎤 o tocá ➕ en la carta.', 'What can I get you? Tell me 🎤 or tap ➕ on the menu.', 'O que eu trago? Peça falando 🎤 ou toque ➕ no cardápio.'), mainChips()); }
+      // muestra la carta completa (con las promos arriba) y la presenta
+      area.innerHTML = (PROMOS.length ? `<div class="sec2"><h3>⭐ ${T('Hoy te recomendamos', 'Today\'s specials', 'Hoje recomendamos')}</h3>${PROMOS.map(dishHTML).join('')}</div>` : '') + CATS.map(c => `<div class="sec2"><h3>${esc(c.n)}</h3>${c.items.map(dishHTML).join('')}</div>`).join('');
+      const secs = CATS.map(c => c.n.toLowerCase()), lista = secs.length > 1 ? secs.slice(0, -1).join(', ') + T(' y ', ' and ', ' e ') + secs[secs.length - 1] : secs[0] || '';
+      const carta = again ? '' : T(`Te presento nuestra carta: tenemos ${lista}. `, `Here's our menu: we have ${lista}. `, `Apresento nosso cardápio: temos ${lista}. `);
+      const recs = PROMOS.length ? T(`Hoy te recomendamos ${PROMOS.slice(0, 3).map(i => i.dn + (i.p ? ' a ' + i.p : '')).join(', ')}. `, `Today we recommend ${PROMOS.slice(0, 3).map(i => i.dn + (i.p ? ' for ' + i.p : '')).join(', ')}. `, `Hoje recomendamos ${PROMOS.slice(0, 3).map(i => i.dn + (i.p ? ' por ' + i.p : '')).join(', ')}. `) : '';
+      talk(hola + carta + recs + T('¿Qué te traigo? Pedime hablando 🎤 o tocá ➕.', 'What can I get you? Tell me 🎤 or tap ➕.', 'O que eu trago? Peça falando 🎤 ou toque ➕.'), mainChips());
     }
     paintCart();
-    if(nombre){ promos(); return; }
+    if(nombre){ pregunta(); return; }
     const h = new Date().getHours();
     const saludoHora = h >= 5 && h < 13 ? T('¡Buen día!', 'Good morning!', 'Bom dia!') : h >= 13 && h < 20 ? T('¡Buenas tardes!', 'Good afternoon!', 'Boa tarde!') : T('¡Buenas noches!', 'Good evening!', 'Boa noite!');
     say.textContent = `${saludoHora} 👋 ` + T(`Bienvenido a ${M.nombre}.`, `Welcome to ${M.nombre}.`, `Bem-vindo ao ${M.nombre}.`);
     area.innerHTML = `<button type="button" class="startbig" id="bHola">👋 ${T('Tocá acá y te atiendo', 'Tap here and I\'ll help you', 'Toque aqui e eu te atendo')}</button><p class="note" style="text-align:center">🔊 ${T('Subí el volumen: te voy a hablar', 'Turn up the volume: I\'ll talk to you', 'Aumente o volume: vou falar com você')}</p>`;
     const askName = () => T('¿Cómo te llamás?', 'What\'s your name?', 'Qual é o seu nome?');
-    const skipName = () => [T('Prefiero no decirlo', 'I\'d rather not say', 'Prefiro não dizer'), () => { step = ''; promos(); }];
+    const skipName = () => [T('Prefiero no decirlo', 'I\'d rather not say', 'Prefiro não dizer'), () => { step = ''; pregunta(); }];
     const namePh = () => { $('#iTxt').placeholder = T('Escribí tu nombre o tocá 🎤', 'Type your name or tap 🎤', 'Escreva seu nome ou toque 🎤'); };
-    const soy = () => saludoHora + ' ' + T(`¿Cómo estás? Bienvenido a ${M.nombre}. Soy ${M.asistente || 'Lola'}, tu asistente.`, `How are you? Welcome to ${M.nombre}. I'm ${M.asistente || 'Lola'}, your assistant.`, `Tudo bem? Bem-vindo ao ${M.nombre}. Sou ${M.asistente || 'Lola'}, seu assistente.`);
+    const soy = () => saludoHora + ' ' + T(`¿Cómo estás? Bienvenido a ${M.nombre}. Mi nombre es ${M.asistente || 'Lola'} y hoy te voy a atender yo.`, `How are you? Welcome to ${M.nombre}. My name is ${M.asistente || 'Lola'} and I'll be taking care of you today.`, `Tudo bem? Bem-vindo ao ${M.nombre}. Meu nome é ${M.asistente || 'Lola'} e hoje eu vou te atender.`);
     const pedirMesa = () => { step = 'mesa'; talk.listen = !mute; talk(soy() + ' ' + T('¿En qué mesa estás? Decime el número.', 'Which table are you at? Tell me the number.', 'Em qual mesa você está? Diga o número.'), Array.from({length: Math.min(M.mesas || 10, 12)}, (_, i) => [String(i + 1), () => setMesa(i + 1)])); $('#iTxt').placeholder = T('Número de mesa', 'Table number', 'Número da mesa'); };
     function setMesa(n){ MESA = n; $('#tagMesa').textContent = T('Mesa ', 'Table ', 'Mesa ') + n; step = 'nombre'; talk.listen = !mute; talk(T(`¡Perfecto, mesa ${n}! `, `Perfect, table ${n}! `, `Perfeito, mesa ${n}! `) + askName(), [skipName()]); namePh(); }
     let started = false;
