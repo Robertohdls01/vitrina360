@@ -58,7 +58,8 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
 #cAva{cursor:pointer}.caja{padding-bottom:240px}#cTxt{grid-column:1/-1}
 @media(min-width:820px){#cajaAsis{grid-template-columns:84px minmax(0,1.3fr) minmax(240px,1fr) auto}#cTxt{grid-column:3;grid-row:1;align-self:end}#cajaAsis > div:nth-child(3){grid-column:4;grid-row:1}.caja{padding-bottom:180px}}
 .wave{position:absolute;right:-6px;bottom:-4px;font-size:30px;animation:wave 1.4s ease-in-out infinite;transform-origin:70% 80%}@keyframes wave{0%,60%,100%{transform:rotate(0)}20%{transform:rotate(-22deg)}40%{transform:rotate(14deg)}}
-.chef.talk{animation:talkb .35s ease-in-out infinite alternate}@keyframes talkb{to{transform:translateY(-3px) rotate(-2deg)}}.tk.flash{animation:fl 0.6s ease-in-out 5}@keyframes fl{50%{box-shadow:0 0 0 6px rgba(124,58,237,.35)}}
+.chef.talk{animation:talkb .35s ease-in-out infinite alternate}@keyframes talkb{to{transform:translateY(-3px) rotate(-2deg)}}.fly{position:fixed;z-index:60;pointer-events:none;transition:transform .9s cubic-bezier(.5,-0.3,.4,1.3)}.fly.back{transition:transform .8s ease-in-out}.fly .point{position:absolute;right:-26px;top:30%;font-size:30px;animation:pt .5s ease-in-out infinite alternate}@keyframes pt{to{transform:translateX(6px)}}
+.tk.flash{animation:fl 0.6s ease-in-out 5}@keyframes fl{50%{box-shadow:0 0 0 6px rgba(124,58,237,.35)}}
 .chef .mouth{transform-origin:60px 70px}.chef .eyes{transform-origin:60px 52px;animation:blink 4s infinite}@keyframes blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}.chef{animation:bob 2.6s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-4px)}}
 .bubble{background:#fff;border:2px solid #ddd6fe;border-radius:20px 20px 20px 6px;padding:12px 14px;font-size:17px;box-shadow:0 6px 18px rgba(91,33,182,.1);white-space:pre-line}
 .opts{display:flex;gap:8px;flex-wrap:wrap;padding:6px 14px 4px}
@@ -659,8 +660,10 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       <div class="col lane"><div class="laneh"><h3>🍽️ Entregados <span id="cEn"></span></h3><span><button class="arr" type="button" data-arr="cE|-1" aria-label="Anteriores">◀</button><button class="arr" type="button" data-arr="cE|1" aria-label="Siguientes">▶</button></span></div><div class="strip" id="cE"></div></div>
       <div class="col lane"><div class="laneh"><h3>🔔 Por entregar <span id="cPn"></span></h3><span><button class="arr" type="button" data-arr="cPend|-1" aria-label="Anteriores">◀</button><button class="arr" type="button" data-arr="cPend|1" aria-label="Siguientes">▶</button></span></div><div id="cCnt" class="row" style="gap:6px"></div><div class="strip" id="cPend"></div></div>
       <p class="note">Se actualiza solo. Dejá esta pantalla abierta en el mostrador.</p></div>`;
-    const beep = () => { if(!ding) return; try{ const a = new (window.AudioContext || window.webkitAudioContext)(), o = a.createOscillator(), g = a.createGain(); o.connect(g); g.connect(a.destination); o.frequency.value = 880; g.gain.value = .2; o.start(); o.frequency.setValueAtTime(1175, a.currentTime + .15); o.stop(a.currentTime + .35); }catch(e){} };
-    $('#bDing').onclick = () => { ding = true; $('#bDing').textContent = '🔔 Sonido activado'; beep(); };
+    let AC = null; const unlock = () => { try{ if(!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if(AC.state === 'suspended') AC.resume(); }catch(e){} if(!ding){ ding = true; $('#bDing').textContent = '🔔 Sonido activado'; } };
+    document.addEventListener('pointerdown', unlock); document.addEventListener('keydown', unlock);
+    const beep = () => { if(!ding) return; try{ unlock(); const a = AC, o = a.createOscillator(), g = a.createGain(); o.connect(g); g.connect(a.destination); o.frequency.value = 880; g.gain.value = .2; o.start(); o.frequency.setValueAtTime(1175, a.currentTime + .15); o.stop(a.currentTime + .35); }catch(e){} };
+    $('#bDing').onclick = () => { unlock(); beep(); };
     const ago = iso => { const m = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 60000)); return m < 1 ? 'recién' : 'hace ' + m + ' min'; };
     const set = async (pid, estado) => { const mz = app.querySelector(`[data-mz="${pid}"]`); try{ await api('/api/menu?accion=estado', {id: ID, clave: CLAVE, pid, estado, mozo: estado === 'listo' && mz && mz.value ? mz.value : undefined}); }catch(e){ alert(e.message); } load(); };
     const EST = {nuevo: '🆕 Nuevo', preparando: '👨‍🍳 En preparación', listo: '✅ Listo para llevar'};
@@ -672,14 +675,25 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     const cChips = list => { const o = $('#cOpts'); o.innerHTML = ''; (list || []).forEach(([l, fn, pri]) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = l; if(pri) b.className = 'pri btn'; b.onclick = fn; o.appendChild(b); }); };
     const accionChips = () => { const nu = ITEMS.filter(x => x.tipo === 'pedido' && x.estado === 'nuevo').sort((a, b) => String(a.creado).localeCompare(String(b.creado))), pr = ITEMS.filter(x => x.tipo === 'pedido' && x.estado === 'preparando');
       return nu.slice(0, 4).map(p => [`👨‍🍳 Preparar mesa ${p.mesa} (${listaItems(p)})`, () => comando('preparar mesa ' + p.mesa), true]).concat(pr.slice(0, 3).map(p => [`✅ Listo mesa ${p.mesa}`, () => comando('listo mesa ' + p.mesa)])); };
-    const flash = est => { irA(est); app.querySelectorAll('#cPend .tk.' + est).forEach(el => { el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 3500); }); };
-    const cTalk = (txt, chips) => { cChips(chips); $('#cSay').textContent = txt; if(!cOn || !('speechSynthesis' in window)) return true; try{ const u = new SpeechSynthesisUtterance(txt.replace(/[\u{1F300}-\u{1FAFF}☀-➿️]/gu, '')); u.lang = cVoice ? cVoice.lang : 'es-AR'; if(cVoice) u.voice = cVoice; u.rate = 1.15; u.volume = .85; const c = $('#cAva .chef'); u.onstart = () => c && c.classList.add('talk'); u.onend = u.onerror = () => c && c.classList.remove('talk'); speechSynthesis.speak(u); }catch(e){} return true; };
+    let volando = false;
+    const volarA = el => { if(!el || volando) return; const st = el.closest('.strip'); if(st) st.scrollTo({left: el.offsetLeft - st.offsetLeft, behavior: 'smooth'}); el.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+      setTimeout(() => { const src = $('#cAva'), a = src.getBoundingClientRect(), b = el.getBoundingClientRect(); if(!a.width) return; volando = true;
+        const f = document.createElement('div'); f.className = 'fly'; f.innerHTML = src.innerHTML + '<span class="point">👉</span>'; f.style.cssText = `left:${a.left}px;top:${a.top}px;width:${a.width}px;height:${a.height}px`; document.body.appendChild(f); src.style.visibility = 'hidden';
+        const x = Math.max(4, b.left - a.width * 1.05) - a.left, y = Math.max(4, b.top - 10) - a.top;
+        requestAnimationFrame(() => { f.style.transform = `translate(${x}px,${y}px) scale(.85)`; });
+        el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 3500);
+        setTimeout(() => { f.classList.add('back'); f.style.transform = ''; }, 2600);
+        setTimeout(() => { f.remove(); src.style.visibility = ''; volando = false; }, 3500); }, 450); };
+    const tkDe = pid => app.querySelector(`#cPend [data-pid="${pid}"]`) || app.querySelector(`[data-pid="${pid}"]`);
+    const flash = est => { irA(est); volarA(app.querySelector('#cPend .tk.' + est)); app.querySelectorAll('#cPend .tk.' + est).forEach(el => { el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 3500); }); };
+    let lastTxt = '', lastAt = 0;
+    const cTalk = (txt, chips) => { cChips(chips); $('#cSay').textContent = txt; if(!cOn || !('speechSynthesis' in window)) return true; if(txt === lastTxt && Date.now() - lastAt < 6000) return true; lastTxt = txt; lastAt = Date.now(); try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(txt.replace(/[\u{1F300}-\u{1FAFF}☀-➿️]/gu, '')); u.lang = cVoice ? cVoice.lang : 'es-AR'; if(cVoice) u.voice = cVoice; u.rate = 1.15; u.volume = .85; const c = $('#cAva .chef'); u.onstart = () => c && c.classList.add('talk'); u.onend = u.onerror = () => c && c.classList.remove('talk'); speechSynthesis.speak(u); }catch(e){} return true; };
     const listaItems = p => p.items.map(i => `${i.q} ${i.n}`).join(', ');
     const hola = () => DUENO ? DUENO + ', ' : '';
     const resumen = () => { const n = ITEMS.filter(x => x.tipo === 'pedido' && x.estado === 'nuevo').length, pr = ITEMS.filter(x => x.tipo === 'pedido' && x.estado === 'preparando').length, li = ITEMS.filter(x => x.tipo === 'pedido' && x.estado === 'listo').length, av = ITEMS.filter(x => x.tipo !== 'pedido' && x.estado === 'nuevo').length;
       return `${n ? `tenés ${n} ${n === 1 ? 'pedido nuevo' : 'pedidos nuevos'}` : 'no tenés pedidos nuevos'}${pr ? `, ${pr} en preparación` : ''}${li ? `, ${li} listo${li > 1 ? 's' : ''} para llevar` : ''}${av ? ` y ${av} aviso${av > 1 ? 's' : ''} de mesas` : ''}.`; };
     const anunciar = (nuevos) => nuevos.forEach(x => {
-      if(x.tipo === 'pedido'){ flash('nuevo'); cTalk(`${hola()}entró un pedido de la mesa ${x.mesa}${x.nombre ? ', ' + x.nombre : ''}: ${listaItems(x)}. ¿Lo preparo?`, [[`👨‍🍳 Sí, preparar mesa ${x.mesa}`, () => comando('preparar mesa ' + x.mesa), true]]); }
+      if(x.tipo === 'pedido'){ setTimeout(() => volarA(tkDe(x.id)), 600); cTalk(`${hola()}entró un pedido de la mesa ${x.mesa}${x.nombre ? ', ' + x.nombre : ''}: ${listaItems(x)}. ¿Lo preparo?`, [[`👨‍🍳 Sí, preparar mesa ${x.mesa}`, () => comando('preparar mesa ' + x.mesa), true]]); }
       else if(x.tipo === 'consulta') cTalk(`${hola()}la mesa ${x.mesa} pregunta: ${x.texto}. Decime "respondé mesa ${x.mesa}" y lo que le contesto.`);
       else if(x.tipo === 'pago') cTalk(`${hola()}la mesa ${x.mesa} dice que pagó virtual ${x.monto}. Revisá que te haya llegado.`);
       else if(x.tipo === 'cuenta') cTalk(x.metodo === 'efectivo' ? `${hola()}la mesa ${x.mesa} paga en efectivo, ${x.monto}. Mandá a alguien a cobrar.` : x.metodo === 'caja' ? `${hola()}la mesa ${x.mesa} viene a pagar a la caja, ${x.monto}.` : `${hola()}la mesa ${x.mesa} pide la cuenta.`);
@@ -695,8 +709,8 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       if(/^(hola|buen dia|buenas|que tal|como estas)/.test(n) && !/(prepar|listo|entreg|atend|respond|cancel)/.test(n)){ flash('nuevo'); cTalk(`¡Hola${DUENO ? ', ' + DUENO : ''}! ¿Cómo estás? Acá estoy para ayudarte. Ahora ${resumen()}`, accionChips()); return true; }
       if(/(cuantos|cuantas|que tengo|resumen|como vamos|como estamos|pedidos)/.test(n) && !/(prepar|listo|entreg|cancel)/.test(n)){ flash('nuevo'); const ch = accionChips(); cTalk(`${hola()}${resumen()}${ch.length ? ' ¿Cuál preparo? Te los marco en la pantalla.' : ''}`, ch); return true; }
       if(/respond|contesta|decile/.test(n)){ const c = de('aviso', ['nuevo']).filter(x => x.tipo === 'consulta')[0]; if(!c) return cTalk('No tengo preguntas de mesas pendientes.'); const rta = txt.replace(/^.*?(respond[eé]|contest[aá]|decile)\s*(a\s*)?(la\s*)?(mesa\s*\S+)?[\s:,]*/i, '').trim(); if(!rta) return cTalk(`¿Qué le contesto a la mesa ${c.mesa}?`); api('/api/menu?accion=estado', {id: ID, clave: CLAVE, pid: c.id, estado: 'respondido', rta}).then(load); return cTalk(`Listo, le contesté a la mesa ${c.mesa}: ${rta}.`); }
-      if(/(prepar|empez|arranca|hace)/.test(n)){ const p = de('pedido', ['nuevo'])[0]; if(!p) return cTalk(mesa ? `No tengo pedidos nuevos de la mesa ${mesa}.` : 'No tengo pedidos nuevos.'); set(p.id, 'preparando'); return cTalk(`Dale, el pedido de la mesa ${p.mesa} pasa a preparación: ${listaItems(p)}.`); }
-      if(/(listo|termin|ya sale|sale|llevalo|lleva)/.test(n)){ const p = de('pedido', ['preparando', 'nuevo'])[0]; if(!p) return cTalk('No tengo pedidos en preparación.'); const sel = app.querySelector(`[data-mz="${p.id}"]`); if(sel && mozo) sel.value = mozo; set(p.id, 'listo'); return cTalk(`Perfecto, el pedido de la mesa ${p.mesa} está listo${mozo ? ' y lo lleva ' + mozo : ''}. Ya le avisé al cliente.`); }
+      if(/(prepar|empez|arranca|hace)/.test(n)){ const p = de('pedido', ['nuevo'])[0]; if(!p) return cTalk(mesa ? `No tengo pedidos nuevos de la mesa ${mesa}.` : 'No tengo pedidos nuevos.'); volarA(tkDe(p.id)); set(p.id, 'preparando'); return cTalk(`Dale, el pedido de la mesa ${p.mesa} pasa a preparación: ${listaItems(p)}.`); }
+      if(/(listo|termin|ya sale|sale|llevalo|lleva)/.test(n)){ const p = de('pedido', ['preparando', 'nuevo'])[0]; if(!p) return cTalk('No tengo pedidos en preparación.'); const sel = app.querySelector(`[data-mz="${p.id}"]`); if(sel && mozo) sel.value = mozo; volarA(tkDe(p.id)); set(p.id, 'listo'); return cTalk(`Perfecto, el pedido de la mesa ${p.mesa} está listo${mozo ? ' y lo lleva ' + mozo : ''}. Ya le avisé al cliente.`); }
       if(/(entreg|servido|ya esta en la mesa)/.test(n)){ const p = de('pedido', ['listo'])[0]; if(!p) return cTalk('No tengo pedidos listos para marcar como entregados.'); set(p.id, 'entregado'); return cTalk(`Anotado: el pedido de la mesa ${p.mesa} ya está entregado.`); }
       if(/(atend|visto|ok mesa|ya fui|cobrado|cobre)/.test(n)){ const a = de('aviso', ['nuevo'])[0]; if(!a) return cTalk('No tengo avisos pendientes.'); set(a.id, 'visto'); return cTalk(`Listo, marqué como atendido el aviso de la mesa ${a.mesa}.`); }
       if(/(cancel|anula)/.test(n)){ const p = de('pedido', ['nuevo', 'preparando'])[0]; if(!p) return cTalk('No encontré ese pedido.'); set(p.id, 'cancelado'); return cTalk(`Cancelé el pedido de la mesa ${p.mesa}.`); }
@@ -705,13 +719,21 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       return false;
     }
     const SRc = window.SpeechRecognition || window.webkitSpeechRecognition; let recC = null;
-    if(SRc){ recC = new SRc(); recC.lang = 'es-AR'; recC.maxAlternatives = 4; recC.onresult = e => { const alts = [...e.results[0]].map(a => a.transcript); $('#cSay').textContent = '🗣 "' + alts[0] + '"'; if(!alts.some(t => comando(t, true))) comando(alts[0]); }; recC.onend = () => $('#cMic').classList.remove('on'); recC.onerror = ev => { $('#cMic').classList.remove('on'); if(ev.error === 'not-allowed') cTalk('No tengo permiso para usar el micrófono. Tocá el candadito de la barra de direcciones y permití el micrófono.'); }; }
+    let escuchando = false, fallos = 0;
+    if(SRc){ recC = new SRc(); recC.lang = 'es-AR'; recC.continuous = false; recC.interimResults = false; recC.maxAlternatives = 5;
+      recC.onresult = e => { if(!escuchando) return; escuchando = false; try{ recC.stop(); }catch(_){}
+        const alts = [...e.results[e.results.length - 1]].map(a => a.transcript).filter(Boolean); if(!alts.length) return;
+        $('#cSay').textContent = '🗣 "' + alts[0] + '"';
+        if(alts.some(t => comando(t, true))){ fallos = 0; return; }
+        fallos++; cTalk(fallos > 1 ? `Escuché "${alts[0]}". Mejor tocá el botón del pedido, o escribímelo abajo.` : `Perdón${DUENO ? ', ' + DUENO : ''}, escuché "${alts[0]}" y no te entendí. Tocá el micrófono y decime, por ejemplo: "preparar mesa 2".`, accionChips()); };
+      recC.onend = () => { escuchando = false; $('#cMic').classList.remove('on'); };
+      recC.onerror = ev => { escuchando = false; $('#cMic').classList.remove('on'); if(ev.error === 'not-allowed') cTalk('No tengo permiso para usar el micrófono. Tocá el candadito de la barra de direcciones y permití el micrófono.'); else if(ev.error === 'no-speech') $('#cSay').textContent = '🤔 No escuché nada. Tocá 🎙️ y hablame.'; }; }
     $('#cAva').addEventListener('click', () => $('#cajaAsis').classList.toggle('min')); $('#cAva').title = 'Mostrar / ocultar el asistente';
     $('#cTxt').addEventListener('keydown', e => { if(e.key === 'Enter' && e.target.value.trim()){ const t = e.target.value.trim(); e.target.value = ''; comando(t); } });
     $('#cMic').onclick = () => {
       if(!cOn){ cOn = true; ding = true; $('#bDing').textContent = '🔔 Sonido activado'; const h = new Date().getHours(); cTalk(`${h < 13 ? '¡Buen día' : h < 20 ? '¡Buenas tardes' : '¡Buenas noches'}${DUENO ? ', ' + DUENO : ''}! Soy tu asistente de la caja. ${resumen().replace(/^./, c => c.toUpperCase())} Tocá el micrófono y decime qué hago.`); return; }
       if(!recC){ cTalk('Este navegador no me deja escucharte. Probá con Chrome.'); return; }
-      try{ speechSynthesis.cancel(); recC.start(); $('#cMic').classList.add('on'); $('#cSay').textContent = '👂 Te escucho…'; }catch(e){}
+      if(escuchando){ try{ recC.stop(); }catch(e){} return; } try{ speechSynthesis.cancel(); const c = $('#cAva .chef'); c && c.classList.remove('talk'); setTimeout(() => { try{ escuchando = true; recC.start(); $('#cMic').classList.add('on'); $('#cSay').textContent = '👂 Te escucho… hablá ahora'; }catch(e){ escuchando = false; } }, 250); }catch(e){}
     };
     async function load(){
       let j = null; try{ j = await api(`/api/menu?id=${ID}&clave=${encodeURIComponent(CLAVE)}&caja=1`); }catch(e){ $('#cName').textContent = '😕 ' + e.message; return; }
