@@ -59,7 +59,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
 @media(min-width:820px){#cajaAsis{grid-template-columns:84px minmax(0,1.3fr) minmax(240px,1fr) auto}#cTxt{grid-column:3;grid-row:1;align-self:end}#cajaAsis > div:nth-child(3){grid-column:4;grid-row:1}.caja{padding-bottom:180px}}
 .wave{position:absolute;right:-6px;bottom:-4px;font-size:30px;animation:wave 1.4s ease-in-out infinite;transform-origin:70% 80%}@keyframes wave{0%,60%,100%{transform:rotate(0)}20%{transform:rotate(-22deg)}40%{transform:rotate(14deg)}}
 .chef.talk{animation:talkb .35s ease-in-out infinite alternate}@keyframes talkb{to{transform:translateY(-3px) rotate(-2deg)}}.fly{position:fixed;z-index:60;pointer-events:none;transition:transform .9s cubic-bezier(.5,-0.3,.4,1.3)}.fly.back{transition:transform .8s ease-in-out}.fly .point{position:absolute;right:-26px;top:30%;font-size:30px;animation:pt .5s ease-in-out infinite alternate}@keyframes pt{to{transform:translateX(6px)}}
-.tk.flash{animation:fl 0.6s ease-in-out 5}@keyframes fl{50%{box-shadow:0 0 0 6px rgba(124,58,237,.35)}}
+.flash{animation:fl 0.6s ease-in-out 5}@keyframes fl{50%{box-shadow:0 0 0 6px rgba(124,58,237,.35)}}
 .chef .mouth{transform-origin:60px 70px}.chef .eyes{transform-origin:60px 52px;animation:blink 4s infinite}@keyframes blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}.chef{animation:bob 2.6s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-4px)}}
 .bubble{background:#fff;border:2px solid #ddd6fe;border-radius:20px 20px 20px 6px;padding:12px 14px;font-size:17px;box-shadow:0 6px 18px rgba(91,33,182,.1);white-space:pre-line}
 .opts{display:flex;gap:8px;flex-wrap:wrap;padding:6px 14px 4px}
@@ -200,13 +200,13 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
           <p class="note">Con el alias o el link, el asistente le ofrece a cada mesa pagar ahí mismo, o al final.</p>
           <label>Link de reseñas de Google (opcional)<input id="fGrev" maxlength="300" inputmode="url" placeholder="https://g.page/r/…/review"></label><p class="note">Lo sacás de Google Maps → tu perfil de empresa → “Pedir reseñas”. Al final de cada visita, el asistente invita al cliente a dejarte su opinión y su reseña en Google.</p>
         </section>
-        <section class="card noprint"><h2>📲 Redes, links y novedades <small style="font-weight:600;color:#6b7280">(opcional)</small></h2>
+        <section class="card noprint" id="secRedes"><h2>📲 Redes, links y novedades <small style="font-weight:600;color:#6b7280">(opcional)</small></h2>
           <p class="note">Tus clientes las ven en el menú y el asistente los invita a seguirte. Completá solo las que tengas.</p>
           <div id="fLinks" style="display:grid;gap:8px"></div>
           <p class="note">Hasta 10 links: Instagram, Facebook, TikTok, WhatsApp, Google Maps, YouTube, tu web, tu ShopFlash, delivery… En las redes alcanza con el usuario (ej: @cafelaesquina).</p>
           <label>📣 Novedades para mostrar (eventos, horarios, lo que vendés)<textarea id="fNov" maxlength="300" rows="2" placeholder="Ej: Los viernes música en vivo 🎸 · Tortas por encargo · Abrimos domingos de 8 a 13"></textarea></label>
         </section>
-        <section class="card noprint"><h2>🙋 Tu asistente</h2>
+        <section class="card noprint" id="secAsis"><h2>🙋 Tu asistente</h2>
           <p class="note">Elegí cómo se ve la moza o el mozo que atiende a tus clientes.</p>
           <div style="display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:center"><div id="avaPrev" style="width:120px;height:160px"></div>
           <div style="display:grid;gap:8px">
@@ -218,7 +218,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
           </div></div>
           <label>Asistente de la caja (el que te habla a vos)<select id="fCajaAva"><option value="flashi">⚡ Carita Flashi</option><option value="robot">🤖 Robotito</option><option value="gatito">🐱 Gatito</option><option value="igual">🙋 El mismo de las mesas</option></select></label>
         </section>
-        <section class="card noprint"><h2>2. Fotos de tu carta</h2>
+        <section class="card noprint" id="secFotos"><h2>2. Fotos de tu carta</h2>
           <p class="note">Sacale una foto a cada página de la carta, de frente y con buena luz (hasta 4 fotos). La IA lee todo: platos, descripciones, precios y secciones.</p>
           <div class="row"><button class="btn pri" type="button" id="bCam">📸 Sacar fotos</button><button class="btn sec" type="button" id="bGal">🖼 Elegir fotos</button></div>
           <input type="file" id="iCam" accept="image/*" capture="environment" hidden><input type="file" id="iGal" accept="image/*" multiple hidden>
@@ -296,6 +296,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       d.scrollIntoView({behavior: 'smooth'});
     }
     if(ID && CLAVE && menu.cats.length && Q.has('qr')) done(ID, CLAVE);
+    { const IR = {links: 'secRedes', redes: 'secRedes', local: 'paso1', pagos: 'paso1', asistente: 'secAsis', carta: menu.cats.length ? 'edit' : 'secFotos', fotos: 'secFotos'}[Q.get('ir')]; const el = IR && document.getElementById(IR); if(el) setTimeout(() => { el.scrollIntoView({behavior: 'smooth', block: 'start'}); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 3500); }, 500); }
   }
 
   // =================== MESA: el asistente recibe, recomienda y toma el pedido por voz (español, inglés, portugués) ===================
@@ -678,7 +679,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
   // =================== CAJA: pedidos y avisos de las mesas en vivo ===================
   async function caja(){
     let ding = false, seen = null, nombreLocal = '', MOZOS = [];
-    app.innerHTML = `<div class="caja"><div class="cajatop"><h2 style="margin:0" id="cName">🧾 Caja</h2><div class="row"><button class="btn pri" type="button" id="bDing">🔔 Activar sonido</button><a class="btn sec" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}">✏️ Editar menú</a><a class="btn sec" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&qr=1">🖨 QR de mesas</a></div></div>
+    app.innerHTML = `<div class="caja"><div class="cajatop"><h2 style="margin:0" id="cName">🧾 Caja</h2><div class="row"><button class="btn pri" type="button" id="bDing">🔔 Activar sonido</button><a class="btn sec" id="bEdit" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}">✏️ Editar menú</a><a class="btn sec" id="bQR" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&qr=1">🖨 QR de mesas</a></div></div>
       <div id="cajaAsis"><div id="cAva" style="width:84px;height:110px"></div><div style="display:grid;gap:6px"><div class="bubble" id="cSay" style="font-size:16px">👋 Tocá <b>🎙️ Asistente</b> para que te avise de los pedidos con la voz.</div><div class="opts" id="cOpts" style="padding:0"></div></div><div style="display:grid;gap:6px;justify-items:center"><button class="mic" type="button" id="cMic" title="Hablale al asistente">🎙️</button></div><input id="cTxt" placeholder="…o escribile: “prepará mesa 2”, “listo mesa 2 lo lleva Marcos”, “¿cuántos pedidos tengo?”"></div>
       <div id="avisos" style="display:grid;gap:8px"></div><details id="rev" style="background:#fff;border:2px solid var(--line);border-radius:14px;padding:8px 12px"><summary style="font-weight:800;cursor:pointer">⭐ Opiniones de tus clientes</summary><div id="revL" style="display:grid;gap:6px;margin-top:6px"></div></details>
       <div class="col lane"><div class="laneh"><h3>🍽️ Entregados <span id="cEn"></span></h3><span><button class="arr" type="button" data-arr="cE|-1" aria-label="Anteriores">◀</button><button class="arr" type="button" data-arr="cE|1" aria-label="Siguientes">▶</button></span></div><div class="strip" id="cE"></div></div>
@@ -699,15 +700,16 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     const cChips = list => { const o = $('#cOpts'); o.innerHTML = ''; (list || []).forEach(([l, fn, pri]) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = l; if(pri) b.className = 'pri btn'; b.onclick = fn; o.appendChild(b); }); };
     const accionChips = () => { const nu = ITEMS.filter(x => x.tipo === 'pedido' && x.estado === 'nuevo').sort((a, b) => String(a.creado).localeCompare(String(b.creado))), pr = ITEMS.filter(x => x.tipo === 'pedido' && x.estado === 'preparando');
       return nu.slice(0, 4).map(p => [`👨‍🍳 Preparar mesa ${p.mesa} (${listaItems(p)})`, () => comando('preparar mesa ' + p.mesa), true]).concat(pr.slice(0, 3).map(p => [`✅ Listo mesa ${p.mesa}`, () => comando('listo mesa ' + p.mesa)])); };
-    let volando = false;
-    const volarA = el => { if(!el || volando) return; const st = el.closest('.strip'); if(st) st.scrollTo({left: el.offsetLeft - st.offsetLeft, behavior: 'smooth'}); el.scrollIntoView({block: 'nearest', behavior: 'smooth'});
-      setTimeout(() => { const src = $('#cAva'), a = src.getBoundingClientRect(), b = el.getBoundingClientRect(); if(!a.width) return; volando = true;
+    let vTok = 0;
+    const volarA = el => { if(!el) return; const tok = ++vTok, src = $('#cAva'); document.querySelectorAll('.fly').forEach(f => f.remove()); src.style.visibility = '';
+      const st = el.closest('.strip'); if(st) st.scrollTo({left: el.offsetLeft - st.offsetLeft, behavior: 'smooth'}); if(!el.closest('#cajaAsis')) el.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+      setTimeout(() => { if(tok !== vTok) return; const a = src.getBoundingClientRect(), b = el.getBoundingClientRect(); if(!a.width) return;
+        el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 3500); if(el === src || el.closest('#cajaAsis') === src.closest('#cajaAsis') && el.closest('#cajaAsis')) return;
         const f = document.createElement('div'); f.className = 'fly'; f.innerHTML = src.innerHTML + '<span class="point">👉</span>'; f.style.cssText = `left:${a.left}px;top:${a.top}px;width:${a.width}px;height:${a.height}px`; document.body.appendChild(f); src.style.visibility = 'hidden';
-        const x = Math.max(4, b.left - a.width * 1.05) - a.left, y = Math.max(4, b.top - 10) - a.top;
+        const x = Math.max(4, b.left - a.width * 1.05) - a.left, y = Math.min(innerHeight - a.height - 4, Math.max(4, b.top - 10)) - a.top;
         requestAnimationFrame(() => { f.style.transform = `translate(${x}px,${y}px) scale(.85)`; });
-        el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 3500);
-        setTimeout(() => { f.classList.add('back'); f.style.transform = ''; }, 2600);
-        setTimeout(() => { f.remove(); src.style.visibility = ''; volando = false; }, 3500); }, 450); };
+        setTimeout(() => { if(tok === vTok){ f.classList.add('back'); f.style.transform = ''; } }, 2600);
+        setTimeout(() => { f.remove(); if(tok === vTok) src.style.visibility = ''; }, 3500); }, 450); };
     const tkDe = pid => app.querySelector(`#cPend [data-pid="${pid}"]`) || app.querySelector(`[data-pid="${pid}"]`);
     const flash = est => { irA(est); volarA(app.querySelector('#cPend .tk.' + est)); app.querySelectorAll('#cPend .tk.' + est).forEach(el => { el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 3500); }); };
     let lastTxt = '', lastAt = 0;
@@ -725,12 +727,33 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     });
     const NUM = {uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10, once: 11, doce: 12, trece: 13, catorce: 14, quince: 15, veinte: 20};
     const normC = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9ñ ]/g, ' ').replace(/\s+/g, ' ').trim();
+    const ED = ir => `?m=${ID}&e=${encodeURIComponent(CLAVE)}&ir=${ir}`, irEd = ir => () => { location.href = ED(ir); };
+    const TOUR = () => [
+      ['#cAva', `¡Hola${DUENO ? ', ' + DUENO : ''}! Soy tu ayudante de la caja. Te muestro rapidito todo lo que tenés, ¿dale?`],
+      ['#cPend', 'Acá abajo están los pedidos que faltan entregar. Lila es nuevo, amarillo en preparación y verde listo para llevar. Los deslizás para el costado, o con las flechitas.'],
+      ['#cCnt', 'Con estos botones saltás directo a los nuevos, a los que están en preparación o a los listos.'],
+      ['#cE', 'Y arriba quedan los que ya entregaste hoy. Cuando tocás Entregado, el pedido sube solo.'],
+      ['#bDing', 'Este es el sonido: cada vez que entra un pedido suena un ding y yo te aviso.'],
+      ['#bQR', 'Acá imprimís los códigos QR para poner en cada mesa.'],
+      ['#bEdit', 'Y acá editás todo: la carta y los precios, los mozos, el alias para cobrar, tu reseña de Google, y los 10 links: Instagram, Facebook, TikTok, WhatsApp, Google Maps para que te encuentren, tu tienda ShopFlash o el delivery. También las novedades del local.'],
+      ['#cMic', 'Por último, a mí me hablás tocando el micrófono, o me escribís acá al lado. Decime por ejemplo: preparar mesa 2, o ¿cuántos pedidos tengo? ¡Eso es todo!']];
+    let tourI = -1;
+    function tour(i = 0){ const T = TOUR(); tourI = i; const [sel, txt] = T[i]; try{ localStorage.setItem('shopmenu-tour-' + ID, '1'); }catch(e){}
+      volarA($(sel)); const fin = i === T.length - 1;
+      cTalk(txt, fin ? [['📲 Cargar mis links ahora', irEd('links'), true], ['👍 Listo, gracias', () => cTalk(`¡De nada${DUENO ? ', ' + DUENO : ''}! Cuando quieras, decime "mostrame todo" y te lo vuelvo a mostrar.`)]] : [['▶ Siguiente', () => tour(i + 1), true], ['✕ Terminar', () => cTalk('Dale. Cuando quieras, decime "mostrame todo" y te lo muestro.')]]); return true; }
+    const AYUDA = [
+      [/(link|redes|instagram|insta|facebook|face|tiktok|whatsapp|youtube|maps|mapa|ubicacion|direccion|tienda|shopflash|delivery|novedad|evento)/, 'links', 'Los links van en Editar menú, en la parte Redes, links y novedades. Tenés 10 espacios: Instagram, Facebook, TikTok, WhatsApp, Google Maps, tu tienda ShopFlash, delivery… y abajo escribís las novedades. Tus clientes los ven tocando el botón del celular en la mesa.', '📲 Ir a cargar los links'],
+      [/(carta|menu|precio|plato|producto|foto)/, 'carta', 'La carta y los precios los cambiás en Editar menú: subís fotos de la carta y yo la leo, o corregís cada plato a mano.', '📖 Ir a la carta'],
+      [/(mozo|mesas|alias|cobrar|mercado pago|resena|google|demora|tarda)/, 'local', 'Eso está en Editar menú, en la parte Tu local: cantidad de mesas, mozos, alias y link de pago, tu reseña de Google y cuánto tarda un pedido.', '✏️ Ir a Tu local'],
+      [/(asistente|moza|avatar|carita|voz|pelo)/, 'asistente', 'Cómo se ve la moza o el mozo de las mesas, y mi carita, lo elegís en Editar menú, en la parte Tu asistente.', '🙋 Ir a Tu asistente']];
     function comando(txt, quiet){
       const n0 = normC(txt).replace(/\b(prepara|prepare|preparame|preparen)\b/g, 'preparar'), n = /\bmesa\b/.test(n0) ? n0 : n0.replace(/\b(\d+)\b/, 'mesa $1'), m = n.match(/mesa (\d+|[a-z]+)/), mesa = m ? (+m[1] || NUM[m[1]] || 0) : 0;
       const de = (tipo, estados) => ITEMS.filter(x => (tipo === 'pedido' ? x.tipo === 'pedido' : x.tipo !== 'pedido') && estados.includes(x.estado) && (!mesa || x.mesa === mesa)).sort((a, b) => String(a.creado).localeCompare(String(b.creado)));
       const mozo = MOZOS.find(z => n.includes(normC(z)));
-      if(quiet && !/(hola|buen|cuant|que tengo|resum|como va|como esta|respond|contest|decile|prepar|empez|arranc|hace|listo|termin|sale|llev|entreg|servid|atend|visto|cobr|cancel|anula|pedido)/.test(n)) return false;
+      if(quiet && !/(hola|buen|cuant|que tengo|resum|como va|como esta|respond|contest|decile|prepar|empez|arranc|hace|listo|termin|sale|llev|entreg|servid|atend|visto|cobr|cancel|anula|pedido|mostra|ayuda|como funciona|que puedo|donde|link|redes|instagram|face|tiktok|maps|mapa|tienda|carta|precio|editar|cambiar|novedad)/.test(n)) return false;
       if(/^(hola|buen dia|buenas|que tal|como estas)/.test(n) && !/(prepar|listo|entreg|atend|respond|cancel)/.test(n)){ flash('nuevo'); cTalk(`¡Hola${DUENO ? ', ' + DUENO : ''}! ¿Cómo estás? Acá estoy para ayudarte. Ahora ${resumen()}`, accionChips()); return true; }
+      if(/(mostra|ensena|recorrido|tour|ayuda|como funciona|que puedo|que tengo aca|que hay aca)/.test(n) && !/(pedido|mesa \d)/.test(n)) return tour(0);
+      if(/(donde|como|quiero|cambiar|poner|cargar|agregar|editar|link|redes)/.test(n) && !/(prepar|listo|entreg|cancel|mesa \d)/.test(n)){ const h = AYUDA.find(([r]) => r.test(n)); if(h){ volarA($('#bEdit')); cTalk(h[2], [[h[3], irEd(h[1]), true]]); return true; } }
       if(/(cuantos|cuantas|que tengo|resumen|como vamos|como estamos|pedidos)/.test(n) && !/(prepar|listo|entreg|cancel)/.test(n)){ flash('nuevo'); const ch = accionChips(); cTalk(`${hola()}${resumen()}${ch.length ? ' ¿Cuál preparo? Te los marco en la pantalla.' : ''}`, ch); return true; }
       if(/respond|contesta|decile/.test(n)){ const c = de('aviso', ['nuevo']).filter(x => x.tipo === 'consulta')[0]; if(!c) return cTalk('No tengo preguntas de mesas pendientes.'); const rta = txt.replace(/^.*?(respond[eé]|contest[aá]|decile)\s*(a\s*)?(la\s*)?(mesa\s*\S+)?[\s:,]*/i, '').trim(); if(!rta) return cTalk(`¿Qué le contesto a la mesa ${c.mesa}?`); api('/api/menu?accion=estado', {id: ID, clave: CLAVE, pid: c.id, estado: 'respondido', rta}).then(load); return cTalk(`Listo, le contesté a la mesa ${c.mesa}: ${rta}.`); }
       if(/(prepar|empez|arranca|hace)/.test(n)){ const p = de('pedido', ['nuevo'])[0]; if(!p) return cTalk(mesa ? `No tengo pedidos nuevos de la mesa ${mesa}.` : 'No tengo pedidos nuevos.'); volarA(tkDe(p.id)); set(p.id, 'preparando'); return cTalk(`Dale, el pedido de la mesa ${p.mesa} pasa a preparación: ${listaItems(p)}.`); }
@@ -762,7 +785,9 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     async function load(){
       let j = null; try{ j = await api(`/api/menu?id=${ID}&clave=${encodeURIComponent(CLAVE)}&caja=1`); }catch(e){ $('#cName').textContent = '😕 ' + e.message; return; }
       MOZOS = j.mozos || []; DUENO = j.dueno || ''; 
-      if(!asisInit){ asisInit = true; CGEN = j.cajaAva === 'igual' ? (j.avatar || (/a$/i.test(j.asistente || 'Lola') ? 'moza' : 'mozo')) : ''; $('#cAva').innerHTML = j.cajaAva === 'igual' ? makeAva({g: CGEN, pelo: j.pelo, largo: j.largo, piel: j.piel, barba: j.barba, local: j.nombre}).replace('class="chef"', 'class="chef" style="width:84px;height:110px"') : `<div style="position:relative;width:84px;height:84px">${(CAJA_AVAS[j.cajaAva] || CAJA_AVAS.flashi).replace('class="chef"', 'class="chef" style="width:84px;height:84px"')}<span class="wave">👋</span></div>`; if('speechSynthesis' in window) cPick(); if(DUENO) $('#cSay').innerHTML = `👋 ¡Hola, ${esc(DUENO)}! Tocá <b>🎙️</b> para que te avise de los pedidos con la voz.`; }
+      if(!asisInit){ asisInit = true; CGEN = j.cajaAva === 'igual' ? (j.avatar || (/a$/i.test(j.asistente || 'Lola') ? 'moza' : 'mozo')) : ''; $('#cAva').innerHTML = j.cajaAva === 'igual' ? makeAva({g: CGEN, pelo: j.pelo, largo: j.largo, piel: j.piel, barba: j.barba, local: j.nombre}).replace('class="chef"', 'class="chef" style="width:84px;height:110px"') : `<div style="position:relative;width:84px;height:84px">${(CAJA_AVAS[j.cajaAva] || CAJA_AVAS.flashi).replace('class="chef"', 'class="chef" style="width:84px;height:84px"')}<span class="wave">👋</span></div>`; if('speechSynthesis' in window) cPick(); if(DUENO) $('#cSay').innerHTML = `👋 ¡Hola, ${esc(DUENO)}! Tocá <b>🎙️</b> para que te avise de los pedidos con la voz.`;
+        let visto = false; try{ visto = !!localStorage.getItem('shopmenu-tour-' + ID); }catch(e){}
+        if(!visto) setTimeout(() => cTalk(`👋 ¡Hola${DUENO ? ', ' + DUENO : ''}! Es tu primera vez en la caja. ¿Querés que te muestre todo lo que tenés y dónde se cargan los links, las redes y la carta?`, [['👀 Sí, mostrame todo', () => tour(0), true], ['Ahora no', () => { try{ localStorage.setItem('shopmenu-tour-' + ID, '1'); }catch(e){} cTalk('Dale. Cuando quieras, decime "mostrame todo" o preguntame, por ejemplo: "¿dónde pongo los links?".'); }]]), 900); }
       { const prev = heard; heard = new Set((j.items || []).filter(x => x.estado === 'nuevo').map(x => x.id)); if(prev) anunciar((j.items || []).filter(x => x.estado === 'nuevo' && !prev.has(x.id)).reverse()); }
       ITEMS = j.items || [];
       if(j.nombre && j.nombre !== nombreLocal){ nombreLocal = j.nombre; $('#cName').textContent = '🧾 Caja · ' + j.nombre; }
