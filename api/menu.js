@@ -86,7 +86,7 @@ module.exports = async (req, res) => {
       }
       if (hash('admin|' + adm) !== P.clave) return res.status(403).json({ error: 'Clave incorrecta.' });
       if (req.method === 'POST' && Array.isArray(b.items)) {
-        P.items = b.items.slice(0, 300).map(x => ({ kit: t(x.kit, 10).toUpperCase().replace(/[^A-Z0-9]/g, ''), id: okId(x.id) ? x.id : '', local: t(x.local, 60), wa: t(x.wa, 30), desde: t(x.desde, 30) || new Date().toISOString(), estado: ['probando', 'contrato', 'devolver', 'devuelto'].includes(x.estado) ? x.estado : 'probando', nota: t(x.nota, 400) }));
+        P.items = b.items.slice(0, 300).map(x => ({ kit: t(x.kit, 10).toUpperCase().replace(/[^A-Z0-9]/g, ''), id: okId(x.id) ? x.id : '', local: t(x.local, 60), wa: t(x.wa, 30), desde: t(x.desde, 30) || new Date().toISOString(), estado: ['probando', 'contrato', 'devolver', 'devuelto'].includes(x.estado) ? x.estado : 'probando', nota: t(x.nota, 400), vend: t(x.vend, 40) }));
         await guardarObj('menus/pruebas.json', P);
       }
       return res.status(200).json({ items: P.items || [] });
