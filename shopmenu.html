@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ShopMenu 🍽️ · El menú QR con una moza virtual que atiende tus mesas</title>
+<meta name="description" content="Subí una foto de tu carta y en minutos tenés un menú QR con una moza virtual que habla, toma el pedido por voz y lo manda a la caja. 7 días gratis.">
+<meta property="og:title" content="ShopMenu 🍽️ · El menú QR que atiende tus mesas">
+<meta property="og:description" content="Una foto de tu carta y listo: cada mesa tiene una moza virtual que habla, recomienda y manda el pedido a la caja. Probalo 7 días gratis.">
+<meta property="og:image" content="https://vitrina360app.com.ar/og-shopmenu.png">
+<meta name="theme-color" content="#7c3aed">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
+<style>
+:root{--v:#6d28d9;--p:#a855f7;--o:#7c3aed;--ink:#2a1d3d;--muted:#6b5b86;--cream:#faf8ff;--lila:#f3eeff;--line:#e6dcfb}
+*{box-sizing:border-box}
+body{margin:0;font:400 17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--cream)}
+a{color:var(--v)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 18px}
+.btn{border:0;border-radius:999px;padding:14px 22px;font-weight:800;font-size:17px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;cursor:pointer}
+.pri{background:linear-gradient(90deg,var(--o),var(--p));color:#fff;box-shadow:0 8px 22px rgba(124,58,237,.28)}
+.sec{background:#fff;color:var(--v);border:2px solid var(--line)}
+nav{display:flex;justify-content:space-between;align-items:center;padding:14px 0}
+nav b{font-size:22px}
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:30px;align-items:center;padding:20px 0 40px}
+.hero h1{font-size:clamp(32px,5vw,50px);line-height:1.08;margin:0 0 14px}
+.hero h1 span{color:var(--o)}
+.hero p{font-size:19px;color:var(--muted);margin:0 0 22px}
+.ctas{display:flex;gap:10px;flex-wrap:wrap}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.chips span{background:#fff;border:2px solid var(--line);border-radius:999px;padding:5px 12px;font-weight:700;font-size:14px}
+.phone{justify-self:center;width:300px;height:600px;border-radius:40px;background:#1f1630;padding:12px;box-shadow:0 30px 60px rgba(76,29,149,.25)}
+.phone iframe{width:100%;height:100%;border:0;border-radius:30px;background:#fff}
+.phone small{display:block;text-align:center;color:var(--muted);margin-top:10px}
+section{padding:46px 0}
+section.alt{background:var(--lila)}
+h2{font-size:clamp(26px,3.6vw,36px);margin:0 0 8px;text-align:center}
+.sub{text-align:center;color:var(--muted);margin:0 auto 28px;max-width:640px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:#fff;border:2px solid var(--line);border-radius:22px;padding:20px}
+.card .ic{font-size:34px}
+.card h3{margin:6px 0 6px;font-size:19px}
+.card p{margin:0;color:var(--muted);font-size:16px}
+.steps{counter-reset:s;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.steps .card{position:relative;padding-top:34px}
+.steps .card::before{counter-increment:s;content:counter(s);position:absolute;top:-16px;left:18px;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--o),var(--p));color:#fff;font-weight:900;display:grid;place-items:center}
+.price{max-width:460px;margin:0 auto;text-align:center;border:3px solid var(--p);position:relative}
+.price .tag{position:absolute;top:-15px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--o),var(--p));color:#fff;border-radius:999px;padding:4px 14px;font-weight:800;font-size:14px;white-space:nowrap}
+.price .amt{font-size:46px;font-weight:900;margin:8px 0 0;color:var(--ink)}
+.price .amt small{font-size:18px;color:var(--muted);font-weight:700}
+.price ul{text-align:left;padding:0;list-style:none;margin:16px 0 20px;display:grid;gap:8px}
+.price li::before{content:"✅ "}
+details{background:#fff;border:2px solid var(--line);border-radius:16px;padding:14px 18px;margin:0 auto 10px;max-width:760px}
+summary{font-weight:800;cursor:pointer}
+details p{margin:10px 0 0;color:var(--muted)}
+.cut{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;max-width:760px;margin:0 auto}
+.mini{width:230px;aspect-ratio:2/1;border:2px dashed #9ca3af;border-radius:6px;background:#fff;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;padding:10px}
+.mini .q{width:90px;height:90px;background:repeating-conic-gradient(#2a1d3d 0 25%,#fff 0 50%) 0 0/18px 18px;border:6px solid #2a1d3d}
+.mini b{display:block;font-size:12px}.mini strong{display:block;font-size:22px;color:var(--o)}.mini small{font-size:11px;color:var(--muted)}
+footer{padding:30px 0 50px;text-align:center;color:var(--muted);font-size:15px}
+.final{text-align:center}
+@media(max-width:860px){.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr 1fr}.steps{grid-template-columns:1fr 1fr;row-gap:28px}}
+@media(max-width:560px){.grid,.steps{grid-template-columns:1fr}.phone{width:270px;height:540px}.cut{grid-template-columns:1fr;justify-items:center;text-align:center}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><b>🍽️ ShopMenu</b><a class="btn sec" href="/menu" style="padding:9px 16px;font-size:15px">Entrar / crear mi menú</a></nav>
+  <div class="hero">
+    <div>
+      <h1>Tu carta con una <span>moza virtual</span> que atiende cada mesa</h1>
+      <p>Subí una foto de tu carta y en minutos tenés un menú QR donde una moza virtual saluda, recomienda, toma el pedido <b>hablando</b> y lo manda directo a tu caja. Tus clientes no esperan y vos no perdés pedidos.</p>
+      <div class="ctas"><a class="btn pri" href="/menu">🚀 Probalo 7 días gratis</a><a class="btn sec" href="#demo">👀 Ver cómo funciona</a></div>
+      <div class="chips"><span>📸 Carta leída con IA</span><span>🎤 Pedidos por voz</span><span>🌎 Español · English · Português</span><span>📲 Sin descargar nada</span></div>
+    </div>
+    <div id="demo">
+      <div class="phone"><iframe src="/menu?m=fdaf46084d&mesa=1" title="Demo de ShopMenu: mesa 1 del Café Demo" loading="lazy" allow="microphone; autoplay"></iframe></div>
+      <small>☝️ Probalo acá: es la mesa 1 de un café de prueba</small>
+    </div>
+  </div>
+</div>
+
+<section class="alt"><div class="wrap">
+  <h2>Todo lo que hace por tu local</h2>
+  <p class="sub">El cliente escanea el QR de su mesa con el celular. No baja ninguna app.</p>
+  <div class="grid">
+    <div class="card"><div class="ic">🙋</div><h3>Una moza que habla</h3><p>Saluda según la hora, se presenta, pregunta qué tenés ganas de comer y te muestra esa parte de la carta. La elegís moza o mozo, con el nombre de tu local en el delantal.</p></div>
+    <div class="card"><div class="ic">🎤</div><h3>Pedidos por voz</h3><p>"Poneme un cortado y dos medialunas." La moza lo anota, ofrece algo más una sola vez y manda el pedido a la caja.</p></div>
+    <div class="card"><div class="ic">🧾</div><h3>Caja con avisos</h3><p>Los pedidos entran con un ding y por colores: nuevo, en preparación, listo. Un ayudante te los dice en voz alta y te marca cuál preparar.</p></div>
+    <div class="card"><div class="ic">💳</div><h3>Cobro en la mesa</h3><p>El cliente paga con tu alias o tu link de Mercado Pago, en efectivo o en la caja, y deja propina si quiere.</p></div>
+    <div class="card"><div class="ic">⭐</div><h3>Más reseñas en Google</h3><p>Al final de cada visita la moza pide una opinión y manda al cliente a dejar su reseña en Google.</p></div>
+    <div class="card"><div class="ic">📲</div><h3>Tus redes y tu WhatsApp</h3><p>Instagram, Facebook, TikTok, Google Maps, tu tienda o delivery y las novedades del local, a un toque.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Listo en 15 minutos, desde tu casa</h2>
+  <p class="sub">No hace falta que vaya nadie: lo armás vos solo.</p>
+  <div class="steps">
+    <div class="card"><h3>📸 Subí tu carta</h3><p>Sacale fotos a tu carta. La IA lee los platos y los precios, y vos corregís lo que haga falta.</p></div>
+    <div class="card"><h3>🙋 Armá tu moza</h3><p>Elegí moza o mozo, el pelo, el nombre, y cargá tu WhatsApp, tus redes y tu alias.</p></div>
+    <div class="card"><h3>🖨 Imprimí tus QR</h3><p>Sale una hoja A4 con 10 cartelitos de 10×5 cm, uno por mesa. Recortás por la línea punteada.</p></div>
+    <div class="card"><h3>🍽️ ¡A atender!</h3><p>Ponelos en el servilletero de cada mesa y abrí la caja en la compu o en la tablet del mostrador.</p></div>
+  </div>
+</div></section>
+
+<section class="alt"><div class="wrap">
+  <h2>Así quedan tus QR</h2>
+  <p class="sub">Los imprimís vos, en tu casa o en cualquier librería.</p>
+  <div class="cut">
+    <div class="mini"><div class="q"></div><div><b>Tu Café</b><strong>MESA 5</strong><small>📱 Escaneá y pedí sin esperar al mozo</small></div></div>
+    <div>
+      <p style="margin:0 0 8px"><b>1.</b> Imprimí la hoja A4 (en blanco y negro alcanza).</p>
+      <p style="margin:0 0 8px"><b>2.</b> Recortá cada cartelito por la línea punteada.</p>
+      <p style="margin:0 0 8px"><b>3.</b> Plastificalo o metelo en un folio para que no se manche.</p>
+      <p style="margin:0"><b>4.</b> Ponelo en el servilletero o pegalo en la mesa. El cartelito <b>MENÚ</b> va en la carta, la puerta o el mostrador.</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="precio"><div class="wrap">
+  <h2>Un solo precio, todo incluido</h2>
+  <p class="sub">Menos de lo que sale una jornada de un mozo.</p>
+  <div class="card price">
+    <span class="tag">🎁 7 días de prueba gratis</span>
+    <p class="amt">$15.000 <small>por mes</small></p>
+    <ul>
+      <li>Mesas sin límite</li>
+      <li>Moza o mozo virtual que habla y toma pedidos</li>
+      <li>Carta leída con IA, en 3 idiomas</li>
+      <li>Caja con avisos, sonido y ayudante por voz</li>
+      <li>Cobro en la mesa, propina y reseñas de Google</li>
+      <li>WhatsApp, redes, Google Maps y novedades</li>
+      <li>Cambiás precios cuando quieras: los QR no se reimprimen</li>
+    </ul>
+    <a class="btn pri" href="/menu" style="width:100%">🚀 Empezar mis 7 días gratis</a>
+    <p style="margin:10px 0 0;color:var(--muted);font-size:14px">Sin permanencia. El precio se actualiza cada 6 meses.</p>
+  </div>
+</div></section>
+
+<section class="alt"><div class="wrap">
+  <h2>Preguntas frecuentes</h2>
+  <p class="sub"></p>
+  <details><summary>¿Mis clientes tienen que descargar algo?</summary><p>No. Escanean el QR con la cámara del celular y se abre el menú en el navegador. Funciona en Android y iPhone.</p></details>
+  <details><summary>¿Y si el cliente no quiere hablar?</summary><p>Puede pedir tocando los botones de la carta, como en cualquier menú. Hablar es opcional, y la voz se puede apagar.</p></details>
+  <details><summary>¿Cómo cambio un precio?</summary><p>Desde "Editar menú" en tu caja. El cambio se ve al instante y los QR siguen siendo los mismos.</p></details>
+  <details><summary>¿Dónde veo los pedidos?</summary><p>En la caja: una página que abrís en la compu, la tablet o el celular del mostrador. Los pedidos entran con un sonido y un ayudante te avisa en voz alta.</p></details>
+  <details><summary>¿Sirve para restaurantes, bares y heladerías?</summary><p>Sí: cualquier local con mesas. Si tenés cocina, la caja puede estar en la cocina o en el mostrador.</p></details>
+  <details><summary>¿Qué pasa después de los 7 días?</summary><p>Si te gustó, seguís por $15.000 por mes. Si no, no pagás nada.</p></details>
+</div></section>
+
+<section><div class="wrap final">
+  <h2>Probalo hoy en tu local</h2>
+  <p class="sub">En 15 minutos tus mesas tienen su propia moza virtual.</p>
+  <a class="btn pri" href="/menu">🚀 Crear mi menú gratis</a>
+</div></section>
+
+<footer>🍽️ ShopMenu · by ShopFlash · Vitrina 360</footer>
+</body>
+</html>
