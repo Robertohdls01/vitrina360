@@ -252,7 +252,7 @@
     try{ const rows = await api('GET', `/rest/v1/tiendas?owner=eq.${uid}&select=slug,nombre,data`, {tok}); row = rows && rows[0]; }
     catch(e){ onReady(() => overlay(`<h2>${T('No pudimos abrir tu tienda', "We couldn't open your store", 'Não conseguimos abrir sua loja')}</h2><p>${esc(e.message)}</p><button class="pri" type="button" onclick="location.reload()">${T('Probar de nuevo', 'Try again', 'Tentar de novo')}</button>`)); return; }
     if(row){
-      slug = row.slug;
+      slug = row.slug; window.VITRINA_ME = {slug};
       try{ const r = await fetch('/api/estado', {headers: {Authorization: 'Bearer ' + tok}}); if(r.ok){ estadoCache = await r.json(); if(estadoCache && estadoCache.limites) window.VITRINA_LIMITS = estadoCache.limites; } }catch(e){}
       if(row.data && Array.isArray(row.data.stores) && row.data.stores.length) window.VITRINA_REMOTE_DATA = row.data;
       else firstPush = true;
@@ -772,6 +772,19 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 .flin button,.flchips button{border:1px solid #9cc7a8;background:#fff;color:#13241a;border-radius:999px;padding:8px 12px;font:600 14px var(--body,system-ui);cursor:pointer}
 .flin button.pri,.flchips button.pri{background:#15803d;color:#fff;border-color:#15803d}
 .flchips{display:flex;flex-wrap:wrap;gap:6px}
+.revchip{display:inline-flex;align-items:center;gap:6px;margin:6px 0 2px;border:1px solid var(--line,#ddd);background:var(--surface,#fff);color:inherit;border-radius:999px;padding:5px 12px;font:600 14px var(--body,system-ui);cursor:pointer}
+.revchip[hidden]{display:none}.revchip .st{color:#f59e0b;letter-spacing:1px}
+.revov{position:fixed;inset:0;z-index:9995;background:rgba(0,0,0,.5);display:grid;place-items:center;padding:14px}
+.revov .rvb{background:var(--surface,#fff);color:var(--ink,#111);width:min(440px,100%);max-height:88vh;overflow:auto;border-radius:20px;padding:18px;display:grid;gap:10px;font:400 15px/1.45 var(--body,system-ui);box-shadow:0 16px 50px rgba(0,0,0,.3)}
+.revov h2{margin:0;font-size:20px}.revov .big{font-size:34px;font-weight:800}.revov .stars{color:#f59e0b;font-size:20px;letter-spacing:2px}
+.revov .ritem{border-top:1px solid var(--line,#eee);padding-top:8px;display:grid;gap:3px}.revov .ritem small{opacity:.7}.revov .rta{background:rgba(124,58,237,.08);border-radius:10px;padding:6px 10px;font-size:14px}
+.revov .pick{display:flex;gap:4px;justify-content:center}.revov .pick button{border:0;background:none;font-size:38px;cursor:pointer;filter:grayscale(1);opacity:.45;padding:0 2px;transition:transform .15s}
+.revov .pick button.on{filter:none;opacity:1;transform:scale(1.08)}
+.revov textarea,.revov input{width:100%;box-sizing:border-box;border:1px solid var(--line,#ccc);border-radius:12px;padding:9px 11px;font:inherit;background:var(--bg,#fff);color:inherit}
+.revov .rbtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.revov .rbtns button,.revov .rbtns a{border:0;border-radius:999px;padding:10px 16px;font:600 15px var(--body,system-ui);cursor:pointer;background:#eee;color:#111;text-decoration:none}
+.revov .rbtns .pri{background:#7c3aed;color:#fff}.revov .rbtns .gg{background:#fff;border:2px solid #4285f4;color:#1a56c4}
+.revadmin{display:grid;gap:8px}.revadmin .ra{border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 10px;display:grid;gap:4px}.revadmin .ra.off{opacity:.55}
+.revadmin .ra .row{gap:6px;flex-wrap:wrap}.revadmin .ra input{min-width:0;flex:1}
 .flhi{outline:3px solid #16a34a!important;outline-offset:4px;border-radius:12px;animation:flpulse 1.2s ease-in-out 4}
 @keyframes flpulse{50%{outline-color:#86efac}}
 body.clientmode .flfab,body.clientmode .flbox{display:none!important}
@@ -2172,6 +2185,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
       <img class="brandlogo" id="brandLogo" alt="" hidden>
       <div style="min-width:0">
       <h1 id="brandName">ShopFlash</h1>
+      <button class="revchip" type="button" id="revChip" hidden></button>
       <p id="lede">Tus vitrinas, una por rubro. Tocá una vitrina para agrandarla, girarla y ver sus productos.</p>
       </div>
     </div>
@@ -2398,6 +2412,15 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
       <strong>💱 Moneda y país</strong>
       <p class="note" style="margin:0">Elegí la moneda en la que vendés. Los totales del pedido se muestran en esa moneda y las formas de entrega se adaptan a tu país. Escribí los precios de tus productos en esa misma moneda.</p>
       <select id="b-currency" aria-label="Moneda de la tienda" style="font:inherit;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg);color:inherit;max-width:320px"></select>
+    </div>
+    <div class="presets" id="revBox">
+      <strong>⭐ Reseñas de tus clientes</strong>
+      <p class="note" style="margin:0">Cuando un cliente hace un pedido, la tienda le pide que te califique con estrellas. Solo pueden opinar los que te compraron (compra verificada), una vez por pedido. El promedio se ve arriba, al lado del nombre de tu tienda.</p>
+      <button class="matbtn" type="button" id="revTog" aria-pressed="true" style="justify-self:start">⭐ Mostrar las reseñas en mi tienda</button>
+      <label for="b-greview">Tu link de reseñas de Google <small>Buscá tu negocio en Google Maps, entrá a tu perfil de empresa, tocá “Pedir reseñas” (o “Obtener más reseñas”) y copiá el link. Después de opinar en tu tienda, a cada cliente le aparece un botón para dejarte su reseña también en Google.</small>
+        <input type="text" id="b-greview" inputmode="url" autocomplete="off" maxlength="300" placeholder="https://g.page/r/…/review">
+      </label>
+      <div id="revAdmin" class="revadmin"></div>
     </div>
     <div class="presets">
       <strong>📺 Pantalla LED de ofertas</strong>
@@ -4734,9 +4757,10 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
         () => { closePanels(); const b = $('ordersBtn'); show(b && !b.hidden ? b : null, null, b && !b.hidden ? b : null); return 'Acá, en “📋 Pedidos”, te llegan los pedidos de tus clientes. Los vas marcando: en preparación, listo, entregado. El numerito te avisa cuántos hay nuevos. (Aparece cuando entra el primer pedido.)'; },
         () => { closePanels(); const b = $('clientBtn'); show(b, null, b); return 'Con “👁 Ver como cliente” ves tu tienda tal cual la ven tus clientes, para revisar que quede linda. Para volver, tocá el botón de arriba.'; }
       ]},
+      {id: 'resenas', em: '⭐', t: 'Reseñas y Google', go: () => { openBrand(); const g = $('b-greview'); show(byTitle('Reseñas de tus clientes'), g, g ? (g.closest('label') || g) : null); return 'Tus clientes te califican con estrellas después de su pedido, y el promedio se ve arriba de tu tienda. Pegá acá tu link de reseñas de Google (en Google Maps, tu perfil de empresa → “Pedir reseñas”): así cada cliente también puede dejarte 5 estrellas en Google.'; }},
       {id: 'compartir', em: '🔗', t: 'Compartir mi tienda', go: () => { const q = document.querySelector('[data-qr]'); show(q, null, q); return 'Tocá “Mi link y QR”: ahí tenés tu código QR para imprimir y pegar en el mostrador, y tu link para copiar o mandar directo por WhatsApp, Instagram o donde quieras vender.'; }}
     ];
-    const ASK = {nombre: /nombre|logo|cartel/, rubro: /rubro|tipo de negocio|plantilla/, precios: /porcentaje|aument|subir precio|bajar precio|ganancia|stock|lista de precio|proveedor|costo/, pedidos: /pedido|como cliente|ver como/, productos: /producto|foto|cargar|subir|folleto|catalogo|lista/, cantidades: /kilo|docena|unidad|cantidad|gramo/, whatsapp: /whats|wsp|telefono|celular/,
+    const ASK = {nombre: /nombre|logo|cartel/, rubro: /rubro|tipo de negocio|plantilla/, precios: /porcentaje|aument|subir precio|bajar precio|ganancia|stock|lista de precio|proveedor|costo/, pedidos: /pedido|como cliente|ver como/, resenas: /resen|opinion|estrella|calific/, productos: /producto|foto|cargar|subir|folleto|catalogo|lista/, cantidades: /kilo|docena|unidad|cantidad|gramo/, whatsapp: /whats|wsp|telefono|celular/,
       cobros: /cobr|pag|mercado ?pago|tarjeta|alias|cbu|transfer/, reparto: /repart|cadete|mensajero|moto|delivery/, tv: /tele|televisor|pantalla|led|oferta|turnero/, 'redes@2': /mapa|maps|google|direccion/, 'redes@3': /facebook/, 'redes@4': /(?<!mi )(?<!tienda )link/, 'redes@7': /ia|inteligencia/, entregas: /envio|entrega|horario|retiro/, colores: /color|fondo|lindo|estilo/, vendedores: /vendedor|avatar|munequ|asistent|pregunta/, musica: /music|cancion|mp3/, redes: /youtube|spotify|video|redes|instagram|tiktok|herramienta|lugares|16/, botones: /boton/, compartir: /compart|qr|mi link|difund/};
     const menu = (pre) => {
       const f = st(), left = STEPS.filter(x => !f.done.includes(x.id));
@@ -6841,7 +6865,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   }
   const TRK = 'vitrina360-pedido'; let trkTick = null, trkPoll = null;
   const trkSave = v => { try{ v ? localStorage.setItem(TRK, JSON.stringify(v)) : localStorage.removeItem(TRK); }catch(e){} };
-  function trackStart(info){ trkSave(info); trackShow(info); }
+  function trackStart(info){ trkSave(info); trackShow(info); if(window.revRemember) window.revRemember(info); }
   function trackShow(info){
     let el = document.getElementById('trk');
     if(!el){ el = document.createElement('div'); el.id = 'trk'; el.className = 'trk'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
@@ -7161,6 +7185,90 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   [['b-wa','wa'],['b-ig','ig'],['b-alias','alias'],['b-paylink','paylink'],['b-paypal','paypal']].forEach(([id, key]) => {
     $(id).addEventListener('input', e => { brand[key] = e.target.value.trim(); renderContact(); save(); if(currentCat) renderDetail(); if(key === 'wa'){ const wn = $('waNote'); if(wn) wn.hidden = PUBLIC || clientMode || !!brand.wa.replace(/\D/g, ''); } });
   });
+
+  // ---- Reseñas: promedio arriba, pedido de opinión (solo quien compró) y botón para Google ----
+  (function(){
+    const chip = $('revChip'); if(!chip) return;
+    const STAR = n => '★★★★★'.slice(0, Math.round(n)) + '☆☆☆☆☆'.slice(0, 5 - Math.round(n));
+    const fmtN = n => String(n).replace('.', ',');
+    const gLink = () => { const u = String(brand.googleReview || '').trim(); return /^https?:\/\//i.test(u) ? u : ''; };
+    const slugNow = () => window.VITRINA_SLUG || (window.VITRINA_ME && window.VITRINA_ME.slug) || '';
+    let data = null;
+    const ov = html => { let o = document.getElementById('revOv'); if(o) o.remove(); o = document.createElement('div'); o.id = 'revOv'; o.className = 'revov'; o.innerHTML = `<div class="rvb" role="dialog" aria-modal="true">${html}</div>`; o.onclick = e => { if(e.target === o) o.remove(); }; document.body.appendChild(o); return o; };
+    const ggBtn = () => gLink() ? `<a class="gg" href="${esc(gLink())}" target="_blank" rel="noopener">⭐ ${esc(L('Dejá tu reseña en Google', 'Review us on Google', 'Avalie no Google'))}</a>` : '';
+    const paintChip = () => {
+      if(brand.revOff){ chip.hidden = true; return; }
+      if(data && data.n){ chip.innerHTML = `<span class="st">${STAR(data.prom)}</span> ${fmtN(data.prom)} · ${data.n} ${data.n === 1 ? L('opinión', 'review', 'avaliação') : L('opiniones', 'reviews', 'avaliações')}`; chip.hidden = false; }
+      else if(gLink()){ chip.innerHTML = `<span class="st">★</span> ${esc(L('Opiná en Google', 'Review us on Google', 'Avalie no Google'))}`; chip.hidden = false; }
+      else chip.hidden = true;
+    };
+    const load = async () => { const sl = slugNow(); if(!sl) return; try{ const r = await fetch('/api/pedidos?resenas=' + encodeURIComponent(sl), {cache: 'no-store'}); if(r.ok) data = await r.json(); }catch(e){} paintChip(); };
+    chip.onclick = () => {
+      if(!(data && data.n)){ if(gLink()) open(gLink(), '_blank', 'noopener'); return; }
+      const o = ov(`<h2>${esc(L('Opiniones de clientes', 'Customer reviews', 'Avaliações de clientes'))}</h2>
+        <div><span class="big">${fmtN(data.prom)}</span> <span class="stars">${STAR(data.prom)}</span><br><small>${data.n} ${esc(L('opiniones de compras verificadas', 'verified-purchase reviews', 'avaliações de compras verificadas'))}</small></div>
+        ${data.items.map(x => `<div class="ritem"><b><span class="stars" style="font-size:15px">${STAR(x.e)}</span> ${esc(x.nombre)}</b><small>✔ ${esc(L('Compró en la tienda', 'Verified purchase', 'Compra verificada'))} · ${new Date(x.f).toLocaleDateString()}</small>${x.tx ? `<span>${esc(x.tx)}</span>` : ''}${x.rta ? `<span class="rta">💬 ${esc(L('Respuesta del comercio', 'Store reply', 'Resposta da loja'))}: ${esc(x.rta)}</span>` : ''}</div>`).join('')}
+        <div class="rbtns">${ggBtn()}<button type="button" data-x>${esc(L('Cerrar', 'Close', 'Fechar'))}</button></div>`);
+      o.querySelector('[data-x]').onclick = () => o.remove();
+    };
+    // pedir la opinión: guardamos los pedidos hechos en este celular y preguntamos una vez que pasó un rato
+    const PK = 'v360-opinar';
+    const pend = () => { try{ return JSON.parse(localStorage.getItem(PK) || '[]').filter(x => x && Date.now() - x.t < 21 * 864e5); }catch(e){ return []; } };
+    const pendSave = v => { try{ localStorage.setItem(PK, JSON.stringify(v.slice(-10))); }catch(e){} };
+    window.revRemember = info => { if(!PUBLIC || !info || !info.ref) return; const v = pend().filter(x => x.ref !== info.ref); v.push({ref: info.ref, k: info.k, slug: window.VITRINA_SLUG, t: Date.now(), asked: 0}); pendSave(v); };
+    window.revAsk = force => {
+      if(!PUBLIC || brand.revOff || document.getElementById('revOv')) return;
+      const v = pend(), it = v.find(x => x.slug === window.VITRINA_SLUG && (force || Date.now() - x.t > 20 * 60e3) && (x.asked || 0) < 2); if(!it) return;
+      it.asked = (it.asked || 0) + 1; pendSave(v);
+      let stars = 0;
+      const o = ov(`<h2>${esc(L(`¿Cómo te fue con tu pedido en ${storeName()}?`, `How was your order from ${storeName()}?`, `Como foi seu pedido em ${storeName()}?`))}</h2>
+        <p style="margin:0" class="note">${esc(L('Tu opinión ayuda a otros clientes y al comercio. Tocá las estrellas:', 'Your review helps other customers and the store. Tap the stars:', 'Sua opinião ajuda outros clientes e a loja. Toque nas estrelas:'))}</p>
+        <div class="pick">${[1, 2, 3, 4, 5].map(n => `<button type="button" data-s="${n}" aria-label="${n}">⭐</button>`).join('')}</div>
+        <textarea rows="3" maxlength="400" data-t placeholder="${esc(L('Contanos en pocas palabras (opcional)', 'Tell us briefly (optional)', 'Conte em poucas palavras (opcional)'))}"></textarea>
+        <input type="text" maxlength="30" data-n placeholder="${esc(L('Tu nombre', 'Your name', 'Seu nome'))}" value="${esc((typeof buyer !== 'undefined' && buyer.name) || '')}">
+        <p class="note" data-m role="status" style="margin:0"></p>
+        <div class="rbtns"><button type="button" class="pri" data-go>${esc(L('Enviar mi opinión', 'Send review', 'Enviar avaliação'))}</button><button type="button" data-later>${esc(L('Ahora no', 'Not now', 'Agora não'))}</button></div>`);
+      o.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { stars = +b.dataset.s; o.querySelectorAll('[data-s]').forEach(x => x.classList.toggle('on', +x.dataset.s <= stars)); });
+      o.querySelector('[data-later]').onclick = () => o.remove();
+      o.querySelector('[data-go]').onclick = async e => {
+        const m = o.querySelector('[data-m]'); if(!stars){ m.textContent = L('Elegí de 1 a 5 estrellas.', 'Pick 1 to 5 stars.', 'Escolha de 1 a 5 estrelas.'); return; }
+        e.currentTarget.disabled = true; m.textContent = '…';
+        let j = {}, ok = false; try{ const r = await fetch('/api/pedidos?accion=resena', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ref: it.ref, k: it.k, estrellas: stars, texto: o.querySelector('[data-t]').value, nombre: o.querySelector('[data-n]').value})}); j = await r.json().catch(() => ({})); ok = r.ok || r.status === 409 || r.status === 404; }catch(err){}
+        if(!ok){ m.textContent = j.error || L('No se pudo enviar. Probá de nuevo.', 'Could not send. Try again.', 'Não foi possível enviar.'); e.currentTarget.disabled = false; return; }
+        pendSave(pend().filter(x => x.ref !== it.ref));
+        o.querySelector('.rvb').innerHTML = `<h2>🙌 ${esc(L('¡Gracias por tu opinión!', 'Thanks for your review!', 'Obrigado pela avaliação!'))}</h2>
+          ${gLink() ? `<p style="margin:0">${esc(L('¿Nos ayudás también dejando tu reseña en Google? Lleva 1 minuto y nos ayuda muchísimo.', 'Would you also leave us a Google review? It takes a minute and helps a lot.', 'Pode avaliar também no Google? Leva 1 minuto e ajuda muito.'))}</p>` : ''}
+          <div class="rbtns">${ggBtn()}<button type="button" data-x>${esc(L('Cerrar', 'Close', 'Fechar'))}</button></div>`;
+        o.querySelector('[data-x]').onclick = () => o.remove();
+        load();
+      };
+    };
+    // ---- Panel del comercio ----
+    if(!PUBLIC){
+      const gi = $('b-greview'), tg = $('revTog'), adm = $('revAdmin');
+      const mark = () => { tg.setAttribute('aria-pressed', String(!brand.revOff)); gi.value = brand.googleReview || ''; };
+      gi.addEventListener('input', () => { brand.googleReview = gi.value.trim(); save(); paintChip(); });
+      tg.onclick = () => { if(brand.revOff) delete brand.revOff; else brand.revOff = true; save(); mark(); paintChip(); };
+      const tok = async () => 'Bearer ' + await window.VITRINA_TOKEN();
+      const renderAdm = async () => {
+        let j = null; try{ const r = await fetch('/api/pedidos?accion=resenas', {headers: {Authorization: await tok()}, cache: 'no-store'}); if(r.ok) j = await r.json(); }catch(e){}
+        if(!j){ adm.innerHTML = ''; return; }
+        if(!j.items.length){ adm.innerHTML = '<p class="note" style="margin:0">Todavía no tenés reseñas. Aparecen acá cuando tus clientes opinen después de su pedido.</p>'; return; }
+        adm.innerHTML = `<b>Promedio: ${fmtN(j.prom)} ★ · ${j.n} visibles</b>` + j.items.map(x => `<div class="ra${x.oculta ? ' off' : ''}" data-rid="${esc(x.id)}"><span><b style="color:#f59e0b">${STAR(x.e)}</b> ${esc(x.nombre)} · <small>${new Date(x.f).toLocaleDateString()}</small></span>${x.tx ? `<span>${esc(x.tx)}</span>` : ''}
+          <span class="row"><input type="text" maxlength="300" data-rta placeholder="Responder (opcional)" value="${esc(x.rta || '')}"><button class="btn" type="button" data-rsave>Guardar respuesta</button><button class="btn" type="button" data-rhide>${x.oculta ? '👁 Mostrar' : '🙈 Ocultar'}</button></span></div>`).join('');
+      };
+      adm.addEventListener('click', async e => {
+        const b = e.target.closest('[data-rsave],[data-rhide]'); if(!b) return; const ra = b.closest('[data-rid]');
+        const body = {id: ra.dataset.rid}; if(b.hasAttribute('data-rsave')) body.rta = ra.querySelector('[data-rta]').value; else body.oculta = !ra.classList.contains('off');
+        b.disabled = true; try{ await fetch('/api/pedidos?accion=resena-mod', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: await tok()}, body: JSON.stringify(body)}); }catch(err){}
+        renderAdm(); load();
+      });
+      $('brandBtn').addEventListener('click', () => setTimeout(() => { if(!$('brandPanel').hidden){ mark(); renderAdm(); } }, 0));
+      mark();
+    }
+    setTimeout(load, 1500);
+    if(PUBLIC) setTimeout(() => window.revAsk(), 6000);
+  })();
 
   function renderWallets(){
     const box = $('walletList'); if(!box) return;

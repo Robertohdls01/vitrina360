@@ -5,6 +5,10 @@
 //   GET  /api/pedidos                         (comerciante) sus pedidos de los últimos días
 //   POST /api/pedidos?accion=estado           (comerciante) {ref, estado, repartidor}
 //   GET  /api/pedidos?fila=slug               (cualquiera)  la fila de pedidos en preparación (número y nombre de pila)
+//   GET  /api/pedidos?resenas=slug            (cualquiera)  reseñas visibles y promedio
+//   POST /api/pedidos?accion=resena           (cliente)     {ref, k, estrellas, texto, nombre}: una por pedido
+//   GET  /api/pedidos?accion=resenas          (comerciante) todas sus reseñas
+//   POST /api/pedidos?accion=resena-mod       (comerciante) {id, oculta?, rta?}
 // Fila: cada pedido nuevo recibe un número del día (#1, #2…). Se guarda en fila/<dueño>.json.
 const crypto = require('crypto');
 const { cuerpo, usuario, db } = require('./_comun');
@@ -68,6 +72,18 @@ async function descargas(p) {
   return out;
 }
 
+// ---- Reseñas: solo puede opinar quien hizo un pedido (compra verificada), una vez por pedido ----
+async function leerResenas(owner) {
+  const r = await fetch(base() + '/object/' + BUCKET + '/resenas/' + owner + '.json', { headers: headers() });
+  const f = r.ok ? await r.json().catch(() => null) : null;
+  return f && Array.isArray(f.items) ? f : { items: [] };
+}
+async function guardarResenas(owner, f) {
+  await fetch(base() + '/object/' + BUCKET + '/resenas/' + owner + '.json', { method: 'POST', headers: headers({ 'Content-Type': 'application/json', 'x-upsert': 'true', 'cache-control': 'no-cache' }), body: JSON.stringify(f) });
+}
+const resumen = items => { const v = items.filter(x => !x.oculta); const n = v.length; return { n, prom: n ? Math.round(v.reduce((a, x) => a + x.e, 0) / n * 10) / 10 : 0 }; };
+const resPublica = x => ({ id: x.id, nombre: x.nombre, e: x.e, tx: x.tx, f: x.f, rta: x.rta || '' });
+
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   if (!process.env.SUPABASE_SERVICE_KEY || !process.env.SUPABASE_URL) return res.status(503).json({ error: 'Los pedidos todavía no están configurados.' });
@@ -85,6 +101,36 @@ module.exports = async (req, res) => {
         if (i >= 0) { c.delante = i; c.en_fila = f.activos.length; c.fila = filaPublica(f); c.listos = listosPublicos(f); }
       }
       return res.status(200).json(c);
+    }
+
+    // ---- Reseñas públicas de una tienda ----
+    if (req.method === 'GET' && q.resenas) {
+      const slug = String(q.resenas);
+      if (!/^[a-z0-9-]{3,40}$/.test(slug)) return res.status(400).json({ error: 'Tienda inválida.' });
+      const rows = await db('GET', '/rest/v1/tiendas?slug=eq.' + slug + '&select=owner,activa');
+      const t = rows && rows[0];
+      if (!t || t.activa === false) return res.status(404).json({ error: 'Esta tienda no está disponible.' });
+      const f = await leerResenas(t.owner), v = f.items.filter(x => !x.oculta);
+      return res.status(200).json(Object.assign(resumen(f.items), { items: v.slice(0, 60).map(resPublica) }));
+    }
+
+    // ---- Cliente: deja su reseña con el pedido que hizo ----
+    if (req.method === 'POST' && q.accion === 'resena') {
+      const b = cuerpo(req);
+      if (!okRef(b.ref)) return res.status(400).json({ error: 'Pedido inválido.' });
+      const e = parseInt(b.estrellas, 10);
+      if (!(e >= 1 && e <= 5)) return res.status(400).json({ error: 'Elegí de 1 a 5 estrellas.' });
+      const p = await leer(b.ref);
+      if (!p || !b.k || p.k !== String(b.k)) return res.status(404).json({ error: 'No encontramos ese pedido.' });
+      if (p.estado === 'cancelado') return res.status(400).json({ error: 'Ese pedido fue cancelado.' });
+      if (p.resena) return res.status(409).json({ error: 'Ya dejaste tu opinión para este pedido. ¡Gracias!' });
+      const owner = String(b.ref).split('/')[0];
+      const f = await leerResenas(owner);
+      const r = { id: p.id, nombre: pila(b.nombre || (p.comprador && p.comprador.nombre)) || 'Cliente', e, tx: corto(String(b.texto || '').trim(), 400), f: new Date().toISOString() };
+      f.items = [r].concat(f.items.filter(x => x.id !== p.id)).slice(0, 300);
+      await guardarResenas(owner, f);
+      p.resena = e; await guardar(b.ref, p);
+      return res.status(200).json(Object.assign({ ok: true }, resumen(f.items)));
     }
 
     // ---- Fila pública de una tienda (número y nombre de pila) ----
@@ -139,6 +185,20 @@ module.exports = async (req, res) => {
     // ---- Comerciante ----
     const u = await usuario(req);
     if (!u) return res.status(401).json({ error: 'Tenés que entrar a tu tienda.' });
+
+    // ---- Comerciante: sus reseñas (también las ocultas), ocultar/mostrar y responder ----
+    if (req.method === 'GET' && q.accion === 'resenas') {
+      const f = await leerResenas(u.id);
+      return res.status(200).json(Object.assign(resumen(f.items), { items: f.items.slice(0, 300) }));
+    }
+    if (req.method === 'POST' && q.accion === 'resena-mod') {
+      const b = cuerpo(req), f = await leerResenas(u.id), r = f.items.find(x => x.id === String(b.id || ''));
+      if (!r) return res.status(404).json({ error: 'No encontramos esa reseña.' });
+      if (typeof b.oculta === 'boolean') r.oculta = b.oculta;
+      if (typeof b.rta === 'string') r.rta = corto(b.rta.trim(), 300);
+      await guardarResenas(u.id, f);
+      return res.status(200).json(Object.assign({ ok: true }, resumen(f.items)));
+    }
 
     if (req.method === 'GET') {
       await asegurarBucket();
