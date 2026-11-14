@@ -88,7 +88,7 @@ module.exports = async (req, res) => {
       const base0 = { id: Date.now().toString(36) + crypto.randomBytes(3).toString('hex'), k: crypto.randomBytes(8).toString('hex'), mesa, nombre, creado: new Date().toISOString() };
       let nuevo;
       if (q.accion === 'aviso') {
-        nuevo = Object.assign(base0, { tipo: ['cuenta', 'pago', 'consulta'].includes(b.tipo) ? b.tipo : 'mozo', monto: t(b.monto, 20), pedido_n: parseInt(b.pedido_n, 10) || null, texto: t(b.texto, 300), estado: 'nuevo' });
+        nuevo = Object.assign(base0, { tipo: ['cuenta', 'pago', 'consulta'].includes(b.tipo) ? b.tipo : 'mozo', monto: t(b.monto, 20), pedido_n: parseInt(b.pedido_n, 10) || null, texto: t(b.texto, 300), metodo: ['virtual', 'efectivo', 'caja'].includes(b.metodo) ? b.metodo : '', propina: t(b.propina, 40), estado: 'nuevo' });
       } else {
         const valid = {}; (f.menu.cats || []).forEach(c => (c.items || []).forEach(i => { valid[i.n] = i.p; }));
         const items = (Array.isArray(b.items) ? b.items : []).slice(0, 60).map(i => ({ n: t(i && i.n, 90), q: Math.max(1, Math.min(99, parseInt(i && i.q, 10) || 1)) })).filter(i => valid[i.n] !== undefined).map(i => Object.assign(i, { p: valid[i.n] }));
