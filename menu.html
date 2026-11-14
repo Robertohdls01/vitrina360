@@ -282,7 +282,11 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     let chef = $('.chef'); const say = $('#say'), opts = $('#opts'), area = $('#area');
     // ---- voz ----
     const VL = {es: 'es-AR', en: 'en-US', pt: 'pt-BR'}[LANG];
-    let voice = null; const pickVoice = () => { const vs = speechSynthesis.getVoices(); voice = vs.find(v => v.lang.replace('_', '-').toLowerCase() === VL.toLowerCase()) || vs.find(v => v.lang.toLowerCase().startsWith(LANG)) || null; };
+    // la voz más natural disponible en el celular (las "Natural", "Neural", "Online", "Enhanced" o de Google suenan mucho mejor)
+    let voice = null; const pickVoice = () => {
+      const vs = speechSynthesis.getVoices().filter(v => v.lang.toLowerCase().replace('_', '-').startsWith(LANG));
+      const score = v => (/natural|neural|online|premium|enhanced|wavenet/i.test(v.name) ? 8 : 0) + (/google/i.test(v.name) ? 4 : 0) + (v.lang.replace('_', '-').toLowerCase() === VL.toLowerCase() ? 3 : 0) + (/es-(ar|us|419|mx)/i.test(v.lang.replace('_', '-')) && LANG === 'es' ? 1 : 0) + (v.localService ? 1 : 0);
+      voice = vs.sort((a, b) => score(b) - score(a))[0] || null; };
     if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
     const talk = (txt, chips) => {
       if(talk.pre){ txt = talk.pre + txt; talk.pre = ''; }
@@ -290,11 +294,15 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       (chips || []).forEach(([label, fn, pri]) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; if(pri) b.className = 'pri btn'; b.onclick = fn; opts.appendChild(b); });
       if(mute || !('speechSynthesis' in window)) return;
       try{ speechSynthesis.cancel();
-        // frases cortas: en el celular arranca antes y no se traba con textos largos
-        const parts = txt.replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF\uFE0F]/gu, '').split(/(?<=[.!?:])\s+/).map(x => x.trim()).filter(x => /[\p{L}\d]/u.test(x));
-        parts.forEach((ptxt, k) => { const u = new SpeechSynthesisUtterance(ptxt); u.lang = voice ? voice.lang : VL; if(voice) u.voice = voice; u.rate = 1.15; u.pitch = 1.05;
+        // de corrido (sin pausas entre frases), algo más rápido y con volumen moderado para que el parlante no sature;
+        // solo si el texto es muy largo se parte en 2 o 3 pedazos para que no se trabe
+        const clean = txt.replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF\uFE0F]/gu, '').replace(/\s+/g, ' ').trim();
+        const parts = []; let cur = '';
+        clean.split(/(?<=[.!?])\s+/).forEach(f => { if((cur + ' ' + f).length > 180 && cur){ parts.push(cur); cur = f; } else cur = cur ? cur + ' ' + f : f; });
+        if(cur) parts.push(cur);
+        parts.filter(x => /[\p{L}\d]/u.test(x)).forEach((ptxt, k, arr) => { const u = new SpeechSynthesisUtterance(ptxt); u.lang = voice ? voice.lang : VL; if(voice) u.voice = voice; u.rate = 1.22; u.pitch = 1; u.volume = 0.8;
           if(k === 0) u.onstart = () => chef.classList.add('talk');
-          if(k === parts.length - 1) u.onend = u.onerror = () => { chef.classList.remove('talk'); if(talk.listen){ talk.listen = false; listen(); } };
+          if(k === arr.length - 1) u.onend = u.onerror = () => { chef.classList.remove('talk'); if(talk.listen){ talk.listen = false; listen(); } };
           speechSynthesis.speak(u); }); }catch(e){}
     };
     $('#bMute').onclick = () => { mute = !mute; $('#bMute').textContent = mute ? '🔇' : '🔊'; try{ localStorage.setItem('shopmenu-mute', mute ? '1' : '0'); }catch(e){} if(mute) try{ speechSynthesis.cancel(); }catch(e){} };
