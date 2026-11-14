@@ -373,9 +373,9 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
         const hola = saludo ? T(`¡Hola${nombre ? ', ' + nombre : ''}! `, `Hi${nombre ? ', ' + nombre : ''}! `, `Olá${nombre ? ', ' + nombre : ''}! `) : '';
         const bien = como ? T('¡Muy bien, gracias por preguntar! 😊 ', 'I\'m great, thanks for asking! 😊 ', 'Tudo ótimo, obrigado por perguntar! 😊 ') : T('¿Cómo estás? 😊 ', 'How are you? 😊 ', 'Tudo bem? 😊 ');
         if(!rest || /^(soy|me llamo|mi nombre es|i m|my name is|eu sou|meu nome e)?$/.test(rest)){
-          if(step === 'nombre') return talk(hola + bien + askName(), [skipName()]);
+          if(step === 'nombre') return talk(hola + bien + T(`Mi nombre es ${M.asistente || 'Lola'}. `, `My name is ${M.asistente || 'Lola'}. `, `Meu nome é ${M.asistente || 'Lola'}. `) + askName(), [skipName()]);
           if(step === 'mesa') return talk(hola + bien + T('¿En qué mesa estás?', 'Which table are you at?', 'Em qual mesa você está?'));
-          return talk(hola + bien + T('¿En qué te puedo ayudar? Podés pedirme lo que quieras o mirar la carta.', 'How can I help you? Order anything you like or check the menu.', 'Como posso ajudar? Peça o que quiser ou veja o cardápio.'), mainChips());
+          return talk(hola + bien + T(`Mi nombre es ${M.asistente || 'Lola'} y hoy te voy a atender yo. ¿Qué tenés ganas de comer o tomar?`, `My name is ${M.asistente || 'Lola'} and I'll be taking care of you today. What would you like to eat or drink?`, `Meu nome é ${M.asistente || 'Lola'} e hoje eu vou te atender. O que você quer comer ou beber?`), CATS.filter(c => c.items.length).slice(0, 8).map(c => [c.n, () => verCat([c])]).concat([['📖 ' + T('Ver toda la carta', 'See the full menu', 'Ver o cardápio completo'), () => promos(true), true]]), true);
         }
         talk.pre = (saludo ? T('¡Hola! ', 'Hi! ', 'Olá! ') : '') + (como ? bien : ''); text = rest; n = rest;
       }
@@ -574,7 +574,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       talk(hola + carta + recs + T('¿Qué te traigo? Pedime hablando 🎤 o tocá ➕.', 'What can I get you? Tell me 🎤 or tap ➕.', 'O que eu trago? Peça falando 🎤 ou toque ➕.'), mainChips());
     }
     paintCart();
-    if(nombre){ pregunta(); return; }
+    const volvio = !!nombre;
     const h = new Date().getHours();
     const saludoHora = h >= 5 && h < 13 ? T('¡Buen día!', 'Good morning!', 'Bom dia!') : h >= 13 && h < 20 ? T('¡Buenas tardes!', 'Good afternoon!', 'Boa tarde!') : T('¡Buenas noches!', 'Good evening!', 'Boa noite!');
     say.textContent = `${saludoHora} 👋 ` + T(`Bienvenido a ${M.nombre}.`, `Welcome to ${M.nombre}.`, `Bem-vindo ao ${M.nombre}.`);
@@ -587,6 +587,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     function setMesa(n){ MESA = n; $('#tagMesa').textContent = T('Mesa ', 'Table ', 'Mesa ') + n; step = 'nombre'; talk.listen = !mute; talk(T(`¡Perfecto, mesa ${n}! `, `Perfect, table ${n}! `, `Perfeito, mesa ${n}! `) + askName(), [skipName()]); namePh(); }
     let started = false;
     const start = () => { if(started) return; started = true; area.innerHTML = '';
+      if(volvio){ talk.listen = !mute; talk(saludoHora + ' ' + T(`¡Qué bueno verte de nuevo, ${nombre}! Mi nombre es ${M.asistente || 'Lola'} y te sigo atendiendo yo. ¿Qué tenés ganas de comer o tomar?`, `Great to see you again, ${nombre}! My name is ${M.asistente || 'Lola'} and I'll keep taking care of you. What would you like to eat or drink?`, `Que bom te ver de novo, ${nombre}! Meu nome é ${M.asistente || 'Lola'} e continuo te atendendo. O que você quer comer ou beber?`), CATS.filter(c => c.items.length).slice(0, 8).map(c => [c.n, () => verCat([c])]).concat([['📖 ' + T('Ver toda la carta', 'See the full menu', 'Ver o cardápio completo'), () => promos(true), true]]), true); return; }
       if(!MESA) return pedirMesa();
       step = 'nombre'; talk.listen = !mute;
       talk(soy() + ' ' + T(`Estás en la mesa ${MESA}.`, `You're at table ${MESA}.`, `Você está na mesa ${MESA}.`) + (SALUDO ? ' ' + SALUDO : '') + ' ' + askName(), [skipName()]);
