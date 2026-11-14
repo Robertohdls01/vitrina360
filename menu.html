@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ShopMenu 🍽️ · El menú QR que te atiende</title>
+<meta name="description" content="Sacale una foto a tu carta y la IA arma tu menú QR con un asistente que recibe a cada mesa, toma el pedido por voz y lo manda a la caja.">
+<meta property="og:title" content="ShopMenu 🍽️ · El menú QR que te atiende">
+<meta property="og:description" content="Una foto de tu carta y listo: cada mesa tiene un asistente que habla, recomienda y manda el pedido a la caja.">
+<meta property="og:image" content="https://vitrina360app.com.ar/og-shopmenu.png">
+<meta name="theme-color" content="#7c2d12">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
+<style>
+:root{--v:#6d28d9;--p:#db2777;--o:#ea580c;--ink:#2a1a12;--cream:#fff8ef;--line:#f1e4d3}
+*{box-sizing:border-box}
+body{margin:0;font:400 16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--cream);min-height:100vh}
+[hidden]{display:none!important}
+button{font:inherit;cursor:pointer}
+.btn{border:0;border-radius:999px;padding:12px 18px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none}
+.pri{background:linear-gradient(90deg,var(--o),var(--p));color:#fff;box-shadow:0 6px 18px rgba(234,88,12,.3)}
+.sec{background:#fff;border:2px solid var(--line);color:var(--ink)}
+.note{font-size:13px;color:#7a5f4c;margin:0}
+.msg{color:#b91c1c;font-weight:700;margin:0}
+input,textarea,select{font:inherit;border:2px solid var(--line);border-radius:12px;padding:9px 11px;background:#fff;color:inherit;width:100%}
+/* ---------- dueño ---------- */
+.hero{background:linear-gradient(150deg,#7c2d12,var(--o) 50%,var(--p));color:#fff;text-align:center;padding:26px 18px 60px}
+.hero .logo{font-weight:900;font-size:28px}.hero .logo small{display:block;font-size:11px;letter-spacing:2px;opacity:.85}
+.hero h1{margin:14px auto 8px;font-size:clamp(28px,6.5vw,42px);line-height:1.05;max-width:680px;letter-spacing:-1px}
+.hero p{margin:0 auto;max-width:560px;opacity:.95}
+.wrap{max-width:760px;margin:-34px auto 0;padding:0 14px 40px;display:grid;gap:14px}
+.card{background:#fff;border-radius:22px;box-shadow:0 10px 34px rgba(124,45,18,.12);padding:18px;display:grid;gap:12px}
+.card h2{margin:0;font-size:20px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{display:grid;gap:4px;font-weight:700;font-size:14px}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap}.thumbs img{width:76px;height:96px;object-fit:cover;border-radius:10px;border:2px solid var(--line)}
+.cat{border:2px solid var(--line);border-radius:16px;padding:10px;display:grid;gap:8px}
+.cat > .row input{font-weight:800}
+.it{display:grid;grid-template-columns:1fr 110px auto auto;gap:6px;align-items:start}
+.it textarea{grid-column:1/-1;min-height:38px;font-size:14px;padding:6px 9px}
+.it .star,.it .del{border:2px solid var(--line);background:#fff;border-radius:10px;width:42px;height:42px;font-size:18px}
+.it .star[aria-pressed="true"]{background:#fef3c7;border-color:#f59e0b}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.links{display:grid;gap:8px}.links a{word-break:break-all;color:var(--v);font-weight:700}
+.secret{background:#fef2f2;border:2px dashed #fca5a5;border-radius:14px;padding:10px;display:grid;gap:4px}
+.qrs{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.qrc{border:2px solid var(--line);border-radius:16px;padding:10px;text-align:center;background:#fff;break-inside:avoid}
+.qrc svg{width:130px;height:130px}.qrc b{display:block;font-size:20px}.qrc small{display:block;color:#7a5f4c}
+@media print{body{background:#fff}.hero,.noprint{display:none!important}.wrap{margin:0;max-width:none}.card{box-shadow:none;padding:0}.qrs{grid-template-columns:repeat(3,1fr)}}
+/* ---------- mesa (cliente) ---------- */
+.mesa{min-height:100vh;display:flex;flex-direction:column;background:radial-gradient(circle at 50% 0,#fff 0,var(--cream) 60%)}
+.mtop{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#7c2d12;color:#fff}
+.mtop b{font-size:18px;flex:1}.mtop .tag{background:rgba(255,255,255,.18);border-radius:999px;padding:3px 10px;font-weight:700;font-size:14px}
+.mtop button{border:0;background:rgba(255,255,255,.15);color:#fff;border-radius:999px;width:38px;height:38px}
+.stage{display:grid;grid-template-columns:96px 1fr;gap:10px;align-items:end;padding:16px 14px 6px}
+.chef{width:96px;height:110px}.chef.talk .mouth{animation:mouth .25s ease-in-out infinite alternate}@keyframes mouth{to{transform:scaleY(.35)}}
+.chef .mouth{transform-origin:50px 79px}.chef{animation:bob 2.6s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-4px)}}
+.bubble{background:#fff;border:2px solid #fed7aa;border-radius:20px 20px 20px 6px;padding:12px 14px;font-size:17px;box-shadow:0 6px 18px rgba(124,45,18,.1);white-space:pre-line}
+.opts{display:flex;gap:8px;flex-wrap:wrap;padding:6px 14px 4px}
+.opts button{border:2px solid #fed7aa;background:#fff;border-radius:999px;padding:9px 14px;font-weight:700;color:var(--ink)}
+.opts button.pri{border:0}
+.area{flex:1;padding:6px 14px 120px;display:grid;gap:10px;align-content:start}
+.promo{display:flex;justify-content:space-between;gap:10px;align-items:center;background:#fffbeb;border:2px solid #fde68a;border-radius:16px;padding:10px 12px}
+.promo b{display:block}.promo small{color:#7a5f4c}
+.add{border:0;background:var(--o);color:#fff;border-radius:999px;min-width:44px;height:44px;font-size:22px;font-weight:900}
+.sec2 h3{margin:10px 0 4px;font-size:18px;color:#7c2d12}
+.dish{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid var(--line);padding:8px 0}
+.dish b{display:block}.dish small{display:block;color:#7a5f4c}.dish .pr{font-weight:800;white-space:nowrap}
+.dock{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:2px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;z-index:5}
+.say{display:flex;gap:8px;align-items:center}
+.mic{border:0;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--o),var(--p));color:#fff;font-size:26px;flex:none;box-shadow:0 6px 16px rgba(219,39,119,.35)}
+.mic.on{animation:pulse 1s infinite}@keyframes pulse{50%{box-shadow:0 0 0 12px rgba(219,39,119,.15)}}
+.say input{flex:1}.say .send{border:0;background:#7c2d12;color:#fff;border-radius:12px;padding:0 14px;height:44px;font-weight:800}
+.cartbtn{border:0;border-radius:14px;padding:11px;background:#7c2d12;color:#fff;font-weight:800;font-size:16px}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9;display:flex;align-items:flex-end}
+.sheet > div{background:#fff;width:100%;max-height:85vh;overflow:auto;border-radius:22px 22px 0 0;padding:16px;display:grid;gap:10px}
+.line{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:6px 0}.line span{flex:1}
+.line button{border:2px solid var(--line);background:#fff;border-radius:10px;width:34px;height:34px;font-weight:900}
+.status{background:#ecfdf5;border:2px solid #86efac;border-radius:16px;padding:10px 12px;font-weight:700}
+/* ---------- caja ---------- */
+.caja{padding:12px;display:grid;gap:12px}
+.cajatop{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.col{background:#fff;border-radius:18px;padding:10px;display:grid;gap:8px;align-content:start;min-height:200px;border:2px solid var(--line)}
+.col h3{margin:0;font-size:17px}
+.tk{border:2px solid var(--line);border-radius:14px;padding:10px;display:grid;gap:4px;background:#fffdf9}
+.tk.nuevo{border-color:#f97316;animation:glow 1.4s ease-in-out infinite}@keyframes glow{50%{box-shadow:0 0 0 5px rgba(249,115,22,.2)}}
+.tk .h{display:flex;justify-content:space-between;font-weight:900}.tk ul{margin:0;padding-left:18px}
+.aviso{background:#fef2f2;border:2px solid #f87171;border-radius:14px;padding:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:800}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+  const Q = new URLSearchParams(location.search);
+  const ID = Q.get('m') || '', CLAVE = Q.get('e') || '', MESA = parseInt(Q.get('mesa'), 10) || 0;
+  const app = $('#app');
+  const api = async (url, body) => { const r = await fetch(url, body ? {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)} : {cache: 'no-store'}); const j = await r.json().catch(() => ({})); if(!r.ok) throw new Error(j.error || 'Algo salió mal. Probá de nuevo.'); return j; };
+  const priceN = p => { let s = String(p || '').replace(/[^\d.,]/g, ''); if(!s) return 0; if(/,\d{1,2}$/.test(s)) s = s.replace(/\./g, '').replace(',', '.'); else s = s.replace(/[.,]/g, ''); return Number(s) || 0; };
+  const money = n => '$' + Math.round(n).toLocaleString('es-AR');
+  const CHEF = `<svg class="chef" viewBox="0 0 100 115" aria-hidden="true"><path d="M24 34c-9 0-14-7-12-14 2-8 11-11 17-7 2-8 10-12 18-10 6-6 17-5 21 2 8-3 17 2 17 11 7 1 10 9 6 15-3 4-7 4-10 3H24z" fill="#fff" stroke="#e7d7c6" stroke-width="2"/><rect x="24" y="30" width="52" height="10" rx="3" fill="#fff" stroke="#e7d7c6" stroke-width="2"/><circle cx="50" cy="68" r="30" fill="#fcd5b5" stroke="#e2a77c" stroke-width="2"/><ellipse cx="39" cy="64" rx="4" ry="5.5" fill="#2a1a12"/><ellipse cx="61" cy="64" rx="4" ry="5.5" fill="#2a1a12"/><circle cx="40.5" cy="62" r="1.6" fill="#fff"/><circle cx="62.5" cy="62" r="1.6" fill="#fff"/><circle cx="31" cy="75" r="5" fill="#fb7185" opacity=".45"/><circle cx="69" cy="75" r="5" fill="#fb7185" opacity=".45"/><path class="mouth" d="M41 78q9 9 18 0z" fill="#9f1239"/><path d="M38 99l12 6 12-6-12-5z" fill="#ea580c"/><circle cx="50" cy="99" r="3" fill="#9a3412"/></svg>`;
+  const shrink = (f, max) => new Promise((ok, ko) => { const u = URL.createObjectURL(f), im = new Image(); im.onload = () => { const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u); ok(c.toDataURL('image/jpeg', 0.82)); }; im.onerror = ko; im.src = u; });
+  const loadQR = () => window.qrcode ? Promise.resolve() : new Promise((ok, ko) => { const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
+
+  if(ID && MESA) return mesa();
+  if(ID && CLAVE && Q.has('caja')) return caja();
+  return dueno();
+
+  // =================== DUEÑO: fotos de la carta → la IA la lee → editar → QR por mesa ===================
+  async function dueno(){
+    let menu = {nombre: '', mesas: 10, asistente: 'Lola', saludo: '', cats: []}, fotos = [];
+    let mios = {}; try{ mios = JSON.parse(localStorage.getItem('shopmenu-mios') || '{}'); }catch(e){}
+    if(ID && CLAVE){ try{ menu = Object.assign(menu, (await api(`/api/menu?id=${ID}&clave=${encodeURIComponent(CLAVE)}`)).menu); }catch(e){ alert(e.message); } }
+    app.innerHTML = `<header class="hero"><div class="logo">🍽️ ShopMenu<small>BY SHOPFLASH</small></div>
+      <h1>El menú QR que atiende a tus clientes</h1>
+      <p>Sacale una foto a tu carta y la IA arma todo. Cada mesa tiene su QR: un asistente recibe al cliente, le muestra las promos, le toma el pedido <b>por voz</b> y lo manda directo a tu caja.</p></header>
+      <main class="wrap">
+        ${Object.keys(mios).length && !ID ? `<section class="card noprint"><h2>Tus menús</h2>${Object.entries(mios).map(([id, m]) => `<div class="row"><b style="flex:1">${esc(m.nombre || id)}</b><a class="btn sec" href="?m=${id}&e=${m.clave}">✏️ Editar</a><a class="btn pri" href="?m=${id}&e=${m.clave}&caja=1">🧾 Caja</a></div>`).join('')}</section>` : ''}
+        <section class="card noprint" id="paso1"><h2>1. Tu local</h2>
+          <div class="grid2"><label>Nombre del local<input id="fNombre" maxlength="60" placeholder="Ej: Café La Esquina"></label><label>¿Cuántas mesas?<input id="fMesas" type="number" min="1" max="200"></label></div>
+          <div class="grid2"><label>Nombre del asistente<input id="fAsis" maxlength="20" placeholder="Lola"></label><label>Saludo especial (opcional)<input id="fSaludo" maxlength="200" placeholder="Ej: ¡Hoy tenemos música en vivo!"></label></div>
+          <div class="grid2"><label>¿Cuánto tarda un pedido? (minutos, aprox.)<input id="fDem" type="number" min="0" max="120" placeholder="Ej: 15"></label><span></span></div>
+          <div class="grid2"><label>Alias para que te paguen (opcional)<input id="fAlias" maxlength="60" placeholder="Ej: cafe.laesquina.mp"></label><label>Link de pago de Mercado Pago (opcional)<input id="fPay" maxlength="300" inputmode="url" placeholder="https://link.mercadopago.com.ar/…"></label></div>
+          <p class="note">Con el alias o el link, el asistente le ofrece a cada mesa pagar ahí mismo, o al final.</p>
+        </section>
+        <section class="card noprint"><h2>2. Fotos de tu carta</h2>
+          <p class="note">Sacale una foto a cada página de la carta, de frente y con buena luz (hasta 4 fotos). La IA lee todo: platos, descripciones, precios y secciones.</p>
+          <div class="row"><button class="btn pri" type="button" id="bCam">📸 Sacar fotos</button><button class="btn sec" type="button" id="bGal">🖼 Elegir fotos</button></div>
+          <input type="file" id="iCam" accept="image/*" capture="environment" hidden><input type="file" id="iGal" accept="image/*" multiple hidden>
+          <div class="thumbs" id="thumbs"></div>
+          <button class="btn pri" type="button" id="bLeer" hidden>📖 Leer mi carta con IA</button>
+          <p class="msg" id="mLeer"></p>
+        </section>
+        <section class="card noprint" id="edit" ${menu.cats.length ? '' : 'hidden'}><h2>3. Revisá tu menú</h2>
+          <p class="note">Corregí lo que haga falta. Marcá con ⭐ las promos o recomendados del día: el asistente se los ofrece primero a cada cliente.</p>
+          <div id="cats" style="display:grid;gap:10px"></div>
+          <button class="btn sec" type="button" id="bCat">➕ Agregar sección</button>
+          <button class="btn pri" type="button" id="bSave">💾 Guardar y armar los QR</button>
+          <p class="msg" id="mSave"></p>
+        </section>
+        <section class="card" id="done" hidden></section>
+      </main>`;
+    $('#fNombre').value = menu.nombre; $('#fMesas').value = menu.mesas; $('#fAlias').value = menu.alias || ''; $('#fDem').value = menu.demora || ''; $('#fPay').value = menu.paylink || ''; $('#fAsis').value = menu.asistente; $('#fSaludo').value = menu.saludo || '';
+    const sync = () => { menu.nombre = $('#fNombre').value.trim(); menu.mesas = parseInt($('#fMesas').value, 10) || 10; menu.asistente = $('#fAsis').value.trim() || 'Lola'; menu.saludo = $('#fSaludo').value.trim(); menu.alias = $('#fAlias').value.trim(); menu.demora = parseInt($('#fDem').value, 10) || 0; menu.paylink = $('#fPay').value.trim(); };
+    $('#bCam').onclick = () => $('#iCam').click(); $('#bGal').onclick = () => $('#iGal').click();
+    const addFiles = async fs => { for(const f of [...fs].slice(0, 4 - fotos.length)){ try{ fotos.push(await shrink(f, 1500)); }catch(e){} } $('#thumbs').innerHTML = fotos.map((u, i) => `<img src="${u}" alt="Foto ${i + 1}">`).join('') + (fotos.length ? ` <button class="btn sec" type="button" id="bClr">🗑 Borrar fotos</button>` : ''); $('#bLeer').hidden = !fotos.length; const c = $('#bClr'); if(c) c.onclick = () => { fotos = []; addFiles([]); }; };
+    $('#iCam').onchange = e => { addFiles(e.target.files); e.target.value = ''; }; $('#iGal').onchange = e => { addFiles(e.target.files); e.target.value = ''; };
+    $('#bLeer').onclick = async () => {
+      const b = $('#bLeer'); b.disabled = true; b.textContent = '📖 Leyendo tu carta… (puede tardar un minuto)'; $('#mLeer').textContent = '';
+      try{ const j = await api('/api/menu?accion=leer', {images: fotos.map(u => ({type: 'image/jpeg', data: u.split(',')[1]}))});
+        menu.cats = j.menu.cats; if(!$('#fNombre').value && j.menu.nombre) $('#fNombre').value = j.menu.nombre;
+        $('#edit').hidden = false; renderCats(); $('#edit').scrollIntoView({behavior: 'smooth'});
+        b.textContent = '✅ ¡Listo! Leí ' + menu.cats.reduce((a, c) => a + c.items.length, 0) + ' platos';
+      }catch(e){ $('#mLeer').textContent = e.message; b.textContent = '📖 Leer mi carta con IA'; }
+      b.disabled = false;
+    };
+    function renderCats(){
+      $('#cats').innerHTML = menu.cats.map((c, ci) => `<div class="cat" data-ci="${ci}"><div class="row"><input data-cn value="${esc(c.n)}" placeholder="Sección (ej: Cafetería)" style="flex:1"><button class="btn sec" type="button" data-dcat>🗑</button></div>
+        ${c.items.map((it, ii) => `<div class="it" data-ii="${ii}"><input data-f="n" value="${esc(it.n)}" placeholder="Plato"><input data-f="p" value="${esc(it.p)}" placeholder="$ Precio"><button class="star" type="button" data-star aria-pressed="${!!it.promo}" title="Promo o recomendado">⭐</button><button class="del" type="button" data-del title="Borrar">✕</button><textarea data-f="d" placeholder="Descripción (opcional)">${esc(it.d)}</textarea></div>`).join('')}
+        <button class="btn sec" type="button" data-add>➕ Agregar plato</button></div>`).join('');
+    }
+    $('#cats').addEventListener('input', e => { const cat = e.target.closest('[data-ci]'); if(!cat) return; const c = menu.cats[+cat.dataset.ci]; if(e.target.hasAttribute('data-cn')) c.n = e.target.value; const it = e.target.closest('[data-ii]'); if(it && e.target.dataset.f) c.items[+it.dataset.ii][e.target.dataset.f] = e.target.value; });
+    $('#cats').addEventListener('click', e => { const cat = e.target.closest('[data-ci]'); if(!cat) return; const c = menu.cats[+cat.dataset.ci], it = e.target.closest('[data-ii]');
+      if(e.target.closest('[data-star]')){ const x = c.items[+it.dataset.ii]; x.promo = !x.promo; e.target.closest('[data-star]').setAttribute('aria-pressed', String(x.promo)); }
+      else if(e.target.closest('[data-del]')){ c.items.splice(+it.dataset.ii, 1); renderCats(); }
+      else if(e.target.closest('[data-add]')){ c.items.push({n: '', p: '', d: '', promo: false}); renderCats(); }
+      else if(e.target.closest('[data-dcat]')){ if(confirm('¿Borrar la sección entera?')){ menu.cats.splice(+cat.dataset.ci, 1); renderCats(); } } });
+    $('#bCat').onclick = () => { menu.cats.push({n: '', items: [{n: '', p: '', d: '', promo: false}]}); renderCats(); };
+    if(menu.cats.length) renderCats();
+    $('#bSave').onclick = async () => {
+      sync(); $('#mSave').textContent = '';
+      if(!menu.nombre){ $('#mSave').textContent = 'Poné el nombre de tu local (arriba, en el paso 1).'; $('#fNombre').focus(); return; }
+      const b = $('#bSave'); b.disabled = true;
+      try{ const j = await api('/api/menu?accion=guardar', {id: ID || undefined, clave: CLAVE || undefined, menu});
+        mios[j.id] = {clave: j.clave, nombre: menu.nombre}; try{ localStorage.setItem('shopmenu-mios', JSON.stringify(mios)); }catch(e){}
+        if(!ID) history.replaceState(null, '', `?m=${j.id}&e=${j.clave}`);
+        await done(j.id, j.clave);
+      }catch(e){ $('#mSave').textContent = e.message; }
+      b.disabled = false;
+    };
+    async function done(id, clave){
+      const o = location.origin + location.pathname, caja = `${o}?m=${id}&e=${clave}&caja=1`, edit = `${o}?m=${id}&e=${clave}`;
+      const d = $('#done'); d.hidden = false;
+      d.innerHTML = `<h2 class="noprint">✅ ¡Tu menú está listo!</h2>
+        <div class="secret noprint"><b>🔒 Guardá estos links, son solo tuyos (no los compartas):</b>
+          <span>🧾 <b>Pantalla de la caja</b> (abrila en la compu o tablet del mostrador): <a href="${caja}" target="_blank">${esc(caja)}</a></span>
+          <span>✏️ <b>Editar el menú</b> (cambiar precios o promos): <a href="${edit}">${esc(edit)}</a></span>
+          <div class="row"><a class="btn pri" href="${caja}" target="_blank">🧾 Abrir la caja</a><button class="btn sec" type="button" id="bWaMe">📲 Mandármelos por WhatsApp</button></div></div>
+        <div class="row noprint"><a class="btn sec" href="${o}?m=${id}&mesa=1" target="_blank">👀 Probar como cliente (mesa 1)</a><button class="btn pri" type="button" onclick="print()">🖨 Imprimir los QR de las mesas</button></div>
+        <p class="note noprint">Imprimí los QR, recortalos y pegá uno en cada mesa. Cada uno sabe su número de mesa.</p>
+        <div class="qrs" id="qrs"></div>`;
+      $('#bWaMe').onclick = () => open('https://wa.me/?text=' + encodeURIComponent(`🍽️ ShopMenu de ${menu.nombre}\n🧾 Caja: ${caja}\n✏️ Editar: ${edit}`), '_blank');
+      try{ await loadQR(); }catch(e){ $('#qrs').innerHTML = '<p class="msg">No se pudieron armar los QR. Revisá tu conexión.</p>'; return; }
+      $('#qrs').innerHTML = Array.from({length: menu.mesas}, (_, i) => { const q = qrcode(0, 'M'); q.addData(`${o}?m=${id}&mesa=${i + 1}`); q.make(); return `<div class="qrc"><small>${esc(menu.nombre)}</small><b>Mesa ${i + 1}</b>${q.createSvgTag({cellSize: 4, margin: 2, scalable: true})}<small>📱 Escaneá: te atiendo yo 🙋</small></div>`; }).join('');
+      d.scrollIntoView({behavior: 'smooth'});
+    }
+    if(ID && CLAVE && menu.cats.length && Q.has('qr')) done(ID, CLAVE);
+  }
+
+  // =================== MESA: el asistente recibe, recomienda y toma el pedido por voz ===================
+  async function mesa(){
+    let M = null; try{ M = (await api('/api/menu?id=' + encodeURIComponent(ID))).menu; }catch(e){ app.innerHTML = `<p style="padding:30px;text-align:center">😕 ${esc(e.message)}</p>`; return; }
+    const ALL = []; M.cats.forEach(c => c.items.forEach(i => ALL.push(Object.assign({cat: c.n}, i))));
+    const PROMOS = ALL.filter(i => i.promo);
+    let nombre = '', mute = false, order = {}; const KEYP = 'shopmenu-' + ID + '-' + MESA;
+    try{ const s = JSON.parse(sessionStorage.getItem(KEYP) || 'null'); if(s){ nombre = s.nombre || ''; order = s.order || {}; } }catch(e){}
+    const keep = () => { try{ sessionStorage.setItem(KEYP, JSON.stringify({nombre, order})); }catch(e){} };
+    try{ mute = localStorage.getItem('shopmenu-mute') === '1'; }catch(e){}
+    app.innerHTML = `<div class="mesa"><div class="mtop"><b>${esc(M.nombre)}</b><span class="tag">Mesa ${MESA}</span><button type="button" id="bMute" title="Voz">${mute ? '🔇' : '🔊'}</button></div>
+      <div class="stage">${CHEF}<div class="bubble" id="say" role="status" aria-live="polite"></div></div>
+      <div class="opts" id="opts"></div>
+      <div class="area" id="area"></div>
+      <div class="dock"><div class="say"><button class="mic" type="button" id="bMic" title="Hablale">🎤</button><input id="iTxt" placeholder="Decime o escribime qué querés…" enterkeyhint="send"><button class="send" type="button" id="bSend">➤</button></div>
+        <button class="cartbtn" type="button" id="bCart">🧾 Mi pedido</button></div></div>`;
+    const chef = $('.chef'), say = $('#say'), opts = $('#opts'), area = $('#area');
+    // ---- voz ----
+    let voice = null; const pickVoice = () => { const vs = speechSynthesis.getVoices(); voice = vs.find(v => /es[-_]AR/i.test(v.lang)) || vs.find(v => /^es/i.test(v.lang)) || null; };
+    if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+    const talk = (txt, chips) => {
+      say.textContent = txt; opts.innerHTML = '';
+      (chips || []).forEach(([label, fn, pri]) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; if(pri) b.className = 'pri btn'; b.onclick = fn; opts.appendChild(b); });
+      if(mute || !('speechSynthesis' in window)) return;
+      try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(txt.replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu, '')); u.lang = voice ? voice.lang : 'es-AR'; if(voice) u.voice = voice; u.rate = 1.03;
+        u.onstart = () => chef.classList.add('talk'); u.onend = u.onerror = () => chef.classList.remove('talk'); speechSynthesis.speak(u); }catch(e){}
+    };
+    $('#bMute').onclick = () => { mute = !mute; $('#bMute').textContent = mute ? '🔇' : '🔊'; try{ localStorage.setItem('shopmenu-mute', mute ? '1' : '0'); }catch(e){} if(mute) try{ speechSynthesis.cancel(); }catch(e){} };
+    // ---- pedido ----
+    const count = () => Object.values(order).reduce((a, b) => a + b, 0);
+    const total = () => Object.entries(order).reduce((a, [n, q]) => { const it = ALL.find(i => i.n === n); return a + (it ? priceN(it.p) * q : 0); }, 0);
+    const paintCart = () => { const n = count(); $('#bCart').textContent = n ? `🧾 Mi pedido · ${n} ${n === 1 ? 'cosa' : 'cosas'} · ${money(total())}` : '🧾 Mi pedido'; keep(); };
+    const add = (n, q) => { order[n] = (order[n] || 0) + (q || 1); paintCart(); };
+    // ---- entender lo que dice el cliente (sin gastar IA) ----
+    const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9ñ ]/g, ' ');
+    const sing = w => w.length > 4 && /es$/.test(w) && !/[aeiou]es$/.test(w.slice(-3)) ? w.slice(0, -2) : w.length > 3 && /s$/.test(w) ? w.slice(0, -1) : w;
+    const STOP = new Set(['de', 'del', 'la', 'el', 'los', 'las', 'al', 'a', 'en', 'un', 'una', 'unos', 'unas', 'y', 'o', 'con', 'por', 'favor', 'para', 'mi', 'me', 'quiero', 'agregame', 'agrega', 'sumame', 'traeme', 'dame', 'poneme', 'tambien', 'mas', 'otro', 'otra', 'que', 'se', 'lo', 'le']);
+    const toks = s => norm(s).replace(/media luna/g, 'medialuna').split(/\s+/).filter(Boolean).map(sing);
+    const NUM = {un: 1, uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10, docena: 12, media: 6};
+    const IT = ALL.map(i => ({i, t: toks(i.n).filter(w => !STOP.has(w))}));
+    function parse(text){
+      const w = toks(text), used = new Array(w.length).fill(false), found = [], amb = [];
+      // candidatos: todas las palabras del plato aparecen cerca
+      const cands = [];
+      IT.forEach(x => { if(!x.t.length) return; for(let s = 0; s < w.length; s++){ if(w[s] !== x.t[0]) continue; let k = 1, end = s; for(let j = s + 1; j < w.length && j <= s + x.t.length + 2 && k < x.t.length; j++) if(w[j] === x.t[k]){ k++; end = j; } cands.push({x, s, end, k, full: k === x.t.length}); } });
+      cands.sort((a, b) => b.k - a.k || (b.full - a.full));
+      const taken = new Set();
+      cands.forEach(c => { if(taken.has(c.s)) return;
+        const same = cands.filter(o => o.s === c.s && o.k === c.k && o.x !== c.x && !o.full && !c.full);
+        if(same.length){ amb.push([c.x.i, ...same.map(o => o.x.i)]); for(let j = c.s; j <= c.end; j++) taken.add(j); return; }
+        if(!c.full && c.k < Math.min(2, c.x.t.length)) { /* nada */ }
+        let q = 1; const p = w[c.s - 1], p2 = w[c.s - 2];
+        if(/^\d+$/.test(p)) q = +p; else if(NUM[p] != null) q = (p === 'media' && w[c.s - 2] !== 'una' ? 6 : NUM[p]) || 1; else if(p === 'docena' && NUM[p2]) q = NUM[p2] * 12;
+        if(p === 'docena' && (p2 === 'media')) q = 6;
+        for(let j = c.s; j <= c.end; j++) taken.add(j);
+        found.push({i: c.x.i, q: Math.max(1, Math.min(30, q))});
+      });
+      return {found, amb};
+    }
+    function hear(text){
+      const n = norm(text); if(!n.trim()) return;
+      if(!nombre && step === 'nombre'){ setName(text); return; }
+      if(/\b(mozo|mesero|camarero|moza)\b/.test(n)) return aviso('mozo');
+      if(/\b(cuenta|pagar|cobrar|pago)\b/.test(n)) return (M.alias || M.paylink) ? pagar(ultimo) : aviso('cuenta');
+      if(/\b(recomend|sugeri|que me das|que me conviene|no se que)/.test(n)) return recomendar();
+      if(/\b(carta|menu|que tienen|que hay|que venden)\b/.test(n) && !parse(text).found.length) return verCarta();
+      if(/\b(eso es todo|nada mas|listo|confirm|mandalo|manda el pedido|enviar|terminar|ya esta)\b/.test(n)) return verPedido(true);
+      const quitar = /\b(saca|sacame|quita|quitame|borra|borrame|cancela|sin el|sin la)\b/.test(n);
+      const {found, amb} = parse(text);
+      if(quitar && found.length){ found.forEach(f => { delete order[f.i.n]; }); paintCart(); return talk(`Listo, saqué ${found.map(f => f.i.n).join(' y ')} de tu pedido.`, mainChips()); }
+      if(found.length){
+        found.forEach(f => add(f.i.n, f.q));
+        const txt = found.map(f => `${f.q > 1 ? f.q + ' ' : ''}${f.i.n}`).join(', ');
+        return talk(`¡Perfecto${nombre ? ', ' + nombre : ''}! Te agregué ${txt}. 📝 ¿Algo más? Cuando termines decime "eso es todo".`, [['✅ Eso es todo', () => verPedido(true), true], ...mainChips()]);
+      }
+      if(amb.length){ const a = amb[0]; return talk(`¿Cuál querés? Tengo ${a.map(i => i.n).join(', ')}.`, a.slice(0, 6).map(i => [i.n, () => { add(i.n, 1); talk(`¡Listo! Te agregué ${i.n}. ¿Algo más?`, [['✅ Eso es todo', () => verPedido(true), true], ...mainChips()]); }])); }
+      talk(`Mmm, no encontré "${text}" en la carta 🤔. Probá decirlo de otra forma, o mirá la carta y tocá ➕.`, mainChips());
+    }
+    // ---- escuchar ----
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition; let rec = null, on = false;
+    if(SR){ rec = new SR(); rec.lang = 'es-AR'; rec.interimResults = false; rec.maxAlternatives = 1;
+      rec.onresult = e => { const t = e.results[0][0].transcript; $('#iTxt').value = ''; say.textContent = '🗣 "' + t + '"'; setTimeout(() => hear(t), 250); };
+      rec.onend = () => { on = false; $('#bMic').classList.remove('on'); }; rec.onerror = () => { on = false; $('#bMic').classList.remove('on'); }; }
+    $('#bMic').onclick = () => { if(!rec){ $('#iTxt').focus(); talk('Tu celular no me deja escucharte 🙈, pero escribime abajo y te entiendo igual.'); return; } if(on){ rec.stop(); return; } try{ speechSynthesis.cancel(); }catch(e){} try{ rec.start(); on = true; $('#bMic').classList.add('on'); say.textContent = '👂 Te escucho…'; }catch(e){} };
+    const sendTxt = () => { const t = $('#iTxt').value.trim(); if(!t) return; $('#iTxt').value = ''; hear(t); };
+    $('#bSend').onclick = sendTxt; $('#iTxt').addEventListener('keydown', e => { if(e.key === 'Enter') sendTxt(); });
+    // ---- pantallas ----
+    let step = '';
+    const mainChips = () => [['📖 Ver la carta', verCarta], ['🤔 ¿Qué me recomendás?', recomendar], ['🙋 Llamar al mozo', () => aviso('mozo')]].concat(ultimo ? [['💳 Pagar / la cuenta', () => (M.alias || M.paylink) ? pagar(ultimo) : aviso('cuenta')]] : []);
+    const dishHTML = i => `<div class="dish"><span><b>${esc(i.n)}${i.promo ? ' ⭐' : ''}</b>${i.d ? `<small>${esc(i.d)}</small>` : ''}</span><span class="row" style="flex-wrap:nowrap"><span class="pr">${esc(i.p)}</span><button class="add" type="button" data-add="${esc(i.n)}" aria-label="Agregar ${esc(i.n)}">+</button></span></div>`;
+    area.addEventListener('click', e => { const b = e.target.closest('[data-add]'); if(!b) return; add(b.dataset.add, 1); b.textContent = '✓'; setTimeout(() => { b.textContent = '+'; }, 900); talk(`¡Anotado! ${b.dataset.add}. ¿Algo más?`, [['✅ Eso es todo', () => verPedido(true), true], ...mainChips()]); });
+    function verCarta(){ area.innerHTML = M.cats.map(c => `<div class="sec2"><h3>${esc(c.n)}</h3>${c.items.map(dishHTML).join('')}</div>`).join(''); talk(`Acá tenés la carta 📖. Tocá ➕ o decime lo que querés, por ejemplo: "una ${esc(ALL[0] ? ALL[0].n.toLowerCase() : 'empanada')}".`, [['🤔 ¿Qué me recomendás?', recomendar], ['🙋 Llamar al mozo', () => aviso('mozo')]]); }
+    function recomendar(){
+      const cats = M.cats.filter(c => c.items.length).slice(0, 8);
+      talk('¡Dale! ¿Qué tenés ganas de comer o tomar?', cats.map(c => [c.n, () => {
+        talk('¿Para cuántas personas es?', [1, 2, 3, 4].map(n => [n === 4 ? '4 o más' : String(n), () => {
+          const its = c.items.slice().sort((a, b) => (b.promo - a.promo)).slice(0, Math.min(3, Math.max(2, n)));
+          area.innerHTML = `<div class="sec2"><h3>Te recomiendo</h3>${its.map(dishHTML).join('')}</div>`;
+          talk(`Para ${n === 1 ? 'vos' : n + ' personas'} te recomiendo ${its.map(i => i.n).join(', ')}${its[0] && its[0].promo ? ' — ¡está en promo hoy!' : ''}. Tocá ➕ en lo que quieras.`, mainChips());
+        }]));
+      }]));
+    }
+    function verPedido(enviar){
+      const ent = Object.entries(order);
+      if(!ent.length){ talk('Tu pedido está vacío todavía. ¿Qué te traigo?', mainChips()); return; }
+      const sh = document.createElement('div'); sh.className = 'sheet';
+      const paint = () => { const e2 = Object.entries(order); sh.innerHTML = `<div><h2 style="margin:0">🧾 Tu pedido · Mesa ${MESA}</h2>${e2.map(([n, q]) => { const it = ALL.find(i => i.n === n); return `<div class="line"><span><b>${esc(n)}</b><br><small>${esc(it ? it.p : '')}</small></span><button type="button" data-m="${esc(n)}">−</button><b>${q}</b><button type="button" data-p="${esc(n)}">+</button></div>`; }).join('')}
+        <b style="font-size:20px;text-align:right">Total: ${money(total())}</b>
+        <input id="iNota" maxlength="200" placeholder="¿Alguna aclaración? (ej: sin cebolla)">
+        <button class="btn pri" type="button" id="bSendOrder">✅ Enviar a la cocina</button><button class="btn sec" type="button" id="bClose">Seguir pidiendo</button></div>`;
+        sh.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { const n = b.dataset.m; order[n]--; if(order[n] <= 0) delete order[n]; paintCart(); if(!count()) { sh.remove(); return; } paint(); });
+        sh.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { order[b.dataset.p]++; paintCart(); paint(); });
+        sh.querySelector('#bClose').onclick = () => sh.remove();
+        sh.querySelector('#bSendOrder').onclick = async ev => { ev.target.disabled = true; ev.target.textContent = 'Enviando…';
+          try{ const j = await api('/api/menu?accion=pedido', {id: ID, mesa: MESA, nombre, nota: sh.querySelector('#iNota').value, items: Object.entries(order).map(([n, q]) => ({n, q}))});
+            totalUlt += total(); sh.remove(); order = {}; paintCart(); seguir(j);
+          }catch(e){ ev.target.disabled = false; ev.target.textContent = '✅ Enviar a la cocina'; alert(e.message); } };
+      };
+      paint(); sh.onclick = e => { if(e.target === sh) sh.remove(); }; document.body.appendChild(sh);
+      if(enviar) talk(`Este es tu pedido${nombre ? ', ' + nombre : ''}: total ${money(total())}. Si está todo bien, tocá "Enviar a la cocina".`);
+    }
+    $('#bCart').onclick = () => verPedido(false);
+    let ultimo = null, totalUlt = 0;
+    function seguir(j){
+      let last = 'nuevo';
+      const puede = M.alias || M.paylink;
+      talk(`¡Listo${nombre ? ', ' + nombre : ''}! 🎉 Tu pedido número ${j.n} ya llegó a la cocina.${M.demora ? ' Tarda más o menos ' + M.demora + ' minutos.' : ''} Te aviso cuando esté listo.${puede ? ' ¿Querés pagar ahora desde la mesa, o al final cuando termines?' : ''}`,
+        puede ? [['💳 Pagar ahora', () => pagar(j), true], ['⏰ Pago al final', () => talk('¡Perfecto! Cuando termines decime "la cuenta" o tocá 💳 y te ayudo a pagar.', [['➕ Pedir algo más', verCarta], ['💳 Pagar', () => pagar(j)], ['🙋 Llamar al mozo', () => aviso('mozo')]])]]
+              : [['➕ Pedir algo más', verCarta], ['🙋 Llamar al mozo', () => aviso('mozo')], ['💳 Pedir la cuenta', () => aviso('cuenta')]]);
+      ultimo = j;
+      area.innerHTML = `<div class="status" id="st">🧾 Pedido #${j.n}: recibido en la cocina${M.demora ? ' · espera aprox. ' + M.demora + ' min' : ''}</div>`;
+      const t = setInterval(async () => { let s = null; try{ s = await api(`/api/menu?id=${ID}&pedido=${j.pid}&k=${j.k}`); }catch(e){ return; }
+        if(s.estado === last) return; last = s.estado; const st = $('#st');
+        if(s.estado === 'preparando'){ if(st) st.textContent = `👨‍🍳 Pedido #${j.n}: lo están preparando`; talk('¡Buenas noticias! Ya están preparando tu pedido 👨‍🍳'); }
+        if(s.estado === 'listo'){ if(st) st.textContent = `✅ Pedido #${j.n}: ¡listo, ya sale!`; talk(`¡${nombre || 'Ey'}! Tu pedido ya está listo y va para tu mesa 🍽️ ¡Que lo disfrutes!`, mainChips()); }
+        if(['entregado', 'cancelado'].includes(s.estado)) clearInterval(t);
+      }, 8000);
+    }
+    function pagar(j){
+      const monto = totalUlt ? money(totalUlt) : '';
+      if(!(M.alias || M.paylink)) return aviso('cuenta');
+      area.innerHTML = `<div class="card" style="box-shadow:none;border:2px solid var(--line)"><h2 style="margin:0">💳 Pagar ${monto ? monto : ''}</h2>
+        ${M.paylink ? `<a class="btn pri" href="${esc(M.paylink)}" target="_blank" rel="noopener">Pagar con Mercado Pago</a>` : ''}
+        ${M.alias ? `<div class="row"><span>Transferí al alias <b>${esc(M.alias)}</b></span><button class="btn sec" type="button" id="bCopyA">📋 Copiar alias</button></div>` : ''}
+        <button class="btn sec" type="button" id="bPague">✅ Ya pagué</button><p class="note">Cuando pagues, tocá "Ya pagué" y le aviso a la caja para que lo confirme.</p></div>`;
+      const ca = $('#bCopyA'); if(ca) ca.onclick = () => { navigator.clipboard?.writeText(M.alias).then(() => { ca.textContent = '✓ Copiado'; }); };
+      $('#bPague').onclick = async () => { try{ await api('/api/menu?accion=aviso', {id: ID, mesa: MESA, nombre, tipo: 'pago', monto, pedido_n: j && j.n}); talk(`¡Gracias${nombre ? ', ' + nombre : ''}! 🙌 Le avisé a la caja que pagaste ${monto}. Ellos lo confirman.`, mainChips()); area.innerHTML = '<div class="status">💳 Pago avisado a la caja</div>'; }catch(e){ talk('Uy, no pude avisar a la caja. Probá de nuevo.'); } };
+      talk(`¡Dale! ${monto ? 'Son ' + monto + '. ' : ''}Podés ${M.paylink ? 'pagar con Mercado Pago tocando el botón' : ''}${M.paylink && M.alias ? ', o ' : ''}${M.alias ? 'transferir al alias ' + M.alias : ''}. Cuando termines, tocá "Ya pagué".`);
+    }
+    async function aviso(tipo){
+      try{ await api('/api/menu?accion=aviso', {id: ID, mesa: MESA, nombre, tipo}); talk(tipo === 'cuenta' ? '¡Dale! Ya le avisé a la caja que querés la cuenta 💳. Enseguida te la traen.' : '¡Listo! Ya le avisé al mozo, enseguida viene 🙋.', mainChips()); }
+      catch(e){ talk('Uy, no pude avisar. Probá de nuevo en un ratito.', mainChips()); }
+    }
+    function setName(t){ nombre = t.trim().split(/\s+/).slice(-1)[0].replace(/[^\p{L}]/gu, '').slice(0, 20); nombre = nombre ? nombre[0].toUpperCase() + nombre.slice(1).toLowerCase() : ''; keep(); step = ''; promos(); }
+    function promos(){
+      const hola = nombre ? `¡Un gusto, ${nombre}! 😊 ` : '¡Dale! 😊 ';
+      if(PROMOS.length){ area.innerHTML = `<div class="sec2"><h3>⭐ Hoy te recomendamos</h3>${PROMOS.map(dishHTML).join('')}</div>`; talk(hola + `Hoy te recomendamos: ${PROMOS.slice(0, 3).map(i => i.n + (i.p ? ' a ' + i.p : '')).join(', ')}. Podés tocar ➕ o pedirme lo que quieras hablando 🎤.`, mainChips()); }
+      else { talk(hola + '¿Qué te traigo? Podés pedirme hablando 🎤, por ejemplo "un café con leche y dos medialunas", o mirar la carta.', mainChips()); verCarta(); talk(hola + '¿Qué te traigo? Pedime hablando 🎤 o tocá ➕ en la carta.', mainChips()); }
+    }
+    paintCart();
+    // bienvenida: hace falta un toque para que el celular deje hablar
+    if(nombre){ promos(); return; }
+    say.textContent = `¡Hola! 👋 Bienvenido a ${M.nombre}.`;
+    opts.innerHTML = '<button type="button" class="pri btn" id="bHola">👋 Tocá para empezar</button>';
+    $('#bHola').onclick = () => {
+      step = 'nombre';
+      talk(`¡Hola! 👋 Bienvenido a ${M.nombre}. Soy ${M.asistente || 'Lola'}, tu asistente. Estás en la mesa ${MESA}.${M.saludo ? ' ' + M.saludo : ''} ¿Cómo te llamás?`, [['Prefiero no decirlo', () => { step = ''; promos(); }]]);
+      $('#iTxt').placeholder = 'Escribí tu nombre o tocá 🎤'; $('#iTxt').focus();
+    };
+  }
+
+  // =================== CAJA: pedidos y avisos de las mesas en vivo ===================
+  async function caja(){
+    let ding = false, seen = null, nombreLocal = '';
+    app.innerHTML = `<div class="caja"><div class="cajatop"><h2 style="margin:0" id="cName">🧾 Caja</h2><div class="row"><button class="btn pri" type="button" id="bDing">🔔 Activar sonido</button><a class="btn sec" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}">✏️ Editar menú</a><a class="btn sec" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&qr=1">🖨 QR de mesas</a></div></div>
+      <div id="avisos" style="display:grid;gap:8px"></div>
+      <div class="cols"><div class="col"><h3>🆕 Nuevos</h3><div id="cN" style="display:grid;gap:8px"></div></div><div class="col"><h3>👨‍🍳 En preparación</h3><div id="cP" style="display:grid;gap:8px"></div></div><div class="col"><h3>✅ Listos para llevar</h3><div id="cL" style="display:grid;gap:8px"></div></div></div>
+      <p class="note">Se actualiza solo. Dejá esta pantalla abierta en el mostrador.</p></div>`;
+    const beep = () => { if(!ding) return; try{ const a = new (window.AudioContext || window.webkitAudioContext)(), o = a.createOscillator(), g = a.createGain(); o.connect(g); g.connect(a.destination); o.frequency.value = 880; g.gain.value = .2; o.start(); o.frequency.setValueAtTime(1175, a.currentTime + .15); o.stop(a.currentTime + .35); }catch(e){} };
+    $('#bDing').onclick = () => { ding = true; $('#bDing').textContent = '🔔 Sonido activado'; beep(); };
+    const ago = iso => { const m = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 60000)); return m < 1 ? 'recién' : 'hace ' + m + ' min'; };
+    const set = async (pid, estado) => { try{ await api('/api/menu?accion=estado', {id: ID, clave: CLAVE, pid, estado}); }catch(e){ alert(e.message); } load(); };
+    const tk = (p, btns) => `<div class="tk ${p.estado}"><div class="h"><span>Mesa ${p.mesa} · #${p.n}</span><small>${ago(p.creado)}</small></div>${p.nombre ? `<span>👤 ${esc(p.nombre)}</span>` : ''}<ul>${p.items.map(i => `<li><b>${i.q}×</b> ${esc(i.n)}</li>`).join('')}</ul>${p.nota ? `<span>📝 ${esc(p.nota)}</span>` : ''}<b>Total: ${money(p.items.reduce((a, i) => a + priceN(i.p) * i.q, 0))}</b><div class="row">${btns}</div></div>`;
+    async function load(){
+      let j = null; try{ j = await api(`/api/menu?id=${ID}&clave=${encodeURIComponent(CLAVE)}&caja=1`); }catch(e){ $('#cName').textContent = '😕 ' + e.message; return; }
+      if(j.nombre && j.nombre !== nombreLocal){ nombreLocal = j.nombre; $('#cName').textContent = '🧾 Caja · ' + j.nombre; }
+      const its = j.items || [], ids = new Set(its.filter(x => x.estado === 'nuevo').map(x => x.id));
+      if(seen && [...ids].some(id => !seen.has(id))) beep(); seen = ids;
+      $('#avisos').innerHTML = its.filter(x => x.tipo !== 'pedido' && x.estado === 'nuevo').map(a => `<div class="aviso"><span>${a.tipo === 'pago' ? '💰 La mesa ' + a.mesa + ' dice que PAGÓ ' + esc(a.monto || '') + (a.pedido_n ? ' (pedido #' + a.pedido_n + ')' : '') + ' — revisá que te haya llegado' : a.tipo === 'cuenta' ? '💳 La mesa ' + a.mesa + ' pide la cuenta' : '🙋 La mesa ' + a.mesa + ' llama al mozo'}${a.nombre ? ' (' + esc(a.nombre) + ')' : ''} · ${ago(a.creado)}</span><button class="btn sec" type="button" data-v="${a.id}">✓ Atendido</button></div>`).join('');
+      const peds = its.filter(x => x.tipo === 'pedido').sort((a, b) => String(a.creado).localeCompare(String(b.creado)));
+      $('#cN').innerHTML = peds.filter(p => p.estado === 'nuevo').map(p => tk(p, `<button class="btn pri" type="button" data-s="${p.id}|preparando">👨‍🍳 Preparar</button><button class="btn sec" type="button" data-s="${p.id}|cancelado">✕</button>`)).join('') || '<p class="note">Sin pedidos nuevos</p>';
+      $('#cP').innerHTML = peds.filter(p => p.estado === 'preparando').map(p => tk(p, `<button class="btn pri" type="button" data-s="${p.id}|listo">✅ Listo</button>`)).join('') || '<p class="note">—</p>';
+      $('#cL').innerHTML = peds.filter(p => p.estado === 'listo').map(p => tk(p, `<button class="btn sec" type="button" data-s="${p.id}|entregado">🍽️ Entregado</button>`)).join('') || '<p class="note">—</p>';
+    }
+    app.addEventListener('click', e => { const s = e.target.closest('[data-s]'); if(s){ const [pid, est] = s.dataset.s.split('|'); set(pid, est); } const v = e.target.closest('[data-v]'); if(v) set(v.dataset.v, 'visto'); });
+    load(); setInterval(load, 5000);
+  }
+})();
+</script>
+</body>
+</html>

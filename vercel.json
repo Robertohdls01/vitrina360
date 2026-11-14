@@ -15,6 +15,10 @@
     {
       "source": "/shopcut",
       "destination": "/shopcut.html"
+    },
+    {
+      "source": "/menu",
+      "destination": "/menu.html"
     }
   ],
   "functions": {
@@ -22,6 +26,9 @@
       "maxDuration": 60
     },
     "api/probador.js": {
+      "maxDuration": 60
+    },
+    "api/menu.js": {
       "maxDuration": 60
     }
   },
