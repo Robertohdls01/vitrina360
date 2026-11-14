@@ -204,7 +204,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     let M = null; try{ M = (await api('/api/menu?id=' + encodeURIComponent(ID))).menu; }catch(e){ app.innerHTML = `<p style="padding:30px;text-align:center">😕 ${esc(e.message)}</p>`; return; }
     const ALL = []; M.cats.forEach(c => c.items.forEach(i => ALL.push(Object.assign({cat: c.n}, i))));
     const PROMOS = ALL.filter(i => i.promo);
-    let nombre = '', mute = false, order = {}; const KEYP = 'shopmenu-' + ID + '-' + MESA;
+    let nombre = '', mute = false, order = {}; const ofrecido = new Set(); const KEYP = 'shopmenu-' + ID + '-' + MESA;
     try{ const s = JSON.parse(sessionStorage.getItem(KEYP) || 'null'); if(s){ nombre = s.nombre || ''; order = s.order || {}; } }catch(e){}
     const keep = () => { try{ sessionStorage.setItem(KEYP, JSON.stringify({nombre, order})); }catch(e){} };
     try{ mute = localStorage.getItem('shopmenu-mute') === '1'; }catch(e){}
@@ -223,7 +223,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       (chips || []).forEach(([label, fn, pri]) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; if(pri) b.className = 'pri btn'; b.onclick = fn; opts.appendChild(b); });
       if(mute || !('speechSynthesis' in window)) return;
       try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(txt.replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu, '')); u.lang = voice ? voice.lang : 'es-AR'; if(voice) u.voice = voice; u.rate = 1.03;
-        u.onstart = () => chef.classList.add('talk'); u.onend = u.onerror = () => chef.classList.remove('talk'); speechSynthesis.speak(u); }catch(e){}
+        u.onstart = () => chef.classList.add('talk'); u.onend = u.onerror = () => { chef.classList.remove('talk'); if(talk.listen){ talk.listen = false; listen(); } }; speechSynthesis.speak(u); }catch(e){}
     };
     $('#bMute').onclick = () => { mute = !mute; $('#bMute').textContent = mute ? '🔇' : '🔊'; try{ localStorage.setItem('shopmenu-mute', mute ? '1' : '0'); }catch(e){} if(mute) try{ speechSynthesis.cancel(); }catch(e){} };
     // ---- pedido ----
@@ -259,6 +259,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     }
     function hear(text){
       const n = norm(text); if(!n.trim()) return;
+      if(/^(si|dale|bueno|ok|sumalo|sumamelo|si dale|si por favor)\b/.test(n.trim())){ const b = opts.querySelector('button.pri'); if(b && /Sí, sumame/.test(b.textContent)){ b.click(); return; } }
       if(!nombre && step === 'nombre'){ setName(text); return; }
       if(/\b(mozo|mesero|camarero|moza)\b/.test(n)) return aviso('mozo');
       if(/\b(cuenta|pagar|cobrar|pago)\b/.test(n)) return (M.alias || M.paylink) ? pagar(ultimo) : aviso('cuenta');
@@ -271,6 +272,8 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       if(found.length){
         found.forEach(f => add(f.i.n, f.q));
         const txt = found.map(f => `${f.q > 1 ? f.q + ' ' : ''}${f.i.n}`).join(', ');
+        const up = PROMOS.find(i => !order[i.n] && !ofrecido.has(i.n)); if(up) ofrecido.add(up.n);
+        if(up) return talk(`¡Perfecto${nombre ? ', ' + nombre : ''}! Te agregué ${txt}. 📝 Para acompañar, hoy tenemos ${up.n}${up.p ? ' a ' + up.p : ''} en promo. ¿Te lo sumo?`, [[`➕ Sí, sumame ${up.n}`, () => { add(up.n, 1); talk(`¡Listo! Te sumé ${up.n}. ¿Algo más? Cuando termines decime "eso es todo".`, [['✅ Eso es todo', () => verPedido(true), true], ...mainChips()]); }, true], ['No, gracias', () => talk('¡Dale! ¿Algo más? Cuando termines decime "eso es todo".', [['✅ Eso es todo', () => verPedido(true), true], ...mainChips()])], ['✅ Eso es todo', () => verPedido(true)]]);
         return talk(`¡Perfecto${nombre ? ', ' + nombre : ''}! Te agregué ${txt}. 📝 ¿Algo más? Cuando termines decime "eso es todo".`, [['✅ Eso es todo', () => verPedido(true), true], ...mainChips()]);
       }
       if(amb.length){ const a = amb[0]; return talk(`¿Cuál querés? Tengo ${a.map(i => i.n).join(', ')}.`, a.slice(0, 6).map(i => [i.n, () => { add(i.n, 1); talk(`¡Listo! Te agregué ${i.n}. ¿Algo más?`, [['✅ Eso es todo', () => verPedido(true), true], ...mainChips()]); }])); }
@@ -281,7 +284,8 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     if(SR){ rec = new SR(); rec.lang = 'es-AR'; rec.interimResults = false; rec.maxAlternatives = 1;
       rec.onresult = e => { const t = e.results[0][0].transcript; $('#iTxt').value = ''; say.textContent = '🗣 "' + t + '"'; setTimeout(() => hear(t), 250); };
       rec.onend = () => { on = false; $('#bMic').classList.remove('on'); }; rec.onerror = () => { on = false; $('#bMic').classList.remove('on'); }; }
-    $('#bMic').onclick = () => { if(!rec){ $('#iTxt').focus(); talk('Tu celular no me deja escucharte 🙈, pero escribime abajo y te entiendo igual.'); return; } if(on){ rec.stop(); return; } try{ speechSynthesis.cancel(); }catch(e){} try{ rec.start(); on = true; $('#bMic').classList.add('on'); say.textContent = '👂 Te escucho…'; }catch(e){} };
+    function listen(){ if(!rec || on) return; try{ rec.start(); on = true; $('#bMic').classList.add('on'); }catch(e){} }
+    $('#bMic').onclick = () => { if(!rec){ $('#iTxt').focus(); talk('Tu celular no me deja escucharte 🙈, pero escribime abajo y te entiendo igual.'); return; } if(on){ rec.stop(); return; } try{ speechSynthesis.cancel(); }catch(e){} listen(); say.textContent = '👂 Te escucho…'; };
     const sendTxt = () => { const t = $('#iTxt').value.trim(); if(!t) return; $('#iTxt').value = ''; hear(t); };
     $('#bSend').onclick = sendTxt; $('#iTxt').addEventListener('keydown', e => { if(e.key === 'Enter') sendTxt(); });
     // ---- pantallas ----
@@ -354,7 +358,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     function setName(t){ nombre = t.trim().split(/\s+/).slice(-1)[0].replace(/[^\p{L}]/gu, '').slice(0, 20); nombre = nombre ? nombre[0].toUpperCase() + nombre.slice(1).toLowerCase() : ''; keep(); step = ''; promos(); }
     function promos(){
       const hola = nombre ? `¡Un gusto, ${nombre}! 😊 ` : '¡Dale! 😊 ';
-      if(PROMOS.length){ area.innerHTML = `<div class="sec2"><h3>⭐ Hoy te recomendamos</h3>${PROMOS.map(dishHTML).join('')}</div>`; talk(hola + `Hoy te recomendamos: ${PROMOS.slice(0, 3).map(i => i.n + (i.p ? ' a ' + i.p : '')).join(', ')}. Podés tocar ➕ o pedirme lo que quieras hablando 🎤.`, mainChips()); }
+      if(PROMOS.length){ area.innerHTML = `<div class="sec2"><h3>⭐ Hoy te recomendamos</h3>${PROMOS.map(dishHTML).join('')}</div>`; talk(hola + `Hoy te recomendamos: ${PROMOS.slice(0, 3).map(i => i.n + (i.p ? ' a ' + i.p : '')).join(', ')}. Podés tocar ➕ o pedirme lo que quieras hablando 🎤.`, mainChips()); talk.listen = false; }
       else { talk(hola + '¿Qué te traigo? Podés pedirme hablando 🎤, por ejemplo "un café con leche y dos medialunas", o mirar la carta.', mainChips()); verCarta(); talk(hola + '¿Qué te traigo? Pedime hablando 🎤 o tocá ➕ en la carta.', mainChips()); }
     }
     paintCart();
@@ -363,7 +367,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     say.textContent = `¡Hola! 👋 Bienvenido a ${M.nombre}.`;
     opts.innerHTML = '<button type="button" class="pri btn" id="bHola">👋 Tocá para empezar</button>';
     $('#bHola').onclick = () => {
-      step = 'nombre';
+      step = 'nombre'; talk.listen = !mute;
       talk(`¡Hola! 👋 Bienvenido a ${M.nombre}. Soy ${M.asistente || 'Lola'}, tu asistente. Estás en la mesa ${MESA}.${M.saludo ? ' ' + M.saludo : ''} ¿Cómo te llamás?`, [['Prefiero no decirlo', () => { step = ''; promos(); }]]);
       $('#iTxt').placeholder = 'Escribí tu nombre o tocá 🎤'; $('#iTxt').focus();
     };
