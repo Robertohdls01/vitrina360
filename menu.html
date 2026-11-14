@@ -76,6 +76,8 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
 .line{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:6px 0}.line span{flex:1}
 .line button{border:2px solid var(--line);background:#fff;border-radius:10px;width:34px;height:34px;font-weight:900}
 .startbig{display:block;width:100%;margin-top:6px;border:0;border-radius:22px;padding:22px 16px;font:900 22px system-ui;color:#fff;background:linear-gradient(90deg,var(--o),var(--p));box-shadow:0 10px 26px rgba(124,58,237,.35);animation:startp 1.6s ease-in-out infinite}@keyframes startp{50%{transform:scale(1.04)}}
+.status.st-nuevo{background:#f3e8ff;border-color:#c4b5fd}.status.st-preparando{background:#fef9c3;border-color:#facc15}.status.st-listo{background:#22c55e;border-color:#16a34a;color:#fff;font-size:18px;animation:okp 1.2s ease-in-out 4}.status.st-entregado{background:#dcfce7;border-color:#86efac}@keyframes okp{50%{transform:scale(1.04)}}
+.tk.preparando{border-color:#facc15;background:#fefce8}.tk.listo{border-color:#16a34a;background:#dcfce7}.tk.listo .h{color:#15803d}
 .status{background:#ecfdf5;border:2px solid #86efac;border-radius:16px;padding:10px 12px;font-weight:700}
 /* ---------- caja ---------- */
 .caja{padding:12px;display:grid;gap:12px}
@@ -491,9 +493,9 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       talk(T(`¡Listo${nombre ? ', ' + nombre : ''}! 🎉 Tu pedido número ${j.n} ya llegó a la cocina.`, `Done${nombre ? ', ' + nombre : ''}! 🎉 Your order number ${j.n} is in the kitchen.`, `Pronto${nombre ? ', ' + nombre : ''}! 🎉 Seu pedido número ${j.n} já chegou na cozinha.`) + dem + T(' Te aviso cuando esté listo.', ' I\'ll let you know when it\'s ready.', ' Eu aviso quando estiver pronto.') + (puede ? T(' ¿Querés pagar ahora desde la mesa, o al final cuando termines?', ' Would you like to pay now from your table, or at the end?', ' Quer pagar agora pela mesa, ou no final?') : ''),
         puede ? [payNow(j), ['⏰ ' + T('Pago al final', 'Pay at the end', 'Pago no final'), () => talk(T('¡Perfecto! Cuando termines decime "la cuenta" o tocá 💳 y te ayudo a pagar.', 'Perfect! When you\'re done, say "the bill" or tap 💳 and I\'ll help you pay.', 'Perfeito! Quando terminar, diga "a conta" ou toque 💳.'), mainChips())]]
               : [['➕ ' + T('Pedir algo más', 'Order something else', 'Pedir mais algo'), verCarta], ['🙋 ' + T('Llamar al mozo', 'Call the waiter', 'Chamar o garçom'), () => aviso('mozo')], ['💳 ' + T('Pedir la cuenta', 'Ask for the bill', 'Pedir a conta'), () => aviso('cuenta')]], true);
-      area.innerHTML = `<div class="status" id="st">🧾 ${T('Pedido', 'Order', 'Pedido')} #${j.n}: ${T('recibido en la cocina', 'received in the kitchen', 'recebido na cozinha')}${M.demora ? ' · ~' + M.demora + ' min' : ''}</div>`;
+      area.innerHTML = `<div class="status st-nuevo" id="st">🧾 ${T('Pedido', 'Order', 'Pedido')} #${j.n}: ${T('recibido en la cocina', 'received in the kitchen', 'recebido na cozinha')}${M.demora ? ' · ~' + M.demora + ' min' : ''}</div>`;
       const t = setInterval(async () => { let s = null; try{ s = await api(`/api/menu?id=${ID}&pedido=${j.pid}&k=${j.k}`); }catch(e){ return; }
-        if(s.estado === last) return; last = s.estado; const st = $('#st');
+        if(s.estado === last) return; last = s.estado; const st = $('#st'); if(st) st.className = 'status st-' + s.estado;
         if(s.estado === 'preparando'){ if(st) st.textContent = `👨‍🍳 #${j.n}: ${T('lo están preparando', 'being prepared', 'sendo preparado')}`; talk(T('¡Buenas noticias! Ya están preparando tu pedido 👨‍🍳', 'Good news! Your order is being prepared 👨‍🍳', 'Boa notícia! Seu pedido já está sendo preparado 👨‍🍳')); }
         if(s.estado === 'listo'){
           if(st) st.textContent = s.mozo ? `🍽️ #${j.n}: ${T(`${s.mozo} te lo está llevando`, `${s.mozo} is bringing it`, `${s.mozo} está levando`)}` : `✅ #${j.n}: ${T('¡listo, ya sale!', 'ready, on its way!', 'pronto, já vai!')}`;
