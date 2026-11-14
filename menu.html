@@ -216,205 +216,234 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     if(ID && CLAVE && menu.cats.length && Q.has('qr')) done(ID, CLAVE);
   }
 
-  // =================== MESA: el asistente recibe, recomienda y toma el pedido por voz ===================
+  // =================== MESA: el asistente recibe, recomienda y toma el pedido por voz (español, inglés, portugués) ===================
   async function mesa(){
     let M = null; try{ M = (await api('/api/menu?id=' + encodeURIComponent(ID))).menu; }catch(e){ app.innerHTML = `<p style="padding:30px;text-align:center">😕 ${esc(e.message)}</p>`; return; }
-    const ALL = []; M.cats.forEach(c => c.items.forEach(i => ALL.push(Object.assign({cat: c.n}, i))));
+    // idioma: el que eligió, o el del celular
+    let LANG = (Q.get('lang') || (() => { try{ return localStorage.getItem('shopmenu-lang'); }catch(e){ return ''; } })() || navigator.language || 'es').slice(0, 2).toLowerCase();
+    if(!['es', 'en', 'pt'].includes(LANG)) LANG = 'en';
+    const T = (es, en, pt) => LANG === 'en' ? en : LANG === 'pt' ? pt : es;
+    const TR = (M.tr && M.tr[LANG]) || null;
+    // cada plato: nombre original (va a la caja) + nombre en el idioma del cliente
+    const ALL = []; M.cats.forEach((c, ci) => c.items.forEach((i, ii) => { const t = TR && TR.cats[ci] && TR.cats[ci].items[ii]; ALL.push(Object.assign({cat: (TR && TR.cats[ci] && TR.cats[ci].n) || c.n, ci, ii, dn: (t && t.n) || i.n, dd: (t && t.d) || i.d}, i)); }));
+    const CATS = M.cats.map((c, ci) => ({n: (TR && TR.cats[ci] && TR.cats[ci].n) || c.n, items: ALL.filter(i => i.ci === ci)}));
+    const byN = n => ALL.find(i => i.n === n), dn = n => { const i = byN(n); return i ? i.dn : n; };
+    const SALUDO = (TR && TR.saludo) || (LANG === 'es' ? M.saludo : '') || '';
     const PROMOS = ALL.filter(i => i.promo);
     let nombre = '', mute = false, order = {}; const ofrecido = new Set(); const KEYP = 'shopmenu-' + ID + '-' + MESA;
     try{ const s = JSON.parse(sessionStorage.getItem(KEYP) || 'null'); if(s){ nombre = s.nombre || ''; order = s.order || {}; } }catch(e){}
     const keep = () => { try{ sessionStorage.setItem(KEYP, JSON.stringify({nombre, order})); }catch(e){} };
     try{ mute = localStorage.getItem('shopmenu-mute') === '1'; }catch(e){}
-    app.innerHTML = `<div class="mesa"><div class="mtop"><b>${esc(M.nombre)}</b><span class="tag" id="tagMesa">${MESA ? 'Mesa ' + MESA : 'Bienvenido'}</span><button type="button" id="bMute" title="Voz">${mute ? '🔇' : '🔊'}</button></div>
+    const FLAGS = {es: '🇦🇷 ES', en: '🇺🇸 EN', pt: '🇧🇷 PT'};
+    app.innerHTML = `<div class="mesa"><div class="mtop"><b>${esc(M.nombre)}</b><span class="tag" id="tagMesa">${MESA ? T('Mesa ', 'Table ', 'Mesa ') + MESA : T('Bienvenido', 'Welcome', 'Bem-vindo')}</span><select id="selLang" aria-label="Idioma / Language" style="width:auto;padding:4px 6px;border-radius:999px;background:rgba(255,255,255,.15);color:#fff;border:0">${Object.entries(FLAGS).map(([k, v]) => `<option value="${k}" ${k === LANG ? 'selected' : ''} style="color:#000">${v}</option>`).join('')}</select><button type="button" id="bMute" title="Voz">${mute ? '🔇' : '🔊'}</button></div>
       <div class="stage"><div id="ava">${CHEF}</div><div class="bubble" id="say" role="status" aria-live="polite"></div></div>
       <div class="opts" id="opts"></div>
       <div class="area" id="area"></div>
-      <div class="dock"><div class="say"><button class="mic" type="button" id="bMic" title="Hablale">🎤</button><input id="iTxt" placeholder="Decime o escribime qué querés…" enterkeyhint="send"><button class="send" type="button" id="bSend">➤</button></div>
-        <button class="cartbtn" type="button" id="bCart">🧾 Mi pedido</button></div></div>`;
+      <div class="dock"><div class="say"><button class="mic" type="button" id="bMic" title="🎤">🎤</button><input id="iTxt" placeholder="${T('Decime o escribime qué querés…', 'Tell me or type what you want…', 'Fale ou escreva o que você quer…')}" enterkeyhint="send"><button class="send" type="button" id="bSend">➤</button></div>
+        <button class="cartbtn" type="button" id="bCart"></button></div></div>`;
+    $('#selLang').onchange = e => { try{ localStorage.setItem('shopmenu-lang', e.target.value); }catch(err){} const u = new URL(location.href); u.searchParams.set('lang', e.target.value); if(MESA) u.searchParams.set('mesa', MESA); location.href = u.toString(); };
     let chef = $('.chef'); const say = $('#say'), opts = $('#opts'), area = $('#area');
     // ---- voz ----
-    let voice = null; const pickVoice = () => { const vs = speechSynthesis.getVoices(); voice = vs.find(v => /es[-_]AR/i.test(v.lang)) || vs.find(v => /^es/i.test(v.lang)) || null; };
+    const VL = {es: 'es-AR', en: 'en-US', pt: 'pt-BR'}[LANG];
+    let voice = null; const pickVoice = () => { const vs = speechSynthesis.getVoices(); voice = vs.find(v => v.lang.replace('_', '-').toLowerCase() === VL.toLowerCase()) || vs.find(v => v.lang.toLowerCase().startsWith(LANG)) || null; };
     if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
     const talk = (txt, chips) => {
       say.textContent = txt; opts.innerHTML = '';
       (chips || []).forEach(([label, fn, pri]) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; if(pri) b.className = 'pri btn'; b.onclick = fn; opts.appendChild(b); });
       if(mute || !('speechSynthesis' in window)) return;
-      try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(txt.replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu, '')); u.lang = voice ? voice.lang : 'es-AR'; if(voice) u.voice = voice; u.rate = 1.03;
+      try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(txt.replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu, '')); u.lang = voice ? voice.lang : VL; if(voice) u.voice = voice; u.rate = 1.03;
         u.onstart = () => chef.classList.add('talk'); u.onend = u.onerror = () => { chef.classList.remove('talk'); if(talk.listen){ talk.listen = false; listen(); } }; speechSynthesis.speak(u); }catch(e){}
     };
     $('#bMute').onclick = () => { mute = !mute; $('#bMute').textContent = mute ? '🔇' : '🔊'; try{ localStorage.setItem('shopmenu-mute', mute ? '1' : '0'); }catch(e){} if(mute) try{ speechSynthesis.cancel(); }catch(e){} };
-    // ---- pedido ----
+    // ---- pedido (las claves son los nombres originales: así la caja lo ve en su idioma) ----
     const count = () => Object.values(order).reduce((a, b) => a + b, 0);
-    const total = () => Object.entries(order).reduce((a, [n, q]) => { const it = ALL.find(i => i.n === n); return a + (it ? priceN(it.p) * q : 0); }, 0);
-    const paintCart = () => { const n = count(); $('#bCart').textContent = n ? `🧾 Mi pedido · ${n} ${n === 1 ? 'cosa' : 'cosas'} · ${money(total())}` : '🧾 Mi pedido'; keep(); };
+    const total = () => Object.entries(order).reduce((a, [n, q]) => { const it = byN(n); return a + (it ? priceN(it.p) * q : 0); }, 0);
+    const paintCart = () => { const n = count(); $('#bCart').textContent = n ? `🧾 ${T('Mi pedido', 'My order', 'Meu pedido')} · ${n} · ${money(total())}` : '🧾 ' + T('Mi pedido', 'My order', 'Meu pedido'); keep(); };
     const add = (n, q) => { order[n] = (order[n] || 0) + (q || 1); paintCart(); };
+    const otherQ = () => T('¿Algo más? Cuando termines decime "eso es todo".', 'Anything else? When you\'re done, say "that\'s all".', 'Mais alguma coisa? Quando terminar, diga "é só isso".');
+    const doneChip = () => ['✅ ' + T('Eso es todo', 'That\'s all', 'É só isso'), () => verPedido(true), true];
     // ---- entender lo que dice el cliente (sin gastar IA) ----
     const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9ñ ]/g, ' ');
     const sing = w => w.length > 4 && /es$/.test(w) && !/[aeiou]es$/.test(w.slice(-3)) ? w.slice(0, -2) : w.length > 3 && /s$/.test(w) ? w.slice(0, -1) : w;
-    const STOP = new Set(['de', 'del', 'la', 'el', 'los', 'las', 'al', 'a', 'en', 'un', 'una', 'unos', 'unas', 'y', 'o', 'con', 'por', 'favor', 'para', 'mi', 'me', 'quiero', 'agregame', 'agrega', 'sumame', 'traeme', 'dame', 'poneme', 'tambien', 'mas', 'otro', 'otra', 'que', 'se', 'lo', 'le']);
+    const STOP = new Set(['de', 'del', 'la', 'el', 'los', 'las', 'al', 'a', 'en', 'un', 'una', 'unos', 'unas', 'y', 'o', 'con', 'por', 'favor', 'para', 'mi', 'me', 'quiero', 'agregame', 'agrega', 'sumame', 'traeme', 'dame', 'poneme', 'tambien', 'mas', 'otro', 'otra', 'que', 'se', 'lo', 'le',
+      'the', 'an', 'and', 'of', 'with', 'please', 'i', 'want', 'would', 'like', 'some', 'can', 'get', 'add', 'have', 'me', 'also', 'more', 'another',
+      'do', 'da', 'dos', 'das', 'um', 'uma', 'e', 'com', 'quero', 'gostaria', 'adiciona', 'tambem', 'mais', 'outro', 'outra']);
     const toks = s => norm(s).replace(/media luna/g, 'medialuna').split(/\s+/).filter(Boolean).map(sing);
-    const NUM = {un: 1, uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10, docena: 12, media: 6};
-    const IT = ALL.map(i => ({i, t: toks(i.n).filter(w => !STOP.has(w))}));
+    const NUM = {un: 1, uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10, docena: 12, media: 6,
+      a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, dozen: 12,
+      um: 1, uma: 1, doi: 2, dua: 2, trê: 3, tre: 3, quatro: 4, cinco: 5, sei: 6, sete: 7, oito: 8, nove: 9, dez: 10, duzia: 12};
+    // se busca por el nombre original y por el traducido
+    const IT = []; ALL.forEach(i => { IT.push({i, t: toks(i.n).filter(w => !STOP.has(w))}); if(i.dn !== i.n) IT.push({i, t: toks(i.dn.replace(/\(.*?\)/g, '')).filter(w => !STOP.has(w))}); });
     function parse(text){
-      const w = toks(text), used = new Array(w.length).fill(false), found = [], amb = [];
-      // candidatos: todas las palabras del plato aparecen cerca
-      const cands = [];
+      const w = toks(text), found = [], amb = [], cands = [];
       IT.forEach(x => { if(!x.t.length) return; for(let s = 0; s < w.length; s++){ if(w[s] !== x.t[0]) continue; let k = 1, end = s; for(let j = s + 1; j < w.length && j <= s + x.t.length + 2 && k < x.t.length; j++) if(w[j] === x.t[k]){ k++; end = j; } cands.push({x, s, end, k, full: k === x.t.length}); } });
       cands.sort((a, b) => b.k - a.k || (b.full - a.full));
-      const taken = new Set();
+      const taken = new Set(), seenIt = new Set();
       cands.forEach(c => { if(taken.has(c.s)) return;
-        const same = cands.filter(o => o.s === c.s && o.k === c.k && o.x !== c.x && !o.full && !c.full);
-        if(same.length){ amb.push([c.x.i, ...same.map(o => o.x.i)]); for(let j = c.s; j <= c.end; j++) taken.add(j); return; }
-        if(!c.full && c.k < Math.min(2, c.x.t.length)) { /* nada */ }
+        const same = cands.filter(o => o.s === c.s && o.k === c.k && o.x.i !== c.x.i && !o.full && !c.full);
+        if(same.length){ amb.push([c.x.i, ...[...new Set(same.map(o => o.x.i))]]); for(let j = c.s; j <= c.end; j++) taken.add(j); return; }
+        if(seenIt.has(c.x.i)) return;
         let q = 1; const p = w[c.s - 1], p2 = w[c.s - 2];
-        if(/^\d+$/.test(p)) q = +p; else if(NUM[p] != null) q = (p === 'media' && w[c.s - 2] !== 'una' ? 6 : NUM[p]) || 1; else if(p === 'docena' && NUM[p2]) q = NUM[p2] * 12;
-        if(p === 'docena' && (p2 === 'media')) q = 6;
-        for(let j = c.s; j <= c.end; j++) taken.add(j);
+        if(/^\d+$/.test(p)) q = +p; else if(NUM[p] != null) q = (p === 'media' && p2 !== 'una' ? 6 : NUM[p]) || 1;
+        if((p === 'docena' || p === 'dozen' || p === 'duzia') && (p2 === 'media' || p2 === 'half' || p2 === 'meia')) q = 6;
+        for(let j = c.s; j <= c.end; j++) taken.add(j); seenIt.add(c.x.i);
         found.push({i: c.x.i, q: Math.max(1, Math.min(30, q))});
       });
       return {found, amb};
     }
+    const has = (n, re) => re.test(n);
     function hear(text){
       const n = norm(text); if(!n.trim()) return;
-      if(/^(si|dale|bueno|ok|sumalo|sumamelo|si dale|si por favor)\b/.test(n.trim())){ const b = opts.querySelector('button.pri'); if(b && /Sí, sumame/.test(b.textContent)){ b.click(); return; } }
-      if(step === 'mesa'){ const m = n.match(/\d+/), w = {uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10, once: 11, doce: 12, trece: 13, catorce: 14, quince: 15, veinte: 20}; const k = m ? +m[0] : (n.split(/\s+/).map(x => w[x]).find(Boolean) || 0); if(k > 0 && k <= 500) setMesa(k); else talk('No te entendí el número 🙈. Decime solo el número de la mesa, por ejemplo "cinco".'); return; }
+      if(/^(si|dale|bueno|ok|okay|yes|yeah|sure|sim|claro|sumalo|sumamelo)\b/.test(n.trim())){ const b = opts.querySelector('button.pri'); if(b && b.dataset.up){ b.click(); return; } }
+      if(step === 'mesa'){ const m = n.match(/\d+/), w = {uno: 1, una: 1, one: 1, um: 1, dos: 2, two: 2, dois: 2, tres: 3, three: 3, cuatro: 4, four: 4, quatro: 4, cinco: 5, five: 5, seis: 6, six: 6, siete: 7, seven: 7, sete: 7, ocho: 8, eight: 8, oito: 8, nueve: 9, nine: 9, nove: 9, diez: 10, ten: 10, dez: 10, once: 11, eleven: 11, onze: 11, doce: 12, twelve: 12, doze: 12}; const k = m ? +m[0] : (n.split(/\s+/).map(x => w[x]).find(Boolean) || 0); if(k > 0 && k <= 500) setMesa(k); else talk(T('No te entendí el número 🙈. Decime solo el número de la mesa, por ejemplo "cinco".', 'I didn\'t catch the number 🙈. Just tell me your table number, like "five".', 'Não entendi o número 🙈. Diga só o número da mesa, por exemplo "cinco".')); return; }
       if(!nombre && step === 'nombre'){ setName(text); return; }
       if(step === 'consulta'){ consulta(text); return; }
-      if(/\b(encargado|dueno|duena|chef|cocinero|gerente|coordinador|queja|reclamo|alergi|celiac|vegan|vegetarian)/.test(n)) return encargado();
-      if(/\b(mozo|mesero|camarero|moza)\b/.test(n)) return aviso('mozo');
-      if(/\b(cuenta|pagar|cobrar|pago)\b/.test(n)) return (M.alias || M.paylink) ? pagar(ultimo) : aviso('cuenta');
-      if(/\b(recomend|sugeri|que me das|que me conviene|no se que)/.test(n)) return recomendar();
-      if(/\b(carta|menu|que tienen|que hay|que venden)\b/.test(n) && !parse(text).found.length) return verCarta();
-      if(/\b(eso es todo|nada mas|listo|confirm|mandalo|manda el pedido|enviar|terminar|ya esta)\b/.test(n)) return verPedido(true);
-      const quitar = /\b(saca|sacame|quita|quitame|borra|borrame|cancela|sin el|sin la)\b/.test(n);
+      if(has(n, /\b(encargado|dueno|duena|chef|cocinero|gerente|coordinador|queja|reclamo|alergi|allerg|celiac|gluten|vegan|vegetarian|manager|owner|complain|gerente|reclamacao)/)) return encargado();
+      if(has(n, /\b(mozo|mesero|camarero|moza|waiter|waitress|garcom|garconete)\b/)) return aviso('mozo');
+      if(has(n, /\b(cuenta|pagar|cobrar|pago|bill|check|pay|conta)\b/)) return (M.alias || M.paylink) ? pagar(ultimo) : aviso('cuenta');
+      if(has(n, /\b(recomend|sugeri|que me das|que me conviene|no se que|recommend|suggest|what.?s good|indica|sugest)/)) return recomendar();
+      if(has(n, /\b(carta|menu|que tienen|que hay|que venden|cardapio)\b/) && !parse(text).found.length) return verCarta();
+      if(has(n, /\b(eso es todo|nada mas|listo|confirm|mandalo|manda el pedido|enviar|terminar|ya esta|that s all|thats all|that is all|done|send it|place the order|so isso|e so isso|pronto|pode mandar)\b/)) return verPedido(true);
+      const quitar = has(n, /\b(saca|sacame|quita|quitame|borra|borrame|cancela|sin el|sin la|remove|cancel|delete|take off|tira|remova|cancela)\b/);
       const {found, amb} = parse(text);
-      if(quitar && found.length){ found.forEach(f => { delete order[f.i.n]; }); paintCart(); return talk(`Listo, saqué ${found.map(f => f.i.n).join(' y ')} de tu pedido.`, mainChips()); }
+      if(quitar && found.length){ found.forEach(f => { delete order[f.i.n]; }); paintCart(); return talk(T(`Listo, saqué ${found.map(f => f.i.dn).join(' y ')} de tu pedido.`, `Done, I removed ${found.map(f => f.i.dn).join(' and ')} from your order.`, `Pronto, tirei ${found.map(f => f.i.dn).join(' e ')} do seu pedido.`), mainChips()); }
       if(found.length){
         found.forEach(f => add(f.i.n, f.q));
-        const txt = found.map(f => `${f.q > 1 ? f.q + ' ' : ''}${f.i.n}`).join(', ');
+        const txt = found.map(f => `${f.q > 1 ? f.q + ' ' : ''}${f.i.dn}`).join(', ');
+        const ok = T(`¡Perfecto${nombre ? ', ' + nombre : ''}! Te agregué ${txt}. 📝`, `Perfect${nombre ? ', ' + nombre : ''}! I added ${txt}. 📝`, `Perfeito${nombre ? ', ' + nombre : ''}! Adicionei ${txt}. 📝`);
         const up = PROMOS.find(i => !order[i.n] && !ofrecido.has(i.n)); if(up) ofrecido.add(up.n);
-        if(up) return talk(`¡Perfecto${nombre ? ', ' + nombre : ''}! Te agregué ${txt}. 📝 Para acompañar, hoy tenemos ${up.n}${up.p ? ' a ' + up.p : ''} en promo. ¿Te lo sumo?`, [[`➕ Sí, sumame ${up.n}`, () => { add(up.n, 1); talk(`¡Listo! Te sumé ${up.n}. ¿Algo más? Cuando termines decime "eso es todo".`, [['✅ Eso es todo', () => verPedido(true), true], ...mainChips()]); }, true], ['No, gracias', () => talk('¡Dale! ¿Algo más? Cuando termines decime "eso es todo".', [['✅ Eso es todo', () => verPedido(true), true], ...mainChips()])], ['✅ Eso es todo', () => verPedido(true)]]);
-        return talk(`¡Perfecto${nombre ? ', ' + nombre : ''}! Te agregué ${txt}. 📝 ¿Algo más? Cuando termines decime "eso es todo".`, [['✅ Eso es todo', () => verPedido(true), true], ...mainChips()]);
+        if(up) return talk(ok + ' ' + T(`Para acompañar, hoy tenemos ${up.dn}${up.p ? ' a ' + up.p : ''} en promo. ¿Te lo sumo?`, `To go with it, today we have ${up.dn}${up.p ? ' for ' + up.p : ''} on special. Shall I add it?`, `Para acompanhar, hoje temos ${up.dn}${up.p ? ' por ' + up.p : ''} em promoção. Quer que eu adicione?`),
+          [[`➕ ${T('Sí, sumame', 'Yes, add', 'Sim, adiciona')} ${up.dn}`, () => { add(up.n, 1); talk(T(`¡Listo! Te sumé ${up.dn}.`, `Done! I added ${up.dn}.`, `Pronto! Adicionei ${up.dn}.`) + ' ' + otherQ(), [doneChip(), ...mainChips()]); }, true], [T('No, gracias', 'No, thanks', 'Não, obrigado'), () => talk(T('¡Dale! ', 'Sure! ', 'Tudo bem! ') + otherQ(), [doneChip(), ...mainChips()])], doneChip()]), opts.querySelector('button.pri') && (opts.querySelector('button.pri').dataset.up = '1');
+        return talk(ok + ' ' + otherQ(), [doneChip(), ...mainChips()]);
       }
-      if(amb.length){ const a = amb[0]; return talk(`¿Cuál querés? Tengo ${a.map(i => i.n).join(', ')}.`, a.slice(0, 6).map(i => [i.n, () => { add(i.n, 1); talk(`¡Listo! Te agregué ${i.n}. ¿Algo más?`, [['✅ Eso es todo', () => verPedido(true), true], ...mainChips()]); }])); }
-      talk(`Mmm, no encontré "${text}" en la carta 🤔. Probá decirlo de otra forma, o mirá la carta y tocá ➕.`, mainChips());
+      if(amb.length){ const a = amb[0]; return talk(T(`¿Cuál querés? Tengo ${a.map(i => i.dn).join(', ')}.`, `Which one? I have ${a.map(i => i.dn).join(', ')}.`, `Qual você quer? Tenho ${a.map(i => i.dn).join(', ')}.`), a.slice(0, 6).map(i => [i.dn, () => { add(i.n, 1); talk(T(`¡Listo! Te agregué ${i.dn}.`, `Done! I added ${i.dn}.`, `Pronto! Adicionei ${i.dn}.`) + ' ' + otherQ(), [doneChip(), ...mainChips()]); }])); }
+      talk(T(`Mmm, no encontré "${text}" en la carta 🤔. Probá decirlo de otra forma, o mirá la carta y tocá ➕.`, `Hmm, I couldn't find "${text}" on the menu 🤔. Try saying it another way, or check the menu and tap ➕.`, `Hmm, não encontrei "${text}" no cardápio 🤔. Tente dizer de outro jeito, ou veja o cardápio e toque ➕.`), mainChips());
     }
     // ---- escuchar ----
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition; let rec = null, on = false;
-    if(SR){ rec = new SR(); rec.lang = 'es-AR'; rec.interimResults = false; rec.maxAlternatives = 1;
+    if(SR){ rec = new SR(); rec.lang = VL; rec.interimResults = false; rec.maxAlternatives = 1;
       rec.onresult = e => { const t = e.results[0][0].transcript; $('#iTxt').value = ''; say.textContent = '🗣 "' + t + '"'; setTimeout(() => hear(t), 250); };
       rec.onend = () => { on = false; $('#bMic').classList.remove('on'); }; rec.onerror = () => { on = false; $('#bMic').classList.remove('on'); }; }
     function listen(){ if(!rec || on) return; try{ rec.start(); on = true; $('#bMic').classList.add('on'); }catch(e){} }
-    $('#bMic').onclick = () => { if(!rec){ $('#iTxt').focus(); talk('Tu celular no me deja escucharte 🙈, pero escribime abajo y te entiendo igual.'); return; } if(on){ rec.stop(); return; } try{ speechSynthesis.cancel(); }catch(e){} listen(); say.textContent = '👂 Te escucho…'; };
+    $('#bMic').onclick = () => { if(!rec){ $('#iTxt').focus(); talk(T('Tu celular no me deja escucharte 🙈, pero escribime abajo y te entiendo igual.', 'Your phone won\'t let me listen 🙈, but type below and I\'ll understand.', 'Seu celular não me deixa ouvir 🙈, mas escreva abaixo que eu entendo.')); return; } if(on){ rec.stop(); return; } try{ speechSynthesis.cancel(); }catch(e){} listen(); say.textContent = '👂 ' + T('Te escucho…', 'Listening…', 'Estou ouvindo…'); };
     const sendTxt = () => { const t = $('#iTxt').value.trim(); if(!t) return; $('#iTxt').value = ''; hear(t); };
     $('#bSend').onclick = sendTxt; $('#iTxt').addEventListener('keydown', e => { if(e.key === 'Enter') sendTxt(); });
-    // ---- encargado / chef: el cliente le deja un mensaje y el dueño contesta desde la caja ----
-    let modoJefe = false;
-    const ava = (jefe) => { modoJefe = jefe; $('#ava').innerHTML = jefe ? JEFE : CHEF; chef = $('.chef'); };
+    // ---- encargado / chef ----
+    const ava = (jefe) => { $('#ava').innerHTML = jefe ? JEFE : CHEF; chef = $('.chef'); };
+    const backChip = (label) => [label || ('↩ ' + T('Volver con el mozo', 'Back to the waiter', 'Voltar ao garçom')), () => { step = ''; ava(false); talk(T('¡Acá estoy de nuevo! ¿En qué te ayudo?', 'I\'m back! How can I help?', 'Voltei! Como posso ajudar?'), mainChips()); }];
     function encargado(){
       ava(true); step = 'consulta';
-      talk(`¡Hola${nombre ? ', ' + nombre : ''}! Soy el encargado 👨‍🍳. Contame qué necesitás (una consulta, un pedido especial, alergias, lo que sea) y te respondo enseguida.`, [['↩ Volver con el mozo', () => { step = ''; ava(false); talk('¡Acá estoy de nuevo! ¿En qué te ayudo?', mainChips()); }]]);
+      talk(T(`¡Hola${nombre ? ', ' + nombre : ''}! Soy el encargado 👨‍🍳. Contame qué necesitás (una consulta, un pedido especial, alergias, lo que sea) y te respondo enseguida.`, `Hi${nombre ? ', ' + nombre : ''}! I'm the manager 👨‍🍳. Tell me what you need (a question, a special request, allergies, anything) and I'll get back to you right away.`, `Olá${nombre ? ', ' + nombre : ''}! Sou o gerente 👨‍🍳. Me conte o que você precisa (uma dúvida, um pedido especial, alergias) e eu respondo já.`), [backChip()]);
       talk.listen = false; $('#iTxt').focus();
     }
     async function consulta(texto){
       step = '';
-      let j = null; try{ j = await api('/api/menu?accion=aviso', {id: ID, mesa: MESA, nombre, tipo: 'consulta', texto}); }catch(e){ talk('Uy, no pude mandar tu mensaje. Probá de nuevo.'); ava(false); return; }
-      talk('¡Recibido! Ya le llegó tu mensaje al encargado. Te contesto acá en un ratito ⏳', [['↩ Seguir con el mozo', () => { ava(false); talk('¿En qué te ayudo?', mainChips()); }]]);
+      let j = null; try{ j = await api('/api/menu?accion=aviso', {id: ID, mesa: MESA, nombre, tipo: 'consulta', texto: (LANG !== 'es' ? '[' + LANG.toUpperCase() + '] ' : '') + texto}); }catch(e){ talk(T('Uy, no pude mandar tu mensaje. Probá de nuevo.', 'Oops, I couldn\'t send your message. Try again.', 'Ops, não consegui enviar sua mensagem.')); ava(false); return; }
+      talk(T('¡Recibido! Ya le llegó tu mensaje al encargado. Te contesto acá en un ratito ⏳', 'Got it! The manager has your message. I\'ll answer you here shortly ⏳', 'Recebido! O gerente já recebeu sua mensagem. Respondo aqui em instantes ⏳'), [backChip()]);
       const t = setInterval(async () => { let s = null; try{ s = await api(`/api/menu?id=${ID}&pedido=${j.pid}&k=${j.k}`); }catch(e){ return; }
-        if(s.rta){ clearInterval(t); ava(true); talk(`👨‍🍳 ${s.rta}`, [['↩ Volver con el mozo', () => { ava(false); talk('¿Algo más?', mainChips()); }], ['💬 Responderle', encargado]]); }
+        if(s.rta){ clearInterval(t); ava(true); talk(`👨‍🍳 ${s.rta}`, [backChip(), ['💬 ' + T('Responderle', 'Reply', 'Responder'), encargado]]); }
         else if(s.estado === 'visto'){ clearInterval(t); } }, 6000);
       setTimeout(() => clearInterval(t), 20 * 60e3);
     }
     // ---- pantallas ----
     let step = '';
-    const mainChips = () => [['📖 Ver la carta', verCarta], ['🤔 ¿Qué me recomendás?', recomendar], ['🙋 Llamar al mozo', () => aviso('mozo')], ['👨‍🍳 Hablar con el encargado', encargado]].concat(ultimo ? [['💳 Pagar / la cuenta', () => (M.alias || M.paylink) ? pagar(ultimo) : aviso('cuenta')]] : []);
-    const dishHTML = i => `<div class="dish"><span><b>${esc(i.n)}${i.promo ? ' ⭐' : ''}</b>${i.d ? `<small>${esc(i.d)}</small>` : ''}</span><span class="row" style="flex-wrap:nowrap"><span class="pr">${esc(i.p)}</span><button class="add" type="button" data-add="${esc(i.n)}" aria-label="Agregar ${esc(i.n)}">+</button></span></div>`;
-    area.addEventListener('click', e => { const b = e.target.closest('[data-add]'); if(!b) return; add(b.dataset.add, 1); b.textContent = '✓'; setTimeout(() => { b.textContent = '+'; }, 900); talk(`¡Anotado! ${b.dataset.add}. ¿Algo más?`, [['✅ Eso es todo', () => verPedido(true), true], ...mainChips()]); });
-    function verCarta(){ area.innerHTML = M.cats.map(c => `<div class="sec2"><h3>${esc(c.n)}</h3>${c.items.map(dishHTML).join('')}</div>`).join(''); talk(`Acá tenés la carta 📖. Tocá ➕ o decime lo que querés, por ejemplo: "una ${esc(ALL[0] ? ALL[0].n.toLowerCase() : 'empanada')}".`, [['🤔 ¿Qué me recomendás?', recomendar], ['🙋 Llamar al mozo', () => aviso('mozo')]]); }
+    const mainChips = () => [['📖 ' + T('Ver la carta', 'See the menu', 'Ver o cardápio'), verCarta], ['🤔 ' + T('¿Qué me recomendás?', 'What do you recommend?', 'O que você recomenda?'), recomendar], ['🙋 ' + T('Llamar al mozo', 'Call the waiter', 'Chamar o garçom'), () => aviso('mozo')], ['👨‍🍳 ' + T('Hablar con el encargado', 'Talk to the manager', 'Falar com o gerente'), encargado]].concat(ultimo ? [['💳 ' + T('Pagar / la cuenta', 'Pay / the bill', 'Pagar / a conta'), () => (M.alias || M.paylink) ? pagar(ultimo) : aviso('cuenta')]] : []);
+    const dishHTML = i => `<div class="dish"><span><b>${esc(i.dn)}${i.promo ? ' ⭐' : ''}</b>${i.dd ? `<small>${esc(i.dd)}</small>` : ''}</span><span class="row" style="flex-wrap:nowrap"><span class="pr">${esc(i.p)}</span><button class="add" type="button" data-add="${esc(i.n)}" aria-label="+ ${esc(i.dn)}">+</button></span></div>`;
+    area.addEventListener('click', e => { const b = e.target.closest('[data-add]'); if(!b) return; add(b.dataset.add, 1); b.textContent = '✓'; setTimeout(() => { b.textContent = '+'; }, 900); talk(T(`¡Anotado! ${dn(b.dataset.add)}.`, `Got it! ${dn(b.dataset.add)}.`, `Anotado! ${dn(b.dataset.add)}.`) + ' ' + otherQ(), [doneChip(), ...mainChips()]); });
+    function verCarta(){ area.innerHTML = CATS.map(c => `<div class="sec2"><h3>${esc(c.n)}</h3>${c.items.map(dishHTML).join('')}</div>`).join(''); talk(T(`Acá tenés la carta 📖. Tocá ➕ o decime lo que querés, por ejemplo: "una ${ALL[0] ? ALL[0].dn.toLowerCase() : 'empanada'}".`, `Here's the menu 📖. Tap ➕ or tell me what you'd like, for example: "one ${ALL[0] ? ALL[0].dn.toLowerCase() : 'coffee'}".`, `Aqui está o cardápio 📖. Toque ➕ ou me diga o que quer, por exemplo: "um ${ALL[0] ? ALL[0].dn.toLowerCase() : 'café'}".`), [mainChips()[1], mainChips()[2]]); }
     function recomendar(){
-      const cats = M.cats.filter(c => c.items.length).slice(0, 8);
-      talk('¡Dale! ¿Qué tenés ganas de comer o tomar?', cats.map(c => [c.n, () => {
-        talk('¿Para cuántas personas es?', [1, 2, 3, 4].map(n => [n === 4 ? '4 o más' : String(n), () => {
+      const cats = CATS.filter(c => c.items.length).slice(0, 8);
+      talk(T('¡Dale! ¿Qué tenés ganas de comer o tomar?', 'Sure! What are you in the mood for?', 'Claro! O que você está com vontade de comer ou beber?'), cats.map(c => [c.n, () => {
+        talk(T('¿Para cuántas personas es?', 'For how many people?', 'Para quantas pessoas?'), [1, 2, 3, 4].map(n => [n === 4 ? T('4 o más', '4 or more', '4 ou mais') : String(n), () => {
           const its = c.items.slice().sort((a, b) => (b.promo - a.promo)).slice(0, Math.min(3, Math.max(2, n)));
-          area.innerHTML = `<div class="sec2"><h3>Te recomiendo</h3>${its.map(dishHTML).join('')}</div>`;
-          talk(`Para ${n === 1 ? 'vos' : n + ' personas'} te recomiendo ${its.map(i => i.n).join(', ')}${its[0] && its[0].promo ? ' — ¡está en promo hoy!' : ''}. Tocá ➕ en lo que quieras.`, mainChips());
+          area.innerHTML = `<div class="sec2"><h3>${T('Te recomiendo', 'I recommend', 'Eu recomendo')}</h3>${its.map(dishHTML).join('')}</div>`;
+          const promo = its[0] && its[0].promo ? T(' — ¡está en promo hoy!', ' — it\'s on special today!', ' — está em promoção hoje!') : '';
+          talk(T(`Para ${n === 1 ? 'vos' : n + ' personas'} te recomiendo ${its.map(i => i.dn).join(', ')}${promo}. Tocá ➕ en lo que quieras.`, `For ${n === 1 ? 'you' : n + ' people'} I recommend ${its.map(i => i.dn).join(', ')}${promo}. Tap ➕ on what you'd like.`, `Para ${n === 1 ? 'você' : n + ' pessoas'} eu recomendo ${its.map(i => i.dn).join(', ')}${promo}. Toque ➕ no que quiser.`), mainChips());
         }]));
       }]));
     }
     function verPedido(enviar){
-      const ent = Object.entries(order);
-      if(!ent.length){ talk('Tu pedido está vacío todavía. ¿Qué te traigo?', mainChips()); return; }
+      if(!Object.keys(order).length){ talk(T('Tu pedido está vacío todavía. ¿Qué te traigo?', 'Your order is still empty. What can I get you?', 'Seu pedido ainda está vazio. O que eu trago?'), mainChips()); return; }
       const sh = document.createElement('div'); sh.className = 'sheet';
-      const paint = () => { const e2 = Object.entries(order); sh.innerHTML = `<div><h2 style="margin:0">🧾 Tu pedido · Mesa ${MESA}</h2>${e2.map(([n, q]) => { const it = ALL.find(i => i.n === n); return `<div class="line"><span><b>${esc(n)}</b><br><small>${esc(it ? it.p : '')}</small></span><button type="button" data-m="${esc(n)}">−</button><b>${q}</b><button type="button" data-p="${esc(n)}">+</button></div>`; }).join('')}
+      const paint = () => { const e2 = Object.entries(order); sh.innerHTML = `<div><h2 style="margin:0">🧾 ${T('Tu pedido', 'Your order', 'Seu pedido')} · ${T('Mesa', 'Table', 'Mesa')} ${MESA}</h2>${e2.map(([n, q]) => { const it = byN(n); return `<div class="line"><span><b>${esc(dn(n))}</b><br><small>${esc(it ? it.p : '')}</small></span><button type="button" data-m="${esc(n)}">−</button><b>${q}</b><button type="button" data-p="${esc(n)}">+</button></div>`; }).join('')}
         <b style="font-size:20px;text-align:right">Total: ${money(total())}</b>
-        <input id="iNota" maxlength="200" placeholder="¿Alguna aclaración? (ej: sin cebolla)">
-        <button class="btn pri" type="button" id="bSendOrder">✅ Enviar a la cocina</button><button class="btn sec" type="button" id="bClose">Seguir pidiendo</button></div>`;
-        sh.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { const n = b.dataset.m; order[n]--; if(order[n] <= 0) delete order[n]; paintCart(); if(!count()) { sh.remove(); return; } paint(); });
+        <input id="iNota" maxlength="200" placeholder="${T('¿Alguna aclaración? (ej: sin cebolla)', 'Any notes? (e.g. no onion)', 'Alguma observação? (ex: sem cebola)')}">
+        <button class="btn pri" type="button" id="bSendOrder">✅ ${T('Enviar a la cocina', 'Send to the kitchen', 'Enviar para a cozinha')}</button><button class="btn sec" type="button" id="bClose">${T('Seguir pidiendo', 'Keep ordering', 'Continuar pedindo')}</button></div>`;
+        sh.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { const n = b.dataset.m; order[n]--; if(order[n] <= 0) delete order[n]; paintCart(); if(!count()){ sh.remove(); return; } paint(); });
         sh.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { order[b.dataset.p]++; paintCart(); paint(); });
         sh.querySelector('#bClose').onclick = () => sh.remove();
-        sh.querySelector('#bSendOrder').onclick = async ev => { ev.target.disabled = true; ev.target.textContent = 'Enviando…';
-          try{ const j = await api('/api/menu?accion=pedido', {id: ID, mesa: MESA, nombre, nota: sh.querySelector('#iNota').value, items: Object.entries(order).map(([n, q]) => ({n, q}))});
+        sh.querySelector('#bSendOrder').onclick = async ev => { ev.target.disabled = true; ev.target.textContent = '…';
+          const nota = sh.querySelector('#iNota').value;
+          try{ const j = await api('/api/menu?accion=pedido', {id: ID, mesa: MESA, nombre, nota: (LANG !== 'es' && nota ? '[' + LANG.toUpperCase() + '] ' : '') + nota, items: Object.entries(order).map(([n, q]) => ({n, q}))});
             totalUlt += total(); sh.remove(); order = {}; paintCart(); seguir(j);
-          }catch(e){ ev.target.disabled = false; ev.target.textContent = '✅ Enviar a la cocina'; alert(e.message); } };
+          }catch(e){ ev.target.disabled = false; ev.target.textContent = '✅ ' + T('Enviar a la cocina', 'Send to the kitchen', 'Enviar para a cozinha'); alert(e.message); } };
       };
       paint(); sh.onclick = e => { if(e.target === sh) sh.remove(); }; document.body.appendChild(sh);
-      if(enviar) talk(`Este es tu pedido${nombre ? ', ' + nombre : ''}: total ${money(total())}. Si está todo bien, tocá "Enviar a la cocina".`);
+      if(enviar) talk(T(`Este es tu pedido${nombre ? ', ' + nombre : ''}: total ${money(total())}. Si está todo bien, tocá "Enviar a la cocina".`, `Here's your order${nombre ? ', ' + nombre : ''}: total ${money(total())}. If everything looks good, tap "Send to the kitchen".`, `Este é o seu pedido${nombre ? ', ' + nombre : ''}: total ${money(total())}. Se estiver tudo certo, toque "Enviar para a cozinha".`));
     }
     $('#bCart').onclick = () => verPedido(false);
-    let ultimo = null, totalUlt = 0;
-    let wl = null, pagado = false;
+    let ultimo = null, totalUlt = 0, wl = null, pagado = false;
     const awake = async () => { try{ if('wakeLock' in navigator && !wl){ wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release', () => { wl = null; }); } }catch(e){} };
     document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && ultimo) awake(); });
+    const payNow = j => ['💳 ' + T('Pagar ahora', 'Pay now', 'Pagar agora'), () => pagar(j), true];
     function seguir(j){
-      awake();
+      awake(); ultimo = j;
       let last = 'nuevo';
       const puede = M.alias || M.paylink;
-      talk(`¡Listo${nombre ? ', ' + nombre : ''}! 🎉 Tu pedido número ${j.n} ya llegó a la cocina.${M.demora ? ' Tarda más o menos ' + M.demora + ' minutos.' : ''} Te aviso cuando esté listo.${puede ? ' ¿Querés pagar ahora desde la mesa, o al final cuando termines?' : ''}`,
-        puede ? [['💳 Pagar ahora', () => pagar(j), true], ['⏰ Pago al final', () => talk('¡Perfecto! Cuando termines decime "la cuenta" o tocá 💳 y te ayudo a pagar.', [['➕ Pedir algo más', verCarta], ['💳 Pagar', () => pagar(j)], ['🙋 Llamar al mozo', () => aviso('mozo')]])]]
-              : [['➕ Pedir algo más', verCarta], ['🙋 Llamar al mozo', () => aviso('mozo')], ['💳 Pedir la cuenta', () => aviso('cuenta')]]);
-      ultimo = j;
-      area.innerHTML = `<div class="status" id="st">🧾 Pedido #${j.n}: recibido en la cocina${M.demora ? ' · espera aprox. ' + M.demora + ' min' : ''}</div>`;
+      const dem = M.demora ? T(` Tarda más o menos ${M.demora} minutos.`, ` It takes about ${M.demora} minutes.`, ` Leva mais ou menos ${M.demora} minutos.`) : '';
+      talk(T(`¡Listo${nombre ? ', ' + nombre : ''}! 🎉 Tu pedido número ${j.n} ya llegó a la cocina.`, `Done${nombre ? ', ' + nombre : ''}! 🎉 Your order number ${j.n} is in the kitchen.`, `Pronto${nombre ? ', ' + nombre : ''}! 🎉 Seu pedido número ${j.n} já chegou na cozinha.`) + dem + T(' Te aviso cuando esté listo.', ' I\'ll let you know when it\'s ready.', ' Eu aviso quando estiver pronto.') + (puede ? T(' ¿Querés pagar ahora desde la mesa, o al final cuando termines?', ' Would you like to pay now from your table, or at the end?', ' Quer pagar agora pela mesa, ou no final?') : ''),
+        puede ? [payNow(j), ['⏰ ' + T('Pago al final', 'Pay at the end', 'Pago no final'), () => talk(T('¡Perfecto! Cuando termines decime "la cuenta" o tocá 💳 y te ayudo a pagar.', 'Perfect! When you\'re done, say "the bill" or tap 💳 and I\'ll help you pay.', 'Perfeito! Quando terminar, diga "a conta" ou toque 💳.'), mainChips())]]
+              : [['➕ ' + T('Pedir algo más', 'Order something else', 'Pedir mais algo'), verCarta], ['🙋 ' + T('Llamar al mozo', 'Call the waiter', 'Chamar o garçom'), () => aviso('mozo')], ['💳 ' + T('Pedir la cuenta', 'Ask for the bill', 'Pedir a conta'), () => aviso('cuenta')]]);
+      area.innerHTML = `<div class="status" id="st">🧾 ${T('Pedido', 'Order', 'Pedido')} #${j.n}: ${T('recibido en la cocina', 'received in the kitchen', 'recebido na cozinha')}${M.demora ? ' · ~' + M.demora + ' min' : ''}</div>`;
       const t = setInterval(async () => { let s = null; try{ s = await api(`/api/menu?id=${ID}&pedido=${j.pid}&k=${j.k}`); }catch(e){ return; }
         if(s.estado === last) return; last = s.estado; const st = $('#st');
-        if(s.estado === 'preparando'){ if(st) st.textContent = `👨‍🍳 Pedido #${j.n}: lo están preparando`; talk('¡Buenas noticias! Ya están preparando tu pedido 👨‍🍳'); }
-        if(s.estado === 'listo'){ if(st) st.textContent = s.mozo ? `🍽️ Pedido #${j.n}: ${s.mozo} te lo está llevando` : `✅ Pedido #${j.n}: ¡listo, ya sale!`; talk(s.mozo ? `¡${nombre || 'Ey'}! Tu pedido ya está listo: ${s.mozo} te lo está llevando a la mesa ${MESA} 🍽️ ¡Que lo disfrutes!` : `¡${nombre || 'Ey'}! Tu pedido ya está listo y va para tu mesa 🍽️ ¡Que lo disfrutes!`, mainChips()); }
-        if(s.estado === 'listo' && (M.alias || M.paylink) && !pagado) setTimeout(() => { if(!pagado) talk(`¿Qué tal todo${nombre ? ', ' + nombre : ''}? 😊 Cuando quieras, podés abonar ahora desde acá o al final, como prefieras.`, [['💳 Abonar ahora', () => pagar(ultimo), true], ['⏰ Al final', () => talk('¡Dale, disfrutá! Cuando termines, tocá 💳 o decime "la cuenta".', mainChips())], ...mainChips()]); }, 4 * 60e3);
+        if(s.estado === 'preparando'){ if(st) st.textContent = `👨‍🍳 #${j.n}: ${T('lo están preparando', 'being prepared', 'sendo preparado')}`; talk(T('¡Buenas noticias! Ya están preparando tu pedido 👨‍🍳', 'Good news! Your order is being prepared 👨‍🍳', 'Boa notícia! Seu pedido já está sendo preparado 👨‍🍳')); }
+        if(s.estado === 'listo'){
+          if(st) st.textContent = s.mozo ? `🍽️ #${j.n}: ${T(`${s.mozo} te lo está llevando`, `${s.mozo} is bringing it`, `${s.mozo} está levando`)}` : `✅ #${j.n}: ${T('¡listo, ya sale!', 'ready, on its way!', 'pronto, já vai!')}`;
+          talk(s.mozo ? T(`¡${nombre || 'Ey'}! Tu pedido ya está listo: ${s.mozo} te lo está llevando a la mesa ${MESA} 🍽️ ¡Que lo disfrutes!`, `${nombre || 'Hey'}! Your order is ready: ${s.mozo} is bringing it to table ${MESA} 🍽️ Enjoy!`, `${nombre || 'Ei'}! Seu pedido está pronto: ${s.mozo} está levando para a mesa ${MESA} 🍽️ Bom apetite!`)
+                      : T(`¡${nombre || 'Ey'}! Tu pedido ya está listo y va para tu mesa 🍽️ ¡Que lo disfrutes!`, `${nombre || 'Hey'}! Your order is ready and on its way to your table 🍽️ Enjoy!`, `${nombre || 'Ei'}! Seu pedido está pronto e vai para a sua mesa 🍽️ Bom apetite!`), mainChips());
+          if((M.alias || M.paylink) && !pagado) setTimeout(() => { if(!pagado) talk(T(`¿Qué tal todo${nombre ? ', ' + nombre : ''}? 😊 Cuando quieras, podés abonar ahora desde acá o al final, como prefieras.`, `How's everything${nombre ? ', ' + nombre : ''}? 😊 Whenever you like, you can pay now from here or at the end.`, `Tudo bem${nombre ? ', ' + nombre : ''}? 😊 Quando quiser, pode pagar agora por aqui ou no final.`), [payNow(ultimo), ['⏰ ' + T('Al final', 'At the end', 'No final'), () => talk(T('¡Dale, disfrutá! Cuando termines, tocá 💳 o decime "la cuenta".', 'Enjoy! When you\'re done, tap 💳 or say "the bill".', 'Aproveite! Quando terminar, toque 💳 ou diga "a conta".'), mainChips())], ...mainChips()]); }, 4 * 60e3);
+        }
         if(['entregado', 'cancelado'].includes(s.estado)) clearInterval(t);
       }, 8000);
     }
     function pagar(j){
       const monto = totalUlt ? money(totalUlt) : '';
       if(!(M.alias || M.paylink)) return aviso('cuenta');
-      area.innerHTML = `<div class="card" style="box-shadow:none;border:2px solid var(--line)"><h2 style="margin:0">💳 Pagar ${monto ? monto : ''}</h2>
-        ${M.paylink ? `<a class="btn pri" href="${esc(M.paylink)}" target="_blank" rel="noopener">Pagar con Mercado Pago</a>` : ''}
-        ${M.alias ? `<div class="row"><span>Transferí al alias <b>${esc(M.alias)}</b></span><button class="btn sec" type="button" id="bCopyA">📋 Copiar alias</button></div>` : ''}
-        <button class="btn sec" type="button" id="bPague">✅ Ya pagué</button><p class="note">Cuando pagues, tocá "Ya pagué" y le aviso a la caja para que lo confirme.</p></div>`;
-      const ca = $('#bCopyA'); if(ca) ca.onclick = () => { navigator.clipboard?.writeText(M.alias).then(() => { ca.textContent = '✓ Copiado'; }); };
-      $('#bPague').onclick = async () => { try{ await api('/api/menu?accion=aviso', {id: ID, mesa: MESA, nombre, tipo: 'pago', monto, pedido_n: j && j.n}); pagado = true; talk(`¡Gracias${nombre ? ', ' + nombre : ''}! 🙌 Le avisé a la caja que pagaste ${monto}. Ellos lo confirman.`, mainChips()); area.innerHTML = '<div class="status">💳 Pago avisado a la caja</div>'; }catch(e){ talk('Uy, no pude avisar a la caja. Probá de nuevo.'); } };
-      talk(`¡Dale! ${monto ? 'Son ' + monto + '. ' : ''}Podés ${M.paylink ? 'pagar con Mercado Pago tocando el botón' : ''}${M.paylink && M.alias ? ', o ' : ''}${M.alias ? 'transferir al alias ' + M.alias : ''}. Cuando termines, tocá "Ya pagué".`);
+      area.innerHTML = `<div class="card" style="box-shadow:none;border:2px solid var(--line)"><h2 style="margin:0">💳 ${T('Pagar', 'Pay', 'Pagar')} ${monto}</h2>
+        ${M.paylink ? `<a class="btn pri" href="${esc(M.paylink)}" target="_blank" rel="noopener">${T('Pagar con Mercado Pago', 'Pay with Mercado Pago', 'Pagar com Mercado Pago')}</a>` : ''}
+        ${M.alias ? `<div class="row"><span>${T('Transferí al alias', 'Bank transfer alias', 'Transferir para o alias')} <b>${esc(M.alias)}</b></span><button class="btn sec" type="button" id="bCopyA">📋 ${T('Copiar alias', 'Copy alias', 'Copiar alias')}</button></div>` : ''}
+        <button class="btn sec" type="button" id="bPague">✅ ${T('Ya pagué', 'I\'ve paid', 'Já paguei')}</button><p class="note">${T('Cuando pagues, tocá "Ya pagué" y le aviso a la caja para que lo confirme.', 'When you\'ve paid, tap "I\'ve paid" and I\'ll let the cashier know to confirm it.', 'Quando pagar, toque "Já paguei" e eu aviso o caixa para confirmar.')}</p></div>`;
+      const ca = $('#bCopyA'); if(ca) ca.onclick = () => { navigator.clipboard?.writeText(M.alias).then(() => { ca.textContent = '✓'; }); };
+      $('#bPague').onclick = async () => { try{ await api('/api/menu?accion=aviso', {id: ID, mesa: MESA, nombre, tipo: 'pago', monto, pedido_n: j && j.n}); pagado = true; talk(T(`¡Gracias${nombre ? ', ' + nombre : ''}! 🙌 Le avisé a la caja que pagaste ${monto}. Ellos lo confirman.`, `Thank you${nombre ? ', ' + nombre : ''}! 🙌 I told the cashier you paid ${monto}. They'll confirm it.`, `Obrigado${nombre ? ', ' + nombre : ''}! 🙌 Avisei o caixa que você pagou ${monto}. Eles vão confirmar.`), mainChips()); area.innerHTML = `<div class="status">💳 ${T('Pago avisado a la caja', 'Payment reported to the cashier', 'Pagamento avisado ao caixa')}</div>`; }catch(e){ talk(T('Uy, no pude avisar a la caja. Probá de nuevo.', 'Oops, I couldn\'t reach the cashier. Try again.', 'Ops, não consegui avisar o caixa.')); } };
+      const como = [M.paylink ? T('pagar con Mercado Pago tocando el botón', 'pay with Mercado Pago by tapping the button', 'pagar com Mercado Pago tocando o botão') : '', M.alias ? T('transferir al alias ', 'transfer to the alias ', 'transferir para o alias ') + M.alias : ''].filter(Boolean).join(T(', o ', ', or ', ', ou '));
+      talk(T(`¡Dale! ${monto ? 'Son ' + monto + '. ' : ''}Podés ${como}. Cuando termines, tocá "Ya pagué".`, `Sure! ${monto ? 'It\'s ' + monto + '. ' : ''}You can ${como}. When you're done, tap "I've paid".`, `Claro! ${monto ? 'São ' + monto + '. ' : ''}Você pode ${como}. Quando terminar, toque "Já paguei".`));
     }
     async function aviso(tipo){
-      try{ await api('/api/menu?accion=aviso', {id: ID, mesa: MESA, nombre, tipo}); talk(tipo === 'cuenta' ? '¡Dale! Ya le avisé a la caja que querés la cuenta 💳. Enseguida te la traen.' : '¡Listo! Ya le avisé al mozo, enseguida viene 🙋.', mainChips()); }
-      catch(e){ talk('Uy, no pude avisar. Probá de nuevo en un ratito.', mainChips()); }
+      try{ await api('/api/menu?accion=aviso', {id: ID, mesa: MESA, nombre, tipo}); talk(tipo === 'cuenta' ? T('¡Dale! Ya le avisé a la caja que querés la cuenta 💳. Enseguida te la traen.', 'Sure! I told the cashier you\'d like the bill 💳. They\'ll bring it right away.', 'Claro! Avisei o caixa que você quer a conta 💳. Já trazem.') : T('¡Listo! Ya le avisé al mozo, enseguida viene 🙋.', 'Done! I called the waiter, they\'ll be right there 🙋.', 'Pronto! Chamei o garçom, ele já vem 🙋.'), mainChips()); }
+      catch(e){ talk(T('Uy, no pude avisar. Probá de nuevo en un ratito.', 'Oops, I couldn\'t send that. Try again in a moment.', 'Ops, não consegui avisar. Tente de novo.'), mainChips()); }
     }
-    function setName(t){ nombre = t.trim().split(/\s+/).slice(-1)[0].replace(/[^\p{L}]/gu, '').slice(0, 20); nombre = nombre ? nombre[0].toUpperCase() + nombre.slice(1).toLowerCase() : ''; keep(); step = ''; $('#iTxt').placeholder = 'Decime o escribime qué querés…'; promos(); }
+    function setName(t){ nombre = t.trim().split(/\s+/).slice(-1)[0].replace(/[^\p{L}]/gu, '').slice(0, 20); nombre = nombre ? nombre[0].toUpperCase() + nombre.slice(1).toLowerCase() : ''; keep(); step = ''; $('#iTxt').placeholder = T('Decime o escribime qué querés…', 'Tell me or type what you want…', 'Fale ou escreva o que você quer…'); promos(); }
     function promos(){
-      const hola = nombre ? `¡Un gusto, ${nombre}! 😊 ` : '¡Dale! 😊 ';
-      if(PROMOS.length){ area.innerHTML = `<div class="sec2"><h3>⭐ Hoy te recomendamos</h3>${PROMOS.map(dishHTML).join('')}</div>`; talk(hola + `Hoy te recomendamos: ${PROMOS.slice(0, 3).map(i => i.n + (i.p ? ' a ' + i.p : '')).join(', ')}. Podés tocar ➕ o pedirme lo que quieras hablando 🎤.`, mainChips()); talk.listen = false; }
-      else { talk(hola + '¿Qué te traigo? Podés pedirme hablando 🎤, por ejemplo "un café con leche y dos medialunas", o mirar la carta.', mainChips()); verCarta(); talk(hola + '¿Qué te traigo? Pedime hablando 🎤 o tocá ➕ en la carta.', mainChips()); }
+      const hola = nombre ? T(`¡Un gusto, ${nombre}! 😊 `, `Nice to meet you, ${nombre}! 😊 `, `Prazer, ${nombre}! 😊 `) : T('¡Dale! 😊 ', 'Great! 😊 ', 'Ótimo! 😊 ');
+      if(PROMOS.length){ area.innerHTML = `<div class="sec2"><h3>⭐ ${T('Hoy te recomendamos', 'Today\'s specials', 'Hoje recomendamos')}</h3>${PROMOS.map(dishHTML).join('')}</div>`; talk(hola + T(`Hoy te recomendamos: ${PROMOS.slice(0, 3).map(i => i.dn + (i.p ? ' a ' + i.p : '')).join(', ')}. Podés tocar ➕ o pedirme lo que quieras hablando 🎤.`, `Today's specials: ${PROMOS.slice(0, 3).map(i => i.dn + (i.p ? ' for ' + i.p : '')).join(', ')}. Tap ➕ or just tell me what you'd like 🎤.`, `Hoje recomendamos: ${PROMOS.slice(0, 3).map(i => i.dn + (i.p ? ' por ' + i.p : '')).join(', ')}. Toque ➕ ou me peça falando 🎤.`), mainChips()); }
+      else { verCarta(); talk(hola + T('¿Qué te traigo? Pedime hablando 🎤 o tocá ➕ en la carta.', 'What can I get you? Tell me 🎤 or tap ➕ on the menu.', 'O que eu trago? Peça falando 🎤 ou toque ➕ no cardápio.'), mainChips()); }
     }
     paintCart();
-    // bienvenida: hace falta un toque para que el celular deje hablar
     if(nombre){ promos(); return; }
-    say.textContent = `¡Hola! 👋 Bienvenido a ${M.nombre}.`;
-    opts.innerHTML = '<button type="button" class="pri btn" id="bHola">👋 Tocá para empezar</button>';
-    const pedirMesa = () => { step = 'mesa'; talk.listen = !mute; talk(`¡Hola! 👋 Bienvenido a ${M.nombre}. Soy ${M.asistente || 'Lola'}, tu asistente. ¿En qué mesa estás? Decime el número.`, Array.from({length: Math.min(M.mesas || 10, 12)}, (_, i) => [String(i + 1), () => setMesa(i + 1)])); $('#iTxt').placeholder = 'Número de mesa'; };
-    function setMesa(n){ MESA = n; $('#tagMesa').textContent = 'Mesa ' + n; step = 'nombre'; talk.listen = !mute; talk(`¡Perfecto, mesa ${n}! ¿Cómo te llamás?`, [['Prefiero no decirlo', () => { step = ''; promos(); }]]); $('#iTxt').placeholder = 'Escribí tu nombre o tocá 🎤'; }
+    say.textContent = T(`¡Hola! 👋 Bienvenido a ${M.nombre}.`, `Hi! 👋 Welcome to ${M.nombre}.`, `Olá! 👋 Bem-vindo ao ${M.nombre}.`);
+    opts.innerHTML = `<button type="button" class="pri btn" id="bHola">👋 ${T('Tocá para empezar', 'Tap to start', 'Toque para começar')}</button>`;
+    const askName = () => T('¿Cómo te llamás?', 'What\'s your name?', 'Qual é o seu nome?');
+    const skipName = () => [T('Prefiero no decirlo', 'I\'d rather not say', 'Prefiro não dizer'), () => { step = ''; promos(); }];
+    const namePh = () => { $('#iTxt').placeholder = T('Escribí tu nombre o tocá 🎤', 'Type your name or tap 🎤', 'Escreva seu nome ou toque 🎤'); };
+    const soy = () => T(`¡Hola! 👋 Bienvenido a ${M.nombre}. Soy ${M.asistente || 'Lola'}, tu asistente.`, `Hi! 👋 Welcome to ${M.nombre}. I'm ${M.asistente || 'Lola'}, your assistant.`, `Olá! 👋 Bem-vindo ao ${M.nombre}. Sou ${M.asistente || 'Lola'}, seu assistente.`);
+    const pedirMesa = () => { step = 'mesa'; talk.listen = !mute; talk(soy() + ' ' + T('¿En qué mesa estás? Decime el número.', 'Which table are you at? Tell me the number.', 'Em qual mesa você está? Diga o número.'), Array.from({length: Math.min(M.mesas || 10, 12)}, (_, i) => [String(i + 1), () => setMesa(i + 1)])); $('#iTxt').placeholder = T('Número de mesa', 'Table number', 'Número da mesa'); };
+    function setMesa(n){ MESA = n; $('#tagMesa').textContent = T('Mesa ', 'Table ', 'Mesa ') + n; step = 'nombre'; talk.listen = !mute; talk(T(`¡Perfecto, mesa ${n}! `, `Perfect, table ${n}! `, `Perfeito, mesa ${n}! `) + askName(), [skipName()]); namePh(); }
     $('#bHola').onclick = () => {
       if(!MESA) return pedirMesa();
       step = 'nombre'; talk.listen = !mute;
-      talk(`¡Hola! 👋 Bienvenido a ${M.nombre}. Soy ${M.asistente || 'Lola'}, tu asistente. Estás en la mesa ${MESA}.${M.saludo ? ' ' + M.saludo : ''} ¿Cómo te llamás?`, [['Prefiero no decirlo', () => { step = ''; promos(); }]]);
-      $('#iTxt').placeholder = 'Escribí tu nombre o tocá 🎤'; $('#iTxt').focus();
+      talk(soy() + ' ' + T(`Estás en la mesa ${MESA}.`, `You're at table ${MESA}.`, `Você está na mesa ${MESA}.`) + (SALUDO ? ' ' + SALUDO : '') + ' ' + askName(), [skipName()]);
+      namePh(); $('#iTxt').focus();
     };
   }
 

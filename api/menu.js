@@ -29,6 +29,30 @@ function limpiar(m) {
     saludo: t(m.saludo, 200), moneda: t(m.moneda, 4) || '$', alias: t(m.alias, 60), mozos: (Array.isArray(m.mozos) ? m.mozos : String(m.mozos || '').split(',')).map(x => t(String(x).trim(), 20)).filter(Boolean).slice(0, 12), demora: Math.max(0, Math.min(120, parseInt(m.demora, 10) || 0)), paylink: /^https:\/\//i.test(String(m.paylink || '')) ? t(m.paylink, 300) : '', cats };
 }
 
+
+// Traduce la carta al inglés y al portugués (para turistas). Barato: modelo de texto. Si falla, el menú queda en castellano.
+async function traducir(menu) {
+  const KEY = process.env.ANTHROPIC_API_KEY; if (!KEY) return null;
+  const src = { saludo: menu.saludo || '', cats: menu.cats.map(c => ({ n: c.n, items: c.items.map(i => ({ n: i.n, d: i.d })) })) };
+  const prompt = `Traducí esta carta de restaurante al inglés ("en") y al portugués de Brasil ("pt"). Mantené EXACTAMENTE la misma estructura, el mismo orden y la misma cantidad de secciones y platos. Nombres propios o de marca y platos típicos argentinos (por ejemplo "medialuna", "milanesa", "choripán") dejalos en su nombre original y agregá entre paréntesis una explicación muy corta. Respondé SOLO con JSON: {"en":{"saludo":"","cats":[{"n":"","items":[{"n":"","d":""}]}]},"pt":{...}}
+${JSON.stringify(src)}`;
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'x-api-key': KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: process.env.IA_MODEL_TEXT || 'claude-haiku-5-5', max_tokens: 16000, messages: [{ role: 'user', content: prompt }] }) });
+    if (!r.ok) return null;
+    const j = await r.json(), text = (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
+    const out = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1));
+    const tr = {};
+    for (const L of ['en', 'pt']) {
+      const x = out && out[L]; if (!x || !Array.isArray(x.cats) || x.cats.length !== menu.cats.length) continue;
+      const ok = x.cats.every((c, k) => c && Array.isArray(c.items) && c.items.length === menu.cats[k].items.length);
+      if (!ok) continue;
+      tr[L] = { saludo: t(x.saludo, 200), cats: x.cats.map(c => ({ n: t(c.n, 60), items: c.items.map(i => ({ n: t(i && i.n, 90), d: t(i && i.d, 240) })) })) };
+    }
+    return Object.keys(tr).length ? tr : null;
+  } catch (e) { return null; }
+}
+
 module.exports = async (req, res) => {
   try {
     const q = req.query || {};
@@ -102,17 +126,24 @@ module.exports = async (req, res) => {
       const b = cuerpo(req), menu = limpiar(b.menu);
       if (!menu.cats.length) return res.status(400).json({ error: 'El menú está vacío.' });
       let id = String(b.id || ''), clave = String(b.clave || '');
+      // traducción: solo si cambió el texto de la carta (así no se paga de nuevo por cambiar un precio)
+      const firma = crypto.createHash('sha1').update(JSON.stringify([menu.saludo, menu.cats.map(c => [c.n, c.items.map(i => [i.n, i.d])])])).digest('hex');
+      let prev = null;
       if (id) {
         if (!/^[a-z0-9]{6,20}$/.test(id)) return res.status(400).json({ error: 'Menú inválido.' });
-        const f = await leerObj('menus/' + id + '.json');
-        if (!f || hash(clave) !== f.clave) return res.status(403).json({ error: 'No tenés permiso para editar este menú.' });
-        await guardarObj('menus/' + id + '.json', Object.assign(f, { menu, cambiado: new Date().toISOString() }));
+        prev = await leerObj('menus/' + id + '.json');
+        if (!prev || hash(clave) !== prev.clave) return res.status(403).json({ error: 'No tenés permiso para editar este menú.' });
+      }
+      if (prev && prev.firma === firma && prev.menu && prev.menu.tr) menu.tr = prev.menu.tr;
+      else { const tr = await traducir(menu); if (tr) menu.tr = tr; }
+      if (prev) {
+        await guardarObj('menus/' + id + '.json', Object.assign(prev, { menu, firma, cambiado: new Date().toISOString() }));
       } else {
         id = crypto.randomBytes(6).toString('hex').replace(/[^a-z0-9]/g, '').slice(0, 10);
         clave = crypto.randomBytes(9).toString('hex');
-        await guardarObj('menus/' + id + '.json', { clave: hash(clave), menu, creado: new Date().toISOString() });
+        await guardarObj('menus/' + id + '.json', { clave: hash(clave), menu, firma, creado: new Date().toISOString() });
       }
-      return res.status(200).json({ ok: true, id, clave });
+      return res.status(200).json({ ok: true, id, clave, idiomas: ['es'].concat(Object.keys(menu.tr || {})) });
     }
 
     if (req.method === 'POST' && q.accion === 'leer') {
