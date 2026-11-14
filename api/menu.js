@@ -26,7 +26,7 @@ function limpiar(m) {
   const cats = (Array.isArray(m.cats) ? m.cats : []).slice(0, 40).map(c => ({ n: t(c && c.n, 60),
     items: (Array.isArray(c && c.items) ? c.items : []).slice(0, 80).map(i => ({ n: t(i && i.n, 90), d: t(i && i.d, 240), p: t(i && i.p, 30), promo: !!(i && i.promo) })).filter(i => i.n) })).filter(c => c.n || c.items.length);
   return { nombre: t(m.nombre, 60), wa: t(m.wa, 20).replace(/[^\d+]/g, ''), mesas: Math.max(1, Math.min(200, parseInt(m.mesas, 10) || 10)), asistente: t(m.asistente, 20) || 'Lola', avatar: ['moza', 'mozo'].includes(m.avatar) ? m.avatar : '', pelo: ['castano', 'rubio', 'negro', 'colorado', 'canoso'].includes(m.pelo) ? m.pelo : '', largo: m.largo === 'corto' ? 'corto' : 'largo', piel: ['clara', 'media', 'morena', 'oscura'].includes(m.piel) ? m.piel : '', barba: !!m.barba,
-    saludo: t(m.saludo, 200), moneda: t(m.moneda, 4) || '$', alias: t(m.alias, 60), mozos: (Array.isArray(m.mozos) ? m.mozos : String(m.mozos || '').split(',')).map(x => t(String(x).trim(), 20)).filter(Boolean).slice(0, 12), demora: Math.max(0, Math.min(120, parseInt(m.demora, 10) || 0)), paylink: /^https:\/\//i.test(String(m.paylink || '')) ? t(m.paylink, 300) : '', cats };
+    saludo: t(m.saludo, 200), moneda: t(m.moneda, 4) || '$', alias: t(m.alias, 60), greview: /^https:\/\//i.test(String(m.greview || '')) ? t(m.greview, 300) : '', mozos: (Array.isArray(m.mozos) ? m.mozos : String(m.mozos || '').split(',')).map(x => t(String(x).trim(), 20)).filter(Boolean).slice(0, 12), demora: Math.max(0, Math.min(120, parseInt(m.demora, 10) || 0)), paylink: /^https:\/\//i.test(String(m.paylink || '')) ? t(m.paylink, 300) : '', cats };
 }
 
 
@@ -99,6 +99,28 @@ module.exports = async (req, res) => {
       L.items = [nuevo].concat((L.items || []).filter(x => Date.now() - Date.parse(x.creado) < 2 * 864e5)).slice(0, 150);
       await guardarObj(pedPath(b.id), L);
       return res.status(200).json({ ok: true, pid: nuevo.id, k: nuevo.k, n: nuevo.n || null });
+    }
+    // ---- Reseñas: solo quien hizo un pedido (pid + k), una por pedido ----
+    if (req.method === 'POST' && q.accion === 'resena') {
+      const b = cuerpo(req);
+      if (!okId(b.id)) return res.status(400).json({ error: 'Menú inválido.' });
+      const e = parseInt(b.e, 10); if (!(e >= 1 && e <= 5)) return res.status(400).json({ error: 'Elegí de 1 a 5 estrellas.' });
+      const L = (await leerObj(pedPath(b.id))) || { items: [] };
+      const p = (L.items || []).find(x => x.id === String(b.pid || '') && x.tipo === 'pedido');
+      if (!p || p.k !== String(b.k || '')) return res.status(404).json({ error: 'No encontramos tu pedido.' });
+      if (p.resena) return res.status(409).json({ error: 'Ya dejaste tu opinión. ¡Gracias!' });
+      p.resena = e; await guardarObj(pedPath(b.id), L);
+      const R = (await leerObj('menus/' + b.id + '-resenas.json')) || { items: [] };
+      R.items = [{ e, tx: t(b.tx, 300), nombre: t(b.nombre, 30) || 'Cliente', mesa: p.mesa, f: new Date().toISOString() }].concat(R.items || []).slice(0, 300);
+      await guardarObj('menus/' + b.id + '-resenas.json', R);
+      return res.status(200).json({ ok: true });
+    }
+    if (req.method === 'GET' && q.id && q.resenas) {
+      if (!okId(q.id)) return res.status(400).json({ error: 'Menú inválido.' });
+      const f = await leerObj('menus/' + q.id + '.json');
+      if (!f || hash(String(q.clave || '')) !== f.clave) return res.status(403).json({ error: 'La clave no es correcta.' });
+      const R = (await leerObj('menus/' + q.id + '-resenas.json')) || { items: [] }, n = (R.items || []).length;
+      return res.status(200).json({ n, prom: n ? Math.round(R.items.reduce((a, x) => a + x.e, 0) / n * 10) / 10 : 0, items: (R.items || []).slice(0, 30) });
     }
     if (req.method === 'POST' && q.accion === 'estado') {
       const b = cuerpo(req);
