@@ -137,7 +137,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
         <section class="card noprint" id="paso1"><h2>1. Tu local</h2>
           <div class="grid2"><label>Nombre del local<input id="fNombre" maxlength="60" placeholder="Ej: Café La Esquina"></label><label>¿Cuántas mesas?<input id="fMesas" type="number" min="1" max="200"></label></div>
           <div class="grid2"><label>Nombre del asistente<input id="fAsis" maxlength="20" placeholder="Lola"></label><label>Saludo especial (opcional)<input id="fSaludo" maxlength="200" placeholder="Ej: ¡Hoy tenemos música en vivo!"></label></div>
-          <div class="grid2"><label>¿Cuánto tarda un pedido? (minutos, aprox.)<input id="fDem" type="number" min="0" max="120" placeholder="Ej: 15"></label><span></span></div>
+          <div class="grid2"><label>¿Cuánto tarda un pedido? (minutos, aprox.)<input id="fDem" type="number" min="0" max="120" placeholder="Ej: 15"></label><label>Tus mozos (opcional, separados por coma)<input id="fMozos" maxlength="200" placeholder="Ej: Marcos, Sofi, Juan"></label></div>
           <div class="grid2"><label>Alias para que te paguen (opcional)<input id="fAlias" maxlength="60" placeholder="Ej: cafe.laesquina.mp"></label><label>Link de pago de Mercado Pago (opcional)<input id="fPay" maxlength="300" inputmode="url" placeholder="https://link.mercadopago.com.ar/…"></label></div>
           <p class="note">Con el alias o el link, el asistente le ofrece a cada mesa pagar ahí mismo, o al final.</p>
         </section>
@@ -158,8 +158,8 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
         </section>
         <section class="card" id="done" hidden></section>
       </main>`;
-    $('#fNombre').value = menu.nombre; $('#fMesas').value = menu.mesas; $('#fAlias').value = menu.alias || ''; $('#fDem').value = menu.demora || ''; $('#fPay').value = menu.paylink || ''; $('#fAsis').value = menu.asistente; $('#fSaludo').value = menu.saludo || '';
-    const sync = () => { menu.nombre = $('#fNombre').value.trim(); menu.mesas = parseInt($('#fMesas').value, 10) || 10; menu.asistente = $('#fAsis').value.trim() || 'Lola'; menu.saludo = $('#fSaludo').value.trim(); menu.alias = $('#fAlias').value.trim(); menu.demora = parseInt($('#fDem').value, 10) || 0; menu.paylink = $('#fPay').value.trim(); };
+    $('#fNombre').value = menu.nombre; $('#fMesas').value = menu.mesas; $('#fAlias').value = menu.alias || ''; $('#fDem').value = menu.demora || ''; $('#fMozos').value = (menu.mozos || []).join(', '); $('#fPay').value = menu.paylink || ''; $('#fAsis').value = menu.asistente; $('#fSaludo').value = menu.saludo || '';
+    const sync = () => { menu.nombre = $('#fNombre').value.trim(); menu.mesas = parseInt($('#fMesas').value, 10) || 10; menu.asistente = $('#fAsis').value.trim() || 'Lola'; menu.saludo = $('#fSaludo').value.trim(); menu.alias = $('#fAlias').value.trim(); menu.demora = parseInt($('#fDem').value, 10) || 0; menu.mozos = $('#fMozos').value.split(',').map(x => x.trim()).filter(Boolean); menu.paylink = $('#fPay').value.trim(); };
     $('#bCam').onclick = () => $('#iCam').click(); $('#bGal').onclick = () => $('#iGal').click();
     const addFiles = async fs => { for(const f of [...fs].slice(0, 4 - fotos.length)){ try{ fotos.push(await shrink(f, 1500)); }catch(e){} } $('#thumbs').innerHTML = fotos.map((u, i) => `<img src="${u}" alt="Foto ${i + 1}">`).join('') + (fotos.length ? ` <button class="btn sec" type="button" id="bClr">🗑 Borrar fotos</button>` : ''); $('#bLeer').hidden = !fotos.length; const c = $('#bClr'); if(c) c.onclick = () => { fotos = []; addFiles([]); }; };
     $('#iCam').onchange = e => { addFiles(e.target.files); e.target.value = ''; }; $('#iGal').onchange = e => { addFiles(e.target.files); e.target.value = ''; };
@@ -373,7 +373,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       const t = setInterval(async () => { let s = null; try{ s = await api(`/api/menu?id=${ID}&pedido=${j.pid}&k=${j.k}`); }catch(e){ return; }
         if(s.estado === last) return; last = s.estado; const st = $('#st');
         if(s.estado === 'preparando'){ if(st) st.textContent = `👨‍🍳 Pedido #${j.n}: lo están preparando`; talk('¡Buenas noticias! Ya están preparando tu pedido 👨‍🍳'); }
-        if(s.estado === 'listo'){ if(st) st.textContent = `✅ Pedido #${j.n}: ¡listo, ya sale!`; talk(`¡${nombre || 'Ey'}! Tu pedido ya está listo y va para tu mesa 🍽️ ¡Que lo disfrutes!`, mainChips()); }
+        if(s.estado === 'listo'){ if(st) st.textContent = s.mozo ? `🍽️ Pedido #${j.n}: ${s.mozo} te lo está llevando` : `✅ Pedido #${j.n}: ¡listo, ya sale!`; talk(s.mozo ? `¡${nombre || 'Ey'}! Tu pedido ya está listo: ${s.mozo} te lo está llevando a la mesa ${MESA} 🍽️ ¡Que lo disfrutes!` : `¡${nombre || 'Ey'}! Tu pedido ya está listo y va para tu mesa 🍽️ ¡Que lo disfrutes!`, mainChips()); }
         if(['entregado', 'cancelado'].includes(s.estado)) clearInterval(t);
       }, 8000);
     }
@@ -415,7 +415,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
 
   // =================== CAJA: pedidos y avisos de las mesas en vivo ===================
   async function caja(){
-    let ding = false, seen = null, nombreLocal = '';
+    let ding = false, seen = null, nombreLocal = '', MOZOS = [];
     app.innerHTML = `<div class="caja"><div class="cajatop"><h2 style="margin:0" id="cName">🧾 Caja</h2><div class="row"><button class="btn pri" type="button" id="bDing">🔔 Activar sonido</button><a class="btn sec" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}">✏️ Editar menú</a><a class="btn sec" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&qr=1">🖨 QR de mesas</a></div></div>
       <div id="avisos" style="display:grid;gap:8px"></div>
       <div class="cols"><div class="col"><h3>🆕 Nuevos</h3><div id="cN" style="display:grid;gap:8px"></div></div><div class="col"><h3>👨‍🍳 En preparación</h3><div id="cP" style="display:grid;gap:8px"></div></div><div class="col"><h3>✅ Listos para llevar</h3><div id="cL" style="display:grid;gap:8px"></div></div></div>
@@ -423,22 +423,23 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     const beep = () => { if(!ding) return; try{ const a = new (window.AudioContext || window.webkitAudioContext)(), o = a.createOscillator(), g = a.createGain(); o.connect(g); g.connect(a.destination); o.frequency.value = 880; g.gain.value = .2; o.start(); o.frequency.setValueAtTime(1175, a.currentTime + .15); o.stop(a.currentTime + .35); }catch(e){} };
     $('#bDing').onclick = () => { ding = true; $('#bDing').textContent = '🔔 Sonido activado'; beep(); };
     const ago = iso => { const m = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 60000)); return m < 1 ? 'recién' : 'hace ' + m + ' min'; };
-    const set = async (pid, estado) => { try{ await api('/api/menu?accion=estado', {id: ID, clave: CLAVE, pid, estado}); }catch(e){ alert(e.message); } load(); };
+    const set = async (pid, estado) => { const mz = app.querySelector(`[data-mz="${pid}"]`); try{ await api('/api/menu?accion=estado', {id: ID, clave: CLAVE, pid, estado, mozo: estado === 'listo' && mz && mz.value ? mz.value : undefined}); }catch(e){ alert(e.message); } load(); };
     const tk = (p, btns) => `<div class="tk ${p.estado}"><div class="h"><span>Mesa ${p.mesa} · #${p.n}</span><small>${ago(p.creado)}</small></div>${p.nombre ? `<span>👤 ${esc(p.nombre)}</span>` : ''}<ul>${p.items.map(i => `<li><b>${i.q}×</b> ${esc(i.n)}</li>`).join('')}</ul>${p.nota ? `<span>📝 ${esc(p.nota)}</span>` : ''}<b>Total: ${money(p.items.reduce((a, i) => a + priceN(i.p) * i.q, 0))}</b><div class="row">${btns}</div></div>`;
     async function load(){
       let j = null; try{ j = await api(`/api/menu?id=${ID}&clave=${encodeURIComponent(CLAVE)}&caja=1`); }catch(e){ $('#cName').textContent = '😕 ' + e.message; return; }
+      MOZOS = j.mozos || [];
       if(j.nombre && j.nombre !== nombreLocal){ nombreLocal = j.nombre; $('#cName').textContent = '🧾 Caja · ' + j.nombre; }
       const its = j.items || [], ids = new Set(its.filter(x => x.estado === 'nuevo').map(x => x.id));
       if(seen && [...ids].some(id => !seen.has(id))) beep(); seen = ids;
       $('#avisos').innerHTML = its.filter(x => x.tipo === 'consulta' && x.estado === 'nuevo').map(a => `<div class="aviso" style="flex-wrap:wrap"><span style="flex-basis:100%">👨‍🍳 Mesa ${a.mesa}${a.nombre ? ' (' + esc(a.nombre) + ')' : ''} quiere hablar con el encargado · ${ago(a.creado)}<br><span style="font-weight:500">“${esc(a.texto)}”</span></span><input data-rin="${a.id}" maxlength="300" placeholder="Tu respuesta (el asistente se la dice a la mesa)" style="flex:1"><button class="btn pri" type="button" data-r="${a.id}">Responder</button></div>`).join('') + its.filter(x => x.tipo !== 'pedido' && x.tipo !== 'consulta' && x.estado === 'nuevo').map(a => `<div class="aviso"><span>${a.tipo === 'pago' ? '💰 La mesa ' + a.mesa + ' dice que PAGÓ ' + esc(a.monto || '') + (a.pedido_n ? ' (pedido #' + a.pedido_n + ')' : '') + ' — revisá que te haya llegado' : a.tipo === 'cuenta' ? '💳 La mesa ' + a.mesa + ' pide la cuenta' : '🙋 La mesa ' + a.mesa + ' llama al mozo'}${a.nombre ? ' (' + esc(a.nombre) + ')' : ''} · ${ago(a.creado)}</span><button class="btn sec" type="button" data-v="${a.id}">✓ Atendido</button></div>`).join('');
       const peds = its.filter(x => x.tipo === 'pedido').sort((a, b) => String(a.creado).localeCompare(String(b.creado)));
       $('#cN').innerHTML = peds.filter(p => p.estado === 'nuevo').map(p => tk(p, `<button class="btn pri" type="button" data-s="${p.id}|preparando">👨‍🍳 Preparar</button><button class="btn sec" type="button" data-s="${p.id}|cancelado">✕</button>`)).join('') || '<p class="note">Sin pedidos nuevos</p>';
-      $('#cP').innerHTML = peds.filter(p => p.estado === 'preparando').map(p => tk(p, `<button class="btn pri" type="button" data-s="${p.id}|listo">✅ Listo</button>`)).join('') || '<p class="note">—</p>';
-      $('#cL').innerHTML = peds.filter(p => p.estado === 'listo').map(p => tk(p, `<button class="btn sec" type="button" data-s="${p.id}|entregado">🍽️ Entregado</button>`)).join('') || '<p class="note">—</p>';
+      $('#cP').innerHTML = peds.filter(p => p.estado === 'preparando').map(p => tk(p, `${MOZOS.length ? `<select data-mz="${p.id}" aria-label="Quién lo lleva (opcional)" style="width:auto"><option value="">¿Quién lo lleva? (opcional)</option>${MOZOS.map(m => `<option>${esc(m)}</option>`).join('')}</select>` : ''}<button class="btn pri" type="button" data-s="${p.id}|listo">✅ Listo</button>`)).join('') || '<p class="note">—</p>';
+      $('#cL').innerHTML = peds.filter(p => p.estado === 'listo').map(p => tk(p, `${p.mozo ? `<span>🧑‍🍳 Lo lleva <b>${esc(p.mozo)}</b></span>` : ''}<button class="btn sec" type="button" data-s="${p.id}|entregado">🍽️ Entregado</button>`)).join('') || '<p class="note">—</p>';
     }
     app.addEventListener('click', e => { const s = e.target.closest('[data-s]'); if(s){ const [pid, est] = s.dataset.s.split('|'); set(pid, est); } const v = e.target.closest('[data-v]'); if(v) set(v.dataset.v, 'visto');
       const r = e.target.closest('[data-r]'); if(r){ const inp = app.querySelector(`[data-rin="${r.dataset.r}"]`), rta = inp && inp.value.trim(); if(!rta){ inp && inp.focus(); return; } api('/api/menu?accion=estado', {id: ID, clave: CLAVE, pid: r.dataset.r, estado: 'respondido', rta}).then(load, e2 => alert(e2.message)); } });
-    load(); setInterval(() => { const f = document.activeElement; if(f && f.matches && f.matches('[data-rin]') && f.value) return; load(); }, 5000);
+    load(); setInterval(() => { const f = document.activeElement; if(f && f.matches && (f.matches('[data-rin]') && f.value || f.matches('[data-mz]'))) return; load(); }, 5000);
   }
 })();
 </script>
