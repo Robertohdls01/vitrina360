@@ -76,12 +76,36 @@ module.exports = async (req, res) => {
       const m = await leerObj('menus/kit-' + k + '.json');
       return m && m.id ? res.status(200).json({ id: m.id }) : res.status(404).json({ error: 'Kit sin activar.' });
     }
+    // ---- Lista de pruebas del vendedor (cafés probando con un kit): protegida con su propia clave ----
+    if (q.accion === 'pruebas') {
+      const b = req.method === 'POST' ? cuerpo(req) : {}, adm = String(b.admin || q.admin || '');
+      const P = (await leerObj('menus/pruebas.json')) || { items: [] };
+      if (!P.clave) {
+        if (req.method !== 'POST' || !b.crear || adm.length < 6) return res.status(200).json({ sinClave: true });
+        P.clave = hash('admin|' + adm); await guardarObj('menus/pruebas.json', P); return res.status(200).json({ items: P.items || [] });
+      }
+      if (hash('admin|' + adm) !== P.clave) return res.status(403).json({ error: 'Clave incorrecta.' });
+      if (req.method === 'POST' && Array.isArray(b.items)) {
+        P.items = b.items.slice(0, 300).map(x => ({ kit: t(x.kit, 10).toUpperCase().replace(/[^A-Z0-9]/g, ''), id: okId(x.id) ? x.id : '', local: t(x.local, 60), wa: t(x.wa, 30), desde: t(x.desde, 30) || new Date().toISOString(), estado: ['probando', 'contrato', 'devolver', 'devuelto'].includes(x.estado) ? x.estado : 'probando', nota: t(x.nota, 400) }));
+        await guardarObj('menus/pruebas.json', P);
+      }
+      return res.status(200).json({ items: P.items || [] });
+    }
     if (req.method === 'POST' && q.accion === 'kit') {
       const b = cuerpo(req), k = String(b.kit || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
       if (!okId(b.id) || !okKit(k)) return res.status(400).json({ error: 'Revisá el código del kit (está abajo en cada cartelito).' });
       const f = await leerObj('menus/' + b.id + '.json');
       if (!f || hash(String(b.clave || '')) !== f.clave) return res.status(403).json({ error: 'La clave no es correcta.' });
       await guardarObj('menus/kit-' + k + '.json', { id: b.id, desde: new Date().toISOString() });
+      // lo anota solo en la lista de pruebas del vendedor (si el kit pasaba de otro café, ese queda como terminado)
+      try {
+        const P = (await leerObj('menus/pruebas.json')) || { items: [] }, ahora = new Date().toISOString();
+        P.items = (P.items || []).map(x => x.kit === k && x.id !== b.id && x.estado === 'probando' ? Object.assign({}, x, { estado: 'devolver' }) : x);
+        const ya = P.items.find(x => x.kit === k && x.id === b.id);
+        if (ya) Object.assign(ya, { local: f.menu.nombre || ya.local, wa: ya.wa || f.menu.wa || '' });
+        else P.items.unshift({ kit: k, id: b.id, local: f.menu.nombre || '', wa: f.menu.wa || '', desde: ahora, estado: 'probando', nota: '' });
+        P.items = P.items.slice(0, 300); await guardarObj('menus/pruebas.json', P);
+      } catch (e) {}
       return res.status(200).json({ ok: true, kit: k });
     }
     if (req.method === 'GET' && q.id && q.caja) {

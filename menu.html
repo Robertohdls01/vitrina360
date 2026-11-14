@@ -183,6 +183,36 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     try{ const j = await api('/api/menu?kit=' + encodeURIComponent(k)); location.replace(`?m=${j.id}&mesa=${MESA || 1}`); return; }
     catch(e){ app.innerHTML = `<div class="wrap" style="padding:40px 18px;text-align:center"><h2>🍽️ ShopMenu</h2><p>Este QR de prueba (kit <b>${esc(k)}</b>) todavía no está activado en ningún local.</p><p class="note">Si sos el dueño: entrá a tu caja → 🧪 <b>Activar kit de prueba</b> y escribí <b>${esc(k)}</b>.</p></div>`; return; }
   })();
+  // ---- Mis pruebas: lista del vendedor de los cafés que están probando con un kit ----
+  if(Q.has('pruebas')) return (async () => {
+    let ADM = ''; try{ ADM = localStorage.getItem('shopmenu-admin') || ''; }catch(e){}
+    let L = [];
+    const ESTP = {probando: '🧪 Probando', contrato: '✅ Lo contrató', devolver: '↩️ Buscar los QR', devuelto: '📦 QR devueltos'};
+    const dias = d => Math.floor((Date.now() - Date.parse(d)) / 864e5);
+    const waL = x => { const n = String(x.wa || '').replace(/\D/g, ''); return n ? 'https://wa.me/' + (n.startsWith('54') ? '' : '549') + n + '?text=' + encodeURIComponent(`¡Hola! Soy Roberto, de ShopMenu 🍽️. ¿Cómo les fue con la prueba del menú con la moza virtual${x.local ? ' en ' + x.local : ''}? ¿Lo quieren dejar para todas las mesas?`) : ''; };
+    const entrar = async (crear) => { try{ const j = await api('/api/menu?accion=pruebas', {admin: ADM, crear}); if(j.sinClave) return pedir(true); L = j.items || []; try{ localStorage.setItem('shopmenu-admin', ADM); }catch(e){} pinta(); }catch(e){ ADM = ''; pedir(false, e.message); } };
+    const pedir = (nueva, err) => { app.innerHTML = `<div class="wrap"><section class="card" style="max-width:460px;margin:40px auto"><h2>🧪 Mis pruebas</h2><p>${nueva ? 'Es la primera vez: <b>inventá una clave</b> (mínimo 6 letras o números) para que solo vos veas esta lista. Anotala.' : 'Escribí tu clave para ver tu lista.'}</p>${err ? `<p class="msg">${esc(err)}</p>` : ''}<input id="pAdm" type="password" placeholder="Tu clave" autocomplete="current-password"><button class="btn pri" type="button" id="pGo" style="margin-top:10px;width:100%">${nueva ? 'Crear mi lista' : 'Entrar'}</button></section></div>`;
+      $('#pGo').onclick = () => { ADM = $('#pAdm').value.trim(); if(ADM.length < 6) return alert('La clave tiene que tener al menos 6 letras o números.'); entrar(nueva); }; };
+    const guardar = async () => { $('#pSave').textContent = 'Guardando…'; try{ const j = await api('/api/menu?accion=pruebas', {admin: ADM, items: L}); L = j.items; pinta(); $('#pSave').textContent = '✅ Guardado'; }catch(e){ $('#pSave').textContent = '⚠️ ' + e.message; } };
+    function pinta(){
+      const act = L.filter(x => x.estado === 'probando').length, dev = L.filter(x => x.estado === 'devolver').length, ok = L.filter(x => x.estado === 'contrato').length;
+      app.innerHTML = `<div class="wrap"><section class="card"><h2>🧪 Mis pruebas de ShopMenu</h2>
+        <p>Se anotan solos cuando activás un kit en la caja de un café. Acá le agregás el WhatsApp y tus notas.</p>
+        <div class="row" style="gap:8px;flex-wrap:wrap"><span class="cnt">🧪 ${act} probando</span><span class="cnt">↩️ ${dev} para buscar QR</span><span class="cnt">✅ ${ok} contrataron</span><a class="cnt" href="?kitprint=nuevo">🖨 Imprimir kits</a></div></section>
+        <section class="card"><h3 style="margin-top:0">➕ Anotar un café a mano</h3><div class="grid2"><input id="nLoc" placeholder="Café (ej: Cabrales)"><input id="nKit" placeholder="Código del kit (ej: PK7RTX)"></div><div class="grid2"><input id="nWa" inputmode="tel" placeholder="WhatsApp del dueño"><input id="nNota" placeholder="Nota (ej: 2 QR, habló con Juan)"></div><button class="btn pri" type="button" id="nAdd">Anotar</button></section>
+        ${L.map((x, i) => { const d = dias(x.desde), falta = 7 - d, w = waL(x); return `<section class="card" style="border-left:6px solid ${x.estado === 'probando' ? (falta <= 0 ? '#f59e0b' : '#a78bfa') : x.estado === 'contrato' ? '#22c55e' : x.estado === 'devolver' ? '#f87171' : '#cbd5e1'}">
+          <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b style="font-size:19px">☕ ${esc(x.local || 'Sin nombre')}</b><span>Kit <b>${esc(x.kit || '—')}</b> · desde ${new Date(x.desde).toLocaleDateString('es-AR')}${x.estado === 'probando' ? ` · <b>${falta > 0 ? `le quedan ${falta} día${falta > 1 ? 's' : ''}` : '⏰ terminó la prueba: escribile'}</b>` : ''}</span></div>
+          <div class="grid2" style="margin-top:8px"><label>Estado<select data-i="${i}" data-k="estado">${Object.entries(ESTP).map(([k, v]) => `<option value="${k}" ${k === x.estado ? 'selected' : ''}>${v}</option>`).join('')}</select></label><label>WhatsApp<input data-i="${i}" data-k="wa" value="${esc(x.wa)}" inputmode="tel" placeholder="Número del dueño"></label></div>
+          <label>Notas<textarea data-i="${i}" data-k="nota" rows="2" placeholder="Ej: 2 QR. Le gustó, decide el lunes.">${esc(x.nota)}</textarea></label>
+          <div class="row" style="gap:8px;flex-wrap:wrap">${w ? `<a class="btn pri" href="${w}" target="_blank" rel="noopener">💬 Escribirle</a>` : ''}${x.id ? `<a class="btn sec" href="?m=${esc(x.id)}&mesa=1" target="_blank" rel="noopener">👀 Ver su menú</a>` : ''}<button class="btn sec" type="button" data-del="${i}">🗑 Borrar</button></div></section>`; }).join('') || '<p class="note">Todavía no hay cafés probando. Cuando actives un kit en la caja de un café, aparece acá solo.</p>'}
+        <div style="position:sticky;bottom:10px;text-align:center"><button class="btn pri" type="button" id="pSave">💾 Guardar cambios</button></div></div>`;
+      app.querySelectorAll('[data-k]').forEach(el => el.oninput = el.onchange = () => { L[+el.dataset.i][el.dataset.k] = el.value; $('#pSave').textContent = '💾 Guardar cambios'; });
+      app.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { if(confirm('¿Borrar este café de la lista?')){ L.splice(+b.dataset.del, 1); guardar(); } });
+      $('#nAdd').onclick = () => { const local = $('#nLoc').value.trim(); if(!local) return alert('Poné el nombre del café.'); L.unshift({kit: $('#nKit').value.trim().toUpperCase(), id: '', local, wa: $('#nWa').value.trim(), nota: $('#nNota').value.trim(), desde: new Date().toISOString(), estado: 'probando'}); guardar(); };
+      $('#pSave').onclick = guardar;
+    }
+    if(ADM) entrar(false); else { try{ const j = await api('/api/menu?accion=pruebas', {admin: ''}); pedir(!!j.sinClave); }catch(e){ pedir(false); } }
+  })();
   if(Q.has('kitprint')) return (async () => {
     // ?kitprint=nuevo&kits=10&n=2 → 10 kits distintos de 2 mesas (20 cartelitos, 2 hojas A4). ?kitprint=PABC12 → reimprime ese kit.
     const gen = () => 'P' + Array.from({length: 5}, () => 'ABCDEFGHJKLMNQRSTUVWXYZ23456789'[Math.floor(Math.random() * 31)]).join(''); // sin O/0/I/1/P para no confundir
