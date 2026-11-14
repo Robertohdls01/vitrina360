@@ -8,27 +8,27 @@
 <meta property="og:title" content="ShopMenu 🍽️ · El menú QR que te atiende">
 <meta property="og:description" content="Una foto de tu carta y listo: cada mesa tiene un asistente que habla, recomienda y manda el pedido a la caja.">
 <meta property="og:image" content="https://vitrina360app.com.ar/og-shopmenu.png">
-<meta name="theme-color" content="#7c2d12">
+<meta name="theme-color" content="#5b21b6">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
 <style>
-:root{--v:#6d28d9;--p:#db2777;--o:#ea580c;--ink:#2a1a12;--cream:#fff8ef;--line:#f1e4d3}
+:root{--v:#6d28d9;--p:#a855f7;--o:#7c3aed;--ink:#2a1d3d;--cream:#f6f2ff;--line:#e6dcfb}
 *{box-sizing:border-box}
 body{margin:0;font:400 16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--cream);min-height:100vh}
 [hidden]{display:none!important}
 button{font:inherit;cursor:pointer}
 .btn{border:0;border-radius:999px;padding:12px 18px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none}
-.pri{background:linear-gradient(90deg,var(--o),var(--p));color:#fff;box-shadow:0 6px 18px rgba(234,88,12,.3)}
+.pri{background:linear-gradient(90deg,var(--o),var(--p));color:#fff;box-shadow:0 6px 18px rgba(124,58,237,.3)}
 .sec{background:#fff;border:2px solid var(--line);color:var(--ink)}
-.note{font-size:13px;color:#7a5f4c;margin:0}
+.note{font-size:13px;color:#6b5b86;margin:0}
 .msg{color:#b91c1c;font-weight:700;margin:0}
 input,textarea,select{font:inherit;border:2px solid var(--line);border-radius:12px;padding:9px 11px;background:#fff;color:inherit;width:100%}
 /* ---------- dueño ---------- */
-.hero{background:linear-gradient(150deg,#7c2d12,var(--o) 50%,var(--p));color:#fff;text-align:center;padding:26px 18px 60px}
+.hero{background:linear-gradient(150deg,#5b21b6,var(--o) 55%,#c084fc);color:#fff;text-align:center;padding:26px 18px 60px}
 .hero .logo{font-weight:900;font-size:28px}.hero .logo small{display:block;font-size:11px;letter-spacing:2px;opacity:.85}
 .hero h1{margin:14px auto 8px;font-size:clamp(28px,6.5vw,42px);line-height:1.05;max-width:680px;letter-spacing:-1px}
 .hero p{margin:0 auto;max-width:560px;opacity:.95}
 .wrap{max-width:760px;margin:-34px auto 0;padding:0 14px 40px;display:grid;gap:14px}
-.card{background:#fff;border-radius:22px;box-shadow:0 10px 34px rgba(124,45,18,.12);padding:18px;display:grid;gap:12px}
+.card{background:#fff;border-radius:22px;box-shadow:0 10px 34px rgba(91,33,182,.12);padding:18px;display:grid;gap:12px}
 .card h2{margin:0;font-size:20px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 label{display:grid;gap:4px;font-weight:700;font-size:14px}
@@ -44,38 +44,38 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
 .secret{background:#fef2f2;border:2px dashed #fca5a5;border-radius:14px;padding:10px;display:grid;gap:4px}
 .qrs{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
 .qrc{border:2px solid var(--line);border-radius:16px;padding:10px;text-align:center;background:#fff;break-inside:avoid}
-.qrc svg{width:130px;height:130px}.qrc b{display:block;font-size:20px}.qrc small{display:block;color:#7a5f4c}
+.qrc svg{width:130px;height:130px}.qrc b{display:block;font-size:20px}.qrc small{display:block;color:#6b5b86}
 @media print{body{background:#fff}.hero,.noprint{display:none!important}.wrap{margin:0;max-width:none}.card{box-shadow:none;padding:0}.qrs{grid-template-columns:repeat(3,1fr)}}
 /* ---------- mesa (cliente) ---------- */
 .mesa{min-height:100vh;display:flex;flex-direction:column;background:radial-gradient(circle at 50% 0,#fff 0,var(--cream) 60%)}
-.mtop{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#7c2d12;color:#fff}
+.mtop{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#5b21b6;color:#fff}
 .mtop b{font-size:18px;flex:1}.mtop .tag{background:rgba(255,255,255,.18);border-radius:999px;padding:3px 10px;font-weight:700;font-size:14px}
 .mtop button{border:0;background:rgba(255,255,255,.15);color:#fff;border-radius:999px;width:38px;height:38px}
 .stage{display:grid;grid-template-columns:118px 1fr;gap:10px;align-items:end;padding:16px 14px 6px}
 .chef{width:118px;height:162px}.chef .arm{transform-origin:84px 98px;animation:tray 3s ease-in-out infinite}@keyframes tray{50%{transform:rotate(-4deg)}}.chef.talk .mouth{animation:mouth .25s ease-in-out infinite alternate}@keyframes mouth{to{transform:scaleY(.35)}}
 .chef .mouth{transform-origin:60px 70px}.chef .eyes{transform-origin:60px 52px;animation:blink 4s infinite}@keyframes blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}.chef{animation:bob 2.6s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-4px)}}
-.bubble{background:#fff;border:2px solid #fed7aa;border-radius:20px 20px 20px 6px;padding:12px 14px;font-size:17px;box-shadow:0 6px 18px rgba(124,45,18,.1);white-space:pre-line}
+.bubble{background:#fff;border:2px solid #ddd6fe;border-radius:20px 20px 20px 6px;padding:12px 14px;font-size:17px;box-shadow:0 6px 18px rgba(91,33,182,.1);white-space:pre-line}
 .opts{display:flex;gap:8px;flex-wrap:wrap;padding:6px 14px 4px}
-.opts button{border:2px solid #fed7aa;background:#fff;border-radius:999px;padding:9px 14px;font-weight:700;color:var(--ink)}
+.opts button{border:2px solid #ddd6fe;background:#fff;border-radius:999px;padding:9px 14px;font-weight:700;color:var(--ink)}
 .opts button.pri{border:0}
 .area{flex:1;padding:6px 14px 120px;display:grid;gap:10px;align-content:start}
 .promo{display:flex;justify-content:space-between;gap:10px;align-items:center;background:#fffbeb;border:2px solid #fde68a;border-radius:16px;padding:10px 12px}
 .promo b{display:block}.promo small{color:#7a5f4c}
 .add{border:0;background:var(--o);color:#fff;border-radius:999px;min-width:44px;height:44px;font-size:22px;font-weight:900}
-.sec2 h3{margin:10px 0 4px;font-size:18px;color:#7c2d12}
+.sec2 h3{margin:10px 0 4px;font-size:18px;color:#5b21b6}
 .dish{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid var(--line);padding:8px 0}
-.dish b{display:block}.dish small{display:block;color:#7a5f4c}.dish .pr{font-weight:800;white-space:nowrap}
+.dish b{display:block}.dish small{display:block;color:#6b5b86}.dish .pr{font-weight:800;white-space:nowrap}
 .dock{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:2px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;z-index:5}
 .say{display:flex;gap:8px;align-items:center}
-.mic{border:0;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--o),var(--p));color:#fff;font-size:26px;flex:none;box-shadow:0 6px 16px rgba(219,39,119,.35)}
-.mic.on{animation:pulse 1s infinite}@keyframes pulse{50%{box-shadow:0 0 0 12px rgba(219,39,119,.15)}}
-.say input{flex:1}.say .send{border:0;background:#7c2d12;color:#fff;border-radius:12px;padding:0 14px;height:44px;font-weight:800}
-.cartbtn{border:0;border-radius:14px;padding:11px;background:#7c2d12;color:#fff;font-weight:800;font-size:16px}
+.mic{border:0;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--o),var(--p));color:#fff;font-size:26px;flex:none;box-shadow:0 6px 16px rgba(124,58,237,.35)}
+.mic.on{animation:pulse 1s infinite}@keyframes pulse{50%{box-shadow:0 0 0 12px rgba(124,58,237,.15)}}
+.say input{flex:1}.say .send{border:0;background:#5b21b6;color:#fff;border-radius:12px;padding:0 14px;height:44px;font-weight:800}
+.cartbtn{border:0;border-radius:14px;padding:11px;background:#5b21b6;color:#fff;font-weight:800;font-size:16px}
 .sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9;display:flex;align-items:flex-end}
 .sheet > div{background:#fff;width:100%;max-height:85vh;overflow:auto;border-radius:22px 22px 0 0;padding:16px;display:grid;gap:10px}
 .line{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:6px 0}.line span{flex:1}
 .line button{border:2px solid var(--line);background:#fff;border-radius:10px;width:34px;height:34px;font-weight:900}
-.startbig{display:block;width:100%;margin-top:6px;border:0;border-radius:22px;padding:22px 16px;font:900 22px system-ui;color:#fff;background:linear-gradient(90deg,var(--o),var(--p));box-shadow:0 10px 26px rgba(219,39,119,.35);animation:startp 1.6s ease-in-out infinite}@keyframes startp{50%{transform:scale(1.04)}}
+.startbig{display:block;width:100%;margin-top:6px;border:0;border-radius:22px;padding:22px 16px;font:900 22px system-ui;color:#fff;background:linear-gradient(90deg,var(--o),var(--p));box-shadow:0 10px 26px rgba(124,58,237,.35);animation:startp 1.6s ease-in-out infinite}@keyframes startp{50%{transform:scale(1.04)}}
 .status{background:#ecfdf5;border:2px solid #86efac;border-radius:16px;padding:10px 12px;font-weight:700}
 /* ---------- caja ---------- */
 .caja{padding:12px;display:grid;gap:12px}
@@ -83,8 +83,8 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
 .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
 .col{background:#fff;border-radius:18px;padding:10px;display:grid;gap:8px;align-content:start;min-height:200px;border:2px solid var(--line)}
 .col h3{margin:0;font-size:17px}
-.tk{border:2px solid var(--line);border-radius:14px;padding:10px;display:grid;gap:4px;background:#fffdf9}
-.tk.nuevo{border-color:#f97316;animation:glow 1.4s ease-in-out infinite}@keyframes glow{50%{box-shadow:0 0 0 5px rgba(249,115,22,.2)}}
+.tk{border:2px solid var(--line);border-radius:14px;padding:10px;display:grid;gap:4px;background:#fcfaff}
+.tk.nuevo{border-color:#8b5cf6;animation:glow 1.4s ease-in-out infinite}@keyframes glow{50%{box-shadow:0 0 0 5px rgba(139,92,246,.2)}}
 .tk .h{display:flex;justify-content:space-between;font-weight:900}.tk ul{margin:0;padding-left:18px}
 .aviso{background:#fef2f2;border:2px solid #f87171;border-radius:14px;padding:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:800}
 </style>
@@ -114,8 +114,8 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     const lips = f ? '#d9466f' : '#b4535b';
     const ear = f ? '<circle cx="36.5" cy="62" r="2" fill="#f5c84c"/><circle cx="83.5" cy="62" r="2" fill="#f5c84c"/>' : '';
     const nom = esc(String(o.local || '').trim().slice(0, 14)), fs = nom.length > 10 ? 4.2 : nom.length > 7 ? 5 : 6;
-    const apron = f ? `<path d="M44 120h32l3 34q-19 4-38 0z" fill="#fff" opacity=".97"/>${nom ? `<text x="60" y="136" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="800" font-size="${fs}" fill="#7c2d12">${nom}</text>` : ''}` : '';
-    const badge = !f && nom ? `<rect x="61" y="111" width="${Math.max(18, nom.length * fs * .62 + 6)}" height="9" rx="2" fill="#fff" stroke="#d4af37" stroke-width="1"/><text x="${61 + Math.max(18, nom.length * fs * .62 + 6) / 2}" y="117.6" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="800" font-size="${Math.min(fs, 5)}" fill="#7c2d12">${nom}</text>` : '';
+    const apron = f ? `<path d="M44 120h32l3 34q-19 4-38 0z" fill="#fff" opacity=".97"/>${nom ? `<text x="60" y="136" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="800" font-size="${fs}" fill="#5b21b6">${nom}</text>` : ''}` : '';
+    const badge = !f && nom ? `<rect x="61" y="111" width="${Math.max(18, nom.length * fs * .62 + 6)}" height="9" rx="2" fill="#fff" stroke="#d4af37" stroke-width="1"/><text x="${61 + Math.max(18, nom.length * fs * .62 + 6) / 2}" y="117.6" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="800" font-size="${Math.min(fs, 5)}" fill="#5b21b6">${nom}</text>` : '';
     const barba = !f && o.barba ? `<path d="M37 58q1 25 23 25t23-25q-3 9-8 11-5-4-15-4t-15 4q-5-2-8-11z" fill="${H[0]}" opacity=".95"/><path d="M52 66q8-3 16 0" stroke="${H[0]}" stroke-width="3" fill="none" stroke-linecap="round"/>` : '';
     const brow = (o.pelo === 'canoso' || o.pelo === 'rubio') ? H[1] : '#4a2a17';
     return `<svg class="chef" viewBox="0 0 120 165" aria-hidden="true"><defs><radialGradient id="${id}" cx="45%" cy="40%" r="65%"><stop offset="0" stop-color="${K[0]}"/><stop offset="1" stop-color="${K[1]}"/></radialGradient></defs>
@@ -288,12 +288,13 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       const score = v => (/natural|neural|online|premium|enhanced|wavenet/i.test(v.name) ? 8 : 0) + (/google/i.test(v.name) ? 4 : 0) + (v.lang.replace('_', '-').toLowerCase() === VL.toLowerCase() ? 3 : 0) + (/es-(ar|us|419|mx)/i.test(v.lang.replace('_', '-')) && LANG === 'es' ? 1 : 0) + (v.localService ? 1 : 0);
       voice = vs.sort((a, b) => score(b) - score(a))[0] || null; };
     if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
-    const talk = (txt, chips) => {
+    const talk = (txt, chips, ask) => {
+      talk.ask = !!ask;
       if(talk.pre){ txt = talk.pre + txt; talk.pre = ''; }
       say.textContent = txt; opts.innerHTML = '';
       (chips || []).forEach(([label, fn, pri]) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; if(pri) b.className = 'pri btn'; b.onclick = fn; opts.appendChild(b); });
       if(mute || !('speechSynthesis' in window)) return;
-      try{ speechSynthesis.cancel();
+      try{ const wasSpeaking = speechSynthesis.speaking || speechSynthesis.pending; speechSynthesis.cancel();
         // de corrido (sin pausas entre frases), algo más rápido y con volumen moderado para que el parlante no sature;
         // solo si el texto es muy largo se parte en 2 o 3 pedazos para que no se trabe
         const clean = txt.replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF\uFE0F]/gu, '').replace(/\s+/g, ' ').trim();
@@ -303,7 +304,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
         parts.filter(x => /[\p{L}\d]/u.test(x)).forEach((ptxt, k, arr) => { const u = new SpeechSynthesisUtterance(ptxt); u.lang = voice ? voice.lang : VL; if(voice) u.voice = voice; u.rate = 1.22; u.pitch = 1; u.volume = 0.8;
           if(k === 0) u.onstart = () => chef.classList.add('talk');
           if(k === arr.length - 1) u.onend = u.onerror = () => { chef.classList.remove('talk'); if(talk.listen){ talk.listen = false; listen(); } };
-          speechSynthesis.speak(u); }); }catch(e){}
+          if(wasSpeaking) setTimeout(() => speechSynthesis.speak(u), 120); else speechSynthesis.speak(u); }); }catch(e){}
     };
     $('#bMute').onclick = () => { mute = !mute; $('#bMute').textContent = mute ? '🔇' : '🔊'; try{ localStorage.setItem('shopmenu-mute', mute ? '1' : '0'); }catch(e){} if(mute) try{ speechSynthesis.cancel(); }catch(e){} };
     // ---- pedido (las claves son los nombres originales: así la caja lo ve en su idioma) ----
@@ -346,6 +347,21 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     const GREET = /^(hola|holis|buen dia|buenos dias|buenas tardes|buenas noches|buenas|que tal|hi|hello|hey|good morning|good afternoon|good evening|ola|oi|bom dia|boa tarde|boa noite)\b/;
     const COMO = /\b(como estas|como andas|como va|todo bien|how are you|how s it going|tudo bem|como vai)\b/;
     const GRACIAS = /^(gracias|muchas gracias|genial gracias|thanks|thank you|obrigad[oa])\b/;
+    // ¿la respuesta hablada coincide con alguna de las opciones en pantalla? (efectivo, en la caja, 10%, sin propina…)
+    const NUMW = {diez: '10', quince: '15', veinte: '20', ten: '10', fifteen: '15', twenty: '20', dez: '10', quinze: '15', vinte: '20', uno: '1', una: '1', dos: '2', tres: '3', cuatro: '4', one: '1', two: '2', three: '3', four: '4', um: '1', dois: '2', 'três': '3', quatro: '4'};
+    const SYN = [[/\b(tarjeta|transferencia|transfiero|mercado ?pago|alias|qr|virtual|online|card|transfer|pix|cartao)\b/, 'virtual'], [/\b(efectivo|cash|dinero|plata|billete|dinheiro)\b/, 'efectivo'], [/\b(caja|mostrador|counter|caixa)\b/, 'caja'], [/\b(no quiero|nada|ninguna|sin propina|no tip|sem gorjeta|no gracias|no, gracias)\b/, 'sin'], [/\b(en la mesa|on the table|na mesa)\b/, 'mesa']];
+    function matchChip(n){
+      const btns = [...opts.querySelectorAll('button')]; if(!btns.length) return null;
+      const words = n.split(/\s+/).map(w => NUMW[w] || w);
+      const keys = SYN.filter(([re]) => re.test(n)).map(([, k]) => k);
+      let best = null, bestS = 0, tie = false;
+      btns.forEach(b => { const lab = norm(b.textContent).replace(/\s+/g, ' ');
+        let sc = 0;
+        words.forEach(w => { if(/^\d+$/.test(w)){ if(new RegExp('(^|\\D)' + w + '(\\D|$)').test(lab)) sc += 3; } else if(w.length >= 4 && lab.includes(w)) sc += 2; });
+        keys.forEach(k => { if(k === 'sin' && /\b(sin propina|no tip|sem gorjeta|no, gracias|no gracias)\b/.test(lab)) sc += 4; else if(k === 'mesa' && /mesa|table/.test(lab) && /propina|tip|gorjeta|efectivo|cash|dinheiro|dejo|leave|deixo/.test(lab)) sc += 3; else if(k !== 'sin' && k !== 'mesa' && lab.includes(k === 'virtual' ? 'virtual' : k === 'efectivo' ? (LANG === 'en' ? 'cash' : LANG === 'pt' ? 'dinheiro' : 'efectivo') : (LANG === 'en' ? 'counter' : LANG === 'pt' ? 'caixa' : 'caja'))) sc += 4; });
+        if(sc > bestS){ best = b; bestS = sc; tie = false; } else if(sc && sc === bestS) tie = true; });
+      return bestS && !tie ? best : null;
+    }
     function hear(text){
       let n = norm(text).trim(); if(!n) return;
       // saludo, "¿cómo estás?" y "gracias": responde como una persona antes de seguir
@@ -361,6 +377,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
         }
         talk.pre = (saludo ? T('¡Hola! ', 'Hi! ', 'Olá! ') : '') + (como ? bien : ''); text = rest; n = rest;
       }
+      if(talk.ask){ const ch = matchChip(n); if(ch){ ch.click(); return; } }
       if(GRACIAS.test(n) && n.split(' ').length <= 3) return talk(T(`¡De nada${nombre ? ', ' + nombre : ''}! Cualquier cosa, acá estoy 😊`, `You're welcome${nombre ? ', ' + nombre : ''}! I'm here if you need anything 😊`, `De nada${nombre ? ', ' + nombre : ''}! Qualquer coisa, estou aqui 😊`), mainChips());
       if(/^(si|dale|bueno|ok|okay|yes|yeah|sure|sim|claro|sumalo|sumamelo)\b/.test(n.trim())){ const b = opts.querySelector('button.pri'); if(b && b.dataset.up){ b.click(); return; } }
       if(step === 'mesa'){ const m = n.match(/\d+/), w = {uno: 1, una: 1, one: 1, um: 1, dos: 2, two: 2, dois: 2, tres: 3, three: 3, cuatro: 4, four: 4, quatro: 4, cinco: 5, five: 5, seis: 6, six: 6, siete: 7, seven: 7, sete: 7, ocho: 8, eight: 8, oito: 8, nueve: 9, nine: 9, nove: 9, diez: 10, ten: 10, dez: 10, once: 11, eleven: 11, onze: 11, doce: 12, twelve: 12, doze: 12}; const k = m ? +m[0] : (n.split(/\s+/).map(x => w[x]).find(Boolean) || 0); if(k > 0 && k <= 500) setMesa(k); else talk(T('No te entendí el número 🙈. Decime solo el número de la mesa, por ejemplo "cinco".', 'I didn\'t catch the number 🙈. Just tell me your table number, like "five".', 'Não entendi o número 🙈. Diga só o número da mesa, por exemplo "cinco".')); return; }
@@ -439,8 +456,8 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
           area.innerHTML = `<div class="sec2"><h3>${T('Te recomiendo', 'I recommend', 'Eu recomendo')}</h3>${its.map(dishHTML).join('')}</div>`;
           const promo = its[0] && its[0].promo ? T(' — ¡está en promo hoy!', ' — it\'s on special today!', ' — está em promoção hoje!') : '';
           talk(T(`Para ${n === 1 ? 'vos' : n + ' personas'} te recomiendo ${its.map(i => i.dn).join(', ')}${promo}. Tocá ➕ en lo que quieras.`, `For ${n === 1 ? 'you' : n + ' people'} I recommend ${its.map(i => i.dn).join(', ')}${promo}. Tap ➕ on what you'd like.`, `Para ${n === 1 ? 'você' : n + ' pessoas'} eu recomendo ${its.map(i => i.dn).join(', ')}${promo}. Toque ➕ no que quiser.`), mainChips());
-        }]));
-      }]));
+        }]), true);
+      }]), true);
     }
     function verPedido(enviar){
       if(!Object.keys(order).length){ talk(T('Tu pedido está vacío todavía. ¿Qué te traigo?', 'Your order is still empty. What can I get you?', 'Seu pedido ainda está vazio. O que eu trago?'), mainChips()); return; }
@@ -473,7 +490,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       const dem = M.demora ? T(` Tarda más o menos ${M.demora} minutos.`, ` It takes about ${M.demora} minutes.`, ` Leva mais ou menos ${M.demora} minutos.`) : '';
       talk(T(`¡Listo${nombre ? ', ' + nombre : ''}! 🎉 Tu pedido número ${j.n} ya llegó a la cocina.`, `Done${nombre ? ', ' + nombre : ''}! 🎉 Your order number ${j.n} is in the kitchen.`, `Pronto${nombre ? ', ' + nombre : ''}! 🎉 Seu pedido número ${j.n} já chegou na cozinha.`) + dem + T(' Te aviso cuando esté listo.', ' I\'ll let you know when it\'s ready.', ' Eu aviso quando estiver pronto.') + (puede ? T(' ¿Querés pagar ahora desde la mesa, o al final cuando termines?', ' Would you like to pay now from your table, or at the end?', ' Quer pagar agora pela mesa, ou no final?') : ''),
         puede ? [payNow(j), ['⏰ ' + T('Pago al final', 'Pay at the end', 'Pago no final'), () => talk(T('¡Perfecto! Cuando termines decime "la cuenta" o tocá 💳 y te ayudo a pagar.', 'Perfect! When you\'re done, say "the bill" or tap 💳 and I\'ll help you pay.', 'Perfeito! Quando terminar, diga "a conta" ou toque 💳.'), mainChips())]]
-              : [['➕ ' + T('Pedir algo más', 'Order something else', 'Pedir mais algo'), verCarta], ['🙋 ' + T('Llamar al mozo', 'Call the waiter', 'Chamar o garçom'), () => aviso('mozo')], ['💳 ' + T('Pedir la cuenta', 'Ask for the bill', 'Pedir a conta'), () => aviso('cuenta')]]);
+              : [['➕ ' + T('Pedir algo más', 'Order something else', 'Pedir mais algo'), verCarta], ['🙋 ' + T('Llamar al mozo', 'Call the waiter', 'Chamar o garçom'), () => aviso('mozo')], ['💳 ' + T('Pedir la cuenta', 'Ask for the bill', 'Pedir a conta'), () => aviso('cuenta')]], true);
       area.innerHTML = `<div class="status" id="st">🧾 ${T('Pedido', 'Order', 'Pedido')} #${j.n}: ${T('recibido en la cocina', 'received in the kitchen', 'recebido na cozinha')}${M.demora ? ' · ~' + M.demora + ' min' : ''}</div>`;
       const t = setInterval(async () => { let s = null; try{ s = await api(`/api/menu?id=${ID}&pedido=${j.pid}&k=${j.k}`); }catch(e){ return; }
         if(s.estado === last) return; last = s.estado; const st = $('#st');
@@ -494,12 +511,12 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       const virtual = !!(M.alias || M.paylink);
       talk(T(`${base ? 'Son ' + money(base) + '. ' : ''}¿Cómo preferís pagar?`, `${base ? 'It\'s ' + money(base) + '. ' : ''}How would you like to pay?`, `${base ? 'São ' + money(base) + '. ' : ''}Como você prefere pagar?`),
         (virtual ? [['📱 ' + T('Virtual (alias / Mercado Pago)', 'Online (transfer / Mercado Pago)', 'Online (transferência / Mercado Pago)'), () => propina('virtual', base, j), true]] : [])
-        .concat([['💵 ' + T('Efectivo en la mesa', 'Cash at the table', 'Dinheiro na mesa'), () => propina('efectivo', base, j)], ['🧾 ' + T('Pago en la caja', 'Pay at the counter', 'Pagar no caixa'), () => propina('caja', base, j)]]));
+        .concat([['💵 ' + T('Efectivo en la mesa', 'Cash at the table', 'Dinheiro na mesa'), () => propina('efectivo', base, j)], ['🧾 ' + T('Pago en la caja', 'Pay at the counter', 'Pagar no caixa'), () => propina('caja', base, j)]]), true);
     }
     function propina(metodo, base, j){
       const opt = (pct) => [pct ? pct + '%' + (base ? ' (' + money(base * pct / 100) + ')' : '') : T('Sin propina', 'No tip', 'Sem gorjeta'), () => cerrar(metodo, base, pct, j)];
       talk(T('¿Querés dejarle propina al equipo? Es opcional 😊', 'Would you like to leave a tip for the team? It\'s optional 😊', 'Quer deixar uma gorjeta para a equipe? É opcional 😊'),
-        [opt(10), opt(15), opt(20), ['💵 ' + T('La dejo en efectivo en la mesa', 'I\'ll leave cash on the table', 'Deixo em dinheiro na mesa'), () => cerrar(metodo, base, 'mesa', j)], opt(0)]);
+        [opt(10), opt(15), opt(20), ['💵 ' + T('La dejo en efectivo en la mesa', 'I\'ll leave cash on the table', 'Deixo em dinheiro na mesa'), () => cerrar(metodo, base, 'mesa', j)], opt(0)], true);
     }
     async function cerrar(metodo, base, pct, j){
       const tip = typeof pct === 'number' ? Math.round(base * pct / 100) : 0;
