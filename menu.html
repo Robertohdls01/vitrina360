@@ -95,7 +95,8 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
   const $ = s => document.querySelector(s);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
   const Q = new URLSearchParams(location.search);
-  const ID = Q.get('m') || '', CLAVE = Q.get('e') || '', MESA = parseInt(Q.get('mesa'), 10) || 0;
+  const ID = Q.get('m') || '', CLAVE = Q.get('e') || '';
+  let MESA = parseInt(Q.get('mesa'), 10) || 0;
   const app = $('#app');
   const api = async (url, body) => { const r = await fetch(url, body ? {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)} : {cache: 'no-store'}); const j = await r.json().catch(() => ({})); if(!r.ok) throw new Error(j.error || 'Algo salió mal. Probá de nuevo.'); return j; };
   const priceN = p => { let s = String(p || '').replace(/[^\d.,]/g, ''); if(!s) return 0; if(/,\d{1,2}$/.test(s)) s = s.replace(/\./g, '').replace(',', '.'); else s = s.replace(/[.,]/g, ''); return Number(s) || 0; };
@@ -119,7 +120,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
   const shrink = (f, max) => new Promise((ok, ko) => { const u = URL.createObjectURL(f), im = new Image(); im.onload = () => { const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u); ok(c.toDataURL('image/jpeg', 0.82)); }; im.onerror = ko; im.src = u; });
   const loadQR = () => window.qrcode ? Promise.resolve() : new Promise((ok, ko) => { const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
 
-  if(ID && MESA) return mesa();
+  if(ID && (MESA || !CLAVE)) return mesa();
   if(ID && CLAVE && Q.has('caja')) return caja();
   return dueno();
 
@@ -204,11 +205,12 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
           <span>✏️ <b>Editar el menú</b> (cambiar precios o promos): <a href="${edit}">${esc(edit)}</a></span>
           <div class="row"><a class="btn pri" href="${caja}" target="_blank">🧾 Abrir la caja</a><button class="btn sec" type="button" id="bWaMe">📲 Mandármelos por WhatsApp</button></div></div>
         <div class="row noprint"><a class="btn sec" href="${o}?m=${id}&mesa=1" target="_blank">👀 Probar como cliente (mesa 1)</a><button class="btn pri" type="button" onclick="print()">🖨 Imprimir los QR de las mesas</button></div>
-        <p class="note noprint">Imprimí los QR, recortalos y pegá uno en cada mesa. Cada uno sabe su número de mesa.</p>
+        <p class="note noprint">Imprimí los QR, recortalos y pegá uno en cada mesa: cada uno sabe su número. ¿Ya tenés un QR propio que podés cambiar (tu web o un link editable)? Hacelo apuntar a este link general: <a href="${o}?m=${id}" target="_blank">${esc(o + '?m=' + id)}</a> — el asistente le pregunta al cliente en qué mesa está.</p>
         <div class="qrs" id="qrs"></div>`;
       $('#bWaMe').onclick = () => open('https://wa.me/?text=' + encodeURIComponent(`🍽️ ShopMenu de ${menu.nombre}\n🧾 Caja: ${caja}\n✏️ Editar: ${edit}`), '_blank');
       try{ await loadQR(); }catch(e){ $('#qrs').innerHTML = '<p class="msg">No se pudieron armar los QR. Revisá tu conexión.</p>'; return; }
-      $('#qrs').innerHTML = Array.from({length: menu.mesas}, (_, i) => { const q = qrcode(0, 'M'); q.addData(`${o}?m=${id}&mesa=${i + 1}`); q.make(); return `<div class="qrc"><small>${esc(menu.nombre)}</small><b>Mesa ${i + 1}</b>${q.createSvgTag({cellSize: 4, margin: 2, scalable: true})}<small>📱 Escaneá: te atiendo yo 🙋</small></div>`; }).join('');
+      const qg = qrcode(0, 'M'); qg.addData(`${o}?m=${id}`); qg.make();
+      $('#qrs').innerHTML = `<div class="qrc"><small>${esc(menu.nombre)}</small><b>QR general</b>${qg.createSvgTag({cellSize: 4, margin: 2, scalable: true})}<small>Para la entrada o el mostrador: pregunta el número de mesa</small></div>` + Array.from({length: menu.mesas}, (_, i) => { const q = qrcode(0, 'M'); q.addData(`${o}?m=${id}&mesa=${i + 1}`); q.make(); return `<div class="qrc"><small>${esc(menu.nombre)}</small><b>Mesa ${i + 1}</b>${q.createSvgTag({cellSize: 4, margin: 2, scalable: true})}<small>📱 Escaneá: te atiendo yo 🙋</small></div>`; }).join('');
       d.scrollIntoView({behavior: 'smooth'});
     }
     if(ID && CLAVE && menu.cats.length && Q.has('qr')) done(ID, CLAVE);
@@ -223,7 +225,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     try{ const s = JSON.parse(sessionStorage.getItem(KEYP) || 'null'); if(s){ nombre = s.nombre || ''; order = s.order || {}; } }catch(e){}
     const keep = () => { try{ sessionStorage.setItem(KEYP, JSON.stringify({nombre, order})); }catch(e){} };
     try{ mute = localStorage.getItem('shopmenu-mute') === '1'; }catch(e){}
-    app.innerHTML = `<div class="mesa"><div class="mtop"><b>${esc(M.nombre)}</b><span class="tag">Mesa ${MESA}</span><button type="button" id="bMute" title="Voz">${mute ? '🔇' : '🔊'}</button></div>
+    app.innerHTML = `<div class="mesa"><div class="mtop"><b>${esc(M.nombre)}</b><span class="tag" id="tagMesa">${MESA ? 'Mesa ' + MESA : 'Bienvenido'}</span><button type="button" id="bMute" title="Voz">${mute ? '🔇' : '🔊'}</button></div>
       <div class="stage"><div id="ava">${CHEF}</div><div class="bubble" id="say" role="status" aria-live="polite"></div></div>
       <div class="opts" id="opts"></div>
       <div class="area" id="area"></div>
@@ -275,6 +277,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     function hear(text){
       const n = norm(text); if(!n.trim()) return;
       if(/^(si|dale|bueno|ok|sumalo|sumamelo|si dale|si por favor)\b/.test(n.trim())){ const b = opts.querySelector('button.pri'); if(b && /Sí, sumame/.test(b.textContent)){ b.click(); return; } }
+      if(step === 'mesa'){ const m = n.match(/\d+/), w = {uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10, once: 11, doce: 12, trece: 13, catorce: 14, quince: 15, veinte: 20}; const k = m ? +m[0] : (n.split(/\s+/).map(x => w[x]).find(Boolean) || 0); if(k > 0 && k <= 500) setMesa(k); else talk('No te entendí el número 🙈. Decime solo el número de la mesa, por ejemplo "cinco".'); return; }
       if(!nombre && step === 'nombre'){ setName(text); return; }
       if(step === 'consulta'){ consulta(text); return; }
       if(/\b(encargado|dueno|duena|chef|cocinero|gerente|coordinador|queja|reclamo|alergi|celiac|vegan|vegetarian)/.test(n)) return encargado();
@@ -400,7 +403,10 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     if(nombre){ promos(); return; }
     say.textContent = `¡Hola! 👋 Bienvenido a ${M.nombre}.`;
     opts.innerHTML = '<button type="button" class="pri btn" id="bHola">👋 Tocá para empezar</button>';
+    const pedirMesa = () => { step = 'mesa'; talk.listen = !mute; talk(`¡Hola! 👋 Bienvenido a ${M.nombre}. Soy ${M.asistente || 'Lola'}, tu asistente. ¿En qué mesa estás? Decime el número.`, Array.from({length: Math.min(M.mesas || 10, 12)}, (_, i) => [String(i + 1), () => setMesa(i + 1)])); $('#iTxt').placeholder = 'Número de mesa'; };
+    function setMesa(n){ MESA = n; $('#tagMesa').textContent = 'Mesa ' + n; step = 'nombre'; talk.listen = !mute; talk(`¡Perfecto, mesa ${n}! ¿Cómo te llamás?`, [['Prefiero no decirlo', () => { step = ''; promos(); }]]); $('#iTxt').placeholder = 'Escribí tu nombre o tocá 🎤'; }
     $('#bHola').onclick = () => {
+      if(!MESA) return pedirMesa();
       step = 'nombre'; talk.listen = !mute;
       talk(`¡Hola! 👋 Bienvenido a ${M.nombre}. Soy ${M.asistente || 'Lola'}, tu asistente. Estás en la mesa ${MESA}.${M.saludo ? ' ' + M.saludo : ''} ¿Cómo te llamás?`, [['Prefiero no decirlo', () => { step = ''; promos(); }]]);
       $('#iTxt').placeholder = 'Escribí tu nombre o tocá 🎤'; $('#iTxt').focus();
