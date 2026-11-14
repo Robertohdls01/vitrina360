@@ -69,6 +69,21 @@ module.exports = async (req, res) => {
       if (!p || p.k !== String(q.k || '')) return res.status(404).json({ error: 'No encontramos ese pedido.' });
       return res.status(200).json({ estado: p.estado, n: p.n, rta: p.rta || '', mozo: p.mozo || '' });
     }
+    // ---- Kit de prueba: cartelitos QR genéricos (sin nombre de local) que se activan para el café que está probando ----
+    const okKit = k => /^[A-Z0-9]{4,10}$/.test(String(k || ''));
+    if (req.method === 'GET' && q.kit) {
+      const k = String(q.kit).toUpperCase(); if (!okKit(k)) return res.status(400).json({ error: 'Código de kit inválido.' });
+      const m = await leerObj('menus/kit-' + k + '.json');
+      return m && m.id ? res.status(200).json({ id: m.id }) : res.status(404).json({ error: 'Kit sin activar.' });
+    }
+    if (req.method === 'POST' && q.accion === 'kit') {
+      const b = cuerpo(req), k = String(b.kit || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (!okId(b.id) || !okKit(k)) return res.status(400).json({ error: 'Revisá el código del kit (está abajo en cada cartelito).' });
+      const f = await leerObj('menus/' + b.id + '.json');
+      if (!f || hash(String(b.clave || '')) !== f.clave) return res.status(403).json({ error: 'La clave no es correcta.' });
+      await guardarObj('menus/kit-' + k + '.json', { id: b.id, desde: new Date().toISOString() });
+      return res.status(200).json({ ok: true, kit: k });
+    }
     if (req.method === 'GET' && q.id && q.caja) {
       if (!okId(q.id)) return res.status(400).json({ error: 'Menú inválido.' });
       const f = await leerObj('menus/' + q.id + '.json');

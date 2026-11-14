@@ -177,6 +177,30 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
   // todos los links del local (los 10 espacios + los campos viejos) → [[etiqueta, url, tipo]]
   const allLinks = M => { const L = (M.links || []).slice(); if(M.wa && !L.some(x => x.t === 'wa')) L.unshift({t: 'wa', u: M.wa, l: ''}); [['ig', M.ig], ['fb', M.fb], ['tt', M.tt], ['web', M.web], ['tienda', M.tienda, M.tiendaTx]].forEach(([t, u, l]) => { if(u && !L.some(x => x.t === t)) L.push({t, u, l: l || ''}); });
     return L.map(x => { const ty = LTYPES[x.t] || LTYPES.otro, url = linkUrl(x); return url ? [ty[0] + ' ' + (x.l || ty[1]), url, x.t] : null; }).filter(Boolean).slice(0, 10); };
+  // ---- Kit de prueba: cartelitos genéricos "ShopMenu · MESA N" que se reusan de café en café ----
+  if(!ID && Q.has('k')) return (async () => {
+    const k = String(Q.get('k')).toUpperCase().replace(/[^A-Z0-9]/g, '');
+    try{ const j = await api('/api/menu?kit=' + encodeURIComponent(k)); location.replace(`?m=${j.id}&mesa=${MESA || 1}`); return; }
+    catch(e){ app.innerHTML = `<div class="wrap" style="padding:40px 18px;text-align:center"><h2>🍽️ ShopMenu</h2><p>Este QR de prueba (kit <b>${esc(k)}</b>) todavía no está activado en ningún local.</p><p class="note">Si sos el dueño: entrá a tu caja → 🧪 <b>Activar kit de prueba</b> y escribí <b>${esc(k)}</b>.</p></div>`; return; }
+  })();
+  if(Q.has('kitprint')) return (async () => {
+    // ?kitprint=nuevo&kits=10&n=2 → 10 kits distintos de 2 mesas (20 cartelitos, 2 hojas A4). ?kitprint=PABC12 → reimprime ese kit.
+    const gen = () => 'P' + Array.from({length: 5}, () => 'ABCDEFGHJKLMNQRSTUVWXYZ23456789'[Math.floor(Math.random() * 31)]).join(''); // sin O/0/I/1/P para no confundir
+    const n = Math.max(1, Math.min(20, parseInt(Q.get('n'), 10) || 2)), pedido = String(Q.get('kitprint')).toUpperCase().replace(/[^A-Z0-9-]/g, '');
+    let codes = pedido.length >= 4 && pedido !== 'NUEVO' ? pedido.split('-').filter(c => /^[A-Z0-9]{4,10}$/.test(c)).slice(0, 30) : Array.from({length: Math.max(1, Math.min(30, parseInt(Q.get('kits'), 10) || 10))}, gen);
+    history.replaceState(null, '', `?kitprint=${codes.join('-')}&n=${n}`);
+    const o = location.origin + location.pathname;
+    app.innerHTML = `<div class="wrap"><section class="card noprint"><h2>🧪 QR de prueba (sin nombre de local)</h2>
+      <p>Son <b>${codes.length} kits de ${n} mesa${n > 1 ? 's' : ''}</b>: uno por cada café que pruebe ShopMenu 7 días. Cada kit tiene su código (sale chiquito en el cartelito).</p>
+      <p><b>Cómo se usan:</b> dejás un kit en el café → en su caja tocás 🧪 <b>Activar kit de prueba</b> y escribís el código → listo, esos QR abren el menú de ese café. Si no lo contrata, te devuelve los cartelitos y los activás en el próximo café.</p>
+      <p style="font-size:18px">Códigos: ${codes.map(c => `<b style="background:#f3eeff;border-radius:8px;padding:2px 8px;margin:2px;display:inline-block">${c}</b>`).join(' ')}</p>
+      <div class="row" style="align-items:center;gap:8px;flex-wrap:wrap"><label style="font-weight:800">Kits <input id="kK" type="number" min="1" max="30" value="${codes.length}" style="width:80px"></label><label style="font-weight:800">Mesas por kit <input id="kN" type="number" min="1" max="20" value="${n}" style="width:80px"></label><button class="btn sec" type="button" id="kGo">🔄 Armar kits nuevos</button><button class="btn pri" type="button" onclick="print()">🖨 Imprimir</button></div>
+      <p class="note">⚠️ Antes de imprimir, sacale una captura a los códigos o guardá este link: con él volvés a imprimir los mismos kits.</p></section>
+      <div class="qrs" id="qrs"><p class="note">Armando los QR…</p></div></div>`;
+    $('#kGo').onclick = () => { location.search = `?kitprint=nuevo&kits=${$('#kK').value}&n=${$('#kN').value}`; };
+    try{ await loadQR(); }catch(e){ $('#qrs').innerHTML = '<p class="msg">No se pudieron armar los QR. Revisá tu conexión.</p>'; return; }
+    $('#qrs').innerHTML = codes.map(k => Array.from({length: n}, (_, i) => { const q = qrcode(0, 'M'); q.addData(`${o}?k=${k}&mesa=${i + 1}`); q.make(); return `<div class="qrc">${q.createSvgTag({cellSize: 4, margin: 1, scalable: true})}<b>🍽️ Menú digital</b><span class="mesaN">MESA ${i + 1}</span><small>📱 Escaneá y pedí sin esperar al mozo 🙋</small><small style="font-size:9pt"><b style="display:inline;font-size:inherit">Kit ${k}</b> · ShopMenu</small></div>`; }).join('')).join('');
+  })();
   if(ID && (MESA || !CLAVE)) return mesa();
   if(ID && CLAVE && Q.has('caja')) return caja();
   return dueno();
@@ -686,7 +710,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
   async function caja(){
     let ding = false, seen = null, nombreLocal = '', MOZOS = [];
     app.innerHTML = `<div class="caja"><div class="cajatop"><h2 style="margin:0" id="cName">🧾 Caja</h2><div class="row"><button class="btn pri" type="button" id="bDing">🔔 Activar sonido</button><a class="btn sec" id="bEdit" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}">✏️ Editar menú</a><a class="btn sec" id="bQR" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&qr=1">🖨 QR de mesas</a></div></div>
-      <div class="row" id="atajos" style="gap:6px;flex-wrap:wrap"><b style="align-self:center">🧰 Tu local:</b><a class="cnt" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&ir=carta">📖 Carta y precios</a><a class="cnt" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&ir=links">💬 WhatsApp y redes</a><a class="cnt" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&ir=local">💳 Cobros y mozos</a><a class="cnt" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&ir=asistente">🙋 Asistente</a><a class="cnt" href="?m=${ID}&mesa=1" target="_blank" rel="noopener">👀 Ver como cliente</a><button class="cnt" type="button" id="bTour">❓ Mostrame todo</button></div>
+      <div class="row" id="atajos" style="gap:6px;flex-wrap:wrap"><b style="align-self:center">🧰 Tu local:</b><a class="cnt" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&ir=carta">📖 Carta y precios</a><a class="cnt" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&ir=links">💬 WhatsApp y redes</a><a class="cnt" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&ir=local">💳 Cobros y mozos</a><a class="cnt" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&ir=asistente">🙋 Asistente</a><a class="cnt" href="?m=${ID}&mesa=1" target="_blank" rel="noopener">👀 Ver como cliente</a><button class="cnt" type="button" id="bKit">🧪 Activar kit de prueba</button><button class="cnt" type="button" id="bTour">❓ Mostrame todo</button></div>
       <div id="cajaAsis"><div id="cAva" style="width:84px;height:110px"></div><div style="display:grid;gap:6px"><div class="bubble" id="cSay" style="font-size:16px">👋 Tocá <b>🎙️ Asistente</b> para que te avise de los pedidos con la voz.</div><div class="opts" id="cOpts" style="padding:0"></div></div><div style="display:grid;gap:6px;justify-items:center"><button class="mic" type="button" id="cMic" title="Hablale al asistente">🎙️</button></div><input id="cTxt" placeholder="…o escribile: “prepará mesa 2”, “listo mesa 2 lo lleva Marcos”, “¿cuántos pedidos tengo?”"></div>
       <div id="avisos" style="display:grid;gap:8px"></div><details id="rev" style="background:#fff;border:2px solid var(--line);border-radius:14px;padding:8px 12px"><summary style="font-weight:800;cursor:pointer">⭐ Opiniones de tus clientes</summary><div id="revL" style="display:grid;gap:6px;margin-top:6px"></div></details>
       <div class="col lane"><div class="laneh"><h3>🍽️ Entregados <span id="cEn"></span></h3><span><button class="arr" type="button" data-arr="cE|-1" aria-label="Anteriores">◀</button><button class="arr" type="button" data-arr="cE|1" aria-label="Siguientes">▶</button></span></div><div class="strip" id="cE"></div></div>
@@ -755,7 +779,10 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       [/(carta|menu|precio|plato|producto|foto)/, 'carta', 'La carta y los precios los cambiás en Editar menú: subís fotos de la carta y yo la leo, o corregís cada plato a mano.', '📖 Ir a la carta'],
       [/(mozo|mesas|alias|cobrar|mercado pago|resena|google|demora|tarda)/, 'local', 'Eso está en Editar menú, en la parte Tu local: cantidad de mesas, mozos, alias y link de pago, tu reseña de Google y cuánto tarda un pedido.', '✏️ Ir a Tu local'],
       [/(asistente|moza|avatar|carita|voz|pelo)/, 'asistente', 'Cómo se ve la moza o el mozo de las mesas, y mi carita, lo elegís en Editar menú, en la parte Tu asistente.', '🙋 Ir a Tu asistente']];
-    app.addEventListener('click', e => { if(e.target.closest('#bTour')) tour(0); });
+    app.addEventListener('click', async e => { if(e.target.closest('#bTour')) tour(0);
+      if(e.target.closest('#bKit')){ const k = (prompt('Código del kit de prueba (está abajo, chiquito, en cada cartelito). Ej: P7K3XQ') || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); if(!k) return;
+        try{ await api('/api/menu?accion=kit', {id: ID, clave: CLAVE, kit: k}); cTalk(`¡Listo${DUENO ? ', ' + DUENO : ''}! Los cartelitos del kit ${k} ya abren tu menú. Escaneá uno con el celular para probar.`); }
+        catch(err){ cTalk('No pude activar el kit: ' + err.message); } } });
     function comando(txt, quiet){
       const n0 = normC(txt).replace(/\b(prepara|prepare|preparame|preparen)\b/g, 'preparar'), n = /\bmesa\b/.test(n0) ? n0 : n0.replace(/\b(\d+)\b/, 'mesa $1'), m = n.match(/mesa (\d+|[a-z]+)/), mesa = m ? (+m[1] || NUM[m[1]] || 0) : 0;
       const de = (tipo, estados) => ITEMS.filter(x => (tipo === 'pedido' ? x.tipo === 'pedido' : x.tipo !== 'pedido') && estados.includes(x.estado) && (!mesa || x.mesa === mesa)).sort((a, b) => String(a.creado).localeCompare(String(b.creado)));
