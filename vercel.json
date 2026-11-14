@@ -11,6 +11,10 @@
     {
       "source": "/censo",
       "destination": "/censo.html"
+    },
+    {
+      "source": "/shopcut",
+      "destination": "/shopcut.html"
     }
   ],
   "functions": {

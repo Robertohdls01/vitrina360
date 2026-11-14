@@ -1,0 +1,74 @@
+{
+ "maquina_corte": {
+  "url": "https://listado.mercadolibre.com.ar/maquina-cortar-pelo",
+  "afiliado": false
+ },
+ "tijera": {
+  "url": "https://listado.mercadolibre.com.ar/tijera-peluqueria-profesional",
+  "afiliado": false
+ },
+ "shampoo_rulos": {
+  "url": "https://listado.mercadolibre.com.ar/shampoo-crema-rulos",
+  "afiliado": false
+ },
+ "shampoo_lacio": {
+  "url": "https://listado.mercadolibre.com.ar/shampoo-pelo-fino",
+  "afiliado": false
+ },
+ "crema_peinar": {
+  "url": "https://listado.mercadolibre.com.ar/crema-para-peinar",
+  "afiliado": false
+ },
+ "plancha": {
+  "url": "https://listado.mercadolibre.com.ar/planchita-pelo",
+  "afiliado": false
+ },
+ "secador": {
+  "url": "https://listado.mercadolibre.com.ar/secador-de-pelo",
+  "afiliado": false
+ },
+ "cera_pomada": {
+  "url": "https://listado.mercadolibre.com.ar/cera-pomada-pelo-hombre",
+  "afiliado": false
+ },
+ "cepillo": {
+  "url": "https://listado.mercadolibre.com.ar/cepillo-redondo-pelo",
+  "afiliado": false
+ },
+ "rizador": {
+  "url": "https://listado.mercadolibre.com.ar/buclera-rizador-pelo",
+  "afiliado": false
+ },
+ "barba": {
+  "url": "https://listado.mercadolibre.com.ar/kit-barba",
+  "afiliado": false
+ },
+ "maquina_mascota": {
+  "url": "https://listado.mercadolibre.com.ar/maquina-cortar-pelo-perros",
+  "afiliado": false
+ },
+ "cepillo_deslanador": {
+  "url": "https://listado.mercadolibre.com.ar/cepillo-deslanador-perro",
+  "afiliado": false
+ },
+ "shampoo_mascota": {
+  "url": "https://listado.mercadolibre.com.ar/shampoo-perros-gatos",
+  "afiliado": false
+ },
+ "tijera_mascota": {
+  "url": "https://listado.mercadolibre.com.ar/tijera-peluqueria-canina",
+  "afiliado": false
+ },
+ "cortaunas": {
+  "url": "https://listado.mercadolibre.com.ar/cortauñas-perro-gato",
+  "afiliado": false
+ },
+ "guante_cepillo": {
+  "url": "https://listado.mercadolibre.com.ar/guante-quita-pelo-mascotas",
+  "afiliado": false
+ },
+ "secador_mascota": {
+  "url": "https://listado.mercadolibre.com.ar/secador-sopladora-perros",
+  "afiliado": false
+ }
+}

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ShopCut ✂️ · Descubrí el corte que mejor te queda (y a tu mascota)</title>
+<meta name="description" content="Sacate una selfie o una foto de tu mascota y la IA te dice los 4 cortes de pelo que mejor le quedan. Gratis.">
+<meta property="og:title" content="ShopCut ✂️ · ¿Qué corte te queda mejor?">
+<meta property="og:description" content="Una selfie (o una foto de tu mascota) y la IA te dice los cortes ideales. Gratis.">
+<meta property="og:image" content="https://vitrina360app.com.ar/og-shopcut.png">
+<meta property="og:url" content="https://vitrina360app.com.ar/shopcut">
+<meta name="theme-color" content="#6d28d9">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂️</text></svg>">
+<style>
+:root{--v:#6d28d9;--v2:#9333ea;--p:#db2777;--ink:#1f1235;--soft:#f5f3ff}
+*{box-sizing:border-box}
+body{margin:0;font:400 16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:#faf7ff;min-height:100vh}
+.hero{background:linear-gradient(160deg,var(--v) 0%,var(--v2) 55%,var(--p) 100%);color:#fff;padding:28px 18px 70px;text-align:center;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;left:-10%;right:-10%;bottom:-60px;height:110px;background:#faf7ff;border-radius:50% 50% 0 0}
+.logo{font-weight:800;font-size:30px;letter-spacing:-.5px}.logo small{display:block;font-size:12px;font-weight:600;opacity:.8;letter-spacing:1px}
+.hero h1{font-size:clamp(30px,7vw,46px);line-height:1.05;margin:18px auto 10px;max-width:640px;letter-spacing:-1px}
+.hero p{margin:0 auto;max-width:520px;opacity:.95;font-size:17px}
+.scis{font-size:56px;display:inline-block;animation:snip 1.2s ease-in-out infinite alternate}@keyframes snip{to{transform:rotate(-18deg)}}
+main{max-width:620px;margin:-40px auto 0;padding:0 16px 40px;position:relative;z-index:1}
+.card{background:#fff;border-radius:24px;box-shadow:0 12px 40px rgba(76,29,149,.14);padding:20px;display:grid;gap:14px}
+.who{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.who button{border:3px solid #ede9fe;background:var(--soft);border-radius:20px;padding:18px 8px;font:700 17px system-ui;color:var(--ink);cursor:pointer;display:grid;gap:4px;justify-items:center}
+.who button span{font-size:46px}.who button[aria-pressed="true"]{border-color:var(--v2);background:#ede9fe;box-shadow:0 6px 18px rgba(147,51,234,.25)}
+.lbl{font-weight:700;font-size:15px;margin:0}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.chips button{border:2px solid #e9d5ff;background:#fff;border-radius:999px;padding:7px 14px;font:600 15px system-ui;color:var(--ink);cursor:pointer}.chips button[aria-pressed="true"]{border-color:var(--v2);background:#f3e8ff}
+.go{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{border:0;border-radius:999px;padding:15px 18px;font:800 17px system-ui;cursor:pointer;text-decoration:none;text-align:center;display:inline-flex;justify-content:center;align-items:center;gap:6px}
+.pri{background:linear-gradient(90deg,var(--v),var(--p));color:#fff;box-shadow:0 8px 22px rgba(219,39,119,.3)}.sec{background:#f3e8ff;color:var(--v)}
+.note{font-size:13px;color:#6b5b86;margin:0;text-align:center}
+.free{font-size:14px;text-align:center;margin:0;color:var(--v);font-weight:700}
+.msg{color:#b91c1c;text-align:center;margin:0;font-weight:600}
+.photo{width:150px;height:150px;border-radius:50%;object-fit:cover;justify-self:center;border:5px solid #e9d5ff}
+.spin{text-align:center;font-size:54px;animation:snip .5s ease-in-out infinite alternate}
+.res h2{margin:0;text-align:center;font-size:24px}
+.cut{border:2px solid #f3e8ff;border-radius:18px;padding:14px;display:grid;gap:6px}.cut h3{margin:0;font-size:19px}
+.mt{justify-self:start;font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;background:#f3e8ff;color:var(--v)}
+.ask{background:#faf5ff;border-radius:12px;padding:8px 11px;font-size:15px}
+.ask button{border:0;background:none;color:var(--v);font-weight:700;cursor:pointer;padding:0 0 0 4px}
+.prods{display:grid;gap:8px}.prod{display:flex;align-items:center;justify-content:space-between;gap:10px;border:2px solid #fde68a;background:#fffbeb;border-radius:14px;padding:10px 12px;text-decoration:none;color:var(--ink)}
+.prod b{display:block}.prod small{color:#78716c}.prod span.ml{flex:none;background:#ffe600;color:#2d3277;font-weight:800;border-radius:999px;padding:6px 12px;font-size:13px}
+.tip{background:#ecfeff;border-radius:14px;padding:10px 12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+footer{text-align:center;padding:10px 16px 34px;font-size:14px;color:#6b5b86}footer a{color:var(--v);font-weight:700}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="logo">✂️ ShopCut<small>BY SHOPFLASH</small></div>
+  <h1>¿Qué corte te queda mejor?</h1>
+  <p>Una selfie, o una foto de tu mascota, y la IA te dice los <b>4 cortes ideales</b>, cómo pedirlos y cómo mantenerlos. <b>Gratis.</b></p>
+  <div class="scis" aria-hidden="true">✂️</div>
+</header>
+<main>
+  <section class="card" id="start">
+    <p class="lbl">¿Para quién es el corte?</p>
+    <div class="who"><button type="button" data-t="persona" aria-pressed="true"><span>💇</span>Para mí</button><button type="button" data-t="mascota" aria-pressed="false"><span>🐶</span>Para mi mascota</button></div>
+    <p class="lbl" id="lblLargo">¿Cómo te gusta el pelo?</p>
+    <div class="chips" id="largo"><button type="button" data-l="corto" aria-pressed="false">Corto</button><button type="button" data-l="medio" aria-pressed="false">Medio</button><button type="button" data-l="largo" aria-pressed="false">Largo</button><button type="button" data-l="" aria-pressed="true">Sorprendeme</button></div>
+    <p class="note" id="hint">Sacate la foto de frente, con buena luz y el pelo suelto.</p>
+    <div class="go"><button class="btn pri" type="button" id="cam">📸 Sacar foto</button><button class="btn sec" type="button" id="gal">🖼 Elegir foto</button></div>
+    <input type="file" accept="image/*" capture="user" id="fcam" hidden><input type="file" accept="image/*" id="fgal" hidden>
+    <p class="msg" id="msg" role="status"></p>
+    <p class="free" id="free"></p>
+    <p class="note">🔒 Tu foto no se guarda: se analiza y se descarta.</p>
+  </section>
+  <section class="card res" id="res" hidden></section>
+</main>
+<footer>¿Tenés peluquería o peluquería canina? <a href="/?ref=shopcut">Armá tu tienda online con ShopFlash</a><br><small>Las recomendaciones son orientativas: tu peluquero/a de confianza siempre tiene la última palabra.</small></footer>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+  let tipo = 'persona', largo = '', PRODS = {};
+  fetch('/shopcut-productos.json').then(r => r.json()).then(j => { PRODS = j || {}; }).catch(() => {});
+  let dev = ''; try{ dev = localStorage.getItem('shopcut-dev') || ''; if(!dev){ dev = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('shopcut-dev', dev); } }catch(e){}
+  const freeTxt = n => { $('free').textContent = n == null ? '🎁 3 análisis gratis por día' : n > 0 ? `🎁 Te ${n === 1 ? 'queda 1 análisis gratis' : 'quedan ' + n + ' análisis gratis'} hoy` : '🎁 Mañana tenés 3 análisis gratis más'; };
+  try{ const s = JSON.parse(localStorage.getItem('shopcut-hoy') || 'null'); freeTxt(s && s.d === new Date().toDateString() ? s.q : null); }catch(e){ freeTxt(null); }
+  const setT = t => {
+    tipo = t; document.querySelectorAll('[data-t]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.t === t)));
+    $('fcam').setAttribute('capture', t === 'mascota' ? 'environment' : 'user');
+    $('lblLargo').textContent = t === 'mascota' ? '¿Cómo te gusta el pelo de tu mascota?' : '¿Cómo te gusta el pelo?';
+    $('hint').textContent = t === 'mascota' ? 'Sacale la foto con buena luz, que se vea bien su cara y su pelaje (si se puede, el cuerpo entero).' : 'Sacate la foto de frente, con buena luz y el pelo suelto.';
+  };
+  document.querySelectorAll('[data-t]').forEach(b => b.onclick = () => setT(b.dataset.t));
+  document.querySelectorAll('[data-l]').forEach(b => b.onclick = () => { largo = b.dataset.l; document.querySelectorAll('[data-l]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); });
+  if(/mascota|perro|pet/i.test(location.search + location.hash)) setT('mascota');
+  $('cam').onclick = () => $('fcam').click(); $('gal').onclick = () => $('fgal').click();
+  [$('fcam'), $('fgal')].forEach(i => i.onchange = () => { const f = i.files && i.files[0]; i.value = ''; if(f) analyze(f); });
+  const shrink = f => new Promise((ok, ko) => { const u = URL.createObjectURL(f), im = new Image(); im.onload = () => { const k = Math.min(1, 1024 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u); ok(c.toDataURL('image/jpeg', 0.85)); }; im.onerror = ko; im.src = u; });
+  const back = () => { $('res').hidden = true; $('start').hidden = false; window.scrollTo({top: 0, behavior: 'smooth'}); };
+  async function analyze(f){
+    $('msg').textContent = '';
+    let url = ''; try{ url = await shrink(f); }catch(e){}
+    if(!url){ $('msg').textContent = 'No pudimos abrir esa foto. Probá con otra.'; return; }
+    $('start').hidden = true; const R = $('res'); R.hidden = false;
+    R.innerHTML = `<img class="photo" src="${url}" alt=""><div class="spin">✂️</div><h2>${tipo === 'mascota' ? 'Mirando el pelaje de tu mascota…' : 'Analizando tu cara y tu pelo…'}</h2><p class="note">Tarda unos segundos</p>`;
+    window.scrollTo({top: R.offsetTop - 20, behavior: 'smooth'});
+    let j = {}, ok = false;
+    try{ const r = await fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({corte: true, app: true, tipo, largo, dev, lang: 'es', image: {type: 'image/jpeg', data: url.split(',')[1]}})}); j = await r.json().catch(() => ({})); ok = r.ok; if(j.limite){ try{ localStorage.setItem('shopcut-hoy', JSON.stringify({d: new Date().toDateString(), q: 0})); }catch(e){} freeTxt(0); } }catch(e){}
+    if(!ok){ R.innerHTML = `<img class="photo" src="${url}" alt=""><h2>😕</h2><p style="text-align:center;margin:0">${esc(j.error || 'No se pudo analizar. Probá de nuevo.')}</p><div class="row"><button class="btn pri" type="button" data-back>📸 Probar otra foto</button></div>`; R.querySelector('[data-back]').onclick = back; return; }
+    try{ localStorage.setItem('shopcut-hoy', JSON.stringify({d: new Date().toDateString(), q: j.quedan})); }catch(e){} freeTxt(j.quedan);
+    const mt = {bajo: '🟢 Mantenimiento bajo', medio: '🟡 Mantenimiento medio', alto: '🔴 Mantenimiento alto'};
+    R.innerHTML = `<img class="photo" src="${url}" alt="">
+      <h2>✂️ ${tipo === 'mascota' ? 'Los mejores cortes para tu mascota' : 'Tus cortes ideales'}</h2>
+      ${j.analisis ? `<p style="margin:0">${esc(j.analisis)}</p>` : ''}
+      ${j.cortes.map((c, i) => `<div class="cut"><h3>${esc(c.emoji || '💇')} ${i + 1}. ${esc(c.nombre)}</h3>${c.mantenimiento ? `<span class="mt">${mt[c.mantenimiento]}</span>` : ''}<span>${esc(c.por_que)}</span>${c.como_pedirlo ? `<span class="ask">🗣 <b>Pedilo así:</b> “${esc(c.como_pedirlo)}”<button type="button" data-copy="${esc(c.como_pedirlo)}">Copiar</button></span>` : ''}</div>`).join('')}
+      ${j.productos && j.productos.length ? `<p class="lbl">🛍 Para mantenerlo en casa</p><div class="prods">${j.productos.map(p => { const u = (PRODS[p.clave] || {}).url; return u ? `<a class="prod" href="${esc(u)}" target="_blank" rel="noopener sponsored"><span><b>${esc(p.nombre[0].toUpperCase() + p.nombre.slice(1))}</b><small>${esc(p.para)}</small></span><span class="ml">Ver en Mercado Libre</span></a>` : ''; }).join('')}</div>` : ''}
+      ${j.consejo ? `<p class="tip">💡 ${esc(j.consejo)}</p>` : ''}
+      <div class="row"><button class="btn pri" type="button" data-share>📤 Compartir</button><button class="btn sec" type="button" data-back>📸 Otra foto</button></div>`;
+    R.querySelector('[data-back]').onclick = back;
+    R.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => { navigator.clipboard?.writeText(b.dataset.copy).then(() => { b.textContent = '¡Copiado!'; }); });
+    R.querySelector('[data-share]').onclick = () => {
+      const txt = `✂️ ShopCut me recomendó: ${j.cortes.slice(0, 2).map(c => c.nombre).join(' o ')}. ${tipo === 'mascota' ? 'Probalo con tu mascota' : 'Descubrí el corte que mejor te queda'} gratis 👉 ${location.origin}/shopcut`;
+      if(navigator.share) navigator.share({text: txt}).catch(() => {}); else window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank', 'noopener');
+    };
+  }
+})();
+</script>
+</body>
+</html>
