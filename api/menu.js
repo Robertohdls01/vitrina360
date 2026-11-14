@@ -4,7 +4,7 @@
 //   GET  /api/menu?id=…                                              menú público (para los clientes de las mesas)
 //   GET  /api/menu?id=…&clave=…                                      para editar (verifica la clave)
 //   POST /api/menu?accion=pedido   {id, mesa, nombre, items, nota}   el cliente manda su pedido a la caja
-//   POST /api/menu?accion=aviso    {id, mesa, nombre, tipo}          llamar al mozo / pedir la cuenta
+//   POST /api/menu?accion=aviso    {id, mesa, nombre, tipo, texto}   llamar al mozo / pedir la cuenta / consulta al encargado (la caja responde con estado+rta)
 //   GET  /api/menu?id=…&pedido=…&k=…                                 el cliente ve cómo va su pedido
 //   GET  /api/menu?id=…&clave=…&caja=1                               la caja ve los pedidos y avisos
 //   POST /api/menu?accion=estado   {id, clave, pid, estado}          la caja cambia el estado
@@ -35,7 +35,7 @@ module.exports = async (req, res) => {
     if (!process.env.SUPABASE_SERVICE_KEY) return res.status(503).json({ error: 'ShopMenu no está configurado.' });
 
     // ---- Pedidos y avisos de las mesas ----
-    const ESTADOS = ['nuevo', 'preparando', 'listo', 'entregado', 'cancelado', 'visto'];
+    const ESTADOS = ['nuevo', 'preparando', 'listo', 'entregado', 'cancelado', 'visto', 'respondido'];
     const pedPath = id => 'menus/' + id + '-pedidos.json';
     const okId = id => /^[a-z0-9]{6,20}$/.test(String(id || ''));
     if (req.method === 'GET' && q.id && q.pedido) {
@@ -43,7 +43,7 @@ module.exports = async (req, res) => {
       const L = (await leerObj(pedPath(q.id))) || { items: [] };
       const p = (L.items || []).find(x => x.id === String(q.pedido));
       if (!p || p.k !== String(q.k || '')) return res.status(404).json({ error: 'No encontramos ese pedido.' });
-      return res.status(200).json({ estado: p.estado, n: p.n });
+      return res.status(200).json({ estado: p.estado, n: p.n, rta: p.rta || '' });
     }
     if (req.method === 'GET' && q.id && q.caja) {
       if (!okId(q.id)) return res.status(400).json({ error: 'Menú inválido.' });
@@ -64,7 +64,7 @@ module.exports = async (req, res) => {
       const base0 = { id: Date.now().toString(36) + crypto.randomBytes(3).toString('hex'), k: crypto.randomBytes(8).toString('hex'), mesa, nombre, creado: new Date().toISOString() };
       let nuevo;
       if (q.accion === 'aviso') {
-        nuevo = Object.assign(base0, { tipo: ['cuenta', 'pago'].includes(b.tipo) ? b.tipo : 'mozo', monto: t(b.monto, 20), pedido_n: parseInt(b.pedido_n, 10) || null, estado: 'nuevo' });
+        nuevo = Object.assign(base0, { tipo: ['cuenta', 'pago', 'consulta'].includes(b.tipo) ? b.tipo : 'mozo', monto: t(b.monto, 20), pedido_n: parseInt(b.pedido_n, 10) || null, texto: t(b.texto, 300), estado: 'nuevo' });
       } else {
         const valid = {}; (f.menu.cats || []).forEach(c => (c.items || []).forEach(i => { valid[i.n] = i.p; }));
         const items = (Array.isArray(b.items) ? b.items : []).slice(0, 60).map(i => ({ n: t(i && i.n, 90), q: Math.max(1, Math.min(99, parseInt(i && i.q, 10) || 1)) })).filter(i => valid[i.n] !== undefined).map(i => Object.assign(i, { p: valid[i.n] }));
@@ -84,7 +84,7 @@ module.exports = async (req, res) => {
       const L = (await leerObj(pedPath(b.id))) || { items: [] };
       const p = (L.items || []).find(x => x.id === String(b.pid || ''));
       if (!p) return res.status(404).json({ error: 'No encontramos ese pedido.' });
-      p.estado = b.estado; p.cambiado = new Date().toISOString();
+      p.estado = b.estado; p.cambiado = new Date().toISOString(); if (typeof b.rta === 'string' && b.rta.trim()) p.rta = t(b.rta.trim(), 300);
       await guardarObj(pedPath(b.id), L);
       return res.status(200).json({ ok: true });
     }

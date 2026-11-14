@@ -115,6 +115,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     <circle cx="41" cy="64" r="5" fill="#fb7185" opacity=".45"/><circle cx="79" cy="64" r="5" fill="#fb7185" opacity=".45"/>
     <path class="mouth" d="M51 67q9 9 18 0z" fill="#9f1239"/>
   </svg>`;
+  const JEFE = `<svg class="chef jefe" viewBox="0 0 100 115" aria-hidden="true"><path d="M24 34c-9 0-14-7-12-14 2-8 11-11 17-7 2-8 10-12 18-10 6-6 17-5 21 2 8-3 17 2 17 11 7 1 10 9 6 15-3 4-7 4-10 3H24z" fill="#fff" stroke="#e7d7c6" stroke-width="2"/><rect x="24" y="30" width="52" height="10" rx="3" fill="#fff" stroke="#e7d7c6" stroke-width="2"/><circle cx="50" cy="68" r="30" fill="#fcd5b5" stroke="#e2a77c" stroke-width="2"/><g class="eyes"><ellipse cx="39" cy="64" rx="4" ry="5.5" fill="#2a1a12"/><ellipse cx="61" cy="64" rx="4" ry="5.5" fill="#2a1a12"/><circle cx="40.5" cy="62" r="1.6" fill="#fff"/><circle cx="62.5" cy="62" r="1.6" fill="#fff"/></g><circle cx="31" cy="75" r="5" fill="#fb7185" opacity=".45"/><circle cx="69" cy="75" r="5" fill="#fb7185" opacity=".45"/><path class="mouth" d="M41 78q9 9 18 0z" fill="#9f1239"/><path d="M38 99l12 6 12-6-12-5z" fill="#ea580c"/><circle cx="50" cy="99" r="3" fill="#9a3412"/></svg>`;
   const shrink = (f, max) => new Promise((ok, ko) => { const u = URL.createObjectURL(f), im = new Image(); im.onload = () => { const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u); ok(c.toDataURL('image/jpeg', 0.82)); }; im.onerror = ko; im.src = u; });
   const loadQR = () => window.qrcode ? Promise.resolve() : new Promise((ok, ko) => { const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
 
@@ -223,12 +224,12 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     const keep = () => { try{ sessionStorage.setItem(KEYP, JSON.stringify({nombre, order})); }catch(e){} };
     try{ mute = localStorage.getItem('shopmenu-mute') === '1'; }catch(e){}
     app.innerHTML = `<div class="mesa"><div class="mtop"><b>${esc(M.nombre)}</b><span class="tag">Mesa ${MESA}</span><button type="button" id="bMute" title="Voz">${mute ? '🔇' : '🔊'}</button></div>
-      <div class="stage">${CHEF}<div class="bubble" id="say" role="status" aria-live="polite"></div></div>
+      <div class="stage"><div id="ava">${CHEF}</div><div class="bubble" id="say" role="status" aria-live="polite"></div></div>
       <div class="opts" id="opts"></div>
       <div class="area" id="area"></div>
       <div class="dock"><div class="say"><button class="mic" type="button" id="bMic" title="Hablale">🎤</button><input id="iTxt" placeholder="Decime o escribime qué querés…" enterkeyhint="send"><button class="send" type="button" id="bSend">➤</button></div>
         <button class="cartbtn" type="button" id="bCart">🧾 Mi pedido</button></div></div>`;
-    const chef = $('.chef'), say = $('#say'), opts = $('#opts'), area = $('#area');
+    let chef = $('.chef'); const say = $('#say'), opts = $('#opts'), area = $('#area');
     // ---- voz ----
     let voice = null; const pickVoice = () => { const vs = speechSynthesis.getVoices(); voice = vs.find(v => /es[-_]AR/i.test(v.lang)) || vs.find(v => /^es/i.test(v.lang)) || null; };
     if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
@@ -275,6 +276,8 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       const n = norm(text); if(!n.trim()) return;
       if(/^(si|dale|bueno|ok|sumalo|sumamelo|si dale|si por favor)\b/.test(n.trim())){ const b = opts.querySelector('button.pri'); if(b && /Sí, sumame/.test(b.textContent)){ b.click(); return; } }
       if(!nombre && step === 'nombre'){ setName(text); return; }
+      if(step === 'consulta'){ consulta(text); return; }
+      if(/\b(encargado|dueno|duena|chef|cocinero|gerente|coordinador|queja|reclamo|alergi|celiac|vegan|vegetarian)/.test(n)) return encargado();
       if(/\b(mozo|mesero|camarero|moza)\b/.test(n)) return aviso('mozo');
       if(/\b(cuenta|pagar|cobrar|pago)\b/.test(n)) return (M.alias || M.paylink) ? pagar(ultimo) : aviso('cuenta');
       if(/\b(recomend|sugeri|que me das|que me conviene|no se que)/.test(n)) return recomendar();
@@ -302,9 +305,26 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     $('#bMic').onclick = () => { if(!rec){ $('#iTxt').focus(); talk('Tu celular no me deja escucharte 🙈, pero escribime abajo y te entiendo igual.'); return; } if(on){ rec.stop(); return; } try{ speechSynthesis.cancel(); }catch(e){} listen(); say.textContent = '👂 Te escucho…'; };
     const sendTxt = () => { const t = $('#iTxt').value.trim(); if(!t) return; $('#iTxt').value = ''; hear(t); };
     $('#bSend').onclick = sendTxt; $('#iTxt').addEventListener('keydown', e => { if(e.key === 'Enter') sendTxt(); });
+    // ---- encargado / chef: el cliente le deja un mensaje y el dueño contesta desde la caja ----
+    let modoJefe = false;
+    const ava = (jefe) => { modoJefe = jefe; $('#ava').innerHTML = jefe ? JEFE : CHEF; chef = $('.chef'); };
+    function encargado(){
+      ava(true); step = 'consulta';
+      talk(`¡Hola${nombre ? ', ' + nombre : ''}! Soy el encargado 👨‍🍳. Contame qué necesitás (una consulta, un pedido especial, alergias, lo que sea) y te respondo enseguida.`, [['↩ Volver con el mozo', () => { step = ''; ava(false); talk('¡Acá estoy de nuevo! ¿En qué te ayudo?', mainChips()); }]]);
+      talk.listen = false; $('#iTxt').focus();
+    }
+    async function consulta(texto){
+      step = '';
+      let j = null; try{ j = await api('/api/menu?accion=aviso', {id: ID, mesa: MESA, nombre, tipo: 'consulta', texto}); }catch(e){ talk('Uy, no pude mandar tu mensaje. Probá de nuevo.'); ava(false); return; }
+      talk('¡Recibido! Ya le llegó tu mensaje al encargado. Te contesto acá en un ratito ⏳', [['↩ Seguir con el mozo', () => { ava(false); talk('¿En qué te ayudo?', mainChips()); }]]);
+      const t = setInterval(async () => { let s = null; try{ s = await api(`/api/menu?id=${ID}&pedido=${j.pid}&k=${j.k}`); }catch(e){ return; }
+        if(s.rta){ clearInterval(t); ava(true); talk(`👨‍🍳 ${s.rta}`, [['↩ Volver con el mozo', () => { ava(false); talk('¿Algo más?', mainChips()); }], ['💬 Responderle', encargado]]); }
+        else if(s.estado === 'visto'){ clearInterval(t); } }, 6000);
+      setTimeout(() => clearInterval(t), 20 * 60e3);
+    }
     // ---- pantallas ----
     let step = '';
-    const mainChips = () => [['📖 Ver la carta', verCarta], ['🤔 ¿Qué me recomendás?', recomendar], ['🙋 Llamar al mozo', () => aviso('mozo')]].concat(ultimo ? [['💳 Pagar / la cuenta', () => (M.alias || M.paylink) ? pagar(ultimo) : aviso('cuenta')]] : []);
+    const mainChips = () => [['📖 Ver la carta', verCarta], ['🤔 ¿Qué me recomendás?', recomendar], ['🙋 Llamar al mozo', () => aviso('mozo')], ['👨‍🍳 Hablar con el encargado', encargado]].concat(ultimo ? [['💳 Pagar / la cuenta', () => (M.alias || M.paylink) ? pagar(ultimo) : aviso('cuenta')]] : []);
     const dishHTML = i => `<div class="dish"><span><b>${esc(i.n)}${i.promo ? ' ⭐' : ''}</b>${i.d ? `<small>${esc(i.d)}</small>` : ''}</span><span class="row" style="flex-wrap:nowrap"><span class="pr">${esc(i.p)}</span><button class="add" type="button" data-add="${esc(i.n)}" aria-label="Agregar ${esc(i.n)}">+</button></span></div>`;
     area.addEventListener('click', e => { const b = e.target.closest('[data-add]'); if(!b) return; add(b.dataset.add, 1); b.textContent = '✓'; setTimeout(() => { b.textContent = '+'; }, 900); talk(`¡Anotado! ${b.dataset.add}. ¿Algo más?`, [['✅ Eso es todo', () => verPedido(true), true], ...mainChips()]); });
     function verCarta(){ area.innerHTML = M.cats.map(c => `<div class="sec2"><h3>${esc(c.n)}</h3>${c.items.map(dishHTML).join('')}</div>`).join(''); talk(`Acá tenés la carta 📖. Tocá ➕ o decime lo que querés, por ejemplo: "una ${esc(ALL[0] ? ALL[0].n.toLowerCase() : 'empanada')}".`, [['🤔 ¿Qué me recomendás?', recomendar], ['🙋 Llamar al mozo', () => aviso('mozo')]]); }
@@ -369,7 +389,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       try{ await api('/api/menu?accion=aviso', {id: ID, mesa: MESA, nombre, tipo}); talk(tipo === 'cuenta' ? '¡Dale! Ya le avisé a la caja que querés la cuenta 💳. Enseguida te la traen.' : '¡Listo! Ya le avisé al mozo, enseguida viene 🙋.', mainChips()); }
       catch(e){ talk('Uy, no pude avisar. Probá de nuevo en un ratito.', mainChips()); }
     }
-    function setName(t){ nombre = t.trim().split(/\s+/).slice(-1)[0].replace(/[^\p{L}]/gu, '').slice(0, 20); nombre = nombre ? nombre[0].toUpperCase() + nombre.slice(1).toLowerCase() : ''; keep(); step = ''; promos(); }
+    function setName(t){ nombre = t.trim().split(/\s+/).slice(-1)[0].replace(/[^\p{L}]/gu, '').slice(0, 20); nombre = nombre ? nombre[0].toUpperCase() + nombre.slice(1).toLowerCase() : ''; keep(); step = ''; $('#iTxt').placeholder = 'Decime o escribime qué querés…'; promos(); }
     function promos(){
       const hola = nombre ? `¡Un gusto, ${nombre}! 😊 ` : '¡Dale! 😊 ';
       if(PROMOS.length){ area.innerHTML = `<div class="sec2"><h3>⭐ Hoy te recomendamos</h3>${PROMOS.map(dishHTML).join('')}</div>`; talk(hola + `Hoy te recomendamos: ${PROMOS.slice(0, 3).map(i => i.n + (i.p ? ' a ' + i.p : '')).join(', ')}. Podés tocar ➕ o pedirme lo que quieras hablando 🎤.`, mainChips()); talk.listen = false; }
@@ -404,14 +424,15 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       if(j.nombre && j.nombre !== nombreLocal){ nombreLocal = j.nombre; $('#cName').textContent = '🧾 Caja · ' + j.nombre; }
       const its = j.items || [], ids = new Set(its.filter(x => x.estado === 'nuevo').map(x => x.id));
       if(seen && [...ids].some(id => !seen.has(id))) beep(); seen = ids;
-      $('#avisos').innerHTML = its.filter(x => x.tipo !== 'pedido' && x.estado === 'nuevo').map(a => `<div class="aviso"><span>${a.tipo === 'pago' ? '💰 La mesa ' + a.mesa + ' dice que PAGÓ ' + esc(a.monto || '') + (a.pedido_n ? ' (pedido #' + a.pedido_n + ')' : '') + ' — revisá que te haya llegado' : a.tipo === 'cuenta' ? '💳 La mesa ' + a.mesa + ' pide la cuenta' : '🙋 La mesa ' + a.mesa + ' llama al mozo'}${a.nombre ? ' (' + esc(a.nombre) + ')' : ''} · ${ago(a.creado)}</span><button class="btn sec" type="button" data-v="${a.id}">✓ Atendido</button></div>`).join('');
+      $('#avisos').innerHTML = its.filter(x => x.tipo === 'consulta' && x.estado === 'nuevo').map(a => `<div class="aviso" style="flex-wrap:wrap"><span style="flex-basis:100%">👨‍🍳 Mesa ${a.mesa}${a.nombre ? ' (' + esc(a.nombre) + ')' : ''} quiere hablar con el encargado · ${ago(a.creado)}<br><span style="font-weight:500">“${esc(a.texto)}”</span></span><input data-rin="${a.id}" maxlength="300" placeholder="Tu respuesta (el asistente se la dice a la mesa)" style="flex:1"><button class="btn pri" type="button" data-r="${a.id}">Responder</button></div>`).join('') + its.filter(x => x.tipo !== 'pedido' && x.tipo !== 'consulta' && x.estado === 'nuevo').map(a => `<div class="aviso"><span>${a.tipo === 'pago' ? '💰 La mesa ' + a.mesa + ' dice que PAGÓ ' + esc(a.monto || '') + (a.pedido_n ? ' (pedido #' + a.pedido_n + ')' : '') + ' — revisá que te haya llegado' : a.tipo === 'cuenta' ? '💳 La mesa ' + a.mesa + ' pide la cuenta' : '🙋 La mesa ' + a.mesa + ' llama al mozo'}${a.nombre ? ' (' + esc(a.nombre) + ')' : ''} · ${ago(a.creado)}</span><button class="btn sec" type="button" data-v="${a.id}">✓ Atendido</button></div>`).join('');
       const peds = its.filter(x => x.tipo === 'pedido').sort((a, b) => String(a.creado).localeCompare(String(b.creado)));
       $('#cN').innerHTML = peds.filter(p => p.estado === 'nuevo').map(p => tk(p, `<button class="btn pri" type="button" data-s="${p.id}|preparando">👨‍🍳 Preparar</button><button class="btn sec" type="button" data-s="${p.id}|cancelado">✕</button>`)).join('') || '<p class="note">Sin pedidos nuevos</p>';
       $('#cP').innerHTML = peds.filter(p => p.estado === 'preparando').map(p => tk(p, `<button class="btn pri" type="button" data-s="${p.id}|listo">✅ Listo</button>`)).join('') || '<p class="note">—</p>';
       $('#cL').innerHTML = peds.filter(p => p.estado === 'listo').map(p => tk(p, `<button class="btn sec" type="button" data-s="${p.id}|entregado">🍽️ Entregado</button>`)).join('') || '<p class="note">—</p>';
     }
-    app.addEventListener('click', e => { const s = e.target.closest('[data-s]'); if(s){ const [pid, est] = s.dataset.s.split('|'); set(pid, est); } const v = e.target.closest('[data-v]'); if(v) set(v.dataset.v, 'visto'); });
-    load(); setInterval(load, 5000);
+    app.addEventListener('click', e => { const s = e.target.closest('[data-s]'); if(s){ const [pid, est] = s.dataset.s.split('|'); set(pid, est); } const v = e.target.closest('[data-v]'); if(v) set(v.dataset.v, 'visto');
+      const r = e.target.closest('[data-r]'); if(r){ const inp = app.querySelector(`[data-rin="${r.dataset.r}"]`), rta = inp && inp.value.trim(); if(!rta){ inp && inp.focus(); return; } api('/api/menu?accion=estado', {id: ID, clave: CLAVE, pid: r.dataset.r, estado: 'respondido', rta}).then(load, e2 => alert(e2.message)); } });
+    load(); setInterval(() => { const f = document.activeElement; if(f && f.matches && f.matches('[data-rin]') && f.value) return; load(); }, 5000);
   }
 })();
 </script>
