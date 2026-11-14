@@ -188,7 +188,7 @@ Fijate solo en lo que sirve para el corte: forma de la cara (ovalada, redonda, c
     : `Sos peluquero/a canino y felino profesional. Mirá la foto de esta mascota y recomendá los 4 cortes o estilos de peluquería que mejor le quedarían${largo ? ' (el dueño prefiere pelo ' + largo + ')' : ''}.
 Fijate en la especie, la raza o cruza aproximada, el tipo de pelaje (simple, doble capa, rizado, duro, largo) y el largo actual. Si tiene doble capa (como husky, golden, ovejero), avisá que no conviene raparlo al ras porque el pelo lo protege del calor y del frío. Pensá en su bienestar y comodidad.`;
   const prompt = pedido + `
-Si en la foto no se ve bien ${tipo === 'persona' ? 'una cara' : 'una mascota'}, devolvé {"error":"…"} explicando qué foto sacar.
+Si en la foto no se ve bien ${tipo === 'persona' ? 'una cara' : 'una mascota'}, devolvé {"error":"…"} explicando en UNA frase corta (máximo 25 palabras) qué foto sacar.
 Servicios que ofrece la tienda (para sugerir cuál reservar; usá el nombre exacto o dejalo vacío si ninguno corresponde): ${JSON.stringify(servicios)}
 Respondé en ${b.lang === 'en' ? 'inglés' : b.lang === 'pt' ? 'portugués' : 'español rioplatense (con "vos")'} y SOLO con JSON válido, así:
 {"analisis":"2 frases sobre ${tipo === 'persona' ? 'la forma de la cara y el tipo de pelo' : 'la raza aproximada y el tipo de pelaje'}","cortes":[{"nombre":"nombre del corte","emoji":"un emoji","por_que":"por qué le queda bien, 1 o 2 frases","como_pedirlo":"qué decirle al peluquero, 1 frase","mantenimiento":"bajo|medio|alto","servicio":""}],"consejo":"un consejo corto de cuidado"}`;
@@ -248,7 +248,7 @@ Fijate solo en lo que sirve para el corte: forma de la cara (ovalada, redonda, c
     : `Sos peluquero/a canino y felino profesional. Mirá la foto de esta mascota y recomendá los 4 cortes o estilos de peluquería que mejor le quedarían${largo ? ' (el dueño prefiere pelo ' + largo + ')' : ''}.
 Fijate en la especie, la raza o cruza aproximada, el tipo de pelaje (simple, doble capa, rizado, duro, largo) y el largo actual. Si tiene doble capa (como husky, golden, ovejero), avisá que no conviene raparlo al ras porque el pelo lo protege del calor y del frío. Pensá en su bienestar y comodidad.`;
   const prompt = pedido + `
-Si en la foto no se ve bien ${tipo === 'persona' ? 'una cara' : 'una mascota'}, devolvé {"error":"…"} explicando qué foto sacar.
+Si en la foto no se ve bien ${tipo === 'persona' ? 'una cara' : 'una mascota'}, devolvé {"error":"…"} explicando en UNA frase corta (máximo 25 palabras) qué foto sacar.
 Elegí también hasta 3 productos útiles para mantener esos cortes en casa, SOLO de esta lista (usá la clave): ${JSON.stringify(lista)}
 Respondé en ${b.lang === 'en' ? 'inglés' : b.lang === 'pt' ? 'portugués' : 'español rioplatense (con "vos")'} y SOLO con JSON válido, así:
 {"analisis":"2 frases sobre ${tipo === 'persona' ? 'la forma de la cara y el tipo de pelo' : 'la raza aproximada y el tipo de pelaje'}","cortes":[{"nombre":"nombre del corte","emoji":"un emoji","por_que":"por qué le queda bien, 1 o 2 frases","como_pedirlo":"qué decirle al peluquero, 1 frase","mantenimiento":"bajo|medio|alto"}],"productos":[{"clave":"…","para":"para qué le sirve, pocas palabras"}],"consejo":"un consejo corto de cuidado"}`;
