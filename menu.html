@@ -317,6 +317,9 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
         return talk(ok + ' ' + otherQ(), [doneChip(), ...mainChips()]);
       }
       if(amb.length){ const a = amb[0]; return talk(T(`¿Cuál querés? Tengo ${a.map(i => i.dn).join(', ')}.`, `Which one? I have ${a.map(i => i.dn).join(', ')}.`, `Qual você quer? Tenho ${a.map(i => i.dn).join(', ')}.`), a.slice(0, 6).map(i => [i.dn, () => { add(i.n, 1); talk(T(`¡Listo! Te agregué ${i.dn}.`, `Done! I added ${i.dn}.`, `Pronto! Adicionei ${i.dn}.`) + ' ' + otherQ(), [doneChip(), ...mainChips()]); }])); }
+      if(has(n, /\b(se puede|puedo|podes|podrian|hay|tienen|tenes|sin |con extra|agregarle|cambiar|can i|could you|do you have|is there|without|extra|da pra|pode|tem |sem )/)){
+        return talk(T(`Buena pregunta 🤔. ¿Querés que le pregunte a la cocina? Te contesto acá en un ratito.`, `Good question 🤔. Want me to ask the kitchen? I'll answer you here shortly.`, `Boa pergunta 🤔. Quer que eu pergunte para a cozinha? Respondo aqui em instantes.`), [['👨‍🍳 ' + T('Sí, preguntale', 'Yes, ask them', 'Sim, pergunte'), () => { ava(true); consulta(text); }, true], ['📖 ' + T('Ver la carta', 'See the menu', 'Ver o cardápio'), verCarta]]);
+      }
       talk(T(`Mmm, no encontré "${text}" en la carta 🤔. Probá decirlo de otra forma, o mirá la carta y tocá ➕.`, `Hmm, I couldn't find "${text}" on the menu 🤔. Try saying it another way, or check the menu and tap ➕.`, `Hmm, não encontrei "${text}" no cardápio 🤔. Tente dizer de outro jeito, ou veja o cardápio e toque ➕.`), mainChips());
     }
     // ---- escuchar ----
