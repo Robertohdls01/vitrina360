@@ -362,7 +362,11 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     }
     $('#bCart').onclick = () => verPedido(false);
     let ultimo = null, totalUlt = 0;
+    let wl = null, pagado = false;
+    const awake = async () => { try{ if('wakeLock' in navigator && !wl){ wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release', () => { wl = null; }); } }catch(e){} };
+    document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && ultimo) awake(); });
     function seguir(j){
+      awake();
       let last = 'nuevo';
       const puede = M.alias || M.paylink;
       talk(`¡Listo${nombre ? ', ' + nombre : ''}! 🎉 Tu pedido número ${j.n} ya llegó a la cocina.${M.demora ? ' Tarda más o menos ' + M.demora + ' minutos.' : ''} Te aviso cuando esté listo.${puede ? ' ¿Querés pagar ahora desde la mesa, o al final cuando termines?' : ''}`,
@@ -374,6 +378,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
         if(s.estado === last) return; last = s.estado; const st = $('#st');
         if(s.estado === 'preparando'){ if(st) st.textContent = `👨‍🍳 Pedido #${j.n}: lo están preparando`; talk('¡Buenas noticias! Ya están preparando tu pedido 👨‍🍳'); }
         if(s.estado === 'listo'){ if(st) st.textContent = s.mozo ? `🍽️ Pedido #${j.n}: ${s.mozo} te lo está llevando` : `✅ Pedido #${j.n}: ¡listo, ya sale!`; talk(s.mozo ? `¡${nombre || 'Ey'}! Tu pedido ya está listo: ${s.mozo} te lo está llevando a la mesa ${MESA} 🍽️ ¡Que lo disfrutes!` : `¡${nombre || 'Ey'}! Tu pedido ya está listo y va para tu mesa 🍽️ ¡Que lo disfrutes!`, mainChips()); }
+        if(s.estado === 'listo' && (M.alias || M.paylink) && !pagado) setTimeout(() => { if(!pagado) talk(`¿Qué tal todo${nombre ? ', ' + nombre : ''}? 😊 Cuando quieras, podés abonar ahora desde acá o al final, como prefieras.`, [['💳 Abonar ahora', () => pagar(ultimo), true], ['⏰ Al final', () => talk('¡Dale, disfrutá! Cuando termines, tocá 💳 o decime "la cuenta".', mainChips())], ...mainChips()]); }, 4 * 60e3);
         if(['entregado', 'cancelado'].includes(s.estado)) clearInterval(t);
       }, 8000);
     }
@@ -385,7 +390,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
         ${M.alias ? `<div class="row"><span>Transferí al alias <b>${esc(M.alias)}</b></span><button class="btn sec" type="button" id="bCopyA">📋 Copiar alias</button></div>` : ''}
         <button class="btn sec" type="button" id="bPague">✅ Ya pagué</button><p class="note">Cuando pagues, tocá "Ya pagué" y le aviso a la caja para que lo confirme.</p></div>`;
       const ca = $('#bCopyA'); if(ca) ca.onclick = () => { navigator.clipboard?.writeText(M.alias).then(() => { ca.textContent = '✓ Copiado'; }); };
-      $('#bPague').onclick = async () => { try{ await api('/api/menu?accion=aviso', {id: ID, mesa: MESA, nombre, tipo: 'pago', monto, pedido_n: j && j.n}); talk(`¡Gracias${nombre ? ', ' + nombre : ''}! 🙌 Le avisé a la caja que pagaste ${monto}. Ellos lo confirman.`, mainChips()); area.innerHTML = '<div class="status">💳 Pago avisado a la caja</div>'; }catch(e){ talk('Uy, no pude avisar a la caja. Probá de nuevo.'); } };
+      $('#bPague').onclick = async () => { try{ await api('/api/menu?accion=aviso', {id: ID, mesa: MESA, nombre, tipo: 'pago', monto, pedido_n: j && j.n}); pagado = true; talk(`¡Gracias${nombre ? ', ' + nombre : ''}! 🙌 Le avisé a la caja que pagaste ${monto}. Ellos lo confirman.`, mainChips()); area.innerHTML = '<div class="status">💳 Pago avisado a la caja</div>'; }catch(e){ talk('Uy, no pude avisar a la caja. Probá de nuevo.'); } };
       talk(`¡Dale! ${monto ? 'Son ' + monto + '. ' : ''}Podés ${M.paylink ? 'pagar con Mercado Pago tocando el botón' : ''}${M.paylink && M.alias ? ', o ' : ''}${M.alias ? 'transferir al alias ' + M.alias : ''}. Cuando termines, tocá "Ya pagué".`);
     }
     async function aviso(tipo){
