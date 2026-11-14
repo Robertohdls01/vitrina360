@@ -42,10 +42,10 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .links{display:grid;gap:8px}.links a{word-break:break-all;color:var(--v);font-weight:700}
 .secret{background:#fef2f2;border:2px dashed #fca5a5;border-radius:14px;padding:10px;display:grid;gap:4px}
-.qrs{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
-.qrc{border:2px solid var(--line);border-radius:16px;padding:10px;text-align:center;background:#fff;break-inside:avoid}
-.qrc svg{width:130px;height:130px}.qrc b{display:block;font-size:20px}.qrc small{display:block;color:#6b5b86}
-@media print{body{background:#fff}.hero,.noprint{display:none!important}.wrap{margin:0;max-width:none}.card{box-shadow:none;padding:0}.qrs{grid-template-columns:repeat(3,1fr)}}
+.qrs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.qrc{border:2px solid var(--line);border-radius:14px;padding:8px 10px;background:#fff;break-inside:avoid;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center;aspect-ratio:2/1}.qrc svg{grid-row:1/5}.qrc .mesaN{font-size:30px;line-height:1;color:#5b21b6;font-weight:900}
+.qrc svg{width:130px;height:130px}.qrc b{display:block;font-size:20px}.qrc small{display:block;color:#6b5b86;font-size:13px}
+@media print{body{background:#fff}.hero,.noprint{display:none!important}.wrap{margin:0;max-width:none}.card{box-shadow:none;padding:0}.qrs{grid-template-columns:repeat(2,10cm);grid-auto-rows:5cm;gap:0;justify-content:center}.qrc{width:10cm;height:5cm;aspect-ratio:auto;border:1px dashed #999;border-radius:0;padding:3mm 4mm;box-sizing:border-box}.qrc svg{width:4cm;height:4cm}.qrc .mesaN{font-size:26pt}.qrc small{font-size:9.5pt;color:#444}.qrc b{font-size:13pt}@page{size:A4;margin:8mm}}
 /* ---------- mesa (cliente) ---------- */
 .mesa{min-height:100vh;display:flex;flex-direction:column;background:radial-gradient(circle at 50% 0,#fff 0,var(--cream) 60%)}
 .mtop{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#5b21b6;color:#fff}
@@ -289,12 +289,13 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
           <span>✏️ <b>Editar el menú</b> (cambiar precios o promos): <a href="${edit}">${esc(edit)}</a></span>
           <div class="row"><a class="btn pri" href="${caja}" target="_blank">🧾 Abrir la caja</a><button class="btn sec" type="button" id="bWaMe">📲 Mandármelos por WhatsApp</button></div></div>
         <div class="row noprint"><a class="btn sec" href="${o}?m=${id}&mesa=1" target="_blank">👀 Probar como cliente (mesa 1)</a><button class="btn pri" type="button" onclick="print()">🖨 Imprimir los QR de las mesas</button></div>
+        <p class="note noprint">🖨 Sale en hojas A4 con <b>10 cartelitos de 10×5 cm</b> (línea punteada para recortar). Llevalos a plastificar y ponelos en el servilletero de cada mesa. El primero, <b>MENÚ</b>, es el general: para la carta, la puerta o el mostrador (le pregunta al cliente en qué mesa está).</p>
         <p class="note noprint">Imprimí los QR, recortalos y pegá uno en cada mesa: cada uno sabe su número. ¿Ya tenés un QR propio que podés cambiar (tu web o un link editable)? Hacelo apuntar a este link general: <a href="${o}?m=${id}" target="_blank">${esc(o + '?m=' + id)}</a> — el asistente le pregunta al cliente en qué mesa está.</p>
         <div class="qrs" id="qrs"></div>`;
       $('#bWaMe').onclick = () => open('https://wa.me/?text=' + encodeURIComponent(`🍽️ ShopMenu de ${menu.nombre}\n🧾 Caja: ${caja}\n✏️ Editar: ${edit}`), '_blank');
       try{ await loadQR(); }catch(e){ $('#qrs').innerHTML = '<p class="msg">No se pudieron armar los QR. Revisá tu conexión.</p>'; return; }
       const qg = qrcode(0, 'M'); qg.addData(`${o}?m=${id}`); qg.make();
-      $('#qrs').innerHTML = `<div class="qrc"><small>${esc(menu.nombre)}</small><b>QR general</b>${qg.createSvgTag({cellSize: 4, margin: 2, scalable: true})}<small>Para la entrada o el mostrador: pregunta el número de mesa</small></div>` + Array.from({length: menu.mesas}, (_, i) => { const q = qrcode(0, 'M'); q.addData(`${o}?m=${id}&mesa=${i + 1}`); q.make(); return `<div class="qrc"><small>${esc(menu.nombre)}</small><b>Mesa ${i + 1}</b>${q.createSvgTag({cellSize: 4, margin: 2, scalable: true})}<small>📱 Escaneá: te atiendo yo 🙋</small></div>`; }).join('');
+      $('#qrs').innerHTML = `<div class="qrc">${qg.createSvgTag({cellSize: 4, margin: 1, scalable: true})}<b>${esc(menu.nombre)}</b><span class="mesaN">MENÚ</span><small>📱 Escaneá y pedí desde tu celular</small><small>Para la carta, la puerta o el mostrador</small></div>` + Array.from({length: menu.mesas}, (_, i) => { const q = qrcode(0, 'M'); q.addData(`${o}?m=${id}&mesa=${i + 1}`); q.make(); return `<div class="qrc">${q.createSvgTag({cellSize: 4, margin: 1, scalable: true})}<b>${esc(menu.nombre)}</b><span class="mesaN">MESA ${i + 1}</span><small>📱 Escaneá y pedí</small><small>sin esperar al mozo 🙋</small></div>`; }).join('');
       d.scrollIntoView({behavior: 'smooth'});
     }
     if(ID && CLAVE && menu.cats.length && Q.has('qr')) done(ID, CLAVE);
