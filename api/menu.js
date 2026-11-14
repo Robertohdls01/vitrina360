@@ -25,7 +25,7 @@ function limpiar(m) {
   m = m || {};
   const cats = (Array.isArray(m.cats) ? m.cats : []).slice(0, 40).map(c => ({ n: t(c && c.n, 60),
     items: (Array.isArray(c && c.items) ? c.items : []).slice(0, 80).map(i => ({ n: t(i && i.n, 90), d: t(i && i.d, 240), p: t(i && i.p, 30), promo: !!(i && i.promo) })).filter(i => i.n) })).filter(c => c.n || c.items.length);
-  return { nombre: t(m.nombre, 60), wa: t(m.wa, 20).replace(/[^\d+]/g, ''), mesas: Math.max(1, Math.min(200, parseInt(m.mesas, 10) || 10)), asistente: t(m.asistente, 20) || 'Lola', avatar: ['moza', 'mozo'].includes(m.avatar) ? m.avatar : '',
+  return { nombre: t(m.nombre, 60), wa: t(m.wa, 20).replace(/[^\d+]/g, ''), mesas: Math.max(1, Math.min(200, parseInt(m.mesas, 10) || 10)), asistente: t(m.asistente, 20) || 'Lola', avatar: ['moza', 'mozo'].includes(m.avatar) ? m.avatar : '', pelo: ['castano', 'rubio', 'negro', 'colorado', 'canoso'].includes(m.pelo) ? m.pelo : '', largo: m.largo === 'corto' ? 'corto' : 'largo', piel: ['clara', 'media', 'morena', 'oscura'].includes(m.piel) ? m.piel : '', barba: !!m.barba,
     saludo: t(m.saludo, 200), moneda: t(m.moneda, 4) || '$', alias: t(m.alias, 60), mozos: (Array.isArray(m.mozos) ? m.mozos : String(m.mozos || '').split(',')).map(x => t(String(x).trim(), 20)).filter(Boolean).slice(0, 12), demora: Math.max(0, Math.min(120, parseInt(m.demora, 10) || 0)), paylink: /^https:\/\//i.test(String(m.paylink || '')) ? t(m.paylink, 300) : '', cats };
 }
 
