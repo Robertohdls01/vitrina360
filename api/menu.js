@@ -85,11 +85,16 @@ module.exports = async (req, res) => {
         P.clave = hash('admin|' + adm); await guardarObj('menus/pruebas.json', P); return res.status(200).json({ items: P.items || [] });
       }
       if (hash('admin|' + adm) !== P.clave) return res.status(403).json({ error: 'Clave incorrecta.' });
+      if (req.method === 'POST' && Array.isArray(b.kitsCodes)) { // asigna kits impresos a un vendedor
+        P.kits = P.kits || {}; const v = t(b.vend, 40);
+        b.kitsCodes.slice(0, 60).map(c => String(c).toUpperCase().replace(/[^A-Z0-9]/g, '')).filter(okKit).forEach(c => { if (v) P.kits[c] = v; else delete P.kits[c]; });
+        await guardarObj('menus/pruebas.json', P); return res.status(200).json({ ok: true, kits: P.kits });
+      }
       if (req.method === 'POST' && Array.isArray(b.items)) {
         P.items = b.items.slice(0, 300).map(x => ({ kit: t(x.kit, 10).toUpperCase().replace(/[^A-Z0-9]/g, ''), id: okId(x.id) ? x.id : '', local: t(x.local, 60), wa: t(x.wa, 30), desde: t(x.desde, 30) || new Date().toISOString(), estado: ['probando', 'contrato', 'devolver', 'devuelto'].includes(x.estado) ? x.estado : 'probando', nota: t(x.nota, 400), vend: t(x.vend, 40) }));
         await guardarObj('menus/pruebas.json', P);
       }
-      return res.status(200).json({ items: P.items || [] });
+      return res.status(200).json({ items: P.items || [], kits: P.kits || {} });
     }
     if (req.method === 'POST' && q.accion === 'kit') {
       const b = cuerpo(req), k = String(b.kit || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -103,7 +108,7 @@ module.exports = async (req, res) => {
         P.items = (P.items || []).map(x => x.kit === k && x.id !== b.id && x.estado === 'probando' ? Object.assign({}, x, { estado: 'devolver' }) : x);
         const ya = P.items.find(x => x.kit === k && x.id === b.id);
         if (ya) Object.assign(ya, { local: f.menu.nombre || ya.local, wa: ya.wa || f.menu.wa || '' });
-        else P.items.unshift({ kit: k, id: b.id, local: f.menu.nombre || '', wa: f.menu.wa || '', desde: ahora, estado: 'probando', nota: '' });
+        else P.items.unshift({ kit: k, id: b.id, local: f.menu.nombre || '', wa: f.menu.wa || '', desde: ahora, estado: 'probando', nota: '', vend: (P.kits || {})[k] || '' });
         P.items = P.items.slice(0, 300); await guardarObj('menus/pruebas.json', P);
       } catch (e) {}
       return res.status(200).json({ ok: true, kit: k });
