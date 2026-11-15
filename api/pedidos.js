@@ -99,7 +99,7 @@ async function guardarResenas(owner, f) {
   await fetch(base() + '/object/' + BUCKET + '/resenas/' + owner + '.json', { method: 'POST', headers: headers({ 'Content-Type': 'application/json', 'x-upsert': 'true', 'cache-control': 'no-cache' }), body: JSON.stringify(f) });
 }
 const resumen = items => { const v = items.filter(x => !x.oculta); const n = v.length; return { n, prom: n ? Math.round(v.reduce((a, x) => a + x.e, 0) / n * 10) / 10 : 0 }; };
-const resPublica = x => ({ id: x.id, nombre: x.nombre, e: x.e, tx: x.tx, f: x.f, rta: x.rta || '' });
+const resPublica = x => ({ id: x.id, nombre: x.nombre, e: x.e, tx: x.tx, f: x.f, rta: x.rta || '', qr: !!x.qr });
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
@@ -147,6 +147,31 @@ module.exports = async (req, res) => {
       f.items = [r].concat(f.items.filter(x => x.id !== p.id)).slice(0, 300);
       await guardarResenas(owner, f);
       p.resena = e; await guardar(b.ref, p);
+      return res.status(200).json(Object.assign({ ok: true }, resumen(f.items)));
+    }
+
+    // ---- Reseña por el QR del puesto (vendedores informales: el cliente compró en la calle, sin pedido online) ----
+    if (req.method === 'POST' && q.accion === 'resena-qr') {
+      const b = cuerpo(req), slug = String(b.slug || '');
+      if (!/^[a-z0-9-]{3,40}$/.test(slug)) return res.status(400).json({ error: 'Tienda inválida.' });
+      const e = parseInt(b.estrellas, 10);
+      if (!(e >= 1 && e <= 5)) return res.status(400).json({ error: 'Elegí de 1 a 5 estrellas.' });
+      const rows = await db('GET', '/rest/v1/tiendas?slug=eq.' + slug + '&select=owner,activa,data');
+      const t = rows && rows[0];
+      if (!t || t.activa === false) return res.status(404).json({ error: 'Esta tienda no está disponible.' });
+      const d = t.data || {}, br = ((d.stores || [])[d.active || 0] || {}).brand || {};
+      if (!(br.revQr || (br.preset === 'informal' && !br.revQrNo)) || br.revOff) return res.status(403).json({ error: 'Este negocio no recibe opiniones por QR.' });
+      // freno a las opiniones falsas: una por celular/conexión cada 7 días y como mucho 40 por día en cada puesto
+      const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'x';
+      const hip = crypto.createHash('sha256').update(slug + '|' + ip + '|' + String(req.headers['user-agent'] || '')).digest('hex').slice(0, 16);
+      const f = await leerResenas(t.owner), ahora = Date.now(), dia = new Date(ahora - 3 * 36e5).toISOString().slice(0, 10);
+      f.qr = f.qr && typeof f.qr === 'object' ? f.qr : {}; Object.keys(f.qr).forEach(k => { if (ahora - f.qr[k] > 7 * 864e5) delete f.qr[k]; });
+      if (f.qr[hip]) return res.status(429).json({ error: 'Ya dejaste tu opinión hace poco. ¡Gracias!' });
+      f.qrDia = f.qrDia && f.qrDia.d === dia ? f.qrDia : { d: dia, n: 0 };
+      if (f.qrDia.n >= 40) return res.status(429).json({ error: 'Hoy ya se dejaron muchas opiniones. Probá mañana.' });
+      const r = { id: 'q' + ahora.toString(36) + crypto.randomBytes(3).toString('hex'), nombre: pila(b.nombre) || 'Cliente', e, tx: corto(String(b.texto || '').trim(), 400), f: new Date().toISOString(), qr: true };
+      f.items = [r].concat(f.items).slice(0, 300); f.qr[hip] = ahora; f.qrDia.n++;
+      await guardarResenas(t.owner, f);
       return res.status(200).json(Object.assign({ ok: true }, resumen(f.items)));
     }
 

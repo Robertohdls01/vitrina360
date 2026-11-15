@@ -2512,7 +2512,17 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
       <label for="b-greview">Tu link de reseñas de Google <small>Buscá tu negocio en Google Maps, entrá a tu perfil de empresa, tocá “Pedir reseñas” (o “Obtener más reseñas”) y copiá el link. Después de opinar en tu tienda, a cada cliente le aparece un botón para dejarte su reseña también en Google.</small>
         <input type="text" id="b-greview" inputmode="url" autocomplete="off" maxlength="300" placeholder="https://g.page/r/…/review">
       </label>
+      <button class="matbtn" type="button" id="revQrTog" aria-pressed="false" style="justify-self:start">📱 Opiniones con QR, sin compra online</button>
+      <span class="note" style="margin:0">Ideal si vendés en la calle, en un puesto o en tu local: imprimí el cartel, pegalo a la vista y tus clientes escanean y te dejan sus estrellas. Sin chip ni nada: es tu app. Queda marcado “Opinó desde el QR del local”.</span>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn" type="button" id="revCartel">🖨 Cartel grande (A4)</button><button class="btn" type="button" id="revCartelChico">🔲 Cartelitos chicos de mostrador (4 por hoja)</button></div>
       <div id="revAdmin" class="revadmin"></div>
+    </div>
+    <div class="presets" id="hoyBox" hidden>
+      <strong>📍 Dónde estoy hoy</strong>
+      <p class="note" style="margin:0">Si cambiás de lugar (puesto, feria, esquina, evento), avisale a tus clientes dónde estás hoy. Aparece arriba de tu tienda con el botón “Cómo llegar”, y se borra solo a las 24 horas.</p>
+      <input id="hoyTx" maxlength="120" placeholder="Ej: Colón y Güemes, de 12 a 16 h · Feria de plaza Mitre">
+      <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" id="hoyGps">📍 Estoy acá ahora (usar mi ubicación)</button><button class="btn" type="button" id="hoyOff">Hoy no salgo</button></div>
+      <p class="note" id="hoyMsg" role="status" style="margin:0"></p>
     </div>
     <div class="presets">
       <strong>📺 Pantalla LED de ofertas</strong>
@@ -7899,21 +7909,24 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const slugNow = () => window.VITRINA_SLUG || (window.VITRINA_ME && window.VITRINA_ME.slug) || '';
     let data = null;
     const ov = html => { let o = document.getElementById('revOv'); if(o) o.remove(); o = document.createElement('div'); o.id = 'revOv'; o.className = 'revov'; o.innerHTML = `<div class="rvb" role="dialog" aria-modal="true">${html}</div>`; o.onclick = e => { if(e.target === o) o.remove(); }; document.body.appendChild(o); return o; };
+    const qrOk = () => !brand.revOff && (brand.revQr || (brand.preset === 'informal' && !brand.revQrNo));
     const ggBtn = () => gLink() ? `<a class="gg" href="${esc(gLink())}" target="_blank" rel="noopener">⭐ ${esc(L('Dejá tu reseña en Google', 'Review us on Google', 'Avalie no Google'))}</a>` : '';
     const paintChip = () => {
       if(brand.revOff){ chip.hidden = true; return; }
       if(data && data.n){ chip.innerHTML = `<span class="st">${STAR(data.prom)}</span> ${fmtN(data.prom)} · ${data.n} ${data.n === 1 ? L('opinión', 'review', 'avaliação') : L('opiniones', 'reviews', 'avaliações')}`; chip.hidden = false; }
+      else if(qrOk() && PUBLIC){ chip.innerHTML = `<span class="st">★</span> ${esc(L('Dejá tu opinión', 'Leave a review', 'Deixe sua avaliação'))}`; chip.hidden = false; }
       else if(gLink()){ chip.innerHTML = `<span class="st">★</span> ${esc(L('Opiná en Google', 'Review us on Google', 'Avalie no Google'))}`; chip.hidden = false; }
       else chip.hidden = true;
     };
     const load = async () => { const sl = slugNow(); if(!sl) return; try{ const r = await fetch('/api/pedidos?resenas=' + encodeURIComponent(sl), {cache: 'no-store'}); if(r.ok) data = await r.json(); }catch(e){} paintChip(); };
     chip.onclick = () => {
-      if(!(data && data.n)){ if(gLink()) open(gLink(), '_blank', 'noopener'); return; }
+      if(!(data && data.n)){ if(qrOk() && PUBLIC) return window.revAsk(true); if(gLink()) open(gLink(), '_blank', 'noopener'); return; }
       const o = ov(`<h2>${esc(L('Opiniones de clientes', 'Customer reviews', 'Avaliações de clientes'))}</h2>
-        <div><span class="big">${fmtN(data.prom)}</span> <span class="stars">${STAR(data.prom)}</span><br><small>${data.n} ${esc(L('opiniones de compras verificadas', 'verified-purchase reviews', 'avaliações de compras verificadas'))}</small></div>
-        ${data.items.map(x => `<div class="ritem"><b><span class="stars" style="font-size:15px">${STAR(x.e)}</span> ${esc(x.nombre)}</b><small>✔ ${esc(L('Compró en la tienda', 'Verified purchase', 'Compra verificada'))} · ${new Date(x.f).toLocaleDateString()}</small>${x.tx ? `<span>${esc(x.tx)}</span>` : ''}${x.rta ? `<span class="rta">💬 ${esc(L('Respuesta del comercio', 'Store reply', 'Resposta da loja'))}: ${esc(x.rta)}</span>` : ''}</div>`).join('')}
-        <div class="rbtns">${ggBtn()}<button type="button" data-x>${esc(L('Cerrar', 'Close', 'Fechar'))}</button></div>`);
+        <div><span class="big">${fmtN(data.prom)}</span> <span class="stars">${STAR(data.prom)}</span><br><small>${data.n} ${esc(data.items.some(x => x.qr) ? L('opiniones de clientes', 'customer reviews', 'avaliações de clientes') : L('opiniones de compras verificadas', 'verified-purchase reviews', 'avaliações de compras verificadas'))}</small></div>
+        ${data.items.map(x => `<div class="ritem"><b><span class="stars" style="font-size:15px">${STAR(x.e)}</span> ${esc(x.nombre)}</b><small>✔ ${esc(x.qr ? L('Opinó desde el QR del local', 'Reviewed via the in-store QR', 'Avaliou pelo QR da loja') : L('Compró en la tienda', 'Verified purchase', 'Compra verificada'))} · ${new Date(x.f).toLocaleDateString()}</small>${x.tx ? `<span>${esc(x.tx)}</span>` : ''}${x.rta ? `<span class="rta">💬 ${esc(L('Respuesta del comercio', 'Store reply', 'Resposta da loja'))}: ${esc(x.rta)}</span>` : ''}</div>`).join('')}
+        <div class="rbtns">${qrOk() && PUBLIC ? `<button type="button" class="pri" data-yo>⭐ ${esc(L('Dejar mi opinión', 'Leave my review', 'Deixar minha avaliação'))}</button>` : ''}${ggBtn()}<button type="button" data-x>${esc(L('Cerrar', 'Close', 'Fechar'))}</button></div>`);
       o.querySelector('[data-x]').onclick = () => o.remove();
+      const yo = o.querySelector('[data-yo]'); if(yo) yo.onclick = () => { o.remove(); window.revAsk(true); };
     };
     // pedir la opinión: guardamos los pedidos hechos en este celular y preguntamos una vez que pasó un rato
     const PK = 'v360-opinar';
@@ -7922,10 +7935,12 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     window.revRemember = info => { if(!PUBLIC || !info || !info.ref) return; const v = pend().filter(x => x.ref !== info.ref); const cu = info.cita ? Date.parse(info.cita) + 3 * 36e5 : 0; v.push({ref: info.ref, k: info.k, slug: window.VITRINA_SLUG, t: Date.now(), asked: 0, cuando: cu > 0 ? cu : 0}); pendSave(v); };
     window.revAsk = force => {
       if(!PUBLIC || brand.revOff || document.getElementById('revOv')) return;
-      const v = pend(), it = v.find(x => x.slug === window.VITRINA_SLUG && (force || (x.cuando ? Date.now() > x.cuando : Date.now() - x.t > 20 * 60e3)) && (x.asked || 0) < 2); if(!it) return;
-      it.asked = (it.asked || 0) + 1; pendSave(v);
+      const v = pend(); let it = v.find(x => x.slug === window.VITRINA_SLUG && (force || (x.cuando ? Date.now() > x.cuando : Date.now() - x.t > 20 * 60e3)) && (x.asked || 0) < 2);
+      if(!it && force && qrOk()) it = {qr: true};
+      if(!it) return;
+      if(!it.qr){ it.asked = (it.asked || 0) + 1; pendSave(v); }
       let stars = 0;
-      const o = ov(`<h2>${esc(it.cuando ? L(`¿Cómo te quedó el trabajo de ${storeName()}?`, `How did ${storeName()} do?`, `Como ficou o trabalho de ${storeName()}?`) : L(`¿Cómo te fue con tu pedido en ${storeName()}?`, `How was your order from ${storeName()}?`, `Como foi seu pedido em ${storeName()}?`))}</h2>
+      const o = ov(`<h2>${esc(it.qr ? L(`¿Qué te pareció ${storeName()}?`, `How was ${storeName()}?`, `O que achou de ${storeName()}?`) : it.cuando ? L(`¿Cómo te quedó el trabajo de ${storeName()}?`, `How did ${storeName()} do?`, `Como ficou o trabalho de ${storeName()}?`) : L(`¿Cómo te fue con tu pedido en ${storeName()}?`, `How was your order from ${storeName()}?`, `Como foi seu pedido em ${storeName()}?`))}</h2>
         <p style="margin:0" class="note">${esc(L('Tu opinión ayuda a otros clientes y al comercio. Tocá las estrellas:', 'Your review helps other customers and the store. Tap the stars:', 'Sua opinião ajuda outros clientes e a loja. Toque nas estrelas:'))}</p>
         <div class="pick">${[1, 2, 3, 4, 5].map(n => `<button type="button" data-s="${n}" aria-label="${n}">⭐</button>`).join('')}</div>
         <textarea rows="3" maxlength="400" data-t placeholder="${esc(L('Contanos en pocas palabras (opcional)', 'Tell us briefly (optional)', 'Conte em poucas palavras (opcional)'))}"></textarea>
@@ -7937,7 +7952,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       o.querySelector('[data-go]').onclick = async e => {
         const m = o.querySelector('[data-m]'); if(!stars){ m.textContent = L('Elegí de 1 a 5 estrellas.', 'Pick 1 to 5 stars.', 'Escolha de 1 a 5 estrelas.'); return; }
         e.currentTarget.disabled = true; m.textContent = '…';
-        let j = {}, ok = false; try{ const r = await fetch('/api/pedidos?accion=resena', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ref: it.ref, k: it.k, estrellas: stars, texto: o.querySelector('[data-t]').value, nombre: o.querySelector('[data-n]').value})}); j = await r.json().catch(() => ({})); ok = r.ok || r.status === 409 || r.status === 404; }catch(err){}
+        let j = {}, ok = false; try{ const r = await fetch('/api/pedidos?accion=' + (it.qr ? 'resena-qr' : 'resena'), {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ref: it.ref, k: it.k, slug: window.VITRINA_SLUG, estrellas: stars, texto: o.querySelector('[data-t]').value, nombre: o.querySelector('[data-n]').value})}); j = await r.json().catch(() => ({})); ok = r.ok || r.status === 409 || r.status === 404; }catch(err){}
         if(!ok){ m.textContent = j.error || L('No se pudo enviar. Probá de nuevo.', 'Could not send. Try again.', 'Não foi possível enviar.'); e.currentTarget.disabled = false; return; }
         pendSave(pend().filter(x => x.ref !== it.ref));
         o.querySelector('.rvb').innerHTML = `<h2>🙌 ${esc(L('¡Gracias por tu opinión!', 'Thanks for your review!', 'Obrigado pela avaliação!'))}</h2>
@@ -7949,8 +7964,33 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     };
     // ---- Panel del comercio ----
     if(!PUBLIC){
-      const gi = $('b-greview'), tg = $('revTog'), adm = $('revAdmin');
-      const mark = () => { tg.setAttribute('aria-pressed', String(!brand.revOff)); gi.value = brand.googleReview || ''; };
+      const gi = $('b-greview'), tg = $('revTog'), adm = $('revAdmin'), tq = $('revQrTog');
+      const mark = () => { tg.setAttribute('aria-pressed', String(!brand.revOff)); gi.value = brand.googleReview || ''; tq.setAttribute('aria-pressed', String(qrOk())); };
+      tq.onclick = () => { if(qrOk()){ brand.revQr = false; if(brand.preset === 'informal') brand.revQrNo = true; } else { brand.revQr = true; delete brand.revQrNo; } save(); mark(); };
+      const cartel = async chico => {
+        const sl = (window.VITRINA_ME && window.VITRINA_ME.slug) || ''; if(!sl){ alert('Primero guardá tu tienda.'); return; }
+        if(!qrOk()){ brand.revQr = true; save(); mark(); }
+        try{ if(!window.qrcode) await new Promise((ok, ko) => { const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'; sc.onload = ok; sc.onerror = ko; document.head.appendChild(sc); }); }catch(e){ alert('No se pudo armar el QR. Revisá tu conexión.'); return; }
+        const link = location.origin + '/t/' + sl + '?opinar=1', q = window.qrcode(0, 'M'); q.addData(link); q.make();
+        const w = open('', '_blank'); if(!w){ alert('Permití las ventanas emergentes para imprimir el cartel.'); return; }
+        if(chico){ const one = `<div class="k"><b>${esc(storeName())}</b><div class="st">★★★★★</div><div class="q">${q.createSvgTag({cellSize: 4, margin: 1, scalable: true})}</div><span>¿Te gustó? Escaneá y dejanos tus estrellas</span>${gLink() ? '<small>⭐ y también en Google</small>' : ''}<i>ShopFlash · Pro Video JSR(HG)</i></div>`;
+          w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Cartelitos de reseñas · ${esc(storeName())}</title><style>@page{size:A4;margin:10mm}body{margin:0;font-family:system-ui,Arial,sans-serif;color:#1f2937}
+.g{display:grid;grid-template-columns:repeat(2,90mm);gap:8mm;justify-content:center}.k{width:90mm;height:120mm;box-sizing:border-box;border:2px dashed #f59e0b;border-radius:16px;padding:7mm;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;background:#fffbeb}
+.k b{font-size:20px}.st{font-size:28px;letter-spacing:4px;color:#f59e0b}.q svg{width:58mm;height:58mm}.k span{font-size:15px;font-weight:600}.k small{font-size:12px}.k i{font-size:10px;color:#999;font-style:normal}</style></head><body><div class="g">${one.repeat(4)}</div><script>setTimeout(()=>print(),400)<\/script></body></html>`);
+          w.document.close(); return; }
+        w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Cartel de reseñas · ${esc(storeName())}</title><style>@page{size:A4;margin:12mm}body{margin:0;font-family:system-ui,Arial,sans-serif;color:#1f2937}
+.c{max-width:170mm;margin:0 auto;border:3px solid #f59e0b;border-radius:24px;padding:14mm 12mm;text-align:center;background:#fffbeb}h1{font-size:34px;margin:0 0 4px}h2{font-size:24px;margin:0 0 10px;font-weight:600}.st{font-size:44px;letter-spacing:6px;color:#f59e0b}
+.q svg{width:95mm;height:95mm}p{font-size:19px;margin:8px 0}.by{font-size:12px;color:#888;margin-top:10px}</style></head><body><div class="c"><h1>${esc(storeName())}</h1><h2>¿Te gustó? ¡Dejanos tus estrellas!</h2><div class="st">★★★★★</div>
+<div class="q">${q.createSvgTag({cellSize: 6, margin: 2, scalable: true})}</div><p>📲 Escaneá con la cámara del celular y opiná en 10 segundos.</p>${gLink() ? '<p>⭐ También podés dejar tu reseña en Google.</p>' : ''}<div class="by">Pro Video JSR(HG) · ShopFlash</div></div><script>setTimeout(()=>print(),400)<\/script></body></html>`);
+        w.document.close(); };
+      $('revCartel').onclick = () => cartel(false); $('revCartelChico').onclick = () => cartel(true);
+      const hb = $('hoyBox'), hoyMark = () => { hb.hidden = brand.preset !== 'informal'; const h = brand.hoy; $('hoyTx').value = h && Date.now() - h.t < 864e5 ? h.tx || '' : ''; $('hoyMsg').textContent = h && Date.now() - h.t < 864e5 ? '✅ Tus clientes ven: “' + (h.tx || 'Hoy estoy acá') + '”' + (h.lat ? ' con el mapa' : '') : ''; };
+      $('hoyTx').addEventListener('change', e => { const v = e.target.value.trim(); brand.hoy = Object.assign({}, brand.hoy || {}, {tx: v.slice(0, 120), t: Date.now()}); if(!v && !(brand.hoy || {}).lat) delete brand.hoy; save(); hoyMark(); });
+      $('hoyOff').onclick = () => { delete brand.hoy; save(); hoyMark(); $('hoyMsg').textContent = 'Listo: hoy no aparece ningún lugar.'; };
+      $('hoyGps').onclick = () => { if(!navigator.geolocation){ $('hoyMsg').textContent = 'Tu celular no deja usar la ubicación. Escribí la dirección arriba.'; return; } $('hoyMsg').textContent = 'Buscando dónde estás…';
+        navigator.geolocation.getCurrentPosition(pos => { brand.hoy = {tx: $('hoyTx').value.trim().slice(0, 120), lat: +pos.coords.latitude.toFixed(5), lng: +pos.coords.longitude.toFixed(5), t: Date.now()}; save(); hoyMark(); }, () => { $('hoyMsg').textContent = 'No pude ver tu ubicación. Revisá el permiso o escribí la dirección arriba.'; }, {enableHighAccuracy: true, timeout: 12000}); };
+      document.addEventListener('click', e => { if(e.target.closest('.preset[data-preset]')) setTimeout(() => { mark(); hoyMark(); }, 50); });
+      hoyMark();
       gi.addEventListener('input', () => { brand.googleReview = gi.value.trim(); save(); paintChip(); });
       tg.onclick = () => { if(brand.revOff) delete brand.revOff; else brand.revOff = true; save(); mark(); paintChip(); };
       const tok = async () => 'Bearer ' + await window.VITRINA_TOKEN();
@@ -7971,6 +8011,13 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       mark();
     }
     setTimeout(load, 1500);
+    // dónde está hoy el puesto (vendedores informales): cartel arriba de la tienda con "Cómo llegar"
+    if(PUBLIC) setTimeout(() => { const h = brand.hoy; if(!h || Date.now() - h.t > 864e5 || (!h.tx && !h.lat) || document.getElementById('hoyBan')) return;
+      const a = document.createElement('a'); a.id = 'hoyBan'; a.target = '_blank'; a.rel = 'noopener';
+      a.href = h.lat ? `https://www.google.com/maps/search/?api=1&query=${h.lat},${h.lng}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(h.tx + (shopCity() ? ', ' + shopCity() : ''))}`;
+      a.style.cssText = 'display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin:8px auto;max-width:640px;padding:10px 14px;border-radius:14px;background:#fff3e0;color:#7c2d12;border:1px solid #fdba74;font-weight:600;text-decoration:none;text-align:center';
+      a.innerHTML = `📍 ${esc(L('Hoy estoy en', 'Today I am at', 'Hoje estou em'))}: ${esc(h.tx || L('ver en el mapa', 'see on the map', 'ver no mapa'))} <span style="background:#ea580c;color:#fff;border-radius:999px;padding:4px 10px;font-size:13px">🧭 ${esc(L('Cómo llegar', 'Directions', 'Como chegar'))}</span>`;
+      chip.insertAdjacentElement('afterend', a); }, 1800);
     if(PUBLIC){ let f = false; try{ f = new URLSearchParams(location.search).has('opinar'); }catch(e){} setTimeout(() => window.revAsk(f), f ? 2500 : 6000); }
   })();
 
@@ -8091,6 +8138,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
      cats:["Cuchillos", "Tijeras", "Herramientas", "A domicilio", "Recorrido", "Consejos", "Productos", "Antes y después", "Trabajos hechos", "Promos"]},
     {id:'mecanico', name:"Mecánico", hint:"Mecánica de autos, motos, bicicletas, bicicletería", frame:'#c62828', shelf:'#fdecea', edge:'#ef9a9a', kits:['mecanico'], oficio: true,
      cats:["Service", "Frenos", "Tren delantero", "Motor", "Electrónica", "Motos", "Bicicletas", "Repuestos", "Trabajos hechos", "Promos"]},
+    {id:'informal', name:'Puesto y venta en la calle', hint:'Vendedores informales: comida al paso, choripán, tortas, ferias, puestos, semáforos', frame:'#e65100', shelf:'#fff3e0', edge:'#ffcc80', kits:[],
+     cats:['Lo de hoy','Comidas','Dulces y tortas','Bebidas','Combos','Por encargo','Para eventos','Dónde estoy','Fotos','Promos']},
     {id:'oficio', name:'Otro oficio', hint:'Herrero, carpintero, cerrajero, vidriero, tapicero', frame:'#455a64', shelf:'#eceff1', edge:'#b0bec5', kits:[], oficio: true,
      cats:['Trabajos','Reparaciones','Instalaciones','Urgencias','Materiales','Consejos','Precios','Antes y después','Trabajos hechos','Promos']},
     {id:'taller', name:'Taller de máquinas de jardín', hint:'Afilado, service, repuestos', frame:'#e65100', shelf:'#fff3e0', edge:'#ffb74d', kits:['taller'],
