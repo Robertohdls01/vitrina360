@@ -6,7 +6,7 @@
 // Las fotos de los clientes NO se guardan: se mandan a Google, vuelve la imagen y listo.
 // Límites para que no se dispare el gasto: PROBADOR_TIENDA_DIA (40 por tienda por día) y PROBADOR_CLIENTE_DIA (4 por cliente por día).
 // Modelo: GEMINI_IMAGE_MODEL (por defecto gemini-2.5-flash-image).
-const { cuerpo, usuario, db, estado, stHeaders, PLANES } = require('./_comun');
+const { cuerpo, usuario, db, estado, stHeaders, PLANES, planReal } = require('./_comun');
 
 const SURL = () => String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const B = 'probador';
@@ -82,8 +82,8 @@ module.exports = async (req, res) => {
   let row = null, dueno = false;
   try {
     const u = await usuario(req).catch(() => null);
-    if (u && u.id) { const r = await db('GET', '/rest/v1/tiendas?owner=eq.' + u.id + '&select=owner,slug,plan,pagada_hasta,prueba_hasta,activa'); row = r && r[0]; dueno = !!row; }
-    if (!row && /^[a-z0-9-]{3,40}$/.test(String(b.slug || ''))) { const r = await db('GET', '/rest/v1/tiendas?slug=eq.' + b.slug + '&select=owner,slug,plan,pagada_hasta,prueba_hasta,activa'); row = r && r[0]; }
+    if (u && u.id) { const r = await db('GET', '/rest/v1/tiendas?owner=eq.' + u.id + '&select=owner,slug,plan,mp_plan,pagada_hasta,prueba_hasta,activa'); row = r && r[0]; dueno = !!row; }
+    if (!row && /^[a-z0-9-]{3,40}$/.test(String(b.slug || ''))) { const r = await db('GET', '/rest/v1/tiendas?slug=eq.' + b.slug + '&select=owner,slug,plan,mp_plan,pagada_hasta,prueba_hasta,activa'); row = r && r[0]; }
   } catch (e) {}
   if (!row) return res.status(404).json({ error: 'No encontramos la tienda.' });
   const st = estado(row).estado;
@@ -101,7 +101,7 @@ module.exports = async (req, res) => {
   // diseños del parque: tope por mes según el plan de la tienda
   let mesPath = '', mesCnt = null;
   if (tipo === 'jardin') {
-    const P = PLANES()[row.plan] || {}, lim = st === 'activa' ? Number(P.dis || (row.plan === 'pro' ? 30 : row.plan === 'comercio' ? 15 : 8)) : Number(process.env.DIS_PRUEBA || 5);
+    const pr = planReal(row), P = PLANES()[pr] || {}, lim = st === 'activa' ? Number(P.dis || (pr === 'pro' ? 30 : pr === 'comercio' ? 15 : 8)) : Number(process.env.DIS_PRUEBA || 5);
     mesPath = 'm/' + row.slug + '/' + dia.slice(0, 7) + '.json'; mesCnt = (await leer(mesPath)) || { jardin: 0 };
     if (!dueno && (mesCnt.jardin || 0) >= lim) return res.status(429).json({ error: 'Este mes ya se usaron todos los diseños con IA de esta tienda. Pedile ideas al parquero por WhatsApp.' });
   }

@@ -9,6 +9,10 @@ const PLANES = () => ({
   parquero_plus: { nombre: 'Parques y Jardines Plus', precio: Number(process.env.PRECIO_PARQUERO_PLUS || 14900), vitrinas: 20, tiendas: 1, productos: 30, fotos: 8, videos: 30, pq: Number(process.env.PQ_PARQUERO_PLUS || 60), dis: Number(process.env.DIS_PARQUERO_PLUS || 30), parq: true }
 });
 const PRECIO = () => PLANES().emprendedora.precio;
+// Los planes de Parques y Jardines se guardan en la base como su equivalente (la columna "plan" solo acepta los 3 de siempre);
+// el plan real queda en "mp_plan" (el que se pagó por Mercado Pago).
+const enBase = p => p === 'parquero' ? 'emprendedora' : p === 'parquero_plus' ? 'comercio' : p;
+const planReal = row => { const mp = row && row.mp_plan, P = PLANES(); return mp && P[mp] && P[mp].parq && enBase(mp) === row.plan ? mp : (row && row.plan); };
 
 function cuerpo(req) {
   let b = req.body;
@@ -62,9 +66,9 @@ async function sincronizar(row) {
   const pre = await mp('GET', '/preapproval/' + encodeURIComponent(row.mp_suscripcion));
   const hasta = pagadaHasta(pre);
   const nuevoPlan = row.mp_plan && PLANES()[row.mp_plan] ? row.mp_plan : null;
-  if (hasta && (!row.pagada_hasta || Date.parse(hasta) > Date.parse(row.pagada_hasta) || (nuevoPlan && nuevoPlan !== row.plan))) {
+  if (hasta && (!row.pagada_hasta || Date.parse(hasta) > Date.parse(row.pagada_hasta) || (nuevoPlan && enBase(nuevoPlan) !== row.plan))) {
     const cambio = { pagada_hasta: hasta };
-    if (nuevoPlan) cambio.plan = nuevoPlan;
+    if (nuevoPlan) cambio.plan = enBase(nuevoPlan);
     // Si cambió de plan, se da de baja la suscripción vieja para no cobrar dos veces.
     if (row.mp_anterior && row.mp_anterior !== row.mp_suscripcion) {
       try { await mp('PUT', '/preapproval/' + encodeURIComponent(row.mp_anterior), { status: 'cancelled' }); cambio.mp_anterior = null; } catch (e) {}
@@ -80,7 +84,7 @@ function estado(row) {
   const prueba = row.prueba_hasta ? Date.parse(row.prueba_hasta) : 0;
   const pagada = row.pagada_hasta ? Date.parse(row.pagada_hasta) : 0;
   const dias = t => Math.max(0, Math.ceil((t - now) / 864e5));
-  const P = PLANES(), pagado = P[row.plan] ? row.plan : 'emprendedora';
+  const P = PLANES(), pr = planReal(row), pagado = P[pr] ? pr : 'emprendedora';
   const con = (estado, d, plan) => ({ estado, dias: d, plan, plan_pagado: pagado, limites: { vitrinas: P[plan].vitrinas, tiendas: P[plan].tiendas, productos: P[plan].productos, fotos: P[plan].fotos, videos: P[plan].videos } });
   if (row.activa === false) return con('pausa', 0, pagado);
   if (pagada > now) return con('activa', dias(pagada), pagado);
@@ -114,8 +118,8 @@ async function hmBorrar(email) {
 // Deja la tienda pagada hasta esa fecha, con ese plan (o la pausa si "hasta" ya pasó: reembolso o contracargo).
 async function aplicarPago(owner, plan, hasta) {
   const cambio = { pagada_hasta: hasta };
-  if (plan && PLANES()[plan]) cambio.plan = plan;
+  if (plan && PLANES()[plan]) cambio.plan = enBase(plan);
   return db('PATCH', '/rest/v1/tiendas?owner=eq.' + owner, cambio);
 }
 
-module.exports = { cuerpo, usuario, db, mp, sincronizar, estado, PRECIO, PLANES, hmPendiente, hmGuardar, hmBorrar, aplicarPago, stHeaders };
+module.exports = { cuerpo, usuario, db, mp, sincronizar, estado, PRECIO, PLANES, planReal, enBase, hmPendiente, hmGuardar, hmBorrar, aplicarPago, stHeaders };

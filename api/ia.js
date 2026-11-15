@@ -1,6 +1,6 @@
 // Vitrina 360 · IA para reconocer productos. La clave de Anthropic vive en Vercel (variable ANTHROPIC_API_KEY), nunca en la página.
 const TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-const { db, estado, PLANES } = require('./_comun');
+const { db, estado, PLANES, planReal } = require('./_comun');
 const crypto = require('crypto');
 
 // Cupo de productos reconocidos con IA (se guarda en la cuenta del comerciante, donde él no lo puede tocar).
@@ -15,13 +15,13 @@ async function cupoIA(user, chat) {
   const libres = String(process.env.IA_SIN_LIMITE || '').toLowerCase().split(',').map(x => x.trim()).filter(Boolean);
   if (user.email && libres.includes(String(user.email).toLowerCase())) return null;
   let row = null;
-  try { const rows = await db('GET', '/rest/v1/tiendas?owner=eq.' + user.id + '&select=owner,prueba_hasta,pagada_hasta,activa,plan'); row = rows && rows[0]; }
+  try { const rows = await db('GET', '/rest/v1/tiendas?owner=eq.' + user.id + '&select=owner,prueba_hasta,pagada_hasta,activa,plan,mp_plan'); row = rows && rows[0]; }
   catch (e) { return null; } // si la base no responde, no se le corta la IA a nadie
   const meta = user.app_metadata || {};
   const paga = row && estado(row).estado === 'activa';
   let limite, usadas, cambio, aviso;
   if (paga) {
-    const [env, def, nombre] = (chat ? PLAN_CHAT : PLAN_CUPO)[row.plan] || (chat ? PLAN_CHAT : PLAN_CUPO).emprendedora;
+    const [env, def, nombre] = (chat ? PLAN_CHAT : PLAN_CUPO)[planReal(row)] || (chat ? PLAN_CHAT : PLAN_CUPO).emprendedora;
     const mes = new Date().toISOString().slice(0, 7);
     limite = Math.max(0, Number(process.env[env] || def));
     if (chat) {
@@ -236,8 +236,8 @@ async function parqueIA(res, KEY, b) {
   try { const h = { apikey: SK }; if (String(SK).startsWith('eyJ')) h.Authorization = 'Bearer ' + SK; const r = await fetch(base + '/auth/v1/admin/users/' + t.owner, { headers: h }); if (r.ok) owner = await r.json(); } catch (e) {}
   // tope de presupuestos con IA por mes según el plan (así nunca cuesta más de lo que paga el parquero)
   let pqLim = Number(process.env.PQ_PRUEBA || 10), pqPaga = false;
-  try { const rr = await db('GET', '/rest/v1/tiendas?slug=eq.' + slug + '&select=plan,prueba_hasta,pagada_hasta,activa'); const row = rr && rr[0];
-    if (row && estado(row).estado === 'activa') { pqPaga = true; const P = PLANES()[row.plan] || {}; pqLim = Number(P.pq || (row.plan === 'pro' ? 60 : row.plan === 'comercio' ? 30 : 15)); } } catch (e) {}
+  try { const rr = await db('GET', '/rest/v1/tiendas?slug=eq.' + slug + '&select=plan,mp_plan,prueba_hasta,pagada_hasta,activa'); const row = rr && rr[0];
+    if (row && estado(row).estado === 'activa') { pqPaga = true; const pr = planReal(row), P = PLANES()[pr] || {}; pqLim = Number(P.pq || (pr === 'pro' ? 60 : pr === 'comercio' ? 30 : 15)); } } catch (e) {}
   const metaO = owner.app_metadata || {}, mesPq = new Date().toISOString().slice(0, 7);
   const pqUsadas = pqPaga ? (metaO.pq_mes === mesPq ? Number(metaO.pq_usadas) || 0 : 0) : Number(metaO.pq_prueba) || 0;
   const libresPq = String(process.env.IA_SIN_LIMITE || '').toLowerCase().split(',').map(x => x.trim()).filter(Boolean);
