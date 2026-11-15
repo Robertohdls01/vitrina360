@@ -6961,7 +6961,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         const j = await r.json().catch(() => ({}));
         if(r.status === 409){ await pqCargarOcupados(); pqHora = ''; $('pqAgenda').innerHTML = pqAgendaHTML(); msg.textContent = j.error || 'Ese horario se ocupó. Elegí otro.'; b.disabled = false; return; }
         if(!r.ok || !j.ref){ msg.textContent = j.error || 'No se pudo reservar. Probá de nuevo.'; b.disabled = false; return; }
-        try{ trackStart({ref: j.ref, k: j.k, turno: j.turno || null, slug: window.VITRINA_SLUG, paid: pqPago === 'ahora', start: Date.now()}); }catch(err){}
+        try{ trackStart({ref: j.ref, k: j.k, turno: j.turno || null, slug: window.VITRINA_SLUG, paid: pqPago === 'ahora', start: Date.now(), cita: pqDia + 'T' + pqHora}); }catch(err){}
         try{ localStorage.setItem('pq-ultimo-' + window.VITRINA_SLUG, JSON.stringify({m2: pqM2, nom, tel, dir, trabajos: sel.filter(x => !x.plan).map(x => ({titulo: x.titulo, porM2: x.porM2, cantidad: x.cantidad, precio: x.precio, ajuste: x.ajuste, motivo: x.motivo, estimado: x.estimado}))})); }catch(err){}
         if(pqPago === 'ahora'){ msg.textContent = 'Te llevo a Mercado Pago…';
           const m = await fetch('/api/mpcobro?accion=pagar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ref: j.ref, k: j.k})}).then(x => x.json()).catch(() => ({}));
@@ -7538,7 +7538,9 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const hi = `¡Hola${c.nombre ? ' ' + c.nombre.split(' ')[0] : ''}! `, st = storeName();
     const txt = p.estado === 'salio' ? `${hi}Tu pedido de ${st} ya está en camino${p.repartidor ? ' con ' + p.repartidor : ''} 🛵. ¡En un ratito llega!`
       : p.estado === 'listo' ? (p.envio_id === 'retiro' || /retir/i.test(p.envio || '') ? `${hi}Tu pedido de ${st} ya está listo para retirar. ¡Te esperamos!` : `${hi}Tu pedido de ${st} ya está listo.`)
-      : p.estado === 'entregado' ? `${hi}¡Gracias por tu compra en ${st}! Cualquier cosa, escribinos.`
+      : p.estado === 'entregado' ? (() => { const sl = (window.VITRINA_ME && window.VITRINA_ME.slug) || window.VITRINA_SLUG || '', g = /^https?:\/\//i.test(String(brand.googleReview || '')) ? String(brand.googleReview).trim() : '';
+          const op = brand.revOff ? '' : (sl ? `\n\n⭐ ¿Nos dejás tu opinión? Son 2 toques: ${location.origin}/t/${sl}?opinar=1` : '') + (g ? `\n📍 Y si podés, también en Google: ${g}` : '');
+          return (c.cita ? `${hi}¡Gracias por elegirnos! Ya terminamos el trabajo en tu casa 🌿. Cualquier cosa, escribinos.` : `${hi}¡Gracias por tu compra en ${st}! Cualquier cosa, escribinos.`) + op; })()
       : p.pagado ? `${hi}¡Recibimos tu pago! 🙌 Tu pedido de ${st} ya está en preparación${brand.delay ? ' (demora aproximada: ' + brand.delay + ')' : ''}. Te avisamos cuando salga.`
       : `${hi}Recibimos tu pedido en ${st} y ya lo estamos preparando${brand.delay ? ' (demora aproximada: ' + brand.delay + ')' : ''}. Te avisamos cuando salga.`;
     return `https://wa.me/${n}?text=${encodeURIComponent(txt)}`;
@@ -7794,13 +7796,13 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const PK = 'v360-opinar';
     const pend = () => { try{ return JSON.parse(localStorage.getItem(PK) || '[]').filter(x => x && Date.now() - x.t < 21 * 864e5); }catch(e){ return []; } };
     const pendSave = v => { try{ localStorage.setItem(PK, JSON.stringify(v.slice(-10))); }catch(e){} };
-    window.revRemember = info => { if(!PUBLIC || !info || !info.ref) return; const v = pend().filter(x => x.ref !== info.ref); v.push({ref: info.ref, k: info.k, slug: window.VITRINA_SLUG, t: Date.now(), asked: 0}); pendSave(v); };
+    window.revRemember = info => { if(!PUBLIC || !info || !info.ref) return; const v = pend().filter(x => x.ref !== info.ref); const cu = info.cita ? Date.parse(info.cita) + 3 * 36e5 : 0; v.push({ref: info.ref, k: info.k, slug: window.VITRINA_SLUG, t: Date.now(), asked: 0, cuando: cu > 0 ? cu : 0}); pendSave(v); };
     window.revAsk = force => {
       if(!PUBLIC || brand.revOff || document.getElementById('revOv')) return;
-      const v = pend(), it = v.find(x => x.slug === window.VITRINA_SLUG && (force || Date.now() - x.t > 20 * 60e3) && (x.asked || 0) < 2); if(!it) return;
+      const v = pend(), it = v.find(x => x.slug === window.VITRINA_SLUG && (force || (x.cuando ? Date.now() > x.cuando : Date.now() - x.t > 20 * 60e3)) && (x.asked || 0) < 2); if(!it) return;
       it.asked = (it.asked || 0) + 1; pendSave(v);
       let stars = 0;
-      const o = ov(`<h2>${esc(L(`¿Cómo te fue con tu pedido en ${storeName()}?`, `How was your order from ${storeName()}?`, `Como foi seu pedido em ${storeName()}?`))}</h2>
+      const o = ov(`<h2>${esc(it.cuando ? L(`¿Cómo te quedó el trabajo de ${storeName()}?`, `How did ${storeName()} do?`, `Como ficou o trabalho de ${storeName()}?`) : L(`¿Cómo te fue con tu pedido en ${storeName()}?`, `How was your order from ${storeName()}?`, `Como foi seu pedido em ${storeName()}?`))}</h2>
         <p style="margin:0" class="note">${esc(L('Tu opinión ayuda a otros clientes y al comercio. Tocá las estrellas:', 'Your review helps other customers and the store. Tap the stars:', 'Sua opinião ajuda outros clientes e a loja. Toque nas estrelas:'))}</p>
         <div class="pick">${[1, 2, 3, 4, 5].map(n => `<button type="button" data-s="${n}" aria-label="${n}">⭐</button>`).join('')}</div>
         <textarea rows="3" maxlength="400" data-t placeholder="${esc(L('Contanos en pocas palabras (opcional)', 'Tell us briefly (optional)', 'Conte em poucas palavras (opcional)'))}"></textarea>
@@ -7846,7 +7848,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       mark();
     }
     setTimeout(load, 1500);
-    if(PUBLIC) setTimeout(() => window.revAsk(), 6000);
+    if(PUBLIC){ let f = false; try{ f = new URLSearchParams(location.search).has('opinar'); }catch(e){} setTimeout(() => window.revAsk(f), f ? 2500 : 6000); }
   })();
 
   function renderWallets(){
