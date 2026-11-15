@@ -8733,7 +8733,9 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   // "autitos" → "auto", "perrito" → "perr": los diminutivos encuentran el producto (salvo que la palabra exista tal cual en la tienda)
   let STXT = '', STXTt = 0; const stxt = () => { if(Date.now() - STXTt > 5000){ STXT = norm(products.map(p => p.name + ' ' + ((catOf(p.cat) || {}).name || '')).join(' ')); STXTt = Date.now(); } return STXT; };
   const stem = w => { const x = w.length > 4 ? w.replace(/(es|s)$/, '') : w;
-    if(x.length > 5 && /it[oa]$/.test(x) && !stxt().includes(x)){ const r = x.replace(/c?it[oa]$/, ''); if(r.length >= 3) return r; }
+    if(x.length > 4 && /it[oa]$/.test(x) && !stxt().includes(x)){
+      const c = [x.replace(/it([oa])$/, '$1'), x.replace(/cit([oa])$/, '$1'), x.replace(/cit[oa]$/, ''), x.replace(/it[oa]$/, '')].filter(r => r.length >= 3);
+      const t = stxt(), hit = c.find(r => t.includes(r)); if(hit) return hit; }
     return x; };
   function hFind(q){
     const toks = norm(q).replace(/[^a-z0-9ñ ]/g, ' ').split(/\s+/).filter(w => w && !STOP.has(w)).map(stem);
