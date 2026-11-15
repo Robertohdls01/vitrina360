@@ -39,6 +39,14 @@
     {
       "source": "/firmar",
       "destination": "/firmar.html"
+    },
+    {
+      "source": "/vender",
+      "destination": "/vender.html"
+    },
+    {
+      "source": "/vendedor",
+      "destination": "/vendedor.html"
     }
   ],
   "functions": {
