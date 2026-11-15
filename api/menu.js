@@ -162,6 +162,12 @@ module.exports = async (req, res) => {
     if (req.method === 'GET' && q.manifest) {
       const id = String(q.manifest); if (!okId(id)) return res.status(400).json({ error: 'Menú inválido.' });
       const f = await leerObj('menus/' + id + '.json'); const nom = (f && f.menu && f.menu.nombre) || 'Menú';
+      if (q.caja && f && q.e && hash(String(q.e)) === f.clave) { // la caja del dueño como app en su compu
+        const su = '/menu?m=' + id + '&e=' + encodeURIComponent(q.e) + '&caja=1';
+        res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8'); res.setHeader('Cache-Control', 'private, max-age=600');
+        return res.status(200).send(JSON.stringify({ name: 'Caja · ' + nom, short_name: ('Caja ' + nom).slice(0, 14), id: '/menu?m=' + id + '&caja=1', start_url: su, scope: '/', display: 'standalone', background_color: '#faf8ff', theme_color: '#7c3aed', lang: 'es',
+          icons: [{ src: '/icons/menu-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: '/icons/menu-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' }] }));
+      }
       res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8'); res.setHeader('Cache-Control', 'public, max-age=3600');
       return res.status(200).send(JSON.stringify({ name: nom + ' · Pedí acá', short_name: nom.slice(0, 14), id: '/menu?m=' + id + '&app=1', start_url: '/menu?m=' + id + '&app=1', scope: '/', display: 'standalone', orientation: 'portrait', background_color: '#faf8ff', theme_color: '#7c3aed', lang: 'es',
         icons: [{ src: '/icons/menu-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: '/icons/menu-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' }, { src: '/icons/menu-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }] }));
