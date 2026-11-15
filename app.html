@@ -6808,7 +6808,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const sel = [...document.querySelectorAll('#pqView [data-pqt]')];
     let tot = 0; sel.forEach(c => { const x = pqRes.trabajos[+c.dataset.pqt]; const v = pqSub(x); const out = document.querySelector(`#pqView [data-pqs="${c.dataset.pqt}"]`); if(out) out.textContent = v ? pqMoney(v) : 'a consultar'; if(c.checked) tot += v; });
     const t = $('pqTot'); if(t) t.innerHTML = `Total estimado: <b>${pqMoney(tot)}</b>`;
-    const nt = $('pqNextTot'); if(nt) nt.textContent = pqMoney(tot) + ' aprox.';
+    const nt = $('pqNextTot'); if(nt) nt.textContent = pqMoney(tot) + ' aprox';
     return tot;
   }
   function pqResHTML(r){
