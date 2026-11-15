@@ -7,9 +7,9 @@
 <meta name="description" content="Pro Video JSR(HG): apps con inteligencia artificial para comercios, restaurantes, hoteles, casinos y oficios. ShopFlash, ShopMenu, ShopFlash Parques y Oficios, ShopCut y más. Hecho en Argentina.">
 <meta property="og:title" content="Pro Video JSR(HG) · Productos físicos y digitales">
 <meta property="og:description" content="Apps con inteligencia artificial para comercios, restaurantes, hoteles, casinos y oficios. Hecho en Argentina.">
-<meta property="og:image" content="https://vitrina360app.com.ar/og.png">
+<meta property="og:image" content="https://vitrina360app.com.ar/pv-logo.jpg">
 <meta name="theme-color" content="#2f6f6a">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+<link rel="icon" href="/pv-logo-180.jpg"><link rel="apple-touch-icon" href="/pv-logo-180.jpg">
 <style>
 :root{--a:#2f6f6a;--a2:#4f9a92;--ink:#1f2b2a;--muted:#5d6d6b;--bg:#f6faf9;--soft:#e8f3f1;--line:#d3e6e2;--warm:#fdf6ec}
 *{box-sizing:border-box}
@@ -18,7 +18,8 @@ a{color:var(--a)}
 .wrap{max-width:1080px;margin:0 auto;padding:0 18px}
 nav{display:flex;justify-content:space-between;align-items:center;padding:16px 0;gap:10px;flex-wrap:wrap}
 .logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
-.logo i{font-style:normal;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff;font-size:22px}
+.logo img{width:48px;height:48px;border-radius:50%;display:block;box-shadow:0 4px 12px rgba(0,0,0,.18)}
+.heroLogo{width:150px;height:150px;border-radius:50%;display:block;margin:0 auto 16px;box-shadow:0 10px 30px rgba(20,10,40,.28)}
 .logo b{font-size:20px;line-height:1.1}.logo small{display:block;font-size:13px;color:var(--muted);font-weight:600}
 .btn{border:0;border-radius:999px;padding:13px 20px;font-weight:800;font-size:16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;cursor:pointer}
 .pri{background:linear-gradient(90deg,var(--a),var(--a2));color:#fff;box-shadow:0 8px 22px rgba(47,111,106,.25)}
@@ -60,13 +61,14 @@ footer b{color:var(--ink)}
 <body>
 <header class="wrap">
   <nav>
-    <a class="logo" href="/provideo"><i>🎬</i><span><b>Pro Video JSR(HG)</b><small>Productos físicos y digitales</small></span></a>
+    <a class="logo" href="/provideo"><img src="/pv-logo-180.jpg" alt="Pro Video JSR(HG)"><span><b>Pro Video JSR(HG)</b><small>Productos físicos y digitales</small></span></a>
     <a class="btn wa" data-wa="Hola! Quiero hacer una consulta sobre los productos de Pro Video." href="#" target="_blank" rel="noopener" hidden>💬 WhatsApp</a>
   </nav>
 </header>
 
 <main>
   <div class="hero wrap">
+    <img class="heroLogo" src="/pv-logo.jpg" alt="Logo de Pro Video JSR(HG): productos físicos y digitales">
     <h1>Apps con <span>inteligencia artificial</span> para tu negocio</h1>
     <p>En Pro Video creamos herramientas simples para comercios, restaurantes, hoteles, casinos y profesionales de oficios: tu tienda online, tu menú QR, tus presupuestos con fotos y tus reseñas, todo con una asistente virtual que atiende por vos.</p>
     <div class="ctas">
@@ -283,7 +285,7 @@ footer b{color:var(--ink)}
 
 <script>
 // Datos de contacto de Pro Video: se cargan en un solo lugar (los botones se muestran solos cuando hay dato)
-const PV = {wa: '', fb: '', ig: '', tt: '', yt: '', tino: '', kitPareja: '', kitHogar: '', packPrompts: '',
+const PV = {wa: '2235814437', fb: '', ig: '', tt: '', yt: '', tino: '', kitPareja: '', kitHogar: '', packPrompts: '',
   ytDesdeCero: '', ytBio: 'https://www.youtube.com/@Biographies-z8o', ytValeLaPena: '', ytNews: '', ytEnergia: '', ytProVideo: ''};
 (() => {
   const n = String(PV.wa || '').replace(/\D/g, '');
