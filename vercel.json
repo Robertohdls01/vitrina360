@@ -23,6 +23,10 @@
     {
       "source": "/shopmenu",
       "destination": "/shopmenu.html"
+    },
+    {
+      "source": "/folleto",
+      "destination": "/folleto.html"
     }
   ],
   "functions": {
