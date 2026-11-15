@@ -142,8 +142,56 @@ footer b{color:var(--ink)}
         <article class="card">
           <div class="ic">🎓</div><div class="for">Muy pronto</div>
           <h3>Más productos en camino</h3>
-          <p>Seguimos creando: guías y kits digitales, asistentes que te explican tus libros y cursos, y más herramientas con IA.</p>
+          <p>Seguimos creando: asistentes que te explican tus libros y cursos, y más herramientas con IA.</p>
         </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="ebooks">
+    <div class="wrap">
+      <h2>📚 Kits digitales, ebooks y packs</h2>
+      <p class="sub">Guías prácticas para descargar y leer desde el celular, en castellano y en inglés.</p>
+      <div class="grid">
+        <article class="card">
+          <div class="ic">💞</div><div class="for">Pareja</div>
+          <h3>Kit Relaciones Conscientes</h3>
+          <p>Un pack de guías para mejorar la comunicación, la confianza y la convivencia en pareja. También en inglés: <i>Couples Therapy at Home</i>.</p>
+          <div class="acts"><a class="btn pri" data-link="kitPareja" href="#" target="_blank" rel="noopener" hidden>📥 Conseguir el kit</a><a class="btn sec" data-wa="Hola! Quiero el Kit Relaciones Conscientes." data-sinlink="kitPareja" href="#" target="_blank" rel="noopener" hidden>💬 Pedirlo por WhatsApp</a></div>
+        </article>
+        <article class="card">
+          <div class="ic">🏡</div><div class="for">Familia</div>
+          <h3>Kit Hogar Feliz</h3>
+          <p>Guías sobre familia, convivencia y valores para criar y convivir mejor en casa. También en inglés: <i>Happy Home Kit</i>.</p>
+          <div class="acts"><a class="btn pri" data-link="kitHogar" href="#" target="_blank" rel="noopener" hidden>📥 Conseguir el kit</a><a class="btn sec" data-wa="Hola! Quiero el Kit Hogar Feliz." data-sinlink="kitHogar" href="#" target="_blank" rel="noopener" hidden>💬 Pedirlo por WhatsApp</a></div>
+        </article>
+        <article class="card">
+          <div class="ic">🎙️</div><div class="for">Creadores de contenido</div>
+          <h3>Pack: armá tu propio programa con IA</h3>
+          <p>Los prompts maestros con los que hacemos nuestros programas, como <i>Pro Video Energía +</i>: presentadores, escenarios y guiones listos para crear tu programa de videos con inteligencia artificial.</p>
+          <div class="acts"><a class="btn pri" data-link="packPrompts" href="#" target="_blank" rel="noopener" hidden>📥 Conseguir el pack</a><a class="btn sec" data-wa="Hola! Quiero el pack para armar mi programa con IA." data-sinlink="packPrompts" href="#" target="_blank" rel="noopener" hidden>💬 Pedirlo por WhatsApp</a></div>
+        </article>
+        <article class="card">
+          <div class="ic">🧩</div><div class="for">Muy pronto</div>
+          <h3>Más kits en camino</h3>
+          <p>Estamos preparando nuevos packs. Seguinos en las redes para enterarte primero.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="alt" id="tino">
+    <div class="wrap">
+      <div class="card big" style="background:#fff8e6;border-color:#f3e0b0">
+        <div>
+          <div class="ic">🚀</div><div class="for">Para chicos y familias</div>
+          <h3>El Universo de Tino</h3>
+          <p>Tino y las Supermascotas (un perro, un conejo, un águila y un tiburón) salen de aventura y los chicos aprenden jugando: letras, números, colores, animales y verduras, en paseos por la playa de Mar del Plata, barcos piratas y viajes al espacio.</p>
+        </div>
+        <div>
+          <ul><li>Videos y capítulos con Tino como presentador</li><li>Aprender letras, números y colores</li><li>Libros y hojas para pintar</li></ul>
+          <div class="acts"><a class="btn pri" data-link="tino" href="#" target="_blank" rel="noopener" hidden>▶️ Ver El Universo de Tino</a></div>
+        </div>
       </div>
     </div>
   </section>
@@ -163,12 +211,14 @@ footer b{color:var(--ink)}
 
   <section class="alt contact" id="contacto">
     <div class="wrap">
-      <h2>Hablemos</h2>
+      <h2>Seguinos y hablemos</h2>
       <p class="sub">Contanos qué negocio tenés y te decimos cuál producto te sirve. Si preferís, lo armamos juntos.</p>
       <div class="ctas">
         <a class="btn wa" data-wa="Hola! Quiero hacer una consulta sobre los productos de Pro Video." href="#" target="_blank" rel="noopener" hidden>💬 Escribinos por WhatsApp</a>
         <a class="btn sec" data-fb href="#" target="_blank" rel="noopener" hidden>📘 Facebook</a>
         <a class="btn sec" data-ig href="#" target="_blank" rel="noopener" hidden>📸 Instagram</a>
+        <a class="btn sec" data-link="tt" href="#" target="_blank" rel="noopener" hidden>🎵 TikTok</a>
+        <a class="btn sec" data-link="yt" href="#" target="_blank" rel="noopener" hidden>▶️ YouTube</a>
         <a class="btn pri" href="/panel">🚀 Crear mi tienda gratis</a>
       </div>
     </div>
@@ -181,11 +231,14 @@ footer b{color:var(--ink)}
 
 <script>
 // Datos de contacto de Pro Video: se cargan en un solo lugar (los botones se muestran solos cuando hay dato)
-const PV = {wa: '', fb: '', ig: ''};
+const PV = {wa: '', fb: '', ig: '', tt: '', yt: '', tino: '', kitPareja: '', kitHogar: '', packPrompts: ''};
 (() => {
   const n = String(PV.wa || '').replace(/\D/g, '');
   const num = n ? (n.startsWith('54') ? n : '549' + n.replace(/^0/, '').replace(/^(\d{2,4})15/, '$1')) : '';
   document.querySelectorAll('[data-wa]').forEach(a => { if(!num) return; a.href = 'https://wa.me/' + num + '?text=' + encodeURIComponent(a.dataset.wa); a.hidden = false; });
+  document.querySelectorAll('[data-link]').forEach(a => { const u = PV[a.dataset.link]; if(u){ a.href = u; a.hidden = false; } });
+  // si un kit todavía no tiene link de venta, queda el botón para pedirlo por WhatsApp
+  document.querySelectorAll('[data-sinlink]').forEach(a => { if(PV[a.dataset.sinlink]) a.hidden = true; });
   if(PV.fb){ const a = document.querySelector('[data-fb]'); a.href = PV.fb; a.hidden = false; }
   if(PV.ig){ const a = document.querySelector('[data-ig]'); a.href = PV.ig; a.hidden = false; }
 })();
