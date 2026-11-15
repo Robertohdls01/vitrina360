@@ -435,7 +435,7 @@
 <div class="qru">${esc(location.host + '/t/' + slug)}</div><p style="font-size:13px;color:#2e7d32;margin:6px 0 0">📲 ${T('Tus clientes escanean y se instalan tu tienda como app, con tu logo.', 'Customers scan and install your store as an app, with your logo.', 'Seus clientes escaneiam e instalam sua loja como app, com seu logo.')}</p><div class="qrby">⚡ ShopFlash</div>
 <div class="qrl"><b>🔗 ${T('Tu link para vender', 'Your store link', 'Seu link para vender')}</b><span>${esc(link)}</span>
 <div class="qrb"><button type="button" class="pri" data-qrc>📋 ${T('Copiar link', 'Copy link', 'Copiar link')}</button><a class="wa" data-qrw target="_blank" rel="noopener">💬 WhatsApp</a><button type="button" data-qrs hidden>📤 ${T('Compartir', 'Share', 'Compartilhar')}</button></div></div>
-<div class="qrb"><button type="button" class="pri" data-qrp>🖨 ${T('Imprimir', 'Print', 'Imprimir')}</button><button type="button" data-qrd>⬇ ${T('Guardar imagen', 'Save image', 'Salvar imagem')}</button><button type="button" data-qrx>✕ ${T('Cerrar', 'Close', 'Fechar')}</button></div></div>`;
+<div class="qrb"><button type="button" class="pri" data-qrt>🪪 ${T('Tarjetas para repartir', 'Business cards', 'Cartões para distribuir')}</button><button type="button" class="pri" data-qrp>🖨 ${T('Imprimir', 'Print', 'Imprimir')}</button><button type="button" data-qrd>⬇ ${T('Guardar imagen', 'Save image', 'Salvar imagem')}</button><button type="button" data-qrx>✕ ${T('Cerrar', 'Close', 'Fechar')}</button></div></div>`;
       document.body.appendChild(ov);
       ov.onclick = e => { if(e.target === ov) ov.remove(); };
       ov.querySelector('[data-qrx]').onclick = () => ov.remove();
@@ -444,6 +444,23 @@
       ov.querySelector('[data-qrc]').onclick = e => { const b = e.currentTarget; navigator.clipboard?.writeText(link).then(() => { b.textContent = '✅ ' + T('¡Copiado!', 'Copied!', 'Copiado!'); }, () => { b.textContent = link; }); };
       const shb = ov.querySelector('[data-qrs]'); if(navigator.share){ shb.hidden = false; shb.onclick = () => navigator.share({title: name, text: msg, url: link}).catch(() => {}); }
       ov.querySelector('[data-qrp]').onclick = () => window.print();
+      // tarjetas de presentación con QR (9 × 5 cm, 10 por hoja A4): reemplazan la tarjetita de papel
+      ov.querySelector('[data-qrt]').onclick = () => {
+        let br = {}; try{ const d0 = window.VITRINA_REMOTE_DATA; br = (d0 && d0.stores && d0.stores[d0.active || 0].brand) || {}; }catch(e){}
+        const parq = br.preset === 'parques', taller = br.preset === 'taller';
+        const lema = parq ? 'Corte de pasto · Poda · Jardines' : taller ? 'Afilado · Service · Repuestos' : T('Tienda online', 'Online store', 'Loja online');
+        const cta = parq ? '📲 Escaneá: presupuesto con fotos y turnos' : taller ? '📲 Escaneá y sacá turno' : '📲 ' + T('Escaneá y comprá online', 'Scan and shop online', 'Escaneie e compre online');
+        const wa = String(br.wa || '').trim(), qsvg = q.createSvgTag({cellSize: 4, margin: 1, scalable: true});
+        const card = `<div class="tj"><div class="tx"><b>${parq ? '🌿 ' : taller ? '🔧 ' : ''}${esc(name)}</b><span>${esc(lema)}</span>${wa ? `<span>💬 ${esc(wa)}</span>` : ''}<em>${cta}</em></div><div class="qq">${qsvg}</div></div>`;
+        const w = window.open('', '_blank'); if(!w){ alert(T('Permití las ventanas emergentes para imprimir las tarjetas.', 'Allow pop-ups to print the cards.', 'Permita pop-ups para imprimir.')); return; }
+        w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Tarjetas · ${esc(name)}</title><style>@page{size:A4;margin:10mm}body{margin:0;font-family:system-ui,Arial,sans-serif;color:#1f2a1f}
+.hoja{display:grid;grid-template-columns:90mm 90mm;grid-auto-rows:50mm;gap:0;justify-content:center}
+.tj{box-sizing:border-box;border:1px dashed #9ca3af;padding:5mm;display:grid;grid-template-columns:1fr 30mm;gap:3mm;align-items:center;background:linear-gradient(135deg,${parq ? '#f1f8ec' : taller ? '#fff3e0' : '#f5f3ff'},#fff)}
+.tx{display:grid;gap:1.2mm}.tx b{font-size:15pt;line-height:1.1}.tx span{font-size:9pt;color:#4b5b4b}.tx em{font-style:normal;font-size:8.5pt;font-weight:700;color:${parq ? '#2e7d32' : taller ? '#e65100' : '#6d28d9'}}
+.qq svg{width:30mm;height:30mm;display:block}.nota{text-align:center;font-size:10pt;color:#666;margin:4mm 0}@media print{.nota{display:none}}</style></head>
+<body><p class="nota">Imprimí en papel grueso (o llevalo a una gráfica) y recortá por la línea punteada. 10 tarjetas por hoja A4.</p><div class="hoja">${card.repeat(10)}</div><script>setTimeout(function(){window.print()},400)<\/script></body></html>`);
+        w.document.close();
+      };
       ov.querySelector('[data-qrd]').onclick = () => {
         const n = q.getModuleCount(), cell = 12, pad = 40, W = n * cell + pad * 2, H = W + 170;
         const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
