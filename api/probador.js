@@ -49,6 +49,8 @@ function prompt(tipo, nombre, detalle, conRef) {
   if (tipo === 'jardin') return `The image is a photo of a garden, yard or patio. Redesign it as a professional landscaper would, in this style: ${prod}.` +
     ' Keep the SAME place: the same house walls, fences, windows, doors, ground level, camera angle, perspective and size of the area, and keep big existing trees. Change only the landscaping: a healthy lawn, plants, flower beds, edges, paths, stones, garden lights and simple outdoor furniture if it fits.' +
     ' It must look realistic and doable by a local gardener in Argentina, with plants that grow there. Photorealistic, natural daylight, no text, no watermark.';
+  if (tipo === 'ambiente') return `The image is a photo of a room, wall, facade or floor. Show how it would look after this renovation done by a professional: ${prod}.` +
+    ' Keep the SAME place: the same walls, windows, doors, furniture, camera angle and perspective. Change only what the renovation changes (paint colors, wall finish, floor or wall tiles, repaired cracks and damp stains). Realistic and doable by a local tradesman in Argentina. Photorealistic, natural light, no text, no watermark.';
   if (tipo === 'look') return `The first image is a photo of a person. Edit it to show the SAME person with this beauty service done: ${prod}.` +
     (conRef ? ' The second image is a reference of the result.' : '') +
     ' Keep the same face, identity, skin tone, expression, pose, clothes and background. Only change what that service changes (hair, makeup, nails, brows or lashes). Photorealistic, flattering natural light, no text, no watermark.';
@@ -74,7 +76,7 @@ module.exports = async (req, res) => {
   if (!KEY) return res.status(503).json({ error: 'El probador todavía no está activado en esta tienda.' });
   if (!process.env.SUPABASE_SERVICE_KEY) return res.status(503).json({ error: 'Todavía no está configurado.' });
   const b = cuerpo(req) || {};
-  const tipo = ['ropa', 'perro', 'look', 'jardin'].includes(b.tipo) ? b.tipo : 'ropa';
+  const tipo = ['ropa', 'perro', 'look', 'jardin', 'ambiente'].includes(b.tipo) ? b.tipo : 'ropa';
   const foto = dataPart(b.foto);
   if (!foto) return res.status(400).json({ error: 'Subí una foto (JPG o PNG) para probar.' });
 
@@ -100,10 +102,10 @@ module.exports = async (req, res) => {
 
   // diseños del parque: tope por mes según el plan de la tienda
   let mesPath = '', mesCnt = null;
-  if (tipo === 'jardin') {
+  if (tipo === 'jardin' || tipo === 'ambiente') {
     const pr = planReal(row), P = PLANES()[pr] || {}, lim = st === 'activa' ? Number(P.dis || (pr === 'pro' ? 30 : pr === 'comercio' ? 15 : 8)) : Number(process.env.DIS_PRUEBA || 5);
     mesPath = 'm/' + row.slug + '/' + dia.slice(0, 7) + '.json'; mesCnt = (await leer(mesPath)) || { jardin: 0 };
-    if (!dueno && (mesCnt.jardin || 0) >= lim) return res.status(429).json({ error: 'Este mes ya se usaron todos los diseños con IA de esta tienda. Pedile ideas al parquero por WhatsApp.' });
+    if (!dueno && (mesCnt.jardin || 0) >= lim) return res.status(429).json({ error: 'Este mes ya se usaron todos los diseños con IA de esta tienda. Escribile al profesional por WhatsApp.' });
   }
   const ref = b.prenda ? (dataPart(b.prenda) || await urlPart(b.prenda)) : null;
   const parts = [{ text: prompt(tipo, corto(b.nombre, 90) || 'producto', corto(b.detalle, 160), !!ref) }, foto];

@@ -219,6 +219,101 @@ Respondé en ${b.lang === 'en' ? 'inglés' : b.lang === 'pt' ? 'portugués' : 'e
 // ---- Parquería: el cliente de la tienda manda fotos de su parque y la IA estima m², altura del pasto, plantas y arma el presupuesto
 //      con los precios del parquero. Tope de presupuestos por mes según el plan (pq en PLANES). Las fotos no se guardan.
 const pnum = v => { const t = String(v || '').replace(/[^\d,.]/g, ''); if (!t) return 0; const n = Number(t.replace(/\./g, '').replace(',', '.')); return isFinite(n) ? n : 0; };
+// ---- Oficios: qué tiene que mirar la IA en las fotos de cada oficio (la "guía" del profesional) ----
+const OFICIOS = {
+  pintor: { rol: 'pintor de obra con muchos años de experiencia en Argentina', foto: 'las paredes, ambientes, fachadas, rejas o aberturas que quiere pintar', m2: true,
+    guia: `- La superficie a pintar en m² (paredes y/o cielorrasos), descontando puertas y ventanas. Usá referencias: puertas ~2 m × 0,8 m, ventanas, zócalos, enchufes a ~30 cm del piso, altura de ambiente ~2,6 m.
+- Si es interior o exterior, y la altura: si hace falta andamio o escalera grande (más de 3 m), es un ajuste.
+- El estado de la superficie: humedad o salitre, manchas de hongos, pintura descascarada o ampollada, grietas o fisuras, revoque flojo, paredes nuevas sin pintar. Eso define si hay que rasquetear, lijar, tratar humedad, enduir o fijar antes de pintar.
+- El tipo de pintura que tiene y la que conviene (látex interior, látex exterior, impermeabilizante, esmalte sintético para aberturas y rejas, antióxido, membrana para techos). Cuántas manos.
+- Aberturas, rejas, portones o barandas que haya que pintar: cuántas unidades o metros.
+- Si hay muebles que mover o cubrir.`,
+    tips: 'Si ves humedad, decí que primero hay que resolver la causa (filtración, cañería, cimientos) o va a volver.', opc: 'el cliente pregunta "¿qué me recomendás?". Proponele 3 OPCIONES de la más económica a la más completa (por ejemplo: 1) una mano de refresco; 2) preparación completa con enduido y 2 manos; 3) lo mismo con tratamiento de humedad, colores nuevos combinados y aberturas). En "estilo" describí los colores sugeridos.' },
+  plomero: { rol: 'plomero matriculado con muchos años de experiencia en Argentina', foto: 'el problema de plomería: pérdidas, canillas, inodoros, caños, termotanques, desagües', m2: false, visita: true,
+    guia: `- Qué artefacto o instalación es: canilla o grifería (monocomando, de dos llaves, de pared), inodoro y mochila o depósito (botonera, flotante, válvula), bidet, vanitory, sifón, pileta de cocina, termotanque o calefón (eléctrico o a gas, litros), tanque de agua, bomba presurizadora o elevadora, rejillas y cámaras.
+- El material de los caños si se ve: termofusión (PPF), hierro galvanizado (viejo, se oxida), PVC o polipropileno de desagüe, cobre, plomo.
+- La falla: goteo, pérdida, mancha de humedad en pared o techo (y de dónde puede venir), sarro, óxido, flexible roto, cuerito o cartucho gastado, mochila que no corta, desagüe tapado, poca presión.
+- Si es una REPARACIÓN (cambiar cuerito, cartucho, flexible, válvula) o hace falta REEMPLAZAR (grifería, tramo de caño, mochila). Si hay que romper pared o piso, y cuánto (metros de caño aproximados).
+- Si hay riesgo: pérdida grande, agua cerca de la electricidad, filtración que daña la casa del vecino.`,
+    tips: 'Si hay una pérdida grande, aconsejale cerrar la llave de paso mientras llega el plomero.', opc: 'el cliente pregunta "¿qué me conviene?". Proponele 2 o 3 OPCIONES de la más económica a la más definitiva (por ejemplo: 1) reparar lo que falla; 2) cambiar el artefacto o grifería; 3) renovar la instalación de ese sector). Decí qué dura más y qué se ahorra.' },
+  electricista: { rol: 'electricista matriculado con muchos años de experiencia en Argentina', foto: 'la instalación eléctrica: tablero, tomas, llaves, cables, artefactos de luz', m2: false, visita: true,
+    guia: `- El TABLERO: cuántas térmicas tiene, si tiene disyuntor diferencial (botón de prueba "T"), si hay cables sueltos, empalmes con cinta, marcas de quemado o recalentamiento, fusibles viejos de porcelana. Si no tiene disyuntor, recomendalo siempre (protege la vida).
+- Tomas y llaves: si están quemados o derretidos, flojos, sin tierra (dos patas), con zapatillas o prolongaciones de más.
+- Cables: a la vista, pelados, de tela o goma vieja (instalación de más de 30 años), sección chica para lo que alimentan (aire acondicionado, horno eléctrico), sin caño.
+- Puesta a tierra (jabalina), pilar y medidor si se ven.
+- Lo que el cliente quiere agregar: bocas nuevas, tomas, ventilador de techo, luminarias, aire acondicionado, portero, cámaras.
+- Si hay PELIGRO (olor a quemado, chispas, cables pelados al alcance, agua cerca), urgencia alta.`,
+    tips: 'Nunca le indiques al cliente que lo arregle él. Si hay peligro, que corte la luz desde la térmica general y no toque nada.', opc: 'el cliente pregunta "¿qué me conviene?". Proponele 2 o 3 OPCIONES de la más económica a la más segura (por ejemplo: 1) reparar lo que falla; 2) reparar y agregar disyuntor y puesta a tierra; 3) recablear el sector o el tablero completo según norma AEA).' },
+  gasista: { rol: 'gasista matriculado con muchos años de experiencia en Argentina', foto: 'la instalación de gas: calefón, termotanque, cocina, estufas, caldera, cañerías, ventilaciones', m2: false, visita: true,
+    guia: `- Qué artefacto es: calefón, termotanque, cocina u horno, estufa (tiro balanceado o de ambiente sin salida), caldera, anafe, y si es gas natural o envasado (garrafa o zeppelin).
+- Ventilaciones: si el ambiente tiene rejillas reglamentarias arriba y abajo, si el calefón o termotanque tiene conducto de salida con sombrerete, si está en un baño o dormitorio (no permitido para artefactos sin tiro balanceado).
+- La llama si se ve: azul es buena; amarilla o anaranjada indica mala combustión (peligro de monóxido de carbono).
+- Conexiones: flexibles no reglamentarios (manguera de goma), llaves de paso, caños con óxido, manchas negras de hollín en la pared o el techo.
+- Si es instalación nueva, ampliación, conexión de un artefacto, service, o prueba de hermeticidad.`,
+    tips: 'Si el cliente dice que hay olor a gas: que cierre la llave general, abra puertas y ventanas, no prenda ni apague luces ni nada eléctrico, salga y llame a la urgencia de su distribuidora. No hay que esperar al turno.', opc: 'el cliente pregunta "¿qué me conviene?". Proponele 2 o 3 OPCIONES (por ejemplo: 1) service y ajuste del artefacto; 2) adecuar ventilaciones y conexiones a norma; 3) reemplazar el artefacto por uno más seguro y eficiente).' },
+  albanil: { rol: 'albañil y colocador de cerámicos y porcelanatos con muchos años de experiencia en Argentina', foto: 'la obra o el ambiente: pisos, paredes, revestimientos, revoques, contrapisos, muros, techos', m2: true, visita: true,
+    guia: `- La superficie a trabajar en m² (piso, pared o revestimiento). Usá referencias: baldosas y cerámicos (30×30, 45×45, 60×60 cm), puertas ~2 m × 0,8 m, ladrillos (~25 cm), altura de ambiente ~2,6 m.
+- Qué hay que hacer: colocar cerámico o porcelanato (piso o pared), retirar el piso viejo, hacer carpeta o contrapiso, nivelar, revocar (grueso y fino), levantar muro, reparar grietas, impermeabilizar, hacer una losa, un baño o una cocina completos.
+- El estado: piso flojo o que suena hueco, cerámicos rotos, desniveles, humedad que sube de los cimientos (cimiento sin capa aisladora), revoque que se cae, grietas (finas de pintura o estructurales que atraviesan la pared).
+- El tamaño de la pieza que se va a colocar (las grandes, de 60×60 o más, llevan más trabajo) y si es en diagonal, con guardas o zócalos (metros lineales).
+- Si hay que retirar escombros (volquete o viajes).`,
+    tips: 'Si ves una grieta grande que atraviesa la pared o que sigue creciendo, recomendá que la vea un profesional antes de taparla.', opc: 'el cliente pregunta "¿qué me recomendás?". Proponele 3 OPCIONES de la más económica a la más completa (por ejemplo: 1) reparar lo dañado; 2) cerámico nuevo de buena calidad; 3) porcelanato grande con zócalos y terminaciones). En "estilo" describí el piso o revestimiento sugerido (color, tamaño, terminación).' },
+  durlock: { rol: 'instalador de durlock y construcción en seco con muchos años de experiencia en Argentina', foto: 'el lugar donde va el durlock: la pared a dividir, el cielorraso, el mueble o el revestimiento', m2: true, visita: true,
+    guia: `- La superficie en m² de tabique, cielorraso o revestimiento (descontá aberturas). Usá referencias: puertas ~2 m × 0,8 m, altura de ambiente ~2,6 m, placas de 1,20 × 2,40 m.
+- Qué es: tabique divisorio (simple o doble placa, con o sin aislación de lana de vidrio), cielorraso suspendido o junta tomada, revestimiento sobre pared con humedad, mueble o estante de durlock, buñas, cajones para luces.
+- El tipo de placa que conviene: estándar, verde resistente a la humedad (baños y cocinas) o roja ignífuga.
+- Si hay aberturas (puertas, ventanas), bocas de luz o cajas a dejar, y si el lugar es alto.
+- Terminación: masillado, encintado, lijado y pintura (si la incluye o no).`,
+    tips: 'Si es para un baño o una cocina, recomendá placa verde resistente a la humedad.', opc: 'el cliente pregunta "¿qué me recomendás?". Proponele 2 o 3 OPCIONES (por ejemplo: 1) tabique simple; 2) tabique con aislación acústica; 3) con terminación pintada y luces embutidas).' },
+  techista: { rol: 'techista e impermeabilizador con muchos años de experiencia en Argentina', foto: 'el techo: chapas, tejas, losa, membrana, canaletas, y las manchas o goteras de adentro', m2: true, visita: true,
+    guia: `- El tipo de techo: losa (con membrana asfáltica, membrana líquida o sin protección), chapa (acanalada o trapezoidal, con o sin aislación), tejas (cerámicas o de hormigón), policarbonato.
+- La superficie en m² a trabajar. Usá referencias: chapas de ~1,10 m de ancho útil, tejas, puertas, tanques de agua.
+- El estado: membrana agrietada, ampollada o despegada, chapas oxidadas o con agujeros, tornillos flojos, tejas rotas o corridas, canaletas tapadas u oxidadas, zinguería floja, babetas.
+- De adentro: manchas de humedad, goteras, cielorraso dañado, para ubicar de dónde viene el agua.
+- Si hay que impermeabilizar todo o solo reparar, si hace falta retirar la membrana vieja, si es alto o de difícil acceso (andamio, arnés).`,
+    tips: 'Si llueve adentro, que ponga un balde y aleje lo eléctrico de la gotera mientras tanto.', opc: 'el cliente pregunta "¿qué me conviene?". Proponele 2 o 3 OPCIONES de la más económica a la más definitiva (por ejemplo: 1) reparar la zona que filtra; 2) membrana nueva en todo el techo; 3) techo nuevo o con aislación térmica).' },
+  solar: { rol: 'instalador de energía solar (paneles fotovoltaicos y termotanques solares) con muchos años de experiencia en Argentina', foto: 'el techo o el lugar de la instalación, el tablero eléctrico, el termotanque actual y las boletas de luz o gas', m2: false, visita: true,
+    guia: `- El techo: tipo (chapa, losa, tejas), orientación si se puede deducir (en Argentina conviene mirando al norte), sombras de árboles o edificios, espacio útil en m² y cuántos paneles entran (un panel ocupa ~2 m²).
+- Si hay una boleta de luz en las fotos: el consumo mensual en kWh, para dimensionar cuántos paneles hacen falta (en Argentina un panel de ~550 W genera unos 60 a 80 kWh por mes según la zona).
+- Si es termotanque solar: cuántas personas viven (si lo dice) y el tamaño (150, 200 o 300 litros), si hay agua de red con presión o tanque, y dónde va (techo plano o inclinado).
+- El tablero eléctrico, para saber si hace falta adecuarlo (protecciones, inversor, medidor bidireccional si es conectado a red).
+- Si es conectado a la red (on grid), aislado con baterías (off grid) o híbrido.`,
+    tips: 'Contale cuánto podría ahorrar por mes y en cuántos años se paga, de forma aproximada y honesta.', opc: 'el cliente pregunta "¿qué me recomendás?". Proponele 3 OPCIONES (por ejemplo: 1) termotanque solar; 2) kit chico de paneles que cubre parte del consumo; 3) sistema completo que cubre casi todo el consumo, con o sin baterías). Decí el ahorro aproximado de cada una.' },
+  aire: { rol: 'técnico en aire acondicionado y refrigeración con muchos años de experiencia en Argentina', foto: 'el equipo de aire acondicionado (unidad interior y exterior), el ambiente donde va y la etiqueta del equipo', m2: true, visita: true,
+    guia: `- Si es instalación nueva: los m² del ambiente para calcular las frigorías (unas 50 a 60 frigorías por m², más si da el sol de la tarde o tiene mucho vidrio), dónde va la unidad interior y la exterior y cuántos metros de cañería hacen falta. Si hace falta soporte, altura o perforar losa.
+- Si es service o reparación: la etiqueta (marca, frigorías, tipo de gas R22 o R410A), suciedad de filtros y serpentinas, hielo en los caños, pérdidas de agua en la unidad interior, óxido o golpes en la exterior, desagüe.
+- Si la instalación eléctrica alcanza (equipos grandes necesitan línea propia).`,
+    tips: 'Recomendale hacer el service antes del verano: limpia los filtros y gasta menos luz.', opc: 'el cliente pregunta "¿qué me conviene?". Proponele 2 o 3 OPCIONES (por ejemplo: 1) service y carga de gas; 2) reparación; 3) equipo nuevo inverter, que gasta menos luz).' },
+  volquete: { rol: 'dueño de una empresa de volquetes y contenedores con muchos años de experiencia en Argentina', foto: 'lo que hay que llevarse (escombros, tierra, ramas, muebles viejos) y el lugar donde iría el contenedor (vereda, calle, entrada)', m2: false,
+    guia: `- El VOLUMEN a retirar en m³: estimalo con referencias (una carretilla ~0,06 m³; una bolsa de consorcio llena ~0,1 m³; una puerta mide 2 × 0,8 m). Un volquete común es de unos 5 m³ (los hay de 3 a 7).
+- Qué material es: escombros y tierra (pesan mucho: un volquete de escombro va hasta el borde, no más arriba), restos de poda y ramas, residuos de obra mezclados, muebles y cosas voluminosas. Lo que NO se puede tirar: residuos peligrosos (pinturas, aceites, amianto, baterías).
+- Cuántos contenedores hacen falta y por cuántos días.
+- El lugar: si entra el camión, si va en la vereda o en la calle (en muchos municipios hace falta permiso), si hay cables bajos o árboles que molesten, si hace falta cargarlo a mano (carga con mano de obra aparte).`,
+    tips: 'Recordale que no lo llene por encima del borde y que no tire residuos peligrosos.', opc: 'el cliente pregunta "¿qué me conviene?". Proponele 2 o 3 OPCIONES (por ejemplo: 1) un volquete chico; 2) uno grande o dos chicos; 3) volquete más la carga con personal).' },
+  tecnico: { rol: 'técnico en reparación de celulares, computadoras, televisores y electrónica con muchos años de experiencia en Argentina', foto: 'el equipo que hay que arreglar: celular, tablet, notebook, PC, televisor, consola u otro aparato, y la falla que se ve', m2: false, visita: true,
+    guia: `- Identificá el equipo: tipo, marca y modelo aproximados (por el diseño, las cámaras, el logo o la etiqueta si se ve).
+- La falla que se ve: pantalla rota o con manchas, rayas o líneas, táctil que no responde, tapa trasera rota, batería hinchada (tapa levantada: es peligroso), pin de carga sucio o roto, golpes, signos de humedad, teclas que faltan, bisagras rotas, TV con imagen pero sin sonido o con líneas, fuente quemada.
+- Lo que cuenta el cliente (no prende, se apaga, no carga, se calienta, anda lento, se mojó) para orientar el diagnóstico.
+- Trabajos típicos: cambio de módulo o pantalla, cambio de batería, cambio de pin de carga, limpieza por humedad, formateo y backup, cambio de disco a SSD, ampliación de memoria RAM, limpieza y cambio de pasta térmica, reparación de placa o fuente, retroiluminación de TV.
+- Si conviene arreglarlo o si el arreglo sale casi como uno nuevo (decilo con honestidad).`,
+    tips: 'Si la batería está hinchada, que no lo cargue más. Recordale hacer copia de sus fotos y datos si se puede.', opc: 'el cliente pregunta "¿qué me conviene?". Proponele 2 o 3 OPCIONES (por ejemplo: 1) repuesto alternativo, más económico; 2) repuesto original; 3) arreglarlo y mejorarlo, como pasar a disco SSD).' },
+  afilador: { rol: 'afilador de cuchillos y herramientas con muchos años de oficio en Argentina', foto: 'lo que hay que afilar: cuchillos, tijeras, alicates de manicura, herramientas de jardín, cuchillas', m2: false,
+    guia: `- Contá cuántas piezas hay de cada tipo: cuchillos de cocina, cuchillos de asado o de caza, cuchillas de carnicero, tijeras (de cocina, de costura, de peluquería), alicates de manicura, tijeras de podar, machetes, hachas, cuchillas de picadora o de máquinas.
+- El estado de cada una: filo gastado, mellas o puntas rotas (llevan más trabajo), óxido, cabo flojo.
+- Si alguna pieza es especial (cuchillos japoneses, tijeras de peluquería) y lleva un afilado más fino.`,
+    tips: 'Contale cada cuánto conviene afilar y que no los lave en el lavavajillas.', opc: 'el cliente pregunta "¿qué me conviene?". Proponele 2 OPCIONES (por ejemplo: 1) solo afilado; 2) afilado más arreglo de puntas, mellas y cabos).' },
+  mecanico: { rol: 'mecánico (de autos, motos y bicicletas) con muchos años de experiencia en Argentina', foto: 'el auto, la moto o la bicicleta: el tablero con las luces encendidas, el motor, las ruedas, la cadena, una pérdida o el lugar del ruido', m2: false, visita: true,
+    guia: `- Identificá el vehículo: si es auto, moto o bicicleta, y marca, modelo y año aproximados si se ven.
+- Si es BICICLETA: transmisión (cadena estirada u oxidada, piñones y platos gastados, cambios desajustados), frenos (pastillas, zapatas, cables, hidráulicos), ruedas (rayos, llantas torcidas, cubiertas y cámaras), suspensión, rodamientos, juego de dirección. Trabajos típicos: service completo, ajuste de cambios y frenos, centrado de rueda, cambio de cadena.
+- Si es MOTO: cadena y corona (tensión, desgaste), frenos, cubiertas, batería, carburación o inyección, pérdidas de aceite, luces.
+- TABLERO: qué testigos están encendidos (check engine, aceite, batería, temperatura, ABS, airbag, frenos) y qué suelen indicar. Kilometraje si se ve.
+- MOTOR: nivel y color del aceite y del refrigerante si se ven, correas, mangueras, batería con sulfato en los bornes, pérdidas de aceite o líquido.
+- RUEDAS Y FRENOS: desgaste de los neumáticos (parejo o de un costado, que indica alineación), discos con surcos o rebaba, amortiguadores con pérdida.
+- Lo que cuenta el cliente (ruido, humo y su color, vibración, tironeo, no arranca) para orientar el diagnóstico.
+- Los trabajos probables: service (aceite y filtros), frenos, tren delantero y alineación, embrague, distribución, batería, escaneo electrónico, chapa y pintura.`,
+    tips: 'Es un diagnóstico orientativo: para confirmar hay que revisarlo en el taller (o escanearlo). Si hay testigo de aceite o temperatura en rojo, que no siga manejando.', opc: 'el cliente pregunta "¿qué me conviene?". Proponele 2 o 3 OPCIONES de la más económica a la más completa (por ejemplo: 1) arreglar lo urgente; 2) arreglar y hacer el service; 3) puesta a punto completa). Decí qué es urgente y qué puede esperar.' }
+};
+
 async function parqueIA(res, KEY, b, req) {
   const slug = String(b.slug || '');
   // tienda de muestra: tope por día (total y por persona) para que nadie gaste de más probando
@@ -233,11 +328,18 @@ async function parqueIA(res, KEY, b, req) {
   }
   if (!/^[a-z0-9-]{3,40}$/.test(slug)) return res.status(400).json({ error: 'Tienda inválida.' });
   const ims = (Array.isArray(b.images) ? b.images : []).slice(0, 3).filter(im => im && typeof im.data === 'string' && im.data.length > 1000 && im.data.length < 4000000);
-  if (!ims.length) return res.status(400).json({ error: 'Subí al menos una foto de tu parque.' });
+  if (!ims.length) return res.status(400).json({ error: 'Subí al menos una foto.' });
   let t = null;
   try { const rows = await db('GET', '/rest/v1/tiendas?slug=eq.' + slug + '&select=owner,activa,data'); t = rows && rows[0]; } catch (e) {}
   if (!t || t.activa === false) return res.status(404).json({ error: 'Esta tienda no está disponible.' });
-  // los servicios y precios del parquero
+  let preset = ''; try { preset = String((((t.data.stores || [])[t.data.active || 0] || {}).brand || {}).preset || ''); } catch (e) {}
+  let OF = OFICIOS[preset] || null;
+  if (!OF && preset === 'oficio') { let nom = ''; try { nom = String((((t.data.stores || [])[t.data.active || 0] || {}).brand || {}).oficio || '').slice(0, 60); } catch (e) {}
+    nom = nom || 'profesional de oficios';
+    OF = { rol: nom + ' con muchos años de experiencia en Argentina', foto: 'el trabajo que necesita (lo que hay que arreglar, instalar o hacer)', m2: false, visita: true,
+      guia: `- Qué es y qué hay que hacer, como lo vería un ${nom} en la visita: materiales, medidas aproximadas (usá referencias como puertas ~2 m × 0,8 m), estado y si es reparación o hay que hacerlo nuevo.\n- Lo que puede complicar el trabajo (altura, acceso, desgaste, instalación vieja).`,
+      tips: 'Si ves algún peligro, avisale al cliente.', opc: 'el cliente pregunta "¿qué me conviene?". Proponele 2 o 3 OPCIONES de la más económica a la más completa.' }; }
+  // los servicios y precios del parquero (o del profesional del oficio)
   const servs = [];
   try { (t.data.stores || []).forEach(st => (st.products || []).forEach(p => { if (!p || !p.name || servs.length >= 60 || p.sample) return;
     const txt = (p.name + ' ' + (p.features || []).join(' ')).toLowerCase();
@@ -279,12 +381,23 @@ async function parqueIA(res, KEY, b, req) {
     const add = (p, v, vslug) => { if (!p || !p.name || p.service || p.sample || cat.length >= 220) return; cat.push({ n: String(p.name).slice(0, 70), precio: pnum(p.price), v: v, slug: vslug }); };
     try { (t.data.stores || []).forEach(st => (st.products || []).forEach(p => add(p, 'el parquero', slug))); } catch (e) {}
     try { const bv = ((t.data.stores || [])[t.data.active || 0] || {}).brand || {};
-      const vs = (Array.isArray(bv.viveros) ? bv.viveros : []).filter(x => x && x.tipo !== 'taller').map(x => String(x && x.slug || '')).filter(x => /^[a-z0-9-]{3,40}$/.test(x)).slice(0, 5);
+      const vs = (Array.isArray(bv.viveros) ? bv.viveros : []).filter(x => x && (OF || x.tipo !== 'taller')).map(x => String(x && x.slug || '')).filter(x => /^[a-z0-9-]{3,40}$/.test(x)).slice(0, 5);
       if (vs.length) { const rows = await db('GET', '/rest/v1/tiendas?slug=in.(' + vs.join(',') + ')&select=slug,nombre,data,activa');
         (rows || []).filter(r => r.activa !== false).forEach(r => { const d = r.data || {}, st = (d.stores || [])[d.active || 0] || {}, nom = String((st.brand || {}).name || r.nombre || r.slug).slice(0, 40);
           (st.products || []).slice(0, 80).forEach(p => add(p, nom, r.slug)); }); } } catch (e) {}
   }
-  const prompt = `Sos un parquero y paisajista con muchos años de experiencia en Argentina. Un cliente te manda ${ims.length > 1 ? ims.length + ' fotos' : 'una foto'} de su parque, jardín o terreno para que le pases un presupuesto.
+  const promptOficio = OF ? `Sos ${OF.rol}. Un cliente te manda ${ims.length > 1 ? ims.length + ' fotos' : 'una foto'} de ${OF.foto} para que le pases un presupuesto.
+Mirá con atención, como lo haría un profesional en la visita, y fijate en:
+${OF.guia}${OF.m2 && m2 ? '\nEl cliente midió ' + m2 + ' m²: usá ese número.' : ''}
+${quiere ? 'Lo que cuenta o pide el cliente: "' + quiere + '".\n' : ''}Trabajos y precios del profesional (usá EXACTAMENTE estos nombres cuando correspondan; "m2": true quiere decir precio por m²):
+${JSON.stringify(servs)}
+Para cada trabajo: si hay uno de la lista que corresponde, poné su nombre exacto en "servicio". En "cantidad" poné las unidades (bocas, artefactos, metros de caño, aberturas, horas). Si el trabajo es más difícil de lo normal (altura, romper pared, instalación vieja, mucho deterioro), poné un "ajuste_pct" positivo con el motivo. Si no hay ninguno de la lista que corresponda, dejá "servicio" vacío y poné en "precio_estimado" un precio total razonable de mano de obra en pesos argentinos de hoy. Los materiales y repuestos importantes ponelos como trabajos aparte con "precio_estimado".
+En "diagnostico" poné cada cosa que ves: qué es, el detalle (medida, tipo, material), el estado y qué trabajo necesita.
+${OF.tips}
+${opciones ? 'ADEMÁS ' + OF.opc + ' Cada opción con sus propios trabajos (y en "plan" los materiales importantes, usando en lo posible este catálogo de sus proveedores; "i" es su posición, "v" quién lo vende: ' + JSON.stringify(cat.map((x, i) => ({ i, n: x.n, precio: x.precio, v: x.v }))) + '; si no está, "i": -1 y "precio_estimado").\n' : ''}Sé honesto: es una estimación por foto${OF.visita ? ' y el precio final se confirma en la visita' : ''}. Si en las fotos no se ve nada de ${OF.foto.split(':')[0]}, devolvé {"error":"…"} en una frase corta diciendo qué foto sacar.
+Respondé en español rioplatense (con "vos") y SOLO con JSON válido:
+{"analisis":"2 o 3 frases de lo que ves y qué le pasa","m2":${OF.m2 ? 'número' : '0'},"m2_confianza":"baja|media|alta","diagnostico":[{"que":"…","detalle":"…","estado":"…","trabajo":"…"}],"urgencia":"baja|media|alta","seguridad":"advertencia importante para el cliente o vacío","visita":true|false,"trabajos":[{"titulo":"nombre corto del trabajo","servicio":"nombre exacto o vacío","cantidad":número,"unidad":"m2|unidad|trabajo","ajuste_pct":número,"motivo":"…","precio_estimado":número}],"consejo":"1 frase útil para el cliente","tiempo":"duración aproximada del trabajo"${opciones ? ',"opciones":[{"titulo":"nombre corto","descripcion":"2 frases de qué incluye y para quién conviene","estilo":"colores o materiales sugeridos, o vacío","mantenimiento":"bajo|medio|alto","trabajos":[igual que arriba],"plan":[{"i":número,"que":"…","cantidad":número,"donde":"…","por_que":"…","precio_estimado":número}]}]' : ''}}` : '';
+  const prompt = OF ? promptOficio : `Sos un parquero y paisajista con muchos años de experiencia en Argentina. Un cliente te manda ${ims.length > 1 ? ims.length + ' fotos' : 'una foto'} de su parque, jardín o terreno para que le pases un presupuesto.
 Mirá con atención y estimá, como lo haría un profesional en la visita:
 - La superficie de césped o terreno a trabajar en m² (usá referencias: puertas ~2 m de alto y ~0,8 m de ancho, ladrillos, baldosas de 30–40 cm, autos ~4,5 m, cercos ~1,8 m, personas).${m2 ? ' El cliente midió ' + m2 + ' m²: usá ese número.' : ''}
 - La altura aproximada del pasto en cm y su estado (prolijo, crecido, muy crecido/abandonado, con malezas, seco, con pozos).
@@ -312,7 +425,7 @@ Respondé en español rioplatense (con "vos") y SOLO con JSON válido:
     if (!r.ok) return res.status(502).json({ error: 'No pude analizar las fotos ahora. Probá en un rato.' });
     const text = (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
     let out = null; try { out = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)); } catch (e) {}
-    if (!out) return res.status(502).json({ error: 'No pude leer bien las fotos. Probá con otras, con buena luz y que se vea todo el parque.' });
+    if (!out) return res.status(502).json({ error: 'No pude leer bien las fotos. Probá con otras, con buena luz y que se vea bien todo.' });
     if (out.error) return res.status(422).json({ error: String(out.error).slice(0, 300) });
     await sumarPq();
     const s = (v, n) => String(v == null ? '' : v).slice(0, n || 300), num = v => Math.max(0, Number(v) || 0);
@@ -332,7 +445,8 @@ Respondé en español rioplatense (con "vos") y SOLO con JSON válido:
     const trabajos = mapTrab(out.trabajos);
     return res.status(200).json({ analisis: s(out.analisis, 600), m2: M2, m2_confianza: ['baja', 'media', 'alta'].includes(out.m2_confianza) ? out.m2_confianza : 'baja',
       pasto_cm: Math.round(num(out.pasto_cm)), pasto_estado: s(out.pasto_estado, 120), consejo: s(out.consejo, 300), tiempo: s(out.tiempo, 80),
-      plantas: (Array.isArray(out.plantas) ? out.plantas : []).slice(0, 10).map(p => ({ que: s(p.que, 60), tamano: s(p.tamano, 60), estado: s(p.estado, 80), trabajo: s(p.trabajo, 80) })),
+      plantas: (Array.isArray(OF ? out.diagnostico : out.plantas) ? (OF ? out.diagnostico : out.plantas) : []).slice(0, 10).map(p => ({ que: s(p.que, 60), tamano: s(OF ? p.detalle : p.tamano, 80), estado: s(p.estado, 80), trabajo: s(p.trabajo, 100) })),
+      ...(OF ? { oficio: preset, urgencia: ['baja', 'media', 'alta'].includes(out.urgencia) ? out.urgencia : '', seguridad: s(out.seguridad, 300), visita: OF.visita ? true : !!out.visita } : {}),
       trabajos,
       ...(opciones ? { opciones: (Array.isArray(out.opciones) ? out.opciones : []).slice(0, 3).map(o => ({ titulo: s(o.titulo, 60), descripcion: s(o.descripcion, 300), estilo: s(o.estilo, 120),
           mantenimiento: ['bajo', 'medio', 'alto'].includes(o.mantenimiento) ? o.mantenimiento : '', trabajos: mapTrab(o.trabajos), plan: mapPlan(o.plan) })).filter(o => o.titulo) }

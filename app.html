@@ -405,7 +405,7 @@
   function subscribe(e){
     const o = overlay(`<h2>${T('Abono mensual', 'Monthly plan', 'Assinatura mensal')}</h2>
       <p>${T('Se cobra solo todos los meses con Mercado Pago (dinero en cuenta o tarjeta). Te podés dar de baja cuando quieras desde Mercado Pago.', 'Charged automatically every month through Mercado Pago. Cancel anytime from Mercado Pago.', 'Cobrado automaticamente todo mês pelo Mercado Pago. Cancele quando quiser.')}</p>
-      <div class="opt" role="radiogroup" aria-label="Plan">${Object.entries(e.planes || {emprendedora: {nombre: 'Start', precio: e.precio, vitrinas: 10, tiendas: 1}}).filter(([k, p]) => { const d0 = window.VITRINA_REMOTE_DATA, st0 = d0 && d0.stores ? d0.stores[d0.active || 0] : null, parq = !!(st0 && st0.brand && st0.brand.preset === 'parques'); return parq ? !!p.parq : !p.parq; }).map(([k, p], i) => `<label class="pl"><input type="radio" name="v3plan" value="${k}"${(e.estado === 'activa' ? k === e.plan_pagado : i === 0) ? ' checked' : ''}><span><b>${esc(p.nombre)}</b> · ${money(p.precio)}${T('/mes', '/mo', '/mês')}<br><small>${p.tiendas > 1 ? T(`Hasta ${p.tiendas} tiendas, ${p.vitrinas} vitrinas cada una`, `Up to ${p.tiendas} stores, ${p.vitrinas} showcases each`, `Até ${p.tiendas} lojas, ${p.vitrinas} vitrines cada`) : T(`1 tienda con ${p.vitrinas} vitrinas`, `1 store with ${p.vitrinas} showcases`, `1 loja com ${p.vitrinas} vitrines`)}${p.pq ? ` · ${p.pq} presupuestos con IA y ${p.dis} diseños de parques por mes` : ''}</small></span></label>`).join('')}</div>
+      <div class="opt" role="radiogroup" aria-label="Plan">${Object.entries(e.planes || {emprendedora: {nombre: 'Start', precio: e.precio, vitrinas: 10, tiendas: 1}}).filter(([k, p]) => { const d0 = window.VITRINA_REMOTE_DATA, st0 = d0 && d0.stores ? d0.stores[d0.active || 0] : null, parq = !!(st0 && st0.brand && ['parques','pintor','plomero','electricista','gasista','albanil','durlock','techista','solar','aire','volquete','afilador','tecnico','mecanico','oficio'].includes(st0.brand.preset)); return parq ? !!p.parq : !p.parq; }).map(([k, p], i) => `<label class="pl"><input type="radio" name="v3plan" value="${k}"${(e.estado === 'activa' ? k === e.plan_pagado : i === 0) ? ' checked' : ''}><span><b>${esc(p.nombre)}</b> · ${money(p.precio)}${T('/mes', '/mo', '/mês')}<br><small>${p.tiendas > 1 ? T(`Hasta ${p.tiendas} tiendas, ${p.vitrinas} vitrinas cada una`, `Up to ${p.tiendas} stores, ${p.vitrinas} showcases each`, `Até ${p.tiendas} lojas, ${p.vitrinas} vitrines cada`) : T(`1 tienda con ${p.vitrinas} vitrinas`, `1 store with ${p.vitrinas} showcases`, `1 loja com ${p.vitrinas} vitrines`)}${p.pq ? ` · ${p.pq} presupuestos con IA y ${p.dis} diseños de parques por mes` : ''}</small></span></label>`).join('')}</div>
       ${e.estado === 'pausa' ? `<p>${T('Mientras tanto tus productos quedan guardados: cuando pagues, tus clientes vuelven a ver la tienda.', 'Your products stay saved: once you pay, customers see your store again.', 'Seus produtos ficam salvos: ao pagar, a loja volta a aparecer.')}</p>` : ''}
       <label style="display:grid;gap:4px;font-size:14px">${T('Mail de tu cuenta de Mercado Pago', 'Your Mercado Pago email', 'E-mail da sua conta Mercado Pago')}<input type="email" id="v3mp" value="${esc(userEmail)}" autocomplete="email"></label>
       <button class="pri" type="button" id="v3go">${T('Ir a Mercado Pago', 'Go to Mercado Pago', 'Ir ao Mercado Pago')}</button>
@@ -492,10 +492,11 @@
       ov.querySelector('[data-qrt]').onclick = () => {
         let br = {}; try{ const d0 = window.VITRINA_REMOTE_DATA; br = (d0 && d0.stores && d0.stores[d0.active || 0].brand) || {}; }catch(e){}
         const parq = br.preset === 'parques', taller = br.preset === 'taller';
-        const lema = parq ? 'Corte de pasto · Poda · Jardines' : taller ? 'Afilado · Service · Repuestos' : T('Tienda online', 'Online store', 'Loja online');
-        const cta = parq ? '📲 Escaneá: presupuesto con fotos y turnos' : taller ? '📲 Escaneá y sacá turno' : '📲 ' + T('Escaneá y comprá online', 'Scan and shop online', 'Escaneie e compre online');
+        const LEM = {pintor: ['🎨', 'Interiores · Exteriores · Humedad'], plomero: ['🔧', 'Pérdidas · Destapaciones · Instalaciones'], electricista: ['⚡', 'Instalaciones · Tableros · Reparaciones'], gasista: ['🔥', 'Gasista matriculado'], albanil: ['🧱', 'Pisos · Cerámicos · Revoques'], durlock: ['🏗', 'Durlock · Cielorrasos · Tabiques'], techista: ['🏠', 'Techos · Membranas · Goteras'], solar: ['☀️', 'Paneles y termotanques solares'], aire: ['❄️', 'Instalación · Service · Reparación'], volquete: ['🚛', 'Volquetes · Contenedores'], afilador: ['🔪', 'Cuchillos · Tijeras · Herramientas'], tecnico: ['📱', 'Celulares · Computadoras · TV'], mecanico: ['🔩', 'Autos · Motos · Bicicletas'], oficio: ['🛠', String(br.oficio || 'Presupuestos y turnos')]}, of = LEM[br.preset];
+        const lema = of ? of[1] : parq ? 'Corte de pasto · Poda · Jardines' : taller ? 'Afilado · Service · Repuestos' : T('Tienda online', 'Online store', 'Loja online');
+        const cta = parq || of ? '📲 Escaneá: presupuesto con fotos y turnos' : taller ? '📲 Escaneá y sacá turno' : '📲 ' + T('Escaneá y comprá online', 'Scan and shop online', 'Escaneie e compre online');
         const wa = String(br.wa || '').trim(), qsvg = q.createSvgTag({cellSize: 4, margin: 1, scalable: true});
-        const card = `<div class="tj"><div class="tx"><b>${parq ? '🌿 ' : taller ? '🔧 ' : ''}${esc(name)}</b><span>${esc(lema)}</span>${wa ? `<span>💬 ${esc(wa)}</span>` : ''}<em>${cta}</em></div><div class="qq">${qsvg}</div></div>`;
+        const card = `<div class="tj"><div class="tx"><b>${of ? of[0] + ' ' : parq ? '🌿 ' : taller ? '🔧 ' : ''}${esc(name)}</b><span>${esc(lema)}</span>${wa ? `<span>💬 ${esc(wa)}</span>` : ''}<em>${cta}</em></div><div class="qq">${qsvg}</div></div>`;
         const w = window.open('', '_blank'); if(!w){ alert(T('Permití las ventanas emergentes para imprimir las tarjetas.', 'Allow pop-ups to print the cards.', 'Permita pop-ups para imprimir.')); return; }
         w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Tarjetas · ${esc(name)}</title><style>@page{size:A4;margin:10mm}body{margin:0;font-family:system-ui,Arial,sans-serif;color:#1f2a1f}
 .hoja{display:grid;grid-template-columns:90mm 90mm;grid-auto-rows:50mm;gap:0;justify-content:center}
@@ -2321,13 +2322,14 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
       <p class="note" id="presetMsg" role="status" style="margin:0"></p>
       <div id="viverosBox" hidden style="border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:8px;margin-top:10px;background:color-mix(in srgb,#22c55e 6%,var(--surface))">
         <strong>🤝 Mi red: viveros, insumos y talleres</strong>
+        <label id="ofiNomBox" hidden class="note" style="display:grid;gap:4px">🛠 ¿Cuál es tu oficio? (así la IA sabe qué mirar en las fotos)<input id="ofiNom" maxlength="60" placeholder="Ej: herrero, carpintero, cerrajero, vidriero"></label>
         <span class="note">Conectá los negocios con los que trabajás (que tengan su tienda ShopFlash) y tenelos a mano para escribirles. Cuando un cliente rediseña su parque con la IA, le propone plantas de tus viveros y materiales de tus proveedores, con su precio.</span>
         <div style="display:flex;gap:6px;flex-wrap:wrap"><select id="vivTipo" style="border:1px solid var(--line);border-radius:10px;padding:8px;font:inherit;background:var(--bg);color:inherit"><option value="vivero">🌱 Vivero</option><option value="insumos">🛒 Insumos y herramientas</option><option value="taller">🔧 Taller de máquinas</option></select><input id="vivIn" placeholder="Link de su tienda, ej: vitrina360app.com.ar/t/vivero-el-ceibo" style="flex:1;min-width:200px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;background:var(--bg);color:inherit"><button class="btn" type="button" id="vivAdd">＋ Conectar</button></div>
         <ul id="vivList" style="margin:0;padding:0;list-style:none;display:grid;gap:6px"></ul>
         <p class="note" id="vivMsg" role="status" style="margin:0"></p>
       </div>
       <div id="redBox" hidden style="border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:8px;margin-top:10px;background:color-mix(in srgb,#0ea5e9 6%,var(--surface))">
-        <strong>🤝 Parqueros y paisajistas conectados con vos</strong>
+        <strong>🤝 Profesionales conectados con vos</strong>
         <span class="note">Te eligieron como su vivero, proveedor o taller. Escribiles cuando tengas ofertas, repuestos nuevos o turnos libres.</span>
         <ul id="redList" style="margin:0;padding:0;list-style:none;display:grid;gap:6px"></ul>
       </div>
@@ -2651,7 +2653,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
           </details>
         </span>
         <span class="row" style="gap:6px;flex-basis:100%;flex-wrap:wrap;margin-top:4px"><span>⚡ ¿Verdulería, panadería o servicios? Cargá los productos conocidos y solo ponés los precios:</span>
-          <select id="qSvcKind" aria-label="Tipo de comercio"><option value="verdu">🥬 Verdulería (frutas y verduras)</option><option value="pana">🥖 Panadería (panes, facturas, tortas)</option><option value="canina">🐶 Peluquería canina</option><option value="pelu">💇 Peluquería</option><option value="barber">💈 Barbería</option><option value="unas">💅 Uñas y estética</option><option value="parques">🌿 Parquería y jardines</option><option value="taller">🔧 Taller de máquinas de jardín</option></select>
+          <select id="qSvcKind" aria-label="Tipo de comercio"><option value="verdu">🥬 Verdulería (frutas y verduras)</option><option value="pana">🥖 Panadería (panes, facturas, tortas)</option><option value="canina">🐶 Peluquería canina</option><option value="pelu">💇 Peluquería</option><option value="barber">💈 Barbería</option><option value="unas">💅 Uñas y estética</option><option value="parques">🌿 Parquería y jardines</option><option value="pintor">🎨 Pintor</option><option value="plomero">🔧 Plomero</option><option value="electricista">⚡ Electricista</option><option value="gasista">🔥 Gasista</option><option value="albanil">🧱 Albañil y colocador</option><option value="durlock">🏗 Durlock</option><option value="techista">🏠 Techista</option><option value="solar">☀️ Energía solar</option><option value="aire">❄️ Aire acondicionado</option><option value="volquete">🚛 Volquetes</option><option value="tecnico">📱 Servicio técnico (celulares, PC, TV)</option><option value="afilador">🔪 Afilador</option><option value="mecanico">🔩 Mecánico (autos, motos, bicis)</option><option value="taller">🔧 Taller de máquinas de jardín</option></select>
           <button class="btn" type="button" id="qSvcGo">Cargar la lista</button></span>
       </div>
       <label class="qbrand" for="qBrand">Marca del catálogo <small>(opcional, para “📖 Foto de catálogo”)</small>
@@ -5149,6 +5151,19 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       // riego y mantenimiento
       ['Instalación de riego por goteo', 'A consultar', '', 'Riego'], ['Arreglo de riego', 'Por visita', '', 'Riego'], ['Limpieza de canaletas', 'Por casa', '', 'Limpieza de terrenos'],
       ['Mantenimiento quincenal', 'Abono mensual: 2 visitas', '', 'Mantenimiento mensual'], ['Mantenimiento semanal', 'Abono mensual: 4 visitas', '', 'Mantenimiento mensual']]},
+    pintor: {cat: "Pintura", em: '🎨', items: [["Pintura de paredes interiores (látex, 2 manos)", "Precio por m²", "m2", "Interiores"], ["Pintura de cielorrasos", "Precio por m²", "m2", "Interiores"], ["Pintura de frente o exterior", "Precio por m² · látex exterior", "m2", "Exteriores"], ["Preparación de paredes (rasqueteo, lijado y enduido)", "Precio por m²", "m2", "Preparación"], ["Tratamiento de humedad", "Precio por m² · fijador e impermeabilizante", "m2", "Humedad"], ["Reparación de grietas y fisuras", "Por metro lineal", "", "Preparación"], ["Pintura de puerta (esmalte)", "Por puerta, dos caras", "", "Aberturas y rejas"], ["Pintura de ventana", "Por unidad", "", "Aberturas y rejas"], ["Pintura de rejas (antióxido y esmalte)", "Precio por m²", "m2", "Aberturas y rejas"], ["Impermeabilización de techo (membrana líquida)", "Precio por m²", "m2", "Techos"], ["Pintura con andamio (altura)", "Adicional por día", "", "Exteriores"], ["Pintura de rejas y portones", "Por unidad", "", "Aberturas y rejas"], ["Mano de obra por día", "Jornada", "", "Interiores"], ["Visita y presupuesto", "Sin cargo o con cargo", "", "Interiores"]]},
+    plomero: {cat: "Plomería", em: '🔧', items: [["Cambio de cuerito o cartucho de canilla", "Por canilla", "", "Reparaciones"], ["Cambio de grifería", "Mano de obra, por grifería", "", "Grifería"], ["Reparación de mochila o depósito de inodoro", "Válvula, flotante o botonera", "", "Baños"], ["Cambio de inodoro", "Mano de obra", "", "Baños"], ["Cambio de flexible", "Por unidad", "", "Reparaciones"], ["Destapación de cañería", "Pileta, inodoro o cloaca", "", "Destapaciones"], ["Destapación con máquina", "Cloaca o cámara", "", "Destapaciones"], ["Reparación de pérdida de caño", "Sin romper", "", "Reparaciones"], ["Cambio de caño (termofusión)", "Por metro, rompiendo y tapando", "", "Instalaciones"], ["Instalación de termotanque o calefón", "Mano de obra", "", "Termotanques"], ["Instalación de bomba presurizadora", "Mano de obra", "", "Instalaciones"], ["Limpieza de tanque de agua", "Hasta 1.000 litros", "", "Tanques"], ["Instalación completa de baño", "Agua y desagües", "", "Baños"], ["Urgencia (fuera de horario)", "Adicional", "", "Urgencias"], ["Visita y diagnóstico", "Te decimos qué tiene", "", "Reparaciones"]]},
+    electricista: {cat: "Electricidad", em: '⚡', items: [["Cambio de toma o llave", "Por unidad", "", "Reparaciones"], ["Agregar boca nueva (toma o luz)", "Por boca, con caño y cable", "", "Instalaciones"], ["Colocación de luminaria o artefacto", "Por unidad", "", "Iluminación"], ["Instalación de ventilador de techo", "Por unidad", "", "Iluminación"], ["Colocación de disyuntor diferencial", "Con el disyuntor", "", "Tableros"], ["Cambio de tablero", "Mano de obra", "", "Tableros"], ["Agregar térmica", "Por térmica", "", "Tableros"], ["Puesta a tierra (jabalina)", "Con materiales", "", "Seguridad"], ["Recableado de ambiente", "Por ambiente", "", "Instalaciones"], ["Línea para aire acondicionado", "Línea exclusiva", "", "Instalaciones"], ["Búsqueda de falla o cortocircuito", "Diagnóstico", "", "Reparaciones"], ["Instalación eléctrica completa", "Precio por m² de casa", "m2", "Instalaciones"], ["Pilar de luz", "Mano de obra", "", "Instalaciones"], ["Urgencia (fuera de horario)", "Adicional", "", "Urgencias"]]},
+    gasista: {cat: "Gas", em: '🔥', items: [["Instalación de calefón o termotanque", "Mano de obra", "", "Artefactos"], ["Conexión de cocina", "Con flexible reglamentario", "", "Artefactos"], ["Instalación de estufa tiro balanceado", "Mano de obra", "", "Calefacción"], ["Service de calefón o termotanque", "Limpieza y regulación", "", "Service"], ["Service de caldera", "Mano de obra", "", "Calefacción"], ["Prueba de hermeticidad", "Con informe", "", "Seguridad"], ["Reparación de pérdida de gas", "Diagnóstico y arreglo", "", "Seguridad"], ["Colocación de rejillas de ventilación", "Por rejilla", "", "Seguridad"], ["Conducto de evacuación y sombrerete", "Mano de obra", "", "Seguridad"], ["Instalación de gas nueva (planos y trámites)", "Por boca", "", "Instalaciones"], ["Cambio de llave de paso", "Por llave", "", "Instalaciones"], ["Urgencia por olor a gas", "Atención inmediata", "", "Urgencias"]]},
+    albanil: {cat: "Albañilería", em: '🧱', items: [["Colocación de cerámico (piso)", "Precio por m²", "m2", "Pisos y cerámicos"], ["Colocación de porcelanato", "Precio por m²", "m2", "Pisos y cerámicos"], ["Colocación de revestimiento en pared", "Precio por m²", "m2", "Pisos y cerámicos"], ["Retiro de piso viejo", "Precio por m²", "m2", "Pisos y cerámicos"], ["Carpeta o contrapiso", "Precio por m²", "m2", "Contrapisos"], ["Revoque grueso y fino", "Precio por m²", "m2", "Revoques"], ["Levantar pared de ladrillo", "Precio por m²", "m2", "Paredes"], ["Colocación de zócalos", "Por metro lineal", "", "Pisos y cerámicos"], ["Reparación de grietas", "Por metro lineal", "", "Revoques"], ["Capa aisladora (humedad de cimientos)", "Por metro lineal", "", "Humedad"], ["Baño completo", "Mano de obra", "", "Baños y cocinas"], ["Mesada de cocina", "Colocación", "", "Baños y cocinas"], ["Retiro de escombros", "Por viaje o volquete", "", "Revoques"], ["Mano de obra por día", "Jornada de oficial", "", "Paredes"]]},
+    durlock: {cat: "Durlock", em: '🏗', items: [["Tabique de durlock simple", "Precio por m²", "m2", "Tabiques"], ["Tabique con aislación acústica", "Precio por m², con lana de vidrio", "m2", "Tabiques"], ["Cielorraso de durlock junta tomada", "Precio por m²", "m2", "Cielorrasos"], ["Cielorraso desmontable", "Precio por m²", "m2", "Cielorrasos"], ["Revestimiento sobre pared", "Precio por m²", "m2", "Revestimientos"], ["Placa verde para baño o cocina", "Adicional por m²", "m2", "Revestimientos"], ["Mueble o estante de durlock", "Por unidad", "", "Muebles"], ["Buña o cajón para luces", "Por metro lineal", "", "Cielorrasos"], ["Colocación de puerta en tabique", "Por unidad", "", "Tabiques"], ["Masillado y pintura", "Precio por m²", "m2", "Terminaciones"]]},
+    techista: {cat: "Techos", em: '🏠', items: [["Membrana asfáltica con aluminio", "Precio por m²", "m2", "Membranas"], ["Membrana líquida (2 manos)", "Precio por m²", "m2", "Membranas"], ["Retiro de membrana vieja", "Precio por m²", "m2", "Membranas"], ["Reparación de gotera", "Por zona", "", "Reparaciones"], ["Cambio de chapas", "Precio por m²", "m2", "Chapas"], ["Ajuste de tornillos y sellado de chapas", "Precio por m²", "m2", "Chapas"], ["Cambio de tejas", "Por zona", "", "Tejas"], ["Colocación de canaletas", "Por metro lineal", "", "Zinguería"], ["Limpieza de canaletas", "Por metro lineal", "", "Zinguería"], ["Aislación térmica bajo chapa", "Precio por m²", "m2", "Chapas"], ["Techo nuevo de chapa", "Precio por m², con estructura", "m2", "Chapas"], ["Urgencia por lluvia", "Atención inmediata", "", "Reparaciones"]]},
+    solar: {cat: "Energía solar", em: '☀️', items: [["Kit de paneles solares conectado a red", "Por kit, instalado", "", "Paneles"], ["Panel solar adicional", "Instalado", "", "Paneles"], ["Sistema con baterías (off grid o híbrido)", "Por kit", "", "Baterías"], ["Instalación de inversor", "Mano de obra", "", "Paneles"], ["Termotanque solar 150 litros", "Instalado", "", "Termotanques solares"], ["Termotanque solar 200 litros", "Instalado", "", "Termotanques solares"], ["Termotanque solar 300 litros", "Instalado", "", "Termotanques solares"], ["Estructura para techo", "Por panel", "", "Paneles"], ["Trámite de medidor bidireccional", "Gestión", "", "Trámites"], ["Visita técnica y cálculo", "Te decimos cuántos paneles necesitás", "", "Paneles"], ["Limpieza y mantenimiento de paneles", "Por panel", "", "Mantenimiento"]]},
+    aire: {cat: "Aire acondicionado", em: '❄️', items: [["Instalación de split hasta 3.000 frigorías", "Hasta 3 m de cañería", "", "Instalación"], ["Instalación de split de más de 3.000 frigorías", "Hasta 3 m de cañería", "", "Instalación"], ["Metro adicional de cañería", "Por metro", "", "Instalación"], ["Service y limpieza de split", "Por equipo", "", "Service"], ["Carga de gas", "Por equipo", "", "Reparación"], ["Reparación de pérdida de gas", "Diagnóstico y arreglo", "", "Reparación"], ["Desinstalación de equipo", "Por equipo", "", "Instalación"], ["Soporte para unidad exterior", "Con soporte", "", "Instalación"], ["Diagnóstico", "Te decimos qué tiene", "", "Reparación"]]},
+    volquete: {cat: "Volquetes", em: '🚛', items: [["Volquete chico (3 m³)", "Hasta 3 días", "", "Volquetes"], ["Volquete mediano (5 m³)", "Hasta 3 días", "", "Volquetes"], ["Volquete grande (7 m³)", "Hasta 3 días", "", "Volquetes"], ["Día adicional", "Por día", "", "Volquetes"], ["Carga con personal", "Por volquete", "", "Servicios"], ["Retiro de ramas y poda", "Por viaje", "", "Servicios"], ["Retiro de muebles y cosas viejas", "Por viaje", "", "Servicios"], ["Tierra o escombro extra (sobrepeso)", "Adicional", "", "Servicios"]]},
+    tecnico: {cat: "Reparaciones", em: '📱', items: [["Cambio de pantalla o módulo de celular", "Mano de obra, el repuesto aparte", "", "Celulares"], ["Cambio de batería de celular", "Con la batería", "", "Celulares"], ["Cambio de pin de carga", "Con el repuesto", "", "Celulares"], ["Cambio de tapa trasera", "Por unidad", "", "Celulares"], ["Limpieza por humedad", "Celular mojado", "", "Celulares"], ["Formateo y backup", "Celular o computadora", "", "Computadoras"], ["Cambio a disco SSD con instalación", "Mano de obra", "", "Computadoras"], ["Ampliación de memoria RAM", "Mano de obra", "", "Computadoras"], ["Limpieza y pasta térmica", "Notebook o PC", "", "Computadoras"], ["Cambio de pantalla de notebook", "Mano de obra", "", "Computadoras"], ["Reparación de televisor", "Fuente, placa o retroiluminación", "", "Televisores"], ["Reparación de consola", "Joystick, lectora o fuente", "", "Electrónica"], ["Diagnóstico", "Te decimos qué tiene", "", "Electrónica"], ["Vidrio templado colocado", "Por unidad", "", "Accesorios"], ["Controles remotos", "Universales y originales", "", "Accesorios"]]},
+    afilador: {cat: "Afilado", em: '🔪', items: [["Afilado de cuchillo de cocina", "Por unidad", "", "Cuchillos"], ["Afilado de cuchillo de asado o de caza", "Por unidad", "", "Cuchillos"], ["Afilado de cuchilla de carnicero", "Por unidad", "", "Cuchillos"], ["Afilado de tijera", "Por unidad", "", "Tijeras"], ["Afilado de tijera de peluquería", "Por unidad", "", "Tijeras"], ["Afilado de alicate de manicura", "Por unidad", "", "Tijeras"], ["Afilado de tijera de podar", "Por unidad", "", "Herramientas"], ["Afilado de hacha o machete", "Por unidad", "", "Herramientas"], ["Arreglo de punta o mella", "Adicional", "", "Cuchillos"], ["Afilado a domicilio", "Retiro y entrega", "", "Cuchillos"]]},
+    mecanico: {cat: "Mecánica", em: '🔩', items: [["Service completo (aceite y filtros)", "Mano de obra", "", "Service"], ["Cambio de pastillas de freno", "Por eje", "", "Frenos"], ["Rectificado o cambio de discos", "Por eje", "", "Frenos"], ["Tren delantero", "Revisión y arreglo", "", "Tren delantero"], ["Alineación y balanceo", "Por auto", "", "Tren delantero"], ["Cambio de embrague", "Mano de obra", "", "Motor"], ["Correa de distribución", "Mano de obra", "", "Motor"], ["Escaneo electrónico", "Lectura de fallas", "", "Electrónica"], ["Cambio de batería", "Mano de obra", "", "Electrónica"], ["Service de moto", "Aceite, filtro, cadena y ajuste", "", "Motos"], ["Cambio de kit de transmisión de moto", "Cadena, corona y piñón", "", "Motos"], ["Service de bicicleta", "Ajuste de cambios, frenos y lubricación", "", "Bicicletas"], ["Centrado de rueda de bicicleta", "Por rueda", "", "Bicicletas"], ["Cambio de cadena de bicicleta", "Mano de obra", "", "Bicicletas"], ["Diagnóstico", "Te decimos qué tiene", "", "Service"]]},
     taller: {cat: 'Service y reparación', em: '🔧', items: [
       ['Afilado de cuchilla de cortadora', 'Con balanceo'], ['Afilado de cadena de motosierra', 'Por cadena'], ['Service de motoguadaña', 'Bujía, filtro, carburador y limpieza'],
       ['Service de cortadora de césped', 'Cambio de aceite, filtro y afilado'], ['Service de motosierra', 'Limpieza, ajuste y afilado'], ['Reparación de carburador', 'Limpieza y regulación'],
@@ -6754,7 +6769,109 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     };
   }
   // ---- 🌿 Parquería: la vendedora virtual le pide fotos del parque, la IA estima m², pasto y plantas, arma el presupuesto y muestra cómo podría quedar ----
-  const isParques = () => brand.preset === 'parques' || products.some(p => p.m2);
+  // ---- Oficios: cada uno con su forma de pedir fotos, su saludo y sus botones (el motor del presupuesto es el mismo del parquero) ----
+  const OFI_BASE = {t: 'Pedí tu presupuesto', pro: 'el profesional', m2: false, mapa: false, m2t: '¿Cuántos metros son?', opc: '💡 ¿Qué me conviene?', opcT: 'Opciones para vos', img: '', wait: 'La IA está mirando tus fotos…', fab: '📷 Presupuesto con fotos', add: [], urg: '', urgTip: '', quien: 'Tomás', ej: 'Contá qué necesitás', visita: true, kw: /^$/, chips: [], lema: 'Presupuestos con fotos · Turnos', foto: 'Sacale 1 a 3 fotos a lo que necesitás, de cerca y de lejos, y contá abajo qué pasa. La IA lo mira y te arma el presupuesto.'};
+  const OFI = {
+    parques: {em: '🌿', t: 'Presupuesto de tu parque', pro: 'el parquero', m2: true, mapa: true, visita: false, m2t: '¿Cuántos metros tiene?', opc: '💡 ¿Qué me recomendás?', opcT: 'Mis recomendaciones para tu patio', img: 'jardin', ej: 'Ej: cortar el pasto y podar el ligustro del fondo', fab: '🌿 Presupuesto de mi parque',
+      foto: 'Sacale 1 a 3 fotos a tu parque, que se vea todo (el pasto, las plantas y algo de referencia como una puerta o un cerco). La IA mide más o menos, mira el pasto y las plantas y te arma el presupuesto.', wait: 'La IA está mirando tu parque: mide, revisa el pasto y las plantas… tarda unos segundos.',
+      add: [['🌳 Sumar poda de plantas', 'podar las plantas que lo necesiten'], ['🪴 Agregar plantas o piedras', '']], lema: 'Corte de pasto · Poda · Jardines',
+      saludo: '¿Querés un corte común? Pasame una foto de tu parque y te digo ya el presupuesto. Si querés otra cosa, como podar, agregar plantas o piedras, también te ayudo.',
+      chips: [['✂️ Sí, un corte común', 'corte comun'], ['💡 Quiero otra cosa, recomendame', 'qué me recomendás para mi patio'], ['🌳 Poda de plantas o árboles', 'presupuesto poda'], ['📅 Ya soy cliente', 'ya soy cliente']],
+      kw: /jardin|parque|patio|pasto|cesped|terreno|metros|poda|podar|arbol|cerco|ligustro|maleza|yuyo|disen/},
+    pintor: {em: '🎨', t: 'Presupuesto de pintura', pro: 'el pintor', m2: true, visita: false, m2t: '¿Cuántos m² de pared son?', opc: '🎨 ¿Qué colores me recomendás?', opcT: 'Mis recomendaciones para tus paredes', img: 'ambiente', ej: 'Ej: pintar el living y la cocina, paredes y techo', fab: '🎨 Presupuesto de pintura',
+      foto: 'Sacale 1 a 3 fotos a las paredes o ambientes que querés pintar, que se vean enteros y con una puerta o ventana de referencia. Si hay humedad, grietas o pintura saltada, sacale una de cerca.', wait: 'La IA está mirando tus paredes: mide y revisa humedad, grietas y el estado de la pintura…',
+      add: [['🏠 Sumar techos (cielorrasos)', 'pintar también los cielorrasos'], ['🚪 Sumar puertas, ventanas y rejas', 'pintar también puertas, ventanas y rejas']], lema: 'Interiores · Exteriores · Humedad',
+      saludo: '¿Qué querés pintar? Pasame una foto de la pared o del ambiente y te digo ya el presupuesto. Si no sabés qué color, también te recomiendo.',
+      chips: [['🖌 Pintar un ambiente', 'presupuesto pintar un ambiente'], ['🏠 Frente o exterior', 'presupuesto pintar el frente'], ['💧 Tengo humedad', 'presupuesto humedad en la pared'], ['🎨 Recomendame colores', 'recomendame colores']],
+      kw: /pint|pared|humedad|color|frente|fachada|reja|abertura|esmalte|latex/},
+    plomero: {em: '🔧', t: 'Presupuesto de plomería', pro: 'el plomero', ej: 'Ej: gotea la canilla de la cocina / pierde la mochila del inodoro', fab: '🔧 Presupuesto de plomería', opc: '💡 ¿Arreglo o cambio?',
+      foto: 'Sacale 1 a 3 fotos al problema: la pérdida, la canilla, el inodoro, el caño o el termotanque. Una de cerca y una de lejos, así se entiende dónde está. Contá abajo qué pasa.', wait: 'La IA está mirando tus fotos: qué es, de qué material y qué falla…',
+      urg: '🚨 Es urgente: pierde mucha agua', urgTip: 'Mientras tanto cerrá la llave de paso.', lema: 'Pérdidas · Destapaciones · Instalaciones',
+      add: [['🚿 Revisar otra cosa del baño o la cocina', 'revisar también otra cosa del baño o la cocina'], ['🔥 Sumar el termotanque o calefón', 'revisar también el termotanque o calefón']],
+      saludo: '¿Qué problema tenés? Pasame una foto (la pérdida, la canilla, el caño) y contame qué pasa, y te digo más o menos cuánto sale.',
+      chips: [['💧 Tengo una pérdida', 'presupuesto tengo una perdida'], ['🚽 Inodoro o mochila', 'presupuesto el inodoro'], ['🔥 Termotanque', 'presupuesto termotanque'], ['🚨 Es urgente', 'urgencia']],
+      kw: /perdida|pierde|gotea|canilla|grifo|inodoro|mochila|cano|termotanque|calefon|destap|tapad|desague|plom|sifon|bomba|tanque/},
+    electricista: {em: '⚡', t: 'Presupuesto de electricidad', pro: 'el electricista', ej: 'Ej: salta la térmica cuando prendo el aire', fab: '⚡ Presupuesto de electricidad',
+      foto: 'Sacale 1 a 3 fotos: el tablero (con la tapa abierta si podés), el toma o la llave que falla, o donde querés agregar algo. ¡No toques cables!', wait: 'La IA está mirando tus fotos: el tablero, los cables, qué falla…',
+      urg: '🚨 Es urgente: sin luz u olor a quemado', urgTip: 'Si hay olor a quemado o chispas, bajá la térmica general y no toques nada.', lema: 'Instalaciones · Tableros · Reparaciones',
+      add: [['🛡 Sumar disyuntor y puesta a tierra', 'agregar disyuntor diferencial y puesta a tierra'], ['💡 Agregar tomas o luces', 'agregar tomas o luces nuevas']],
+      saludo: '¿Qué necesitás? Pasame una foto del tablero, del toma o de lo que falla y te digo más o menos cuánto sale.',
+      chips: [['🔌 Un toma o llave no anda', 'presupuesto un toma no anda'], ['⚡ Salta la térmica', 'presupuesto salta la termica'], ['💡 Instalar luces o ventilador', 'presupuesto instalar luces'], ['🚨 Es urgente', 'urgencia']],
+      kw: /luz|electri|toma|enchufe|llave|termica|disyuntor|tablero|cable|corto|ventilador|lampara|foco|quemad/},
+    gasista: {em: '🔥', t: 'Presupuesto de gas', pro: 'el gasista', ej: 'Ej: el calefón se apaga / quiero conectar una cocina', fab: '🔥 Presupuesto de gas',
+      foto: 'Sacale 1 a 3 fotos al artefacto (calefón, termotanque, cocina, estufa), a la ventilación y a la conexión. Si se ve la llama, mejor.', wait: 'La IA está mirando el artefacto, las ventilaciones y la conexión…',
+      urg: '🚨 Siento olor a gas', urgTip: 'Si hay olor a gas: cerrá la llave general, abrí puertas y ventanas, no prendas ni apagues nada eléctrico, salí y llamá a la urgencia de tu distribuidora de gas.', lema: 'Gasista matriculado · Instalaciones · Service',
+      add: [['🌬 Revisar ventilaciones', 'revisar también las ventilaciones'], ['🧪 Prueba de hermeticidad', 'sumar prueba de hermeticidad']],
+      saludo: '¿Qué necesitás? Pasame una foto del artefacto o de la instalación y te digo más o menos cuánto sale. Si sentís olor a gas, avisame ya.',
+      chips: [['🔥 Calefón o termotanque', 'presupuesto calefon'], ['🍳 Conectar cocina o estufa', 'presupuesto conectar cocina'], ['🧾 Instalación nueva', 'presupuesto instalacion nueva de gas'], ['🚨 Olor a gas', 'urgencia']],
+      kw: /gas|calefon|termotanque|estufa|cocina|horno|caldera|llama|piloto|garrafa|matricul/},
+    albanil: {em: '🧱', t: 'Presupuesto de albañilería', pro: 'el albañil', m2: true, m2t: '¿Cuántos m² son?', opc: '💡 ¿Qué me recomendás?', opcT: 'Mis recomendaciones para tu obra', img: 'ambiente', ej: 'Ej: cambiar el piso del living por porcelanato', fab: '🧱 Presupuesto de obra',
+      foto: 'Sacale 1 a 3 fotos al lugar: el piso, la pared, el baño o la obra, que se vea entero y con una puerta de referencia.', wait: 'La IA está mirando tu obra: mide y revisa el estado…', lema: 'Pisos · Cerámicos · Revoques · Obras',
+      add: [['📏 Sumar zócalos', 'colocar también zócalos'], ['🗑 Sumar retiro de escombros', 'retirar los escombros']],
+      saludo: '¿Qué obra tenés en mente? Pasame una foto del lugar y te digo más o menos cuánto sale: pisos, cerámicos, revoques, paredes.',
+      chips: [['🟫 Colocar cerámico o porcelanato', 'presupuesto colocar ceramico'], ['🧱 Revoque o pared', 'presupuesto revoque'], ['🛁 Hacer un baño o cocina', 'presupuesto baño completo'], ['💡 Recomendame', 'que me recomendas']],
+      kw: /ceramic|porcelanato|piso|revoque|pared|muro|contrapiso|carpeta|bano|obra|losa|grieta|alban/},
+    durlock: {em: '🏗', t: 'Presupuesto de durlock', pro: 'el instalador', m2: true, m2t: '¿Cuántos m² son?', img: 'ambiente', opc: '💡 ¿Qué me recomendás?', ej: 'Ej: dividir el living con una pared de durlock con puerta', fab: '🏗 Presupuesto de durlock',
+      foto: 'Sacale 1 a 3 fotos al lugar donde va el durlock (la pared a dividir, el techo, el mueble), que se vea entero y con una puerta de referencia.', wait: 'La IA está mirando el lugar: mide y ve qué conviene…', lema: 'Durlock · Cielorrasos · Construcción en seco',
+      add: [['🔇 Sumar aislación acústica', 'agregar aislación de lana de vidrio'], ['💡 Sumar luces embutidas', 'agregar luces embutidas']],
+      saludo: '¿Qué querés hacer? Pasame una foto del lugar y te digo más o menos cuánto sale: paredes, cielorrasos, muebles o revestimientos de durlock.',
+      chips: [['🧱 Una pared divisoria', 'presupuesto pared de durlock'], ['⬜ Un cielorraso', 'presupuesto cielorraso'], ['📚 Mueble o estante', 'presupuesto mueble de durlock']],
+      kw: /durlock|placa|cielorraso|tabique|construccion en seco|yeso/},
+    techista: {em: '🏠', t: 'Presupuesto de techos', pro: 'el techista', m2: true, m2t: '¿Cuántos m² tiene el techo?', ej: 'Ej: me llueve en la cocina, el techo es de losa', fab: '🏠 Presupuesto de techos',
+      foto: 'Sacale 1 a 3 fotos al techo (de arriba si podés subir con cuidado, o desde lejos) y a la mancha o gotera de adentro.', wait: 'La IA está mirando tu techo: el tipo, el estado y de dónde puede entrar el agua…',
+      urg: '🚨 Es urgente: me llueve adentro', urgTip: 'Mientras tanto poné un balde y alejá todo lo eléctrico de la gotera.', lema: 'Techos · Membranas · Zinguería',
+      add: [['🌧 Sumar canaletas', 'revisar y cambiar también las canaletas'], ['🌡 Sumar aislación térmica', 'agregar aislación térmica']],
+      saludo: '¿Qué le pasa a tu techo? Pasame una foto del techo y de la mancha o gotera de adentro, y te digo más o menos cuánto sale.',
+      chips: [['💧 Me llueve adentro', 'presupuesto gotera'], ['⬛ Membrana nueva', 'presupuesto membrana'], ['🏠 Techo de chapa o tejas', 'presupuesto techo de chapa'], ['🚨 Es urgente', 'urgencia']],
+      kw: /techo|gotera|llueve|membrana|chapa|teja|losa|canaleta|zingueria|filtra|impermeab/},
+    solar: {em: '☀️', t: 'Presupuesto de energía solar', pro: 'el instalador', ej: 'Ej: somos 4 en casa y queremos bajar la boleta de luz', fab: '☀️ Presupuesto solar',
+      foto: 'Sacale fotos al techo (que se vea el espacio y si hay sombra), al tablero eléctrico y a tu última boleta de luz. Con eso la IA calcula cuántos paneles necesitás y cuánto ahorrás.', wait: 'La IA está mirando tu techo y tu consumo…', lema: 'Paneles solares · Termotanques solares',
+      add: [['🔋 Sumar baterías', 'agregar baterías para cuando se corta la luz'], ['🚿 Sumar termotanque solar', 'agregar termotanque solar']],
+      saludo: '¿Querés ahorrar en la luz o en el gas? Pasame una foto del techo y de tu boleta de luz y te digo cuántos paneles necesitás y cuánto ahorrás.',
+      chips: [['☀️ Paneles solares', 'presupuesto paneles solares'], ['🚿 Termotanque solar', 'presupuesto termotanque solar'], ['💡 ¿Qué me conviene?', 'que me conviene']],
+      kw: /solar|panel|placa|bateria|inversor|boleta|ahorr/},
+    aire: {em: '❄️', t: 'Presupuesto de aire acondicionado', pro: 'el técnico', m2: true, m2t: '¿Cuántos m² tiene el ambiente?', ej: 'Ej: instalar un split en el dormitorio', fab: '❄️ Presupuesto de aire',
+      foto: 'Sacale fotos al equipo (la unidad de adentro, la de afuera y la etiqueta). Si es instalación nueva, al ambiente y a la pared donde iría.', wait: 'La IA está mirando el equipo y el ambiente…', lema: 'Instalación · Service · Reparación',
+      add: [['🧼 Sumar service de otro equipo', 'hacer también el service de otro equipo']],
+      saludo: '¿Qué necesitás? Pasame una foto del equipo o del ambiente y te digo más o menos cuánto sale: instalación, service o reparación.',
+      chips: [['❄️ Instalar un aire', 'presupuesto instalar aire'], ['🧼 Service o limpieza', 'presupuesto service de aire'], ['🔧 No enfría', 'presupuesto el aire no enfria']],
+      kw: /aire|split|enfria|frigor|calefaccion/},
+    volquete: {em: '🚛', t: 'Presupuesto de volquete', pro: 'la empresa', visita: false, ej: 'Ej: escombros de un baño, lo necesito el lunes', fab: '🚛 Pedí tu volquete',
+      foto: 'Sacale 1 a 3 fotos a lo que hay que llevarse (escombros, tierra, ramas, muebles) y al lugar donde iría el contenedor (vereda o entrada).', wait: 'La IA está calculando cuánto hay para llevar…', lema: 'Volquetes · Contenedores · Retiro de escombros',
+      add: [['💪 Sumar carga con personal', 'que lo carguen ellos'], ['📆 Más días', 'dejarlo más días']],
+      saludo: '¿Qué tenés para tirar? Pasame una foto de los escombros o de lo que hay que llevarse y te digo cuántos volquetes necesitás y cuánto sale.',
+      chips: [['🧱 Escombros de obra', 'presupuesto volquete escombros'], ['🌿 Ramas y poda', 'presupuesto volquete ramas'], ['🛋 Muebles y cosas viejas', 'presupuesto volquete muebles']],
+      kw: /volquete|contenedor|escombro|retiro|tirar|basura/},
+    tecnico: {em: '📱', t: 'Presupuesto de reparación', pro: 'el técnico', opc: '💡 ¿Qué me conviene?', ej: 'Ej: Samsung A32, se cayó y se rompió la pantalla', fab: '📱 Presupuesto de reparación',
+      foto: 'Sacale 1 a 3 fotos al equipo (celular, notebook, PC, tele): la falla de cerca y una de lejos. Si se ve la marca o el modelo, mejor. Contá abajo qué le pasa.', wait: 'La IA está mirando tu equipo: qué modelo es y qué falla…', lema: 'Celulares · Computadoras · TV · Electrónica',
+      add: [['🔋 Sumar cambio de batería', 'cambiar también la batería'], ['🛡 Sumar vidrio templado y funda', 'agregar vidrio templado y funda']],
+      saludo: '¿Qué equipo hay que arreglar? Pasame una foto y contame qué le pasa, y te digo más o menos cuánto sale: celulares, computadoras, teles y electrónica.',
+      chips: [['📱 Pantalla rota', 'presupuesto pantalla rota'], ['🔋 No carga o dura poco', 'presupuesto no carga'], ['💻 Computadora lenta o no prende', 'presupuesto computadora'], ['📺 Tele o electrónica', 'presupuesto tele']],
+      kw: /celular|telefono|pantalla|modulo|bateria|carga|notebook|compu|computadora|pc|tele|televisor|tablet|consola|mojo|no prende|lento|virus/},
+    afilador: {em: '🔪', t: 'Presupuesto de afilado', pro: 'el afilador', visita: false, ej: 'Ej: 5 cuchillos y 2 tijeras, paso por tu casa el sábado', fab: '🔪 Presupuesto de afilado',
+      foto: 'Sacale una foto a todo lo que querés afilar, juntito sobre la mesa: cuchillos, tijeras, alicates, herramientas.', wait: 'La IA está contando tus cuchillos y tijeras…', lema: 'Cuchillos · Tijeras · Herramientas',
+      add: [['✂️ Sumar tijeras o alicates', 'afilar también tijeras o alicates'], ['🪓 Sumar herramientas de jardín', 'afilar también herramientas de jardín']],
+      saludo: '¿Qué querés afilar? Pasame una foto de los cuchillos, tijeras o herramientas y te digo ya cuánto sale. Paso por tu casa o me los traés.',
+      chips: [['🔪 Cuchillos', 'presupuesto afilar cuchillos'], ['✂️ Tijeras y alicates', 'presupuesto afilar tijeras'], ['🪓 Herramientas', 'presupuesto afilar herramientas']],
+      kw: /afil|cuchill|tijera|alicate|filo|hacha|machete/},
+    mecanico: {em: '🔩', t: 'Presupuesto del taller', pro: 'el mecánico', ej: 'Ej: Gol Trend 2015, hace ruido al frenar', fab: '🔩 Presupuesto del taller',
+      foto: 'Sacale 1 a 3 fotos: el tablero con las luces encendidas, el motor, la rueda, la cadena o donde ves la falla. Contá abajo qué hace (ruido, humo, no arranca) y qué vehículo es (auto, moto o bici).', wait: 'La IA está mirando tu vehículo: qué es, qué testigos hay, qué se ve gastado…', lema: 'Autos · Motos · Bicicletas',
+      add: [['🛢 Sumar el service', 'hacer también el service'], ['🛑 Revisar frenos', 'revisar también los frenos']],
+      saludo: '¿Qué le pasa a tu vehículo? Contame si es auto, moto o bici, y pasame una foto del tablero o de la falla, y te digo más o menos cuánto sale.',
+      chips: [['🛢 Service', 'presupuesto service'], ['🛑 Frenos', 'presupuesto frenos'], ['⚠️ Se prendió una luz', 'presupuesto se prendio una luz del tablero'], ['🚲 Mi bici o mi moto', 'presupuesto mi bici']],
+      kw: /auto|moto|bici|motor|freno|aceite|service|embrague|ruido|tablero|bateria|rueda|cubierta|neumatico|correa|cadena|arranca|humo|check/}
+  };
+  function ofi(){
+    const pr = brand.preset;
+    if(OFI[pr]) return Object.assign({id: pr}, OFI_BASE, OFI[pr]);
+    if(pr === 'oficio'){ const n = String(brand.oficio || '').trim() || 'Oficios';
+      return Object.assign({id: 'oficio'}, OFI_BASE, {em: '🛠', t: 'Presupuesto · ' + n, fab: '🛠 Pedí tu presupuesto', lema: n + ' · Presupuestos y turnos', saludo: '¿Qué necesitás? Pasame una foto y contame qué pasa, y te digo más o menos cuánto sale.',
+        chips: [['📷 Pedir presupuesto', 'presupuesto'], ['📅 Sacar turno', 'quiero un turno']]}); }
+    if(products.some(p => p.m2)) return Object.assign({id: 'parques'}, OFI_BASE, OFI.parques);
+    return null;
+  }
+  const isParques = () => !!ofi();          // tiene presupuesto con fotos (parquero u otro oficio)
+  const esParquero = () => { const o = ofi(); return !!o && o.id === 'parques'; };
   const PQ_ESTILOS = [['Prolijo y simple, bajo mantenimiento', '🌱 Simple'], ['Moderno, con piedras, gramíneas y luces', '🪨 Moderno'], ['Campestre, con muchas flores de colores', '🌼 Con flores'], ['Tropical, con plantas grandes y verdes', '🌴 Tropical'], ['Patio para chicos y mascotas, con mucho césped', '⚽ Para jugar']];
   let pqFotos = [], pqRes = null, pqM2 = 0, pqMap = null, pqPts = [], pqPoly = null, pqDis = null, pqOcup = [], pqDia = '', pqHora = '', pqPago = 'despues';
   // turnos: dentro del horario de atención de la tienda (o lunes a sábado de 8 a 18), cada 2 horas por defecto
@@ -6786,22 +6903,22 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   const pqSlotTxt = (ymd, h) => { const d = new Date(ymd + 'T12:00'); return `${DAYS_LONG[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1} a las ${h} h`; };
   function pqNextHTML(r){
     if(!r || r.fijo || !pqPaso) return '';
-    const quien = (() => { try{ const ids = hList(); return ids.length ? (ids[0] === 'duena' ? ownName() : HELPERS[ids[0]].name) : (isParques() ? 'Tomás' : 'Sofi'); }catch(e){ return 'Tomás'; } })(), nom = pqCliNom();
+    const quien = (() => { try{ const ids = hList(); return ids.length ? (ids[0] === 'duena' ? ownName() : HELPERS[ids[0]].name) : (isParques() ? 'Tomás' : 'Sofi'); }catch(e){ return 'Tomás'; } })(), nom = pqCliNom(), O = ofi() || OFI_BASE;
     if(pqPaso === 'agregar') return `<div class="pqbox" style="background:color-mix(in srgb,#f59e0b 8%,var(--surface))"><b>🙋 ${esc(quien)}</b><p>¡Listo${nom ? ', ' + esc(nom) : ''}! Tu presupuesto da <b id="pqNextTot"></b>. ¿Querés agregarle algo?</p>
-      <div class="pqchips"><button class="btn primary" type="button" data-pqn="no">👍 No, así está bien</button><button class="btn" type="button" data-pqn="poda">🌳 Sumar poda de plantas</button><button class="btn" type="button" data-pqn="plantas">🪴 Agregar plantas o piedras</button></div></div>`;
+      <div class="pqchips"><button class="btn primary" type="button" data-pqn="no">👍 No, así está bien</button>${(O.add || []).map((a, i) => `<button class="btn" type="button" data-pqn="a${i}">${esc(a[0])}</button>`).join('')}</div></div>`;
     if(pqPaso === 'turno'){ const ds = pqDias(), q = []; ds.forEach(x => x.hs.forEach(h => { if(q.length < 4) q.push([x.ymd, h]); }));
-      return `<div class="pqbox" style="background:color-mix(in srgb,#f59e0b 8%,var(--surface))"><b>🙋 ${esc(quien)}</b><p>${q.length ? `¡Perfecto! El primer turno libre es el <b>${esc(pqSlotTxt(q[0][0], q[0][1]))}</b>. ¿Te queda bien? Si no, elegí otro:` : 'Ahora no tengo turnos libres en los próximos días: mandale el presupuesto al parquero por WhatsApp y te contesta.'}</p>
+      return `<div class="pqbox" style="background:color-mix(in srgb,#f59e0b 8%,var(--surface))"><b>🙋 ${esc(quien)}</b><p>${q.length ? `¡Perfecto! El primer turno libre es el <b>${esc(pqSlotTxt(q[0][0], q[0][1]))}</b>. ¿Te queda bien? Si no, elegí otro:` : `Ahora no tengo turnos libres en los próximos días: mandale el presupuesto a ${esc(O.pro)} por WhatsApp y te contesta.`}</p>
         <div class="pqchips">${q.map(([y, h], i) => `<button class="btn${i === 0 ? ' primary' : ''}" type="button" data-pqq="${y}|${h}">${i === 0 ? '✅ ' : ''}${esc(pqSlotTxt(y, h))}</button>`).join('')}</div><span class="note">Más días y horarios, abajo en “Reservá tu turno”.</span></div>`; }
     return '';
   }
   const pqOpTotal = (o, m2) => o.trabajos.reduce((a, x) => a + (x.porM2 ? x.precio * (m2 || 0) : x.precio * (x.cantidad || 1)) * (1 + (x.ajuste || 0) / 100), 0) + o.plan.reduce((a, x) => a + x.precio * x.cantidad, 0);
   function pqOpsHTML(){
     if(!pqOps || !pqOps.opciones || !pqOps.opciones.length) return '';
-    const m2 = pqM2 || pqOps.m2 || 0, MT = {bajo: '🟢 poco mantenimiento', medio: '🟡 mantenimiento medio', alto: '🟠 más mantenimiento'};
-    return `<div class="pqbox"><b>💡 Mis recomendaciones para tu patio</b><p>${esc(pqOps.analisis)}</p></div>` + pqOps.opciones.map((o, i) => `<div class="pqbox" data-pqop="${i}"><b>${['1️⃣', '2️⃣', '3️⃣'][i]} ${esc(o.titulo)}</b><p>${esc(o.descripcion)}</p>
-      <div class="pqchips">${o.mantenimiento ? `<span>${MT[o.mantenimiento]}</span>` : ''}<span>💰 ${pqMoney(pqOpTotal(o, m2))} aprox.</span></div>
-      <ul class="pqpl">${o.trabajos.map(x => `<li>🔧 ${esc(x.titulo)}</li>`).join('')}${o.plan.map(x => `<li>🪴 ${x.cantidad} × ${esc(x.que)}${x.vivero && x.vivero !== 'el parquero' ? ' (' + esc(x.vivero) + ')' : ''}${x.donde ? ' · ' + esc(x.donde) : ''}</li>`).join('')}</ul>
-      <div data-pqoimg></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" type="button" data-pqoi="${i}">✨ Ver cómo quedaría</button><button class="btn primary" type="button" data-pqoe="${i}">✅ Elijo esta</button></div></div>`).join('');
+    const m2 = pqM2 || pqOps.m2 || 0, MT = {bajo: '🟢 poco mantenimiento', medio: '🟡 mantenimiento medio', alto: '🟠 más mantenimiento'}, O = ofi() || OFI_BASE, pq = O.id === 'parques';
+    return `<div class="pqbox"><b>💡 ${esc(O.opcT)}</b><p>${esc(pqOps.analisis)}</p></div>` + pqOps.opciones.map((o, i) => `<div class="pqbox" data-pqop="${i}"><b>${['1️⃣', '2️⃣', '3️⃣'][i]} ${esc(o.titulo)}</b><p>${esc(o.descripcion)}</p>
+      <div class="pqchips">${o.mantenimiento && pq ? `<span>${MT[o.mantenimiento]}</span>` : ''}${o.estilo && !pq ? `<span>🎨 ${esc(o.estilo)}</span>` : ''}<span>💰 ${pqMoney(pqOpTotal(o, m2))} aprox.</span></div>
+      <ul class="pqpl">${o.trabajos.map(x => `<li>🔧 ${esc(x.titulo)}</li>`).join('')}${o.plan.map(x => `<li>${pq ? '🪴' : '🧰'} ${x.cantidad} × ${esc(x.que)}${x.vivero && x.vivero !== 'el parquero' ? ' (' + esc(x.vivero) + ')' : ''}${x.donde ? ' · ' + esc(x.donde) : ''}</li>`).join('')}</ul>
+      <div data-pqoimg></div><div style="display:flex;gap:8px;flex-wrap:wrap">${O.img ? `<button class="btn" type="button" data-pqoi="${i}">✨ Ver cómo quedaría</button>` : ''}<button class="btn primary" type="button" data-pqoe="${i}">✅ Elijo esta</button></div></div>`).join('');
   }
   function pqTotal(){
     if(!pqRes) return;
@@ -6812,35 +6929,37 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     return tot;
   }
   function pqResHTML(r){
-    const est = r.trabajos.some(x => x.estimado && !r.fijo);
-    return `${pqNextHTML(r)}${r.fijo ? '' : `<div class="pqbox"><b>🤖 Lo que veo en tus fotos</b><p>${esc(r.analisis)}</p>
-      <div class="pqchips"><span>🌱 Pasto: ~${r.pasto_cm || '?'} cm${r.pasto_estado ? ' · ' + esc(r.pasto_estado) : ''}</span><span>📐 ~${r.m2 || '?'} m² (confianza ${esc(r.m2_confianza)})</span>${r.tiempo ? `<span>⏱ ${esc(r.tiempo)}</span>` : ''}</div>
-      ${r.plantas.length ? `<ul class="pqpl">${r.plantas.map(p => `<li>🌳 <b>${esc(p.que)}</b> · ${esc(p.tamano)} · ${esc(p.estado)} → <i>${esc(p.trabajo)}</i></li>`).join('')}</ul>` : ''}</div>`}
+    const est = r.trabajos.some(x => x.estimado && !r.fijo), O = ofi() || OFI_BASE, pq = O.id === 'parques', URG = {alta: '🔴 Urgente', media: '🟡 Conviene no dejarlo pasar', baja: '🟢 Puede esperar'};
+    return `${pqNextHTML(r)}${r.fijo ? '' : `${r.seguridad ? `<div class="pqbox" style="background:color-mix(in srgb,#ef4444 10%,var(--surface))"><b>⚠️ Importante</b><p style="margin:0">${esc(r.seguridad)}</p></div>` : ''}<div class="pqbox"><b>🤖 Lo que veo en tus fotos</b><p>${esc(r.analisis)}</p>
+      <div class="pqchips">${pq ? `<span>🌱 Pasto: ~${r.pasto_cm || '?'} cm${r.pasto_estado ? ' · ' + esc(r.pasto_estado) : ''}</span>` : ''}${pq || (O.m2 && r.m2) ? `<span>📐 ~${r.m2 || '?'} m² (confianza ${esc(r.m2_confianza)})</span>` : ''}${!pq && URG[r.urgencia] ? `<span>${URG[r.urgencia]}</span>` : ''}${r.tiempo ? `<span>⏱ ${esc(r.tiempo)}</span>` : ''}</div>
+      ${r.plantas.length ? `<ul class="pqpl">${r.plantas.map(p => `<li>${pq ? '🌳' : '🔎'} <b>${esc(p.que)}</b> · ${esc(p.tamano)} · ${esc(p.estado)} → <i>${esc(p.trabajo)}</i></li>`).join('')}</ul>` : ''}</div>`}
       ${r.plan && r.plan.length ? `<div class="pqbox"><b>🪴 Tu parque rediseñado${r.estiloLbl ? ' · ' + esc(r.estiloLbl) : ''}</b><p>${esc(r.resumen || '')}</p><span class="note">Las plantas ya están sumadas abajo, con el precio de ${[...new Set(r.plan.map(x => x.vivero).filter(Boolean))].map(esc).join(', ') || 'los viveros'}. El parquero se encarga de comprarlas y plantarlas.</span></div>` : ''}
-      <div class="pqbox"><b>🧾 ${r.fijo ? 'Tu trabajo de siempre' : 'Tu presupuesto' + (r.plan && r.plan.length ? ' completo (plantas + trabajo)' : '')}</b><span class="note">${r.fijo ? 'Es lo mismo que la última vez. Si querés algo distinto, contáselo al parquero por WhatsApp.' : 'Destildá lo que no quieras. Si sabés los metros exactos, cambialos y se recalcula.'}</span>
+      <div class="pqbox"><b>🧾 ${r.fijo ? 'Tu trabajo de siempre' : 'Tu presupuesto' + (r.plan && r.plan.length ? ' completo (plantas + trabajo)' : '')}</b><span class="note">${r.fijo ? 'Es lo mismo que la última vez. Si querés algo distinto, contáselo al parquero por WhatsApp.' : (O.m2 ? 'Destildá lo que no quieras. Si sabés los metros exactos, cambialos y se recalcula.' : 'Destildá lo que no quieras.')}</span>
       <ul class="pqtr">${r.trabajos.map((x, i) => `<li><label><input type="checkbox" checked data-pqt="${i}"> <span><b>${esc(x.titulo)}</b>${x.plan ? (x.motivo ? ` · <span class="note">${esc(x.motivo)}</span>` : '') + (x.link ? ` · <a href="${esc(x.link)}" target="_blank" rel="noopener">🛒 ver en el vivero</a>` : '') : (x.porM2 ? ' · por m²' : x.cantidad > 1 ? ' · ×' + x.cantidad : '') + (x.ajuste ? ` · <span class="pqaj">${x.ajuste > 0 ? '+' : ''}${x.ajuste}% ${esc(x.motivo)}</span>` : '')}</span></label><b data-pqs="${i}"></b></li>`).join('')}</ul>
-      <p id="pqTot" class="pqtot"></p>${est ? '<p class="note" style="margin:0">Algunos precios son estimados: el parquero te confirma el valor final.</p>' : ''}${r.consejo ? `<p class="note" style="margin:0">💡 ${esc(r.consejo)}</p>` : ''}</div>`;
+      <p id="pqTot" class="pqtot"></p>${est ? `<p class="note" style="margin:0">Algunos precios son estimados: ${esc(O.pro)} te confirma el valor final.</p>` : ''}${!pq && r.visita && !r.fijo ? `<p class="note" style="margin:0">🔎 Es un presupuesto orientativo por foto: ${esc(O.pro)} lo confirma cuando lo ve.</p>` : ''}${r.consejo ? `<p class="note" style="margin:0">💡 ${esc(r.consejo)}</p>` : ''}</div>`;
   }
   function openParque(){
     let ov = document.getElementById('pqView');
     if(!ov){ ov = document.createElement('div'); ov.id = 'pqView'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); document.body.appendChild(ov); }
     let ult = null; try{ ult = JSON.parse(localStorage.getItem('pq-ultimo-' + (window.VITRINA_SLUG || '')) || 'null'); }catch(e){}
-    ov.innerHTML = `<div class="tv"><h2>🌿 Presupuesto de tu parque</h2>
-      ${pqRes ? '' : `<div class="pqbox" style="background:color-mix(in srgb,#0ea5e9 7%,var(--surface))"><b>📅 ¿Ya sos cliente?</b><span class="note">${ult ? `Reservá tu corte de siempre (${esc(ult.trabajos.map(x => x.titulo).join(', ').slice(0, 90))}) sin sacar fotos.` : 'Si el parquero ya conoce tu parque, reservá tu turno directo, sin fotos.'}</span><button class="btn primary" type="button" data-pq="fijo" style="justify-self:start">📅 Reservar mi corte de siempre</button></div>`}
-      <p style="margin:0">Sacale 1 a 3 fotos a tu parque, que se vea todo (el pasto, las plantas y algo de referencia como una puerta o un cerco). La IA mide más o menos, mira el pasto y las plantas y te arma el presupuesto.</p>
+    const O = ofi() || OFI_BASE, pq = O.id === 'parques';
+    ov.innerHTML = `<div class="tv"><h2>${O.em || '📷'} ${esc(O.t)}</h2>
+      ${O.urg && !pqRes ? `<div class="pqbox" style="background:color-mix(in srgb,#ef4444 9%,var(--surface))"><b>${esc(O.urg)}</b><span class="note">${esc(O.urgTip)}</span>${waNumber() ? `<a class="btn wa" style="justify-self:start" href="${esc(waHref('🚨 URGENTE: ' + O.urg.replace(/^🚨\s*/, '') + '. ¿Podés venir lo antes posible?'))}" target="_blank" rel="noopener">💬 Avisar ya por WhatsApp</a>` : ''}</div>` : ''}
+      ${pqRes || !pq ? '' : `<div class="pqbox" style="background:color-mix(in srgb,#0ea5e9 7%,var(--surface))"><b>📅 ¿Ya sos cliente?</b><span class="note">${ult ? `Reservá tu corte de siempre (${esc(ult.trabajos.map(x => x.titulo).join(', ').slice(0, 90))}) sin sacar fotos.` : 'Si el parquero ya conoce tu parque, reservá tu turno directo, sin fotos.'}</span><button class="btn primary" type="button" data-pq="fijo" style="justify-self:start">📅 Reservar mi corte de siempre</button></div>`}
+      <p style="margin:0">${esc(O.foto)}</p>
       <div class="pqfotos" id="pqFotos"></div>
       <label class="btn primary" style="justify-self:start">📷 ${pqFotos.length ? 'Agregar otra foto' : 'Sacar o elegir fotos'}<input type="file" accept="image/*" multiple class="vh" id="pqFile"></label>
-      <div class="pqbox"><b>📐 ¿Cuántos metros tiene? <span class="note">(opcional, si lo sabés)</span></b>
+      <div class="pqbox" ${O.m2 ? '' : 'hidden'}><b>📐 ${esc(O.m2t)} <span class="note">(opcional, si lo sabés)</span></b>
         <div class="row" style="gap:6px;flex-wrap:wrap;align-items:center"><input id="pqM2" type="number" inputmode="numeric" min="0" placeholder="m²" style="width:100px" value="${pqM2 || ''}"> o <input id="pqL" type="number" inputmode="decimal" placeholder="largo m" style="width:90px"> × <input id="pqA" type="number" inputmode="decimal" placeholder="ancho m" style="width:90px"><button class="btn" type="button" data-pq="mapa">🗺 Medir en el mapa</button></div>
         <div id="pqMapBox" hidden><div class="row" style="gap:6px;margin:6px 0"><input id="pqDir" placeholder="Tu dirección (calle y número, ciudad)" style="flex:1"><button class="btn" type="button" data-pq="buscar">Buscar</button></div>
           <div id="pqMapa" style="height:280px;border-radius:12px"></div><p class="note" style="margin:4px 0" id="pqMapTx">Tocá las esquinas de tu parque en el mapa. Se calcula solo.</p>
           <div class="row" style="gap:6px"><button class="btn" type="button" data-pq="deshacer">↩ Deshacer</button><button class="btn" type="button" data-pq="borrar">🗑 Borrar</button></div></div></div>
-      <label class="note" style="display:grid;gap:4px">¿Qué querés hacer? (opcional)<input id="pqQuiere" maxlength="200" placeholder="Ej: cortar el pasto y podar el ligustro del fondo"></label>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" data-pq="analizar" id="pqGo" ${pqFotos.length ? '' : 'disabled'}>🤖 Armar mi presupuesto con IA</button><button class="btn" type="button" data-pq="opciones" id="pqOpt" ${pqFotos.length ? '' : 'disabled'}>💡 ¿Qué me recomendás? Ver 3 opciones</button></div>
+      <label class="note" style="display:grid;gap:4px">${pq ? '¿Qué querés hacer? (opcional)' : 'Contá qué pasa o qué querés hacer'}<input id="pqQuiere" maxlength="200" placeholder="${esc(O.ej)}"></label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" data-pq="analizar" id="pqGo" ${pqFotos.length ? '' : 'disabled'}>🤖 Armar mi presupuesto con IA</button><button class="btn" type="button" data-pq="opciones" id="pqOpt" ${pqFotos.length ? '' : 'disabled'}>${pq ? '💡 ¿Qué me recomendás? Ver 3 opciones' : esc(O.opc)}</button></div>
       <div id="pqOps">${pqRes ? '' : pqOpsHTML()}</div>
       <p class="msg" id="pqMsg" role="status" style="margin:0"></p>
       <div id="pqOut">${pqRes ? pqResHTML(pqRes) : ''}</div>
-      <div id="pqDis" class="pqbox" ${pqRes ? '' : 'hidden'}><b>🪴 ¿Querés rediseñar tu parque?</b><span class="note">Elegí un estilo: la IA te arma un plan con qué plantas poner y dónde, con precios de los viveros, y te muestra cómo quedaría.</span>
+      <div id="pqDis" class="pqbox" ${pqRes && pq ? '' : 'hidden'}><b>🪴 ¿Querés rediseñar tu parque?</b><span class="note">Elegí un estilo: la IA te arma un plan con qué plantas poner y dónde, con precios de los viveros, y te muestra cómo quedaría.</span>
         <div class="pqchips">${PQ_ESTILOS.map(([v, t], i) => `<button class="btn" type="button" data-pqe="${i}">${t}</button>`).join('')}</div><div id="pqDisOut">${pqDis ? `<img src="${pqDis}" alt="Diseño propuesto" style="width:100%;border-radius:12px">` : ''}</div></div>
       <div class="pqbox" ${pqRes ? '' : 'hidden'}><b>📅 Reservá tu turno</b>
         <div id="pqAgenda">${pqRes ? pqAgendaHTML() : ''}</div>
@@ -6850,7 +6969,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         <button class="btn primary" type="button" data-pq="reservar">✅ Reservar mi turno</button>
         <p class="msg" id="pqResMsg" role="status" style="margin:0"></p></div>
       <button class="btn wa" type="button" data-pq="enviar" id="pqSend" ${pqRes ? '' : 'hidden'}>💬 O mandale el presupuesto por WhatsApp</button>
-      <p class="note" style="margin:0">🔒 Tus fotos no se guardan: se usan solo para armar el presupuesto. Es una estimación: el precio final lo confirma el parquero.</p>
+      <p class="note" style="margin:0">🔒 Tus fotos no se guardan: se usan solo para armar el presupuesto. Es una estimación: el precio final lo confirma ${esc(O.pro)}.</p>
       <button class="btn" type="button" data-pq="cerrar">Cerrar</button></div>`;
     ov.hidden = false; pqFotosRender(); pqTotal();
   }
@@ -6879,10 +6998,10 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(e.target.matches('[data-pqt]')) return pqTotal();
     const oi = e.target.closest('[data-pqoi]');
     if(oi && pqOps){ const o = pqOps.opciones[+oi.dataset.pqoi], out = oi.closest('[data-pqop]').querySelector('[data-pqoimg]');
-      oi.disabled = true; out.innerHTML = `<span class="tvwait"><i></i>Dibujando tu patio con “${esc(o.titulo)}”…</span>`;
+      oi.disabled = true; out.innerHTML = `<span class="tvwait"><i></i>Dibujando cómo quedaría con “${esc(o.titulo)}”…</span>`;
       try{ const headers = {'Content-Type': 'application/json'}; if(!PUBLIC && window.VITRINA_TOKEN){ try{ headers.Authorization = 'Bearer ' + await window.VITRINA_TOKEN(); }catch(err){} }
         const det = (o.trabajos.map(x => x.titulo).join(', ') + '; ' + o.plan.map(x => `${x.cantidad} ${x.que} (${x.donde})`).join('; ')).slice(0, 155);
-        const r = await fetch('/api/probador', {method: 'POST', headers, body: JSON.stringify({slug: window.VITRINA_SLUG || '', tipo: 'jardin', nombre: o.estilo || o.titulo, detalle: det, foto: pqFotos[0]})});
+        const r = await fetch('/api/probador', {method: 'POST', headers, body: JSON.stringify({slug: window.VITRINA_SLUG || '', tipo: (ofi() || {}).img || 'jardin', nombre: o.estilo || o.titulo, detalle: det, foto: pqFotos[0]})});
         const j = await r.json().catch(() => ({}));
         out.innerHTML = r.ok && j.img ? `<img src="${j.img}" alt="Así quedaría: ${esc(o.titulo)}" style="width:100%;border-radius:12px">` : esc(j.error || 'No se pudo dibujar. Probá de nuevo.');
         if(!(r.ok && j.img)) oi.disabled = false;
@@ -6929,8 +7048,9 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         const bx = document.querySelector('#pqView [data-pqq]'); if(bx) bx.closest('.pqbox').scrollIntoView({block: 'start', behavior: 'smooth'});
         try{ hSpeak(pqHora ? `¡Perfecto! El primer turno libre es el ${pqSlotTxt(pqDia, pqHora)}. ¿Te queda bien? Si no, elegí otro día y horario. Después poné tu WhatsApp y la dirección, y listo.` : 'Ahora no tengo turnos libres en los próximos días. Mandale el presupuesto al parquero por WhatsApp.'); }catch(err){}
         return; }
-      if(v === 'poda'){ const qi = $('pqQuiere'), val = (qi.value ? qi.value + ' + ' : '') + 'podar las plantas que lo necesiten'; pqPaso = ''; pqRes = null; openParque(); $('pqQuiere').value = val; const g = $('pqGo'); if(g) g.click(); return; }
-      if(v === 'plantas'){ pqRes = null; pqPaso = ''; const q = ($('pqQuiere') || {}).value || ''; openParque(); $('pqQuiere').value = q; const o = $('pqOpt'); if(o) o.click(); return; }
+      const ad = /^a\d$/.test(v) ? ((ofi() || OFI_BASE).add || [])[+v.slice(1)] : null;
+      if(ad && ad[1]){ const qi = $('pqQuiere'), val = (qi.value ? qi.value + ' + ' : '') + ad[1]; pqPaso = ''; pqRes = null; openParque(); $('pqQuiere').value = val; const g = $('pqGo'); if(g) g.click(); return; }
+      if(ad){ pqRes = null; pqPaso = ''; const q = ($('pqQuiere') || {}).value || ''; openParque(); $('pqQuiere').value = q; const o = $('pqOpt'); if(o) o.click(); return; }
     }
     const qq = e.target.closest('[data-pqq]');
     if(qq){ const [y, h] = qq.dataset.pqq.split('|'); pqDia = y; pqHora = h; $('pqAgenda').innerHTML = pqAgendaHTML();
@@ -6946,7 +7066,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(k === 'reservar'){
       const msg = $('pqResMsg'), nom = $('pqNom').value.trim(), tel = $('pqTel').value.trim(), dir = $('pqDir2').value.trim();
       if(!pqHora){ msg.textContent = 'Elegí el día y el horario.'; return; }
-      if(!nom || tel.replace(/\D/g, '').length < 8){ msg.textContent = 'Poné tu nombre y tu WhatsApp, así el parquero te confirma.'; return; }
+      if(!nom || tel.replace(/\D/g, '').length < 8){ msg.textContent = `Poné tu nombre y tu WhatsApp, así ${(ofi() || OFI_BASE).pro} te confirma.`; return; }
       if(!dir){ msg.textContent = 'Poné la dirección del trabajo.'; return; }
       if(!window.VITRINA_SLUG){ msg.textContent = 'Así se ve la reserva: tus clientes la hacen desde el link de tu tienda.'; return; }
       const sel = [...ov.querySelectorAll('[data-pqt]')].filter(c => c.checked).map(c => pqRes.trabajos[+c.dataset.pqt]); if(!sel.length){ msg.textContent = 'Tildá al menos un trabajo.'; return; }
@@ -6955,7 +7075,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       try{
         const body = {slug: window.VITRINA_SLUG, servicio: true, cita: pqDia + 'T' + pqHora, items: sel.map(x => ({n: x.titulo + (x.porM2 ? ` (${pqM2} m²)` : ''), q: 1, p: pqSub(x) ? pqMoney(pqSub(x)) : 'a consultar'})),
           total: pqMoney(tot), total_n: tot ? Math.round(tot) : null, moneda: curCode(),
-          comprador: {nombre: nom, tel, dir, turno: cuando + (pqRes.fijo ? ' · cliente fijo (su trabajo de siempre)' : ` · parque ~${pqM2} m², pasto ~${pqRes.pasto_cm} cm`), lugar: 'A domicilio'},
+          comprador: {nombre: nom, tel, dir, turno: cuando + (pqRes.fijo ? ' · cliente fijo (su trabajo de siempre)' : esParquero() ? ` · parque ~${pqM2} m², pasto ~${pqRes.pasto_cm} cm` : ` · ${(pqRes.analisis || '').slice(0, 70)}${pqRes.urgencia === 'alta' ? ' · ⚠️ URGENTE' : ''}`), lugar: 'A domicilio'},
           pago: pqPago === 'ahora' ? 'Mercado Pago (pagado al reservar)' : 'Paga después del trabajo', paga_ahora: pqPago === 'ahora'};
         const r = await fetch('/api/pedidos', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
         const j = await r.json().catch(() => ({}));
@@ -6965,23 +7085,23 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         try{ localStorage.setItem('pq-ultimo-' + window.VITRINA_SLUG, JSON.stringify({m2: pqM2, nom, tel, dir, trabajos: sel.filter(x => !x.plan).map(x => ({titulo: x.titulo, porM2: x.porM2, cantidad: x.cantidad, precio: x.precio, ajuste: x.ajuste, motivo: x.motivo, estimado: x.estimado}))})); }catch(err){}
         if(pqPago === 'ahora'){ msg.textContent = 'Te llevo a Mercado Pago…';
           const m = await fetch('/api/mpcobro?accion=pagar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ref: j.ref, k: j.k})}).then(x => x.json()).catch(() => ({}));
-          if(m && m.url){ location.href = m.url; return; } msg.textContent = 'Tu turno quedó reservado, pero no se pudo abrir el pago: pagale al parquero después del trabajo.'; }
-        else msg.innerHTML = `✅ <b>¡Turno reservado!</b> ${esc(cuando)}. El parquero te confirma por WhatsApp. Pagás cuando termine el trabajo.`;
+          if(m && m.url){ location.href = m.url; return; } msg.textContent = `Tu turno quedó reservado, pero no se pudo abrir el pago: pagale ${(ofi() || OFI_BASE).pro.replace(/^el /, 'al ').replace(/^la /, 'a la ')} después del trabajo.`; }
+        else msg.innerHTML = `✅ <b>¡Turno reservado!</b> ${esc(cuando)}. ${esc(((ofi() || OFI_BASE).pro).replace(/^./, c => c.toUpperCase()))} te confirma por WhatsApp. Pagás cuando termine el trabajo.`;
         try{ hSpeak(`¡Listo, ${nom.split(' ')[0]}! Tu turno quedó para el ${cuando}.`); }catch(err){}
         b.textContent = '✓ Reservado';
       }catch(err){ msg.textContent = 'No se pudo conectar. Probá de nuevo.'; b.disabled = false; }
       return; }
     if(k === 'mapa') return pqMedir();
     if(k === 'opciones'){
-      if(!pqFotos.length) return; b.disabled = true; $('pqMsg').innerHTML = '<span class="tvwait"><i></i>Mirando tu patio y pensando 3 opciones distintas, cada una con su presupuesto…</span>';
+      if(!pqFotos.length) return; b.disabled = true; $('pqMsg').innerHTML = '<span class="tvwait"><i></i>Mirando tus fotos y pensando opciones distintas, cada una con su presupuesto…</span>';
       try{ const images = pqFotos.map(f => ({type: 'image/jpeg', data: f.split(',')[1]}));
         const r = await fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({parque: 1, modo: 'opciones', slug: window.VITRINA_SLUG || (window.VITRINA_ME || {}).slug || '', images, m2: pqM2 || 0, quiere: ($('pqQuiere') || {}).value || ''})});
         const j = await r.json().catch(() => ({}));
         if(r.status === 429 && j.cupo){ b.disabled = false; $('pqGo').click(); return; }
         if(!r.ok || !j.opciones || !j.opciones.length){ $('pqMsg').textContent = j.error || 'No pude armar las opciones. Probá de nuevo.'; b.disabled = false; return; }
         pqOps = j; pqRes = null; if(!pqM2) pqM2 = j.m2 || 0; const q = ($('pqQuiere') || {}).value || ''; openParque(); $('pqQuiere').value = q;
-        $('pqMsg').textContent = '✅ ¡Listo! Mirá las 3 opciones y elegí la que más te guste.';
-        try{ hSpeak(`Te armé 3 opciones para tu patio: ${j.opciones.map((o, i) => (i + 1) + ', ' + o.titulo).join('; ')}. Cada una tiene su presupuesto. Si querés, te muestro cómo quedaría.`); }catch(err){}
+        $('pqMsg').textContent = '✅ ¡Listo! Mirá las opciones y elegí la que más te guste.';
+        try{ hSpeak(`Te armé ${j.opciones.length} opciones: ${j.opciones.map((o, i) => (i + 1) + ', ' + o.titulo).join('; ')}. Cada una tiene su presupuesto.${(ofi() || {}).img ? ' Si querés, te muestro cómo quedaría.' : ''}`); }catch(err){}
         const c = document.querySelector('#pqView [data-pqop="0"]'); if(c) c.scrollIntoView({block: 'start', behavior: 'smooth'});
       }catch(err){ $('pqMsg').textContent = 'No se pudo conectar. Probá de nuevo.'; b.disabled = false; }
       return; }
@@ -6992,7 +7112,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       try{ const images = pqFotos.map(f => ({type: 'image/jpeg', data: f.split(',')[1]}));
         const r = await fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({parque: 1, guardar: 1, nombre: nom, tel, slug: window.VITRINA_SLUG || '', images, m2: pqM2 || 0, quiere: ($('pqQuiere') || {}).value || ''})});
         const j = await r.json().catch(() => ({}));
-        $('pqMsg').innerHTML = r.ok && j.guardado ? '✅ <b>¡Listo! Tu pedido quedó guardado</b> con tus fotos. El parquero te manda el presupuesto por WhatsApp.' : esc(j.error || 'No se pudo guardar. Escribile al parquero por WhatsApp.');
+        $('pqMsg').innerHTML = r.ok && j.guardado ? `✅ <b>¡Listo! Tu pedido quedó guardado</b> con tus fotos. ${esc(((ofi() || OFI_BASE).pro).replace(/^./, c => c.toUpperCase()))} te manda el presupuesto por WhatsApp.` : esc(j.error || 'No se pudo guardar. Escribile al parquero por WhatsApp.');
       }catch(err){ $('pqMsg').textContent = 'No se pudo conectar. Probá de nuevo.'; b.disabled = false; }
       return; }
     if(k === 'fijo'){
@@ -7008,7 +7128,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(k === 'deshacer'){ pqPts.pop(); pqDraw(); return; }
     if(k === 'borrar'){ pqPts = []; pqDraw(); return; }
     if(k === 'analizar'){
-      if(!pqFotos.length) return; b.disabled = true; $('pqMsg').innerHTML = '<span class="tvwait"><i></i>La IA está mirando tu parque: mide, revisa el pasto y las plantas… tarda unos segundos.</span>';
+      if(!pqFotos.length) return; b.disabled = true; $('pqMsg').innerHTML = `<span class="tvwait"><i></i>${esc((ofi() || OFI_BASE).wait)}</span>`;
       try{ const images = pqFotos.map(f => ({type: 'image/jpeg', data: f.split(',')[1]}));
         const r = await fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({parque: 1, slug: window.VITRINA_SLUG || (window.VITRINA_ME || {}).slug || '', images, m2: pqM2 || 0, quiere: $('pqQuiere').value || ''})});
         const j = await r.json().catch(() => ({}));
@@ -7019,14 +7139,17 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         pqRes = j; pqPaso = 'agregar'; if(!pqM2) pqM2 = j.m2 || 0; await pqCargarOcupados(); const q = $('pqQuiere').value; openParque(); $('pqQuiere').value = q;
         $('pqMsg').textContent = '✅ ¡Listo! Mirá tu presupuesto abajo.';
         const nx = document.querySelector('#pqView [data-pqn]'); if(nx) nx.closest('.pqbox').scrollIntoView({block: 'start', behavior: 'smooth'});
-        try{ const nm = pqCliNom(); hSpeak(`¡Listo${nm ? ', ' + nm : ''}! Tu parque tiene unos ${pqM2} metros cuadrados y el pasto está a unos ${j.pasto_cm} centímetros. El presupuesto da ${pqMoney(pqTotal())} aproximado. ¿Querés agregarle algo?`); }catch(err){}
+        try{ const nm = pqCliNom(); hSpeak(esParquero() ? `¡Listo${nm ? ', ' + nm : ''}! Tu parque tiene unos ${pqM2} metros cuadrados y el pasto está a unos ${j.pasto_cm} centímetros. El presupuesto da ${pqMoney(pqTotal())} aproximado. ¿Querés agregarle algo?`
+          : `¡Listo${nm ? ', ' + nm : ''}! ${String(j.analisis || '').split(/(?<=\.)\s/)[0]} El presupuesto da ${pqMoney(pqTotal())} aproximado${j.visita ? ', y se confirma cuando lo vean' : ''}.${j.seguridad ? ' Importante: ' + j.seguridad : ''} ¿Querés agregarle algo?`); }catch(err){}
       }catch(err){ $('pqMsg').textContent = 'No se pudo conectar. Revisá internet y probá de nuevo.'; b.disabled = false; }
       return; }
     if(k === 'enviar'){
       const sel = [...ov.querySelectorAll('[data-pqt]')].filter(c => c.checked).map(c => pqRes.trabajos[+c.dataset.pqt]);
       const tot = pqTotal(), dir = ($('pqDir2').value || '').trim(), est = (pqRes && pqRes.estiloLbl) || (($('pqDisOut') || {}).dataset || {}).estilo || '';
-      const txt = `¡Hola! Quiero un presupuesto para mi parque 🌿\n📐 Superficie: ~${pqM2} m²\n🌱 Pasto: ~${pqRes.pasto_cm} cm${pqRes.pasto_estado ? ' (' + pqRes.pasto_estado + ')' : ''}\n` +
-        (pqRes.plantas.length ? '🌳 Plantas: ' + pqRes.plantas.map(p => `${p.que} ${p.tamano} → ${p.trabajo}`).join('; ') + '\n' : '') +
+      const O = ofi() || OFI_BASE, pqq = O.id === 'parques';
+      const txt = (pqq ? `¡Hola! Quiero un presupuesto para mi parque 🌿\n📐 Superficie: ~${pqM2} m²\n🌱 Pasto: ~${pqRes.pasto_cm} cm${pqRes.pasto_estado ? ' (' + pqRes.pasto_estado + ')' : ''}\n`
+          : `¡Hola! Quiero un presupuesto ${O.em || ''}\n${pqRes.analisis ? '🔎 ' + pqRes.analisis + '\n' : ''}${O.m2 && pqM2 ? '📐 ~' + pqM2 + ' m²\n' : ''}${($('pqQuiere') || {}).value ? '📝 ' + $('pqQuiere').value + '\n' : ''}`) +
+        (pqRes.plantas.length ? (pqq ? '🌳 Plantas: ' : '🔎 Detalle: ') + pqRes.plantas.map(p => `${p.que} ${p.tamano} → ${p.trabajo}`).join('; ') + '\n' : '') +
         '🧾 Trabajos:\n' + sel.map(x => `• ${x.titulo}: ${pqSub(x) ? pqMoney(pqSub(x)) : 'a consultar'}`).join('\n') + `\n💰 Total estimado: ${pqMoney(tot)}` +
         (est ? `\n✨ Me gustó el diseño estilo ${est}` : '') + (dir ? `\n📍 Dirección: ${dir}` : '') + `\n📷 Te mando las fotos por acá.`;
       const url = waHref(txt); if(url) window.open(url, '_blank', 'noopener'); else $('pqMsg').textContent = 'Este negocio todavía no cargó su WhatsApp.';
@@ -7069,8 +7192,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const KCN = 'v360-cli-nombre-' + sl;
     const charlaSigue = nom => {
       if(isParques()){
-        $('hChips').innerHTML = [['✂️ Sí, un corte común', 'corte comun'], ['💡 Quiero otra cosa, recomendame', 'qué me recomendás para mi patio'], ['🌳 Poda de plantas o árboles', 'presupuesto poda'], ['📅 Ya soy cliente', 'ya soy cliente']].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${q}">${t}</button>`).join('');
-        hSpeak(`${nom ? nom + ', ¿cómo estás?' : '¡Genial!'} ¿Querés un corte común? Pasame una foto de tu parque y te digo ya el presupuesto. Si querés otra cosa, como podar, agregar plantas o piedras, también te ayudo.`);
+        $('hChips').innerHTML = (ofi().chips || []).map(([t, q]) => `<button class="matbtn" type="button" data-hq="${q}">${t}</button>`).join('');
+        hSpeak(`${nom ? nom + ', ¿cómo estás?' : '¡Genial!'} ${(ofi() || {}).saludo || ''}`);
       } else {
         $('hChips').innerHTML = [['🏬 Ver vitrinas', 'vitrinas'], ['🔥 Ofertas', 'ofertas']].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${q}">${t}</button>`).join('');
         hSpeak(`${nom ? nom + ', ¿cómo estás?' : '¡Genial!'} Decime qué andás buscando y te lo muestro.`);
@@ -7112,7 +7235,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   }
   // botón fijo en las tiendas de parquería
   setInterval(() => { let b = document.getElementById('pqFab'); const on = isParques() && (PUBLIC || document.body.classList.contains('clientmode'));
-    if(on && !b){ b = document.createElement('button'); b.id = 'pqFab'; b.type = 'button'; b.className = 'pqfab'; b.textContent = '🌿 Presupuesto de mi parque'; b.onclick = openParque; document.body.appendChild(b); }
+    if(on && !b){ b = document.createElement('button'); b.id = 'pqFab'; b.type = 'button'; b.className = 'pqfab'; b.textContent = ofi().fab; b.onclick = openParque; document.body.appendChild(b); }
     if(b) b.hidden = !on; }, 2000);
   async function openLens(p){
     const ln = lensOf(p); if(!ln) return;
@@ -7500,7 +7623,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(ordAvisados === null){ try{ ordAvisados = new Set(JSON.parse(localStorage.getItem(K) || '[]')); }catch(e){ ordAvisados = new Set(); }
       if(!ordAvisados.size) act.forEach(p => ordAvisados.add(p.id)); }   // la primera vez no avisa lo viejo
     const nuevos = act.filter(p => !ordAvisados.has(p.id));
-    const parq = brand.preset === 'parques' || brand.preset === 'taller';
+    const parq = isParques() || brand.preset === 'taller';
     if(nuevos.length){
       nuevos.forEach(p => ordAvisados.add(p.id)); try{ localStorage.setItem(K, JSON.stringify([...ordAvisados].slice(-300))); }catch(e){}
       const p = nuevos[0], c = p.comprador || {}, nom = String(c.nombre || 'un cliente').split(' ')[0], cita = c.cita ? new Date(c.cita) : null;
@@ -7942,10 +8065,38 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
      cats:['Peluquería canina','Cortes cómodos','Baño y secado','Adicionales','Gatos','Cachorros','A domicilio','Productos','Accesorios','Promos']},
     {id:'parques', name:'Parquería y paisajismo', hint:'Corte de pasto, poda, jardines', frame:'#2e7d32', shelf:'#eef6ea', edge:'#a5c99a', kits:['parques'],
      cats:['Corte de pasto','Poda y árboles','Limpieza de terrenos','Diseño de jardines','Riego','Plantas y flores','Césped en panes','Mantenimiento mensual','Antes y después','Promos']},
+    {id:'pintor', name:"Pintor", hint:"Pintura de casas, paredes, humedad", frame:'#1565c0', shelf:'#e8f0fb', edge:'#90b4e6', kits:['pintor'], oficio: true,
+     cats:["Interiores", "Exteriores", "Preparación", "Humedad", "Aberturas y rejas", "Techos", "Colores", "Antes y después", "Trabajos hechos", "Promos"]},
+    {id:'plomero', name:"Plomero", hint:"Plomería, pérdidas, destapaciones", frame:'#0277bd', shelf:'#e6f4fb', edge:'#8ccbe8', kits:['plomero'], oficio: true,
+     cats:["Reparaciones", "Grifería", "Baños", "Destapaciones", "Instalaciones", "Termotanques", "Tanques", "Urgencias", "Trabajos hechos", "Promos"]},
+    {id:'electricista', name:"Electricista", hint:"Electricidad, tableros, instalaciones", frame:'#f9a825', shelf:'#fff8e1', edge:'#ffd54f', kits:['electricista'], oficio: true,
+     cats:["Reparaciones", "Instalaciones", "Iluminación", "Tableros", "Seguridad", "Urgencias", "Materiales", "Antes y después", "Trabajos hechos", "Promos"]},
+    {id:'gasista', name:"Gasista matriculado", hint:"Gas, calefones, estufas", frame:'#e64a19', shelf:'#fbe9e7', edge:'#ffab91', kits:['gasista'], oficio: true,
+     cats:["Artefactos", "Calefacción", "Service", "Seguridad", "Instalaciones", "Urgencias", "Materiales", "Antes y después", "Trabajos hechos", "Promos"]},
+    {id:'albanil', name:"Albañil y colocador", hint:"Albañilería, cerámicos, porcelanato, revoques", frame:'#8d6e63', shelf:'#f5ede9', edge:'#c9ab9f', kits:['albanil'], oficio: true,
+     cats:["Pisos y cerámicos", "Contrapisos", "Revoques", "Paredes", "Humedad", "Baños y cocinas", "Materiales", "Antes y después", "Trabajos hechos", "Promos"]},
+    {id:'durlock', name:"Durlock y construcción en seco", hint:"Durlock, tabiques, cielorrasos", frame:'#607d8b', shelf:'#eef2f4', edge:'#b0bec5', kits:['durlock'], oficio: true,
+     cats:["Tabiques", "Cielorrasos", "Revestimientos", "Muebles", "Terminaciones", "Materiales", "Ideas", "Antes y después", "Trabajos hechos", "Promos"]},
+    {id:'techista', name:"Techista", hint:"Techos, membranas, goteras, chapas", frame:'#5d4037', shelf:'#efebe9', edge:'#bcaaa4', kits:['techista'], oficio: true,
+     cats:["Membranas", "Reparaciones", "Chapas", "Tejas", "Zinguería", "Urgencias", "Materiales", "Antes y después", "Trabajos hechos", "Promos"]},
+    {id:'solar', name:"Energía solar", hint:"Paneles solares, termotanques solares", frame:'#f57f17', shelf:'#fffde7', edge:'#ffe082', kits:['solar'], oficio: true,
+     cats:["Paneles", "Baterías", "Termotanques solares", "Trámites", "Mantenimiento", "Ahorro", "Equipos", "Antes y después", "Trabajos hechos", "Promos"]},
+    {id:'aire', name:"Aire acondicionado", hint:"Instalación y service de aires", frame:'#00838f', shelf:'#e0f7fa', edge:'#80deea', kits:['aire'], oficio: true,
+     cats:["Instalación", "Service", "Reparación", "Equipos", "Repuestos", "Urgencias", "Consejos", "Antes y después", "Trabajos hechos", "Promos"]},
+    {id:'volquete', name:"Volquetes y contenedores", hint:"Volquetes, escombros, retiro", frame:'#ef6c00', shelf:'#fff3e0', edge:'#ffcc80', kits:['volquete'], oficio: true,
+     cats:["Volquetes", "Servicios", "Zonas", "Cómo cargarlo", "Permisos", "Preguntas", "Empresas", "Obras", "Trabajos hechos", "Promos"]},
+    {id:'tecnico', name:'Servicio técnico', hint:'Reparación de celulares, computadoras, televisores, electrónica', frame:'#3949ab', shelf:'#e8eaf6', edge:'#9fa8da', kits:['tecnico'], oficio: true,
+     cats:["Celulares","Computadoras","Televisores","Electrónica","Accesorios","Repuestos","Consejos","Antes y después","Trabajos hechos","Promos"]},
+    {id:'afilador', name:"Afilador", hint:"Afilado de cuchillos, tijeras, herramientas", frame:'#546e7a', shelf:'#eceff1', edge:'#b0bec5', kits:['afilador'], oficio: true,
+     cats:["Cuchillos", "Tijeras", "Herramientas", "A domicilio", "Recorrido", "Consejos", "Productos", "Antes y después", "Trabajos hechos", "Promos"]},
+    {id:'mecanico', name:"Mecánico", hint:"Mecánica de autos, motos, bicicletas, bicicletería", frame:'#c62828', shelf:'#fdecea', edge:'#ef9a9a', kits:['mecanico'], oficio: true,
+     cats:["Service", "Frenos", "Tren delantero", "Motor", "Electrónica", "Motos", "Bicicletas", "Repuestos", "Trabajos hechos", "Promos"]},
+    {id:'oficio', name:'Otro oficio', hint:'Herrero, carpintero, cerrajero, vidriero, tapicero', frame:'#455a64', shelf:'#eceff1', edge:'#b0bec5', kits:[], oficio: true,
+     cats:['Trabajos','Reparaciones','Instalaciones','Urgencias','Materiales','Consejos','Precios','Antes y después','Trabajos hechos','Promos']},
     {id:'taller', name:'Taller de máquinas de jardín', hint:'Afilado, service, repuestos', frame:'#e65100', shelf:'#fff3e0', edge:'#ffb74d', kits:['taller'],
      cats:['Afilado','Service y reparación','Motoguadañas','Cortadoras de césped','Motosierras','Repuestos','Tanzas y cadenas','Aceites y combustible','Máquinas usadas','Promos']}
   ];
-  const PRESET_COLORS = {"taller": ["#e65100", "#455a64", "#2e7d32", "#ff8f00", "#6d4c41", "#1e88e5", "#fbc02d", "#8d6e63", "#78909c", "#d32f2f"], "parques": ["#43a047", "#2e7d32", "#8d6e63", "#66bb6a", "#29b6f6", "#ec407a", "#9ccc65", "#26a69a", "#ffca28", "#d32f2f"], "belleza": ["#f7c6d9", "#e91e63", "#fde8ef", "#f3d9c9", "#c9a7e8", "#f4b6c2", "#b9d7f0", "#ffe3b3", "#e8c6f0", "#d32f2f"], "electro": ["#1e5bc6", "#141414", "#4b555c", "#7b1fa2", "#00acc1", "#2e7d32", "#3949ab", "#d32f2f", "#263238", "#ff8f00"], "moda": ["#f7e1e8", "#cfd8dc", "#ffe0b2", "#a1887f", "#e1bee7", "#43a047", "#90a4ae", "#ffcc80", "#d7ccc8", "#d32f2f"], "joyas": ["#c9a227", "#f7e1e8", "#cfd8dc", "#141414", "#ffe0b2", "#7b1fa2", "#b0bec5", "#e0e0e0", "#a1887f", "#e91e63"], "almacen": ["#1e5bc6", "#e91e63", "#fbc02d", "#e3f2fd", "#a1887f", "#00acc1", "#c9a7e8", "#b3e5fc", "#ffcc80", "#d32f2f"], "ferreteria": ["#ff8f00", "#fbc02d", "#1e5bc6", "#9e9e9e", "#6d4c41", "#43a047", "#ffe082", "#d32f2f", "#607d8b", "#e65100"], "mascotas": ["#a1887f", "#ffcc80", "#fbc02d", "#00acc1", "#8d6e63", "#b3e5fc", "#d32f2f", "#4fc3f7", "#c5e1a5", "#ff8f00"], "deportes": ["#43a047", "#ff8f00", "#141414", "#00acc1", "#fbc02d", "#1e5bc6", "#2e7d32", "#7b1fa2", "#90a4ae", "#d32f2f"], "libreria": ["#1e5bc6", "#9e9e9e", "#e91e63", "#fbc02d", "#43a047", "#f7c6d9", "#ff8f00", "#a1887f", "#00acc1", "#d32f2f"], "hogar": ["#ffcc80", "#cfd8dc", "#d7ccc8", "#b3e5fc", "#e0f2f1", "#c5e1a5", "#ffe082", "#e1bee7", "#a5d6a7", "#d32f2f"], "casero": ["#f7c6d9", "#ffcc80", "#ffe082", "#a1887f", "#d7ccc8", "#c5e1a5", "#ffab91", "#fff3e0", "#c8e6c9", "#d32f2f"]};
+  const PRESET_COLORS = {"pintor": ["#1565c0", "#455a64", "#2e7d32", "#ff8f00", "#6d4c41", "#1e88e5", "#fbc02d", "#8d6e63", "#78909c", "#d32f2f"], "plomero": ["#0277bd", "#455a64", "#2e7d32", "#ff8f00", "#6d4c41", "#1e88e5", "#fbc02d", "#8d6e63", "#78909c", "#d32f2f"], "electricista": ["#f9a825", "#455a64", "#2e7d32", "#ff8f00", "#6d4c41", "#1e88e5", "#fbc02d", "#8d6e63", "#78909c", "#d32f2f"], "gasista": ["#e64a19", "#455a64", "#2e7d32", "#ff8f00", "#6d4c41", "#1e88e5", "#fbc02d", "#8d6e63", "#78909c", "#d32f2f"], "albanil": ["#8d6e63", "#455a64", "#2e7d32", "#ff8f00", "#6d4c41", "#1e88e5", "#fbc02d", "#8d6e63", "#78909c", "#d32f2f"], "durlock": ["#607d8b", "#455a64", "#2e7d32", "#ff8f00", "#6d4c41", "#1e88e5", "#fbc02d", "#8d6e63", "#78909c", "#d32f2f"], "techista": ["#5d4037", "#455a64", "#2e7d32", "#ff8f00", "#6d4c41", "#1e88e5", "#fbc02d", "#8d6e63", "#78909c", "#d32f2f"], "solar": ["#f57f17", "#455a64", "#2e7d32", "#ff8f00", "#6d4c41", "#1e88e5", "#fbc02d", "#8d6e63", "#78909c", "#d32f2f"], "aire": ["#00838f", "#455a64", "#2e7d32", "#ff8f00", "#6d4c41", "#1e88e5", "#fbc02d", "#8d6e63", "#78909c", "#d32f2f"], "volquete": ["#ef6c00", "#455a64", "#2e7d32", "#ff8f00", "#6d4c41", "#1e88e5", "#fbc02d", "#8d6e63", "#78909c", "#d32f2f"], "afilador": ["#546e7a", "#455a64", "#2e7d32", "#ff8f00", "#6d4c41", "#1e88e5", "#fbc02d", "#8d6e63", "#78909c", "#d32f2f"], "mecanico": ["#c62828", "#455a64", "#2e7d32", "#ff8f00", "#6d4c41", "#1e88e5", "#fbc02d", "#8d6e63", "#78909c", "#d32f2f"], "taller": ["#e65100", "#455a64", "#2e7d32", "#ff8f00", "#6d4c41", "#1e88e5", "#fbc02d", "#8d6e63", "#78909c", "#d32f2f"], "parques": ["#43a047", "#2e7d32", "#8d6e63", "#66bb6a", "#29b6f6", "#ec407a", "#9ccc65", "#26a69a", "#ffca28", "#d32f2f"], "belleza": ["#f7c6d9", "#e91e63", "#fde8ef", "#f3d9c9", "#c9a7e8", "#f4b6c2", "#b9d7f0", "#ffe3b3", "#e8c6f0", "#d32f2f"], "electro": ["#1e5bc6", "#141414", "#4b555c", "#7b1fa2", "#00acc1", "#2e7d32", "#3949ab", "#d32f2f", "#263238", "#ff8f00"], "moda": ["#f7e1e8", "#cfd8dc", "#ffe0b2", "#a1887f", "#e1bee7", "#43a047", "#90a4ae", "#ffcc80", "#d7ccc8", "#d32f2f"], "joyas": ["#c9a227", "#f7e1e8", "#cfd8dc", "#141414", "#ffe0b2", "#7b1fa2", "#b0bec5", "#e0e0e0", "#a1887f", "#e91e63"], "almacen": ["#1e5bc6", "#e91e63", "#fbc02d", "#e3f2fd", "#a1887f", "#00acc1", "#c9a7e8", "#b3e5fc", "#ffcc80", "#d32f2f"], "ferreteria": ["#ff8f00", "#fbc02d", "#1e5bc6", "#9e9e9e", "#6d4c41", "#43a047", "#ffe082", "#d32f2f", "#607d8b", "#e65100"], "mascotas": ["#a1887f", "#ffcc80", "#fbc02d", "#00acc1", "#8d6e63", "#b3e5fc", "#d32f2f", "#4fc3f7", "#c5e1a5", "#ff8f00"], "deportes": ["#43a047", "#ff8f00", "#141414", "#00acc1", "#fbc02d", "#1e5bc6", "#2e7d32", "#7b1fa2", "#90a4ae", "#d32f2f"], "libreria": ["#1e5bc6", "#9e9e9e", "#e91e63", "#fbc02d", "#43a047", "#f7c6d9", "#ff8f00", "#a1887f", "#00acc1", "#d32f2f"], "hogar": ["#ffcc80", "#cfd8dc", "#d7ccc8", "#b3e5fc", "#e0f2f1", "#c5e1a5", "#ffe082", "#e1bee7", "#a5d6a7", "#d32f2f"], "casero": ["#f7c6d9", "#ffcc80", "#ffe082", "#a1887f", "#d7ccc8", "#c5e1a5", "#ffab91", "#fff3e0", "#c8e6c9", "#d32f2f"]};
   const presetOf = id => PRESETS.find(x => x.id === id) || PRESETS[0];
   function applyTheme(){
     const pr = presetOf(brand.preset), r = document.documentElement.style;
@@ -7977,11 +8128,15 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     brand.material = b.dataset.mat; applyTheme(); save(); render();
   });
   function renderViveros(){
-    const bx = $('viverosBox'); if(!bx) return; bx.hidden = brand.preset !== 'parques';
+    const bx = $('viverosBox'); if(!bx) return; const O = ofi(); bx.hidden = !O;
+    if(O){ const pq = O.id === 'parques'; bx.querySelector('strong').textContent = pq ? '🤝 Mi red: viveros, insumos y talleres' : '🤝 Mi red: proveedores y colegas';
+      bx.querySelector('.note').textContent = pq ? 'Conectá los negocios con los que trabajás (que tengan su tienda ShopFlash) y tenelos a mano para escribirles. Cuando un cliente rediseña su parque con la IA, le propone plantas de tus viveros y materiales de tus proveedores, con su precio.' : 'Conectá los negocios con los que trabajás (corralón, ferretería, pinturería, casa de repuestos, que tengan su tienda ShopFlash) y tenelos a mano. Cuando un cliente pide opciones, la IA le propone materiales de tus proveedores, con su precio.';
+      const ofb = $('ofiNomBox'); if(ofb){ ofb.hidden = brand.preset !== 'oficio'; $('ofiNom').value = brand.oficio || ''; } }
     const vs = Array.isArray(brand.viveros) ? brand.viveros : [], EM = {vivero: '🌱', insumos: '🛒', taller: '🔧'}, TX = {vivero: 'Vivero', insumos: 'Insumos y herramientas', taller: 'Taller de máquinas'};
     const wa = (n, t) => n ? `<a class="btn wa" href="https://wa.me/${esc(String(n).replace(/[^\d]/g, '').replace(/^0/, '').replace(/^(?!54)/, '549'))}?text=${encodeURIComponent(t)}" target="_blank" rel="noopener">💬 WhatsApp</a>` : '';
     $('vivList').innerHTML = vs.length ? ['vivero', 'insumos', 'taller'].map(k => vs.filter(v => (v.tipo || 'vivero') === k).map(v => { const i = vs.indexOf(v); return `<li style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;border:1px solid var(--line);border-radius:10px;padding:6px 10px"><span>${EM[k]} <b>${esc(v.n || v.slug)}</b> <small class="note">${TX[k]}</small></span><span style="display:flex;gap:6px;flex-wrap:wrap">${wa(v.wa, `¡Hola! Soy ${storeName()}, te escribo desde ShopFlash. `)}<a class="btn" href="/t/${esc(v.slug)}" target="_blank" rel="noopener">🛒 Ver tienda</a><button class="btn" type="button" data-vivx="${i}" aria-label="Desconectar">✕</button></span></li>`; }).join('')).join('') : '<li class="note">Todavía no conectaste ningún negocio.</li>';
   }
+  if($('ofiNom')) $('ofiNom').addEventListener('input', e => { brand.oficio = e.target.value.trim().slice(0, 60); save(); });
   if($('vivAdd')){
     $('vivAdd').onclick = async () => {
       const raw = $('vivIn').value.trim().toLowerCase(), m = raw.match(/\/t\/([a-z0-9-]{3,40})/) || raw.match(/^([a-z0-9-]{3,40})$/), msg = $('vivMsg');
@@ -9676,11 +9831,15 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   function hAnswer(q){
     const n = norm(q).trim();
     if(/\b(hablar|hablo|comunicar|comunicame|contactar|pasame|atender|atienda|conectar)\b.*\b(duen[oa]|persona|alguien|humano|encargad[oa]|real|vos|ella|el|responsable)\b/.test(n) || /\b(una persona|un humano|persona real|la duena|el dueno|la encargada|el encargado)\b/.test(n) || (ownOn() && n.length < 40 && norm(ownName()).length > 2 && /\b(hablar|hablo|comunicar|pasame|contactar)\b/.test(n) && n.includes(norm(ownName())))) return hHandoff('');
-    if(isParques() && /^corte comun$|corte comun|un corte|cortar el pasto|solo el pasto/.test(n) && !/presupuest/.test(n)){ hShow([]); openParque(); try{ $('pqQuiere').value = 'Corte común de pasto'; const nm = localStorage.getItem('v360-cli-nombre-' + (window.VITRINA_SLUG || '')); if(nm && $('pqNom')) $('pqNom').value = nm; }catch(e){}
+    if(esParquero() && /^corte comun$|corte comun|un corte|cortar el pasto|solo el pasto/.test(n) && !/presupuest/.test(n)){ hShow([]); openParque(); try{ $('pqQuiere').value = 'Corte común de pasto'; const nm = localStorage.getItem('v360-cli-nombre-' + (window.VITRINA_SLUG || '')); if(nm && $('pqNom')) $('pqNom').value = nm; }catch(e){}
       return hSpeak('¡Perfecto! Tocá “Sacar o elegir fotos” y mandame una o dos fotos de tu parque, que se vea todo el pasto. Después tocá “Armar mi presupuesto” y te lo paso al toque.'); }
-    if(isParques() && /(recomend|que le pongo|que me sugeris|sugerencia|ideas para|opciones|que puedo hacer)/.test(n)){ hShow([]); openParque(); return hSpeak('¡Dale! Sacale una o dos fotos a tu patio y tocá “¿Qué me recomendás?”. Te armo 3 opciones distintas, cada una con su presupuesto, y si querés te muestro cómo quedaría.'); }
-    if(isParques() && /(ya soy cliente|corte de siempre|lo de siempre|cliente fijo)/.test(n)){ hShow([]); openParque(); setTimeout(() => { const f = document.querySelector('#pqView [data-pq="fijo"]'); if(f) f.click(); }, 50); return; }
-    if(isParques() && /(presupuest|cotiz|cuanto (me )?(sale|cobr|cuesta)|jardin|parque|patio|pasto|cesped|terreno|metros|poda|podar|arbol|cerco|ligustro|maleza|yuyo|disen)/.test(n)){ hShow([]); openParque(); return hSpeak('¡Dale! Sacale una o dos fotos a tu parque, que se vea todo. Yo miro cuántos metros tiene, cómo está el pasto y las plantas, y te armo el presupuesto. Si querés, también te muestro cómo podría quedar.'); }
+    if(isParques() && /(recomend|que le pongo|que me sugeris|sugerencia|ideas para|opciones|que puedo hacer|que me conviene)/.test(n)){ hShow([]); openParque(); return hSpeak(esParquero() ? '¡Dale! Sacale una o dos fotos a tu patio y tocá “¿Qué me recomendás?”. Te armo 3 opciones distintas, cada una con su presupuesto, y si querés te muestro cómo quedaría.' : `¡Dale! Sacale una o dos fotos y tocá “${ofi().opc.replace(/^\S+\s/, '')}”. Te armo opciones distintas, cada una con su presupuesto.`); }
+    if(isParques() && !esParquero() && ofi().urg && /(urgen|urgente|ya mismo|emergencia|olor a gas|se inunda|sin luz|me llueve)/.test(n)){ hShow([]); openParque(); const O = ofi(); return hSpeak(`${O.urgTip} Tocá “Avisar ya por WhatsApp” y le llega el aviso a ${O.pro} al instante.`); }
+    if(esParquero() && /(ya soy cliente|corte de siempre|lo de siempre|cliente fijo)/.test(n)){ hShow([]); openParque(); setTimeout(() => { const f = document.querySelector('#pqView [data-pq="fijo"]'); if(f) f.click(); }, 50); return; }
+    if(isParques() && (/(presupuest|cotiz|cuanto (me )?(sale|cobr|cuesta)|quiero un turno|sacar turno)/.test(n) || ofi().kw.test(n))){ hShow([]); openParque();
+      if(esParquero()) return hSpeak('¡Dale! Sacale una o dos fotos a tu parque, que se vea todo. Yo miro cuántos metros tiene, cómo está el pasto y las plantas, y te armo el presupuesto. Si querés, también te muestro cómo podría quedar.');
+      try{ if($('pqQuiere') && !$('pqQuiere').value) $('pqQuiere').value = q.replace(/^presupuesto\s*/i, '').slice(0, 200); }catch(e){}
+      return hSpeak(`¡Dale! ${ofi().foto} Después tocá “Armar mi presupuesto con IA” y te lo paso al toque.`); }
     if(hAskCaja && !hPending && /^(si|sii+|sip|dale|ok|okey|bueno|claro|de una|llevame|vamos|listo|a la caja|caja|por favor)\b/.test(n)){ hAskCaja = false; return hToCaja(); }
     if(hAskCaja && !hPending && /^(no|nop|algo mas|quiero (ver )?algo mas|todavia no|seguir|sigo mirando)\b/.test(n)){ hAskCaja = false; return hSpeak('¡Dale! ¿Qué más querés ver? Decime un producto o una vitrina.'); }
     hAskCaja = false;
@@ -9728,7 +9887,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   }
   function hOpen(id){
     hCur = id; $('hPanel').hidden = false;
-    $('hChips').innerHTML = (cartCount() ? `<button class="matbtn" type="button" data-hcaja="1">🧾 Ir a la caja (${cartCount()})</button>` : '') + (waNumber() ? `<button class="matbtn" type="button" data-hlive="1">💬 ${ownOn() ? (id === 'duena' ? 'Hablar conmigo' : 'Hablar con ' + esc(ownName())) : 'Hablar con una persona'}</button>` : '') + [...(isParques() ? [['🌿 Presupuesto de mi parque', 'presupuesto de mi parque']] : []), ['🏬 Ver vitrinas', 'vitrinas'], ['🔥 Ofertas', 'ofertas'], ['📱 WhatsApp', 'me pasas el numero'], ['🚚 Envíos', 'como hacen los envios'], ['💳 Cómo pago', 'como pago'], ...visCats().slice(0, 4).map(c => [c.name, 'mostrame ' + c.name])].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${esc(q)}">${esc(t)}</button>`).join('');
+    $('hChips').innerHTML = (cartCount() ? `<button class="matbtn" type="button" data-hcaja="1">🧾 Ir a la caja (${cartCount()})</button>` : '') + (waNumber() ? `<button class="matbtn" type="button" data-hlive="1">💬 ${ownOn() ? (id === 'duena' ? 'Hablar conmigo' : 'Hablar con ' + esc(ownName())) : 'Hablar con una persona'}</button>` : '') + [...(isParques() ? [[ofi().fab, 'presupuesto']] : []), ['🏬 Ver vitrinas', 'vitrinas'], ['🔥 Ofertas', 'ofertas'], ['📱 WhatsApp', 'me pasas el numero'], ['🚚 Envíos', 'como hacen los envios'], ['💳 Cómo pago', 'como pago'], ...visCats().slice(0, 4).map(c => [c.name, 'mostrame ' + c.name])].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${esc(q)}">${esc(t)}</button>`).join('');
     $('hRow').querySelectorAll('.hav').forEach(b => b.classList.toggle('on', b.dataset.hav === id));
     const ob = document.querySelector('.owbub'); if(ob) ob.remove();
     renderHMode(); hShow([]);
