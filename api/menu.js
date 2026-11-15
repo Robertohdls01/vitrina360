@@ -381,7 +381,7 @@ module.exports = async (req, res) => {
       if (LANGS.includes(L) && L !== (f.menu.idioma || 'es') && !(f.menu.tr && f.menu.tr[L]) && f.menu.cats && f.menu.cats.length) {
         const real = id === PUB ? PUB_BASE : id, f0 = id === PUB ? await leerObj0('menus/' + PUB_BASE + '.json') : f;
         const tr = f0 && f0.menu ? await traducir(f0.menu, f0.menu.tr, [L]) : null;
-        if (tr && tr[L]) { f0.menu.tr = tr; f.menu.tr = tr; try { await guardarObj0('menus/' + real + '.json', f0); } catch (e) {} }
+        if (tr && tr[L]) { const f1 = (await leerObj0('menus/' + real + '.json')) || f0; f1.menu.tr = Object.assign({}, f1.menu.tr || {}, { [L]: tr[L] }); f.menu.tr = Object.assign({}, f.menu.tr || {}, f1.menu.tr); try { await guardarObj0('menus/' + real + '.json', f1); } catch (e) {} }
       }
       return res.status(200).json({ menu: f.menu, pausado: c.estado === 'vencido' });
     }
