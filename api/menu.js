@@ -115,6 +115,39 @@ module.exports = async (req, res) => {
       if (!p || p.k !== String(q.k || '')) return res.status(404).json({ error: 'No encontramos ese pedido.' });
       return res.status(200).json({ estado: p.estado, n: p.n, rta: p.rta || '', mozo: p.mozo || '' });
     }
+    // ---- Firmas digitales de Pro Video: acuerdo de servicio y constancia de prueba (/firmar) ----
+    if (req.method === 'POST' && q.accion === 'firma') {
+      const b = cuerpo(req) || {};
+      const doc = ['acuerdo', 'prueba'].includes(b.doc) ? b.doc : '';
+      if (!doc) return res.status(400).json({ error: 'Documento inválido.' });
+      const okPng = u => typeof u === 'string' && /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(u) && u.length > 800 && u.length < 400000;
+      if (!okPng(b.firmaCli)) return res.status(400).json({ error: 'Falta la firma del cliente.' });
+      if (b.acepto !== true) return res.status(400).json({ error: 'Tenés que marcar que leíste y aceptás.' });
+      const d = {}; Object.keys(b.datos || {}).slice(0, 30).forEach(k => { if (/^[a-zA-Z]{1,20}$/.test(k)) d[k] = t(b.datos[k], 200); });
+      if (!d.negocio || !d.responsable) return res.status(400).json({ error: 'Completá el negocio y el nombre del responsable.' });
+      const id = crypto.randomBytes(5).toString('hex'), k = crypto.randomBytes(8).toString('hex'), fecha = new Date().toISOString();
+      const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim(), ua = t(req.headers['user-agent'], 200);
+      const reg = { id, k, doc, datos: d, firmaCli: b.firmaCli, firmaVen: okPng(b.firmaVen) ? b.firmaVen : '', vendedor: t(b.vendedor, 80), version: t(b.version, 20), texto: t(b.texto, 20000), fecha, ip, ua };
+      reg.huella = crypto.createHash('sha256').update(JSON.stringify([doc, d, reg.texto, fecha, b.firmaCli])).digest('hex').slice(0, 16);
+      await guardarObj0('firmas/' + id + '.json', reg);
+      const I = (await leerObj0('firmas/index.json')) || { items: [] };
+      I.items = [{ id, k, doc, negocio: d.negocio, responsable: d.responsable, producto: d.producto || '', fecha, vendedor: reg.vendedor }].concat(I.items || []).slice(0, 3000);
+      await guardarObj0('firmas/index.json', I);
+      return res.status(200).json({ id, k, fecha, huella: reg.huella });
+    }
+    if (req.method === 'GET' && q.firma) {
+      const id = String(q.firma); if (!/^[a-f0-9]{10}$/.test(id)) return res.status(400).json({ error: 'Firma inválida.' });
+      const r = await leerObj0('firmas/' + id + '.json');
+      if (!r || r.k !== String(q.k || '')) return res.status(404).json({ error: 'No encontramos ese documento.' });
+      const { ip, ua, k, ...pub } = r; return res.status(200).json(pub);
+    }
+    if (q.accion === 'firmas') {
+      const b = req.method === 'POST' ? cuerpo(req) : {}, adm = String(b.admin || '');
+      const P = (await leerObj('menus/pruebas.json')) || {};
+      if (!P.clave || hash('admin|' + adm) !== P.clave) return res.status(403).json({ error: 'Clave incorrecta.' });
+      const I = (await leerObj0('firmas/index.json')) || { items: [] };
+      return res.status(200).json({ items: I.items || [] });
+    }
     // ---- Kit de prueba: cartelitos QR genéricos (sin nombre de local) que se activan para el café que está probando ----
     const okKit = k => /^[A-Z0-9]{4,10}$/.test(String(k || ''));
     if (req.method === 'GET' && q.kit) {

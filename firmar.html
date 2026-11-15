@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Firmar documento · Pro Video JSR(HG)</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#2f6f6a">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✍️</text></svg>">
+<style>
+:root{--a:#2f6f6a;--a2:#4f9a92;--ink:#1f2b2a;--muted:#5d6d6b;--bg:#f6faf9;--soft:#e8f3f1;--line:#cfe3df}
+*{box-sizing:border-box}
+body{margin:0;font:400 16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+.wrap{max-width:760px;margin:0 auto;padding:14px 16px 60px}
+header{display:flex;align-items:center;gap:10px;padding:6px 0 12px}
+header i{font-style:normal;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff;font-size:20px}
+header b{font-size:18px;display:block;line-height:1.1}header small{color:var(--muted);font-size:12px}
+.card{background:#fff;border:2px solid var(--line);border-radius:18px;padding:16px;margin:12px 0}
+h1{font-size:24px;margin:4px 0 2px;color:var(--a)}h2{font-size:17px;margin:14px 0 6px;color:var(--a)}
+.note{color:var(--muted);font-size:14px}
+label{display:grid;gap:3px;font-weight:700;font-size:14px;margin:8px 0}
+input,select{font:inherit;border:2px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;color:inherit;width:100%}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{border:0;border-radius:999px;padding:13px 20px;font-weight:800;font-size:16px;cursor:pointer;display:inline-flex;gap:8px;align-items:center;justify-content:center;text-decoration:none}
+.pri{background:linear-gradient(90deg,var(--a),var(--a2));color:#fff}.sec{background:#fff;color:var(--a);border:2px solid var(--line)}
+.wa{background:#25d366;color:#fff}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}.tabs button{flex:1;min-width:150px}
+.tabs .on{background:var(--a);color:#fff;border-color:var(--a)}
+.doc{font-size:14.5px;line-height:1.55}.doc h3{font-size:15px;margin:12px 0 4px;color:var(--a)}.doc ul{margin:4px 0;padding-left:20px}.doc li{margin:2px 0}
+.doc .dato{font-weight:700;border-bottom:1px dotted var(--muted)}
+.pad{border:2px dashed var(--a2);border-radius:14px;background:#fbfefd;touch-action:none;width:100%;height:170px;display:block}
+.padbar{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+.padbar button{border:0;background:none;color:var(--a);font-weight:700;cursor:pointer;font-size:14px}
+.chk{display:flex;gap:10px;align-items:flex-start;font-weight:600;font-size:15px}
+.chk input{width:22px;height:22px;flex:none;margin-top:2px}
+.msg{color:#b42318;font-weight:700;min-height:1.4em}
+.ok{text-align:center}.ok .big{font-size:56px}
+.firmas{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+.firmas div{text-align:center;font-size:13px}.firmas img{width:100%;max-height:110px;object-fit:contain;border-bottom:1px solid #444}
+.sello{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:10px;font-size:12.5px;color:var(--muted);background:var(--soft)}
+table.l{width:100%;border-collapse:collapse;font-size:14px}table.l td,table.l th{border-bottom:1px solid var(--line);padding:6px;text-align:left}
+footer{text-align:center;color:var(--muted);font-size:12px;margin-top:20px}
+[hidden]{display:none!important}
+@media (max-width:560px){.row{grid-template-columns:1fr}}
+@media print{body{background:#fff}.noprint{display:none!important}.card{border:0;padding:0;margin:0}.wrap{padding:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><i>🎬</i><span><b>Pro Video JSR(HG)</b><small>Productos físicos y digitales</small></span></header>
+  <div id="app"></div>
+  <footer>Pro Video JSR(HG) · Productos físicos y digitales · vitrina360app.com.ar/provideo</footer>
+</div>
+<script>
+// WhatsApp de soporte de Pro Video (se completa en un solo lugar)
+const PV_WA = '';
+const $ = s => document.querySelector(s), app = $('#app'), Q = new URLSearchParams(location.search);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const api = async (url, body) => { const r = await fetch(url, body ? {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)} : {cache: 'no-store'}); const j = await r.json().catch(() => ({})); if(!r.ok) throw new Error(j.error || 'No se pudo conectar.'); return j; };
+const VERSION = '2026-11';
+const PRODUCTOS = ['ShopFlash', 'ShopMenu', 'ShopFlash Oficios / Parques', 'Otro'];
+const v = (d, k) => d[k] ? `<span class="dato">${esc(d[k])}</span>` : '__________';
+const fmtF = s => { if(!s) return '__/__/____'; const [y, m, dd] = s.split('-'); return `${dd}/${m}/${y}`; };
+const soporte = () => PV_WA ? 'al ' + esc(PV_WA) : 'por el WhatsApp de Pro Video';
+
+function docHTML(doc, d){
+  const cab = `<p><b>Negocio:</b> ${v(d, 'negocio')} · <b>CUIT/DNI:</b> ${v(d, 'cuit')}<br><b>Responsable:</b> ${v(d, 'responsable')} · <b>WhatsApp:</b> ${v(d, 'wa')}<br><b>Dirección:</b> ${v(d, 'dir')}</p>`;
+  if(doc === 'prueba') return `<h1>Constancia de período de prueba gratuita</h1><p class="note">Deja registrado que el negocio está probando un producto de Pro Video sin costo, y qué materiales de prueba se le entregaron.</p>
+    <h3>1. Datos del negocio</h3>${cab}
+    <h3>2. Producto en prueba</h3><p><b>Producto:</b> ${v(d, 'producto')} · <b>Link o código del kit:</b> ${v(d, 'link')}<br><b>Inicio:</b> ${fmtF(d.desde)} · <b>Fin:</b> ${fmtF(d.hasta)} (7 días)</p>
+    <h3>3. Materiales de prueba entregados</h3><p>${v(d, 'materiales')}</p>
+    <h3>4. Condiciones</h3><ul><li>La prueba es <b>gratuita y sin obligación</b>: no se pide tarjeta ni se cobra nada durante el período de prueba.</li>
+    <li>Al terminar, el negocio decide si contrata. <b>Si no contrata</b>, Pro Video retira los materiales de prueba indicados (o el negocio los devuelve) y la prueba termina sin costo.</li>
+    <li><b>Si contrata</b>, los materiales quedan para el negocio y paga el plan que elija, mes a mes, pudiendo darlo de baja cuando quiera.</li>
+    <li>Ante cualquier duda o problema, el negocio se comunica con Pro Video ${soporte()}.</li></ul>`;
+  return `<h1>Acuerdo de servicio</h1><p class="note">Entre <b>Pro Video JSR(HG)</b> ("Pro Video") y el negocio que firma ("el Cliente"), para el uso de la aplicación contratada.</p>
+    <h3>1. Datos del Cliente</h3>${cab}
+    <h3>2. Servicio contratado</h3><p><b>Producto:</b> ${v(d, 'producto')} · <b>Plan:</b> ${v(d, 'plan')}<br><b>Precio por mes:</b> $ ${v(d, 'precio')} · <b>Forma de pago:</b> ${v(d, 'pago')} · <b>Desde:</b> ${fmtF(d.desde)}<br><b>Link de la app:</b> ${v(d, 'link')} · <b>Materiales entregados:</b> ${v(d, 'materiales')}</p>
+    <h3>3. Lo que hace Pro Video</h3><p><b>Mientras el Cliente tenga el plan activo y los pagos al día, Pro Video se hace cargo de:</b></p><ul>
+    <li>Mantener la aplicación funcionando y actualizada, con las mejoras que vayan saliendo, sin costo extra.</li>
+    <li><b>Soporte por WhatsApp</b> ${soporte()}, de lunes a sábado.</li>
+    <li>Responder las consultas dentro de las <b>24 horas hábiles</b>. Si la app deja de funcionar, lo trata como <b>urgente</b> y trabaja para resolverlo lo antes posible el mismo día.</li>
+    <li>Ayudar a cargar la tienda o la carta al empezar y explicar cómo usar la app.</li>
+    <li>Cuidar los datos del Cliente y de sus clientes: no los vende ni los comparte, y los usa solo para que la app funcione.</li></ul>
+    <h3>4. Lo que hace el Cliente</h3><ul><li>Paga el plan mes a mes en la fecha acordada.</li>
+    <li>Carga y revisa sus productos, precios y datos. La inteligencia artificial ayuda, pero puede equivocarse: <b>los precios y la información que ven los clientes son responsabilidad del Cliente</b>.</li>
+    <li>Usa su propia cuenta de Mercado Pago para cobrar; el dinero de las ventas le llega directo a él.</li>
+    <li>Avisa por WhatsApp apenas note una falla, con una captura si puede.</li></ul>
+    <p>Si el plan está vencido o con pagos atrasados, estos compromisos quedan en pausa hasta que se regularice el pago.</p>
+    <h3>5. Límites</h3><ul><li>Pro Video no responde por fallas de servicios de otros que la app usa (internet, Mercado Pago, WhatsApp, Google, la empresa de hosting), aunque ayuda a resolverlas.</li>
+    <li>Si una falla de Pro Video deja la app sin funcionar más de 48 horas seguidas, el Cliente no paga los días sin servicio (se descuentan del mes siguiente).</li></ul>
+    <h3>6. Precio, cambios y baja</h3><ul><li>Si el precio cambia, Pro Video avisa por WhatsApp con <b>30 días de anticipación</b>.</li>
+    <li>El Cliente puede <b>darse de baja cuando quiera</b>, avisando por WhatsApp. No hay permanencia mínima ni multas. El mes ya pagado se usa hasta el final.</li>
+    <li>Si el Cliente deja de pagar, la app se pausa hasta que se regularice; sus datos se guardan 60 días.</li></ul>`;
+}
+
+function pad(cv){
+  const ctx = cv.getContext('2d'); let drawing = false, dirty = false, last = null;
+  const fit = () => { const r = cv.getBoundingClientRect(), dpr = Math.max(1, window.devicePixelRatio || 1); const img = dirty ? cv.toDataURL() : null; cv.width = r.width * dpr; cv.height = r.height * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.lineWidth = 2.6; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#1b2a6b'; if(img){ const i = new Image(); i.onload = () => ctx.drawImage(i, 0, 0, r.width, r.height); i.src = img; } };
+  const pos = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  cv.addEventListener('pointerdown', e => { drawing = true; last = pos(e); cv.setPointerCapture(e.pointerId); e.preventDefault(); });
+  cv.addEventListener('pointermove', e => { if(!drawing) return; const p = pos(e); ctx.beginPath(); ctx.moveTo(last[0], last[1]); ctx.lineTo(p[0], p[1]); ctx.stroke(); last = p; dirty = true; e.preventDefault(); });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => cv.addEventListener(t, () => { drawing = false; }));
+  setTimeout(fit, 0); addEventListener('resize', fit);
+  return {clear(){ ctx.clearRect(0, 0, cv.width, cv.height); dirty = false; }, empty: () => !dirty,
+    png(){ // recorta el espacio vacío y la achica, así pesa poco
+      const w = cv.width, h = cv.height, data = ctx.getImageData(0, 0, w, h).data; let x0 = w, y0 = h, x1 = 0, y1 = 0;
+      for(let y = 0; y < h; y += 2) for(let x = 0; x < w; x += 2) if(data[(y * w + x) * 4 + 3] > 0){ if(x < x0) x0 = x; if(y < y0) y0 = y; if(x > x1) x1 = x; if(y > y1) y1 = y; }
+      if(x1 <= x0) return ''; const m = 8; x0 = Math.max(0, x0 - m); y0 = Math.max(0, y0 - m); x1 = Math.min(w, x1 + m); y1 = Math.min(h, y1 + m);
+      const sc = Math.min(1, 600 / (x1 - x0)), o = document.createElement('canvas'); o.width = Math.round((x1 - x0) * sc); o.height = Math.round((y1 - y0) * sc);
+      o.getContext('2d').drawImage(cv, x0, y0, x1 - x0, y1 - y0, 0, 0, o.width, o.height); return o.toDataURL('image/png'); }};
+}
+
+// ---------- Firmar ----------
+function firmar(){
+  let doc = Q.get('doc') === 'prueba' ? 'prueba' : 'acuerdo';
+  const hoy = new Date(), ymd = x => x.toISOString().slice(0, 10), en7 = new Date(hoy.getTime() + 7 * 864e5);
+  const d = {negocio: Q.get('negocio') || '', responsable: Q.get('responsable') || '', cuit: '', wa: Q.get('wa') || '', dir: '', producto: Q.get('producto') || '', plan: Q.get('plan') || '', precio: Q.get('precio') || '', pago: 'Mercado Pago', desde: ymd(hoy), hasta: ymd(en7), link: Q.get('link') || '', materiales: Q.get('materiales') || ''};
+  const campos = () => doc === 'prueba'
+    ? [['negocio', 'Negocio'], ['responsable', 'Nombre del responsable'], ['cuit', 'CUIT o DNI (opcional)'], ['wa', 'WhatsApp'], ['dir', 'Dirección'], ['producto', 'Producto en prueba', PRODUCTOS], ['link', 'Link de la tienda o código del kit'], ['desde', 'Inicio de la prueba', 'date'], ['hasta', 'Fin de la prueba', 'date'], ['materiales', 'Materiales entregados (ej: 10 QR de mesa, 1 cartelito)']]
+    : [['negocio', 'Negocio'], ['responsable', 'Nombre del responsable'], ['cuit', 'CUIT o DNI (opcional)'], ['wa', 'WhatsApp'], ['dir', 'Dirección'], ['producto', 'Producto', PRODUCTOS], ['plan', 'Plan (ej: Start, Oficios, ShopMenu)'], ['precio', 'Precio por mes (solo el número)'], ['pago', 'Forma de pago', ['Mercado Pago', 'Transferencia', 'Efectivo']], ['desde', 'Desde', 'date'], ['link', 'Link de la app'], ['materiales', 'Materiales entregados (opcional)']];
+  const input = ([k, lb, tp]) => Array.isArray(tp) ? `<label>${lb}<select data-k="${k}">${tp.map(o => `<option${o === d[k] ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select></label>`
+    : `<label>${lb}<input data-k="${k}" ${tp === 'date' ? 'type="date"' : ''} value="${esc(d[k])}" ${k === 'precio' ? 'inputmode="numeric"' : k === 'wa' ? 'inputmode="tel"' : ''}></label>`;
+  const render = () => {
+    app.innerHTML = `<div class="card noprint"><div class="tabs"><button class="btn ${doc === 'acuerdo' ? 'on' : 'sec'}" data-doc="acuerdo">🤝 Acuerdo de servicio</button><button class="btn ${doc === 'prueba' ? 'on' : 'sec'}" data-doc="prueba">🧪 Constancia de prueba</button></div>
+      <p class="note" style="margin:8px 0 0">Completá los datos, leé el documento y firmá con el dedo. Queda guardada una copia para Pro Video y te podés bajar la tuya en PDF.</p></div>
+      <div class="card noprint"><h2>Datos</h2><div class="row">${campos().map(input).join('')}</div></div>
+      <div class="card doc" id="doc">${docHTML(doc, d)}</div>
+      <div class="card noprint"><h2>✍️ Firma del cliente</h2><canvas class="pad" id="pc"></canvas><div class="padbar"><span class="note">Firmá con el dedo dentro del recuadro</span><button type="button" data-clr="c">Borrar</button></div>
+        <h2>✍️ Firma de Pro Video <span class="note">(el vendedor, si está presente)</span></h2><label style="margin-top:0">Nombre del vendedor<input id="ven" value="${esc(Q.get('vendedor') || '')}"></label><canvas class="pad" id="pv"></canvas><div class="padbar"><span class="note">Opcional</span><button type="button" data-clr="v">Borrar</button></div>
+        <label class="chk" style="margin-top:14px"><input type="checkbox" id="acepto"> Leí el documento y estoy de acuerdo.</label>
+        <p class="msg" id="msg"></p><button class="btn pri" id="go" style="width:100%">✅ Firmar</button></div>`;
+    const PC = pad($('#pc')), PVp = pad($('#pv'));
+    app.querySelectorAll('[data-doc]').forEach(b => b.onclick = () => { doc = b.dataset.doc; render(); });
+    app.querySelectorAll('[data-k]').forEach(el => el.addEventListener('input', () => { d[el.dataset.k] = el.value.trim(); $('#doc').innerHTML = docHTML(doc, d); }));
+    app.querySelectorAll('[data-clr]').forEach(b => b.onclick = () => (b.dataset.clr === 'c' ? PC : PVp).clear());
+    $('#go').onclick = async () => {
+      const m = $('#msg'); m.textContent = '';
+      if(!d.negocio || !d.responsable) return m.textContent = 'Completá el negocio y el nombre del responsable.';
+      if(PC.empty()) return m.textContent = 'Falta la firma del cliente.';
+      if(!$('#acepto').checked) return m.textContent = 'Marcá que leíste el documento y estás de acuerdo.';
+      $('#go').disabled = true; $('#go').textContent = 'Firmando…';
+      try{
+        const tx = $('#doc').innerText;
+        const j = await api('/api/menu?accion=firma', {doc, datos: d, firmaCli: PC.png(), firmaVen: PVp.empty() ? '' : PVp.png(), vendedor: $('#ven').value.trim(), acepto: true, version: VERSION, texto: tx});
+        const url = `${location.origin}/firmar?ver=${j.id}&k=${j.k}`;
+        try{ localStorage.setItem('pv-firma-' + j.id, url); }catch(e){}
+        app.innerHTML = `<div class="card ok"><div class="big">✅</div><h1>¡Firmado!</h1><p>El documento quedó firmado y guardado. Pro Video tiene su copia.</p>
+          <p class="note">Código: <b>${j.id}</b> · ${new Date(j.fecha).toLocaleString('es-AR')}</p>
+          <div style="display:grid;gap:10px;max-width:380px;margin:14px auto 0"><a class="btn pri" href="${url}&pdf=1">📄 Ver y bajar mi copia (PDF)</a>
+          <a class="btn wa" ${String(d.wa).replace(/\D/g, '').length < 8 ? 'hidden' : ''} href="https://wa.me/${String(d.wa).replace(/\D/g, '').replace(/^0/, '').replace(/^(?!54)/, '549')}?text=${encodeURIComponent('Tu copia del documento firmado con Pro Video: ' + url)}" target="_blank" rel="noopener">💬 Mandar la copia por WhatsApp</a>
+          <a class="btn sec" href="/firmar">✍️ Firmar otro</a></div></div>`;
+      }catch(err){ $('#msg').textContent = err.message; $('#go').disabled = false; $('#go').textContent = '✅ Firmar'; }
+    };
+  };
+  render();
+}
+
+// ---------- Ver la copia firmada ----------
+async function ver(){
+  app.innerHTML = '<div class="card"><p class="note">Cargando el documento…</p></div>';
+  let r; try{ r = await api(`/api/menu?firma=${encodeURIComponent(Q.get('ver'))}&k=${encodeURIComponent(Q.get('k') || '')}`); }catch(e){ app.innerHTML = `<div class="card"><p class="msg">${esc(e.message)}</p></div>`; return; }
+  const f = new Date(r.fecha).toLocaleString('es-AR', {dateStyle: 'long', timeStyle: 'short'});
+  document.title = (r.doc === 'prueba' ? 'Constancia de prueba' : 'Acuerdo de servicio') + ' · ' + (r.datos.negocio || '') + ' · Pro Video';
+  app.innerHTML = `<div class="noprint" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px"><button class="btn pri" onclick="print()">📄 Bajar PDF / imprimir</button></div>
+    <div class="card doc">${docHTML(r.doc, r.datos)}
+      <div class="firmas"><div>${r.firmaCli ? `<img src="${r.firmaCli}" alt="Firma del cliente">` : '<br><br>'}<b>Por el ${r.doc === 'prueba' ? 'negocio' : 'Cliente'}</b><br>${esc(r.datos.responsable)}</div>
+        <div>${r.firmaVen ? `<img src="${r.firmaVen}" alt="Firma de Pro Video">` : '<br><br>'}<b>Por Pro Video JSR(HG)</b><br>${esc(r.vendedor || '')}</div></div>
+      <div class="sello">✍️ <b>Firmado digitalmente</b> el ${esc(f)} · Código del documento: <b>${esc(r.id)}</b> · Huella: ${esc(r.huella)}<br>Copia guardada por Pro Video JSR(HG). Se puede volver a ver en cualquier momento con este mismo link.</div></div>`;
+  if(Q.get('pdf')) setTimeout(() => print(), 700);
+}
+
+// ---------- Panel de Pro Video: todas las firmas ----------
+async function admin(){
+  let A = ''; try{ A = localStorage.getItem('shopmenu-admin') || ''; }catch(e){}
+  const pedir = (msg) => { app.innerHTML = `<div class="card"><h1>Firmas de Pro Video</h1><p class="note">Entrá con tu clave (la misma de "Mis pruebas" de ShopMenu).</p><label>Clave<input id="cl" type="password"></label><p class="msg">${esc(msg || '')}</p><button class="btn pri" id="en">Entrar</button></div>`;
+    $('#en').onclick = () => { A = $('#cl').value; try{ localStorage.setItem('shopmenu-admin', A); }catch(e){} cargar(); }; };
+  const cargar = async () => { let j; try{ j = await api('/api/menu?accion=firmas', {admin: A}); }catch(e){ return pedir(e.message); }
+    app.innerHTML = `<div class="card"><h1>Firmas de Pro Video</h1><p class="note">${j.items.length} documentos firmados.</p><a class="btn sec" href="/firmar">✍️ Firmar uno nuevo</a>
+      <table class="l" style="margin-top:12px"><tr><th>Fecha</th><th>Documento</th><th>Negocio</th><th>Vendedor</th><th></th></tr>${j.items.map(x => `<tr><td>${new Date(x.fecha).toLocaleDateString('es-AR')}</td><td>${x.doc === 'prueba' ? '🧪 Prueba' : '🤝 Acuerdo'}</td><td><b>${esc(x.negocio)}</b><br><small>${esc(x.responsable)} · ${esc(x.producto)}</small></td><td>${esc(x.vendedor || '')}</td><td><a href="/firmar?ver=${x.id}&k=${x.k}" target="_blank">Ver</a></td></tr>`).join('')}</table></div>`; };
+  if(A) cargar(); else pedir('');
+}
+
+if(Q.get('ver')) ver(); else if(Q.has('admin')) admin(); else firmar();
+</script>
+</body>
+</html>

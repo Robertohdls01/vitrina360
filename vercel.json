@@ -35,6 +35,10 @@
     {
       "source": "/provideo",
       "destination": "/provideo.html"
+    },
+    {
+      "source": "/firmar",
+      "destination": "/firmar.html"
     }
   ],
   "functions": {
