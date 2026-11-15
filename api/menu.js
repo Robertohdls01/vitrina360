@@ -77,9 +77,10 @@ async function cuenta(id, f) {
       else if (pre) f.mpEstado = pre.status; } catch (e) {}
   }
   if (cambio) { try { await guardarObj('menus/' + id + '.json', f); } catch (e) {} }
-  if (hasta > ahora) return { estado: 'activo', hasta: new Date(hasta).toISOString(), mp: !!f.mpSus };
-  if (ahora < finPrueba) return { estado: 'prueba', dias: Math.ceil((finPrueba - ahora) / 864e5), precio: PRECIO() };
-  return { estado: 'vencido', precio: PRECIO(), mpEstado: f.mpEstado || '' };
+  const pr = f.precio || PRECIO();
+  if (hasta > ahora) return { estado: 'activo', hasta: new Date(hasta).toISOString(), mp: !!f.mpSus, precio: pr };
+  if (ahora < finPrueba) return { estado: 'prueba', dias: Math.ceil((finPrueba - ahora) / 864e5), precio: pr };
+  return { estado: 'vencido', precio: pr, mpEstado: f.mpEstado || '' };
 }
 
 module.exports = async (req, res) => {
@@ -116,7 +117,8 @@ module.exports = async (req, res) => {
       if (hash('admin|' + adm) !== P.clave) return res.status(403).json({ error: 'Clave incorrecta.' });
       if (req.method === 'POST' && b.pagar && okId(b.pagar.id)) { // cobro a mano (efectivo / transferencia) o dejarlo gratis
         const g = await leerObj('menus/' + b.pagar.id + '.json'); if (!g) return res.status(404).json({ error: 'No encontramos ese menú.' });
-        if (b.pagar.libre !== undefined) g.libre = !!b.pagar.libre;
+        if (b.pagar.precio !== undefined) { const v = parseInt(b.pagar.precio, 10); g.precio = v >= 1000 && v <= 5000000 ? v : 0; if (!g.precio) delete g.precio; }
+        else if (b.pagar.libre !== undefined) g.libre = !!b.pagar.libre;
         else { const d = Math.max(1, Math.min(400, parseInt(b.pagar.dias, 10) || 30)), desde = Math.max(Date.now(), Date.parse(g.pagoHasta || '') || 0); g.pagoHasta = new Date(desde + d * 864e5).toISOString(); }
         await guardarObj('menus/' + b.pagar.id + '.json', g); return res.status(200).json({ ok: true, cuenta: await cuenta(b.pagar.id, g) });
       }
@@ -178,7 +180,7 @@ module.exports = async (req, res) => {
       const origin = 'https://' + (req.headers['x-forwarded-host'] || req.headers.host);
       try {
         const pre = await mp('POST', '/preapproval', { reason: 'ShopMenu · ' + (f.menu.nombre || 'Menú QR'), external_reference: 'menu:' + b.id, payer_email: email, back_url: origin + '/menu?pagado=1', status: 'pending',
-          auto_recurring: { frequency: 1, frequency_type: 'months', transaction_amount: PRECIO(), currency_id: 'ARS' } });
+          auto_recurring: { frequency: 1, frequency_type: 'months', transaction_amount: f.precio || PRECIO(), currency_id: 'ARS' } });
         f.mpSus = pre.id; f.mpEmail = email; f.mpCheck = ''; await guardarObj('menus/' + b.id + '.json', f);
         return res.status(200).json({ url: pre.init_point });
       } catch (e) {
