@@ -128,6 +128,15 @@ footer{padding:30px 0 50px;text-align:center;color:var(--muted);font-size:15px}
   </div>
 </div></section>
 
+
+<section id="opiniones" style="display:none"><div class="wrap">
+  <h2>Lo que dicen los locales que lo usan</h2>
+  <p class="sub">Opiniones reales de dueños y encargados.</p>
+  <div class="grid" id="opiGrid"></div>
+</div></section>
+<script>fetch('/api/menu?testimonios=1').then(r => r.json()).then(j => { const it = (j.items || []).filter(x => x.texto); if(!it.length) return; const e = s => String(s || '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+  document.getElementById('opiGrid').innerHTML = it.slice(0, 9).map(x => `<div class="card"><div style="font-size:20px">${'⭐'.repeat(x.e)}</div><p style="color:var(--ink);margin:8px 0">“${e(x.texto)}”</p><p><b>${e(x.nombre || '')}</b>${x.cargo ? ', ' + e(x.cargo) : ''} · ${e(x.local)}</p></div>`).join('');
+  document.getElementById('opiniones').style.display = ''; }).catch(() => {});</script>
 <section id="precio"><div class="wrap">
   <h2>Un solo precio, todo incluido</h2>
   <p class="sub">Menos de lo que sale una jornada de un mozo.</p>

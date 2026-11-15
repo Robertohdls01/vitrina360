@@ -122,6 +122,11 @@ module.exports = async (req, res) => {
         else { const d = Math.max(1, Math.min(400, parseInt(b.pagar.dias, 10) || 30)), desde = Math.max(Date.now(), Date.parse(g.pagoHasta || '') || 0); g.pagoHasta = new Date(desde + d * 864e5).toISOString(); }
         await guardarObj('menus/' + b.pagar.id + '.json', g); return res.status(200).json({ ok: true, cuenta: await cuenta(b.pagar.id, g) });
       }
+      if (req.method === 'POST' && b.testi && okId(b.testi.id)) { // aprobar / ocultar una opinión
+        const T = (await leerObj('menus/testimonios.json')) || { items: [] };
+        T.items = (T.items || []).map(x => x.id === b.testi.id ? Object.assign(x, { ok: !!b.testi.ok }) : x).filter(x => !(x.id === b.testi.id && b.testi.borrar));
+        await guardarObj('menus/testimonios.json', T); return res.status(200).json({ ok: true, testimonios: T.items });
+      }
       if (req.method === 'POST' && Array.isArray(b.kitsCodes)) { // asigna kits impresos a un vendedor
         P.kits = P.kits || {}; const v = t(b.vend, 40);
         b.kitsCodes.slice(0, 60).map(c => String(c).toUpperCase().replace(/[^A-Z0-9]/g, '')).filter(okKit).forEach(c => { if (v) P.kits[c] = v; else delete P.kits[c]; });
@@ -133,7 +138,8 @@ module.exports = async (req, res) => {
       }
       const cuentas = {};
       for (const x of (P.items || []).filter(x => x.id).slice(0, 40)) { if (cuentas[x.id]) continue; const g = await leerObj('menus/' + x.id + '.json'); if (g) cuentas[x.id] = await cuenta(x.id, g); }
-      return res.status(200).json({ items: P.items || [], kits: P.kits || {}, cuentas });
+      const TT = (await leerObj('menus/testimonios.json')) || { items: [] };
+      return res.status(200).json({ items: P.items || [], kits: P.kits || {}, cuentas, testimonios: TT.items || [] });
     }
     if (req.method === 'POST' && q.accion === 'kit') {
       const b = cuerpo(req), k = String(b.kit || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -168,6 +174,23 @@ module.exports = async (req, res) => {
       const cu = await cuenta(q.id, f);
       if (q.id === PUB) L.items = (L.items || []).filter(it => Date.now() - Date.parse(it.creado) < 3 * 3600e3);
       return res.status(200).json({ lugar: f.menu.lugar || 'mesa', cuenta: cu, items: (L.items || []).map(x => Object.assign({}, x, { k: undefined })), nombre: f.menu.nombre, mozos: f.menu.mozos || [], dueno: f.menu.dueno || '', cajaAva: f.menu.cajaAva || 'flashi', asistente: f.menu.asistente || 'Lola', avatar: f.menu.avatar || '', pelo: f.menu.pelo || '', largo: f.menu.largo || '', piel: f.menu.piel || '', barba: !!f.menu.barba });
+    }
+    // ---- Opiniones de los dueños sobre ShopMenu (para mostrar en la página de venta, solo las aprobadas) ----
+    if (req.method === 'GET' && q.testimonios) {
+      const T = (await leerObj('menus/testimonios.json')) || { items: [] };
+      res.setHeader('Cache-Control', 'public, max-age=300');
+      return res.status(200).json({ items: (T.items || []).filter(x => x.ok && x.publicar).map(x => ({ local: x.local, nombre: x.nombre, cargo: x.cargo, e: x.e, texto: x.texto, fecha: x.fecha })) });
+    }
+    if (req.method === 'POST' && q.accion === 'testimonio') {
+      const b = cuerpo(req);
+      if (!okId(b.id) || b.id === PUB) return res.status(400).json({ error: 'Menú inválido.' });
+      const f = await leerObj('menus/' + b.id + '.json');
+      if (!f || hash(String(b.clave || '')) !== f.clave) return res.status(403).json({ error: 'La clave no es correcta.' });
+      const e = parseInt(b.e, 10); if (!(e >= 1 && e <= 5)) return res.status(400).json({ error: 'Elegí de 1 a 5 estrellas.' });
+      const T = (await leerObj('menus/testimonios.json')) || { items: [] };
+      T.items = [{ id: b.id, local: f.menu.nombre || '', nombre: t(b.nombre, 40), cargo: t(b.cargo, 40), e, texto: t(b.texto, 500), publicar: !!b.publicar, fecha: new Date().toISOString(), ok: false }].concat((T.items || []).filter(x => x.id !== b.id)).slice(0, 300);
+      await guardarObj('menus/testimonios.json', T);
+      return res.status(200).json({ ok: true });
     }
     if (req.method === 'POST' && q.accion === 'suscribir') {
       const b = cuerpo(req);
