@@ -925,7 +925,7 @@ body:not(.cartbig) .cartsheet .actions{gap:6px}
 .pqfotos{display:flex;gap:8px;flex-wrap:wrap}.pqfotos span{position:relative}.pqfotos img{width:96px;height:96px;object-fit:cover;border-radius:12px}.pqfotos button{position:absolute;top:2px;right:2px;border:0;border-radius:50%;width:24px;height:24px;background:rgba(0,0,0,.6);color:#fff;cursor:pointer}
 .pqpl,.pqtr{margin:0;padding:0;list-style:none;display:grid;gap:6px;font-size:14px}.pqtr li{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;border-bottom:1px dashed var(--line);padding-bottom:6px}.pqtr label{display:flex;gap:8px;align-items:flex-start}
 .pqaj{color:#b45309;font-size:12.5px}.pqtot{margin:0;font-size:18px}
-.pqfab{position:fixed;left:14px;bottom:84px;z-index:40;border:0;border-radius:999px;padding:12px 18px;background:#2e7d32;color:#fff;font:700 15px var(--body,system-ui);box-shadow:0 10px 24px -8px rgba(0,0,0,.45);cursor:pointer}
+.pqfab{position:fixed;left:14px;bottom:150px;z-index:40;border:0;border-radius:999px;padding:12px 18px;background:#2e7d32;color:#fff;font:700 15px var(--body,system-ui);box-shadow:0 10px 24px -8px rgba(0,0,0,.45);cursor:pointer}
 #tryView{position:fixed;inset:0;z-index:125;background:rgba(12,10,20,.72);display:grid;place-items:center;padding:14px}
 #tryView[hidden]{display:none}
 #tryView .tv{width:min(460px,100%);max-height:calc(100dvh - 28px);overflow:auto;background:var(--surface);color:var(--ink);border-radius:20px;padding:18px;display:grid;gap:12px;box-shadow:0 30px 70px -20px rgba(0,0,0,.55)}
@@ -5134,11 +5134,21 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     verdu: {cat: 'Verdulería', em: '🥬', prod: true, items: [["Papa", "Precio por kilo", 'kilo'], ["Batata", "Precio por kilo", 'kilo'], ["Cebolla", "Precio por kilo", 'kilo'], ["Cebolla morada", "Precio por kilo", 'kilo'], ["Zanahoria", "Precio por kilo", 'kilo'], ["Tomate", "Precio por kilo", 'kilo'], ["Tomate perita", "Precio por kilo", 'kilo'], ["Zapallo anco", "Precio por kilo", 'kilo'], ["Zapallito redondo", "Precio por kilo", 'kilo'], ["Zucchini", "Precio por kilo", 'kilo'], ["Berenjena", "Precio por kilo", 'kilo'], ["Morrón rojo", "Precio por kilo", 'kilo'], ["Morrón verde", "Precio por kilo", 'kilo'], ["Pepino", "Precio por kilo", 'kilo'], ["Remolacha", "Precio por kilo", 'kilo'], ["Chaucha", "Precio por kilo", 'kilo'], ["Arvejas", "Precio por kilo", 'kilo'], ["Jengibre", "Precio por kilo", 'kilo'], ["Limón", "Precio por kilo", 'kilo'], ["Naranja", "Precio por kilo", 'kilo'], ["Mandarina", "Precio por kilo", 'kilo'], ["Pomelo", "Precio por kilo", 'kilo'], ["Manzana roja", "Precio por kilo", 'kilo'], ["Manzana verde", "Precio por kilo", 'kilo'], ["Pera", "Precio por kilo", 'kilo'], ["Banana", "Precio por kilo", 'kilo'], ["Uva", "Precio por kilo", 'kilo'], ["Frutilla", "Precio por kilo", 'kilo'], ["Durazno", "Precio por kilo", 'kilo'], ["Ciruela", "Precio por kilo", 'kilo'], ["Kiwi", "Precio por kilo", 'kilo'], ["Cereza", "Precio por kilo", 'kilo'], ["Lechuga", "Precio por unidad", 'unidad'], ["Choclo", "Precio por unidad", 'unidad'], ["Acelga (atado)", "Precio por unidad", 'unidad'], ["Espinaca (atado)", "Precio por unidad", 'unidad'], ["Rúcula (atado)", "Precio por unidad", 'unidad'], ["Perejil (atado)", "Precio por unidad", 'unidad'], ["Albahaca (atado)", "Precio por unidad", 'unidad'], ["Cebolla de verdeo (atado)", "Precio por unidad", 'unidad'], ["Ajo (cabeza)", "Precio por unidad", 'unidad'], ["Apio", "Precio por unidad", 'unidad'], ["Brócoli", "Precio por unidad", 'unidad'], ["Coliflor", "Precio por unidad", 'unidad'], ["Repollo", "Precio por unidad", 'unidad'], ["Puerro", "Precio por unidad", 'unidad'], ["Palta", "Precio por unidad", 'unidad'], ["Ananá", "Precio por unidad", 'unidad'], ["Melón", "Precio por unidad", 'unidad'], ["Sandía", "Precio por unidad", 'unidad'], ["Mango", "Precio por unidad", 'unidad'], ["Coco", "Precio por unidad", 'unidad'], ['Huevos', 'Precio por unidad', 'docena']]},
     pana: {cat: 'Panadería', em: '🥖', prod: true, items: [["Pan francés", "Precio por kilo", 'kilo'], ["Pan mignon", "Precio por kilo", 'kilo'], ["Felipe", "Precio por kilo", 'kilo'], ["Pan de salvado", "Precio por kilo", 'kilo'], ["Pan de viena", "Precio por kilo", 'kilo'], ["Grisines", "Precio por kilo", 'kilo'], ["Bizcochitos de grasa", "Precio por kilo", 'kilo'], ["Bizcochitos de manteca", "Precio por kilo", 'kilo'], ["Chipá", "Precio por kilo", 'kilo'], ["Masas finas", "Precio por kilo", 'kilo'], ["Masas secas", "Precio por kilo", 'kilo'], ["Galletitas de manteca", "Precio por kilo", 'kilo'], ["Medialuna de manteca", "Precio por docena", 'docenaF'], ["Medialuna de grasa", "Precio por docena", 'docenaF'], ["Vigilante", "Precio por docena", 'docenaF'], ["Cañoncito de dulce de leche", "Precio por docena", 'docenaF'], ["Bola de fraile", "Precio por docena", 'docenaF'], ["Sacramento", "Precio por docena", 'docenaF'], ["Tortita negra", "Precio por docena", 'docenaF'], ["Palmerita", "Precio por docena", 'docenaF'], ["Libro de membrillo", "Precio por docena", 'docenaF'], ["Churro", "Precio por docena", 'docenaF'], ["Berlinesa", "Precio por docena", 'docenaF'], ["Margarita", "Precio por docena", 'docenaF'], ["Facturas surtidas", "Precio por docena", 'docenaF'], ["Sándwich de miga (jamón y queso)", "Precio por docena", 'docenaF'], ["Sándwich de miga (surtido)", "Precio por docena", 'docenaF'], ["Alfajor de maicena", "Precio por docena", 'docenaF'], ["Pañuelito", "Precio por docena", 'docenaF'], ["Pan de campo", "Precio por unidad", 'unidad'], ["Pan lactal", "Precio por unidad", 'unidad'], ["Baguette", "Precio por unidad", 'unidad'], ["Pan de hamburguesa (x6)", "Precio por unidad", 'unidad'], ["Pan para pancho (x6)", "Precio por unidad", 'unidad'], ["Prepizza", "Precio por unidad", 'unidad'], ["Pastafrola", "Precio por unidad", 'unidad'], ["Budín", "Precio por unidad", 'unidad'], ["Torta de cumpleaños", "Precio por unidad", 'unidad'], ["Lemon pie", "Precio por unidad", 'unidad'], ["Chocotorta", "Precio por unidad", 'unidad'], ["Pan dulce", "Precio por unidad", 'unidad'], ["Rosca de Pascua", "Precio por unidad", 'unidad']]},
     parques: {cat: 'Corte de pasto', em: '🌿', items: [
-      ['Corte de pasto', 'Precio por m² · incluye bordeado y soplado', 'm2'], ['Corte de pasto muy crecido', 'Precio por m² · pasto alto o abandonado', 'm2'], ['Desmalezado', 'Precio por m²', 'm2'],
-      ['Limpieza de terreno', 'Precio por m² · ramas, hojas y residuos', 'm2'], ['Colocación de césped en panes', 'Precio por m² · con preparación del suelo', 'm2'], ['Fumigación de césped', 'Precio por m²', 'm2'],
-      ['Poda de arbusto o cerco', 'Precio por planta mediana'], ['Poda de árbol chico (hasta 3 m)', 'Precio por árbol'], ['Poda de árbol grande', 'Precio por árbol, con altura'],
-      ['Extracción de árbol', 'A consultar según tamaño'], ['Retiro de residuos verdes', 'Por viaje'], ['Diseño de jardín', 'Proyecto con plantas y ubicación'],
-      ['Instalación de riego', 'A consultar'], ['Mantenimiento mensual', 'Visitas por mes']]},
+      // corte según la altura del pasto (la IA elige cuál corresponde mirando la foto)
+      ['Corte de pasto normal (hasta 10 cm)', 'Precio por m² · incluye bordeado y soplado', 'm2', 'Corte de pasto'], ['Corte de pasto crecido (10 a 30 cm)', 'Precio por m²', 'm2', 'Corte de pasto'], ['Corte de pasto muy alto o abandonado (más de 30 cm)', 'Precio por m² · con desmalezadora', 'm2', 'Corte de pasto'],
+      ['Bordeado de canteros y veredas', 'Precio por metro lineal', '', 'Corte de pasto'], ['Desmalezado', 'Precio por m²', 'm2', 'Limpieza de terrenos'], ['Limpieza de terreno', 'Precio por m² · ramas, hojas y residuos', 'm2', 'Limpieza de terrenos'], ['Limpieza de hojas', 'Precio por m²', 'm2', 'Limpieza de terrenos'],
+      ['Retiro de residuos verdes', 'Por viaje', '', 'Limpieza de terrenos'], ['Nivelación de terreno', 'Precio por m²', 'm2', 'Limpieza de terrenos'],
+      // poda
+      ['Poda de arbusto', 'Precio por planta mediana', '', 'Poda y árboles'], ['Poda de cerco o ligustro', 'Precio por metro lineal', '', 'Poda y árboles'], ['Poda de árbol chico (hasta 3 m)', 'Precio por árbol', '', 'Poda y árboles'], ['Poda de árbol mediano (3 a 6 m)', 'Precio por árbol', '', 'Poda y árboles'],
+      ['Poda de árbol grande (más de 6 m)', 'Precio por árbol, con altura', '', 'Poda y árboles'], ['Poda de palmera', 'Limpieza de hojas secas, por palmera', '', 'Poda y árboles'], ['Extracción de árbol', 'A consultar según tamaño', '', 'Poda y árboles'], ['Extracción de tocón', 'Por tocón', '', 'Poda y árboles'],
+      // canteros, plantas y diseño
+      ['Armado de cantero', 'Con borde, tierra y surco · precio por metro lineal', '', 'Diseño de jardines'], ['Surco o zanja alrededor de plantas', 'Precio por metro lineal', '', 'Diseño de jardines'], ['Plantación por unidad', 'Plantar cada planta, con tierra y riego', '', 'Plantas y flores'],
+      ['Compra y traslado de plantas del vivero', 'Vamos al vivero y te las traemos · por viaje', '', 'Plantas y flores'], ['Colocación de tierra negra', 'Precio por m³', '', 'Plantas y flores'], ['Colocación de piedras o corteza decorativa', 'Precio por m²', 'm2', 'Diseño de jardines'],
+      ['Colocación de césped en panes', 'Precio por m² · con preparación del suelo', 'm2', 'Césped en panes'], ['Siembra o resiembra de césped', 'Precio por m²', 'm2', 'Césped en panes'], ['Fertilización de césped', 'Precio por m²', 'm2', 'Césped en panes'],
+      ['Control de hormigas y plagas', 'Por visita', '', 'Plantas y flores'], ['Armado de huerta', 'A consultar', '', 'Diseño de jardines'], ['Diseño de jardín', 'Proyecto con plantas, ubicación y presupuesto', '', 'Diseño de jardines'], ['Iluminación de jardín', 'Instalación de luces, a consultar', '', 'Diseño de jardines'],
+      // riego y mantenimiento
+      ['Instalación de riego por goteo', 'A consultar', '', 'Riego'], ['Arreglo de riego', 'Por visita', '', 'Riego'], ['Limpieza de canaletas', 'Por casa', '', 'Limpieza de terrenos'],
+      ['Mantenimiento quincenal', 'Abono mensual: 2 visitas', '', 'Mantenimiento mensual'], ['Mantenimiento semanal', 'Abono mensual: 4 visitas', '', 'Mantenimiento mensual']]},
     taller: {cat: 'Service y reparación', em: '🔧', items: [
       ['Afilado de cuchilla de cortadora', 'Con balanceo'], ['Afilado de cadena de motosierra', 'Por cadena'], ['Service de motoguadaña', 'Bujía, filtro, carburador y limpieza'],
       ['Service de cortadora de césped', 'Cambio de aceite, filtro y afilado'], ['Service de motosierra', 'Limpieza, ajuste y afilado'], ['Reparación de carburador', 'Limpieza y regulación'],
@@ -5156,9 +5166,11 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     let base = products.reduce((m, p) => Math.max(m, p.added), -1) + 1;
     const have = new Set(products.filter(p => p.cat === cat.id).map(p => norm(p.name)));
     const created = [];
-    kit.items.forEach(([name, desc, uk]) => { if(have.has(norm(name))) return; const p = {id: uid(), cat: cat.id, added: base++, img: svcImg(kit.em, name), name, price: '', features: [desc ? (kit.prod ? desc : 'Detalle: ' + desc) : ''].filter(Boolean)}; if(!kit.prod) p.service = true; if(uk === 'm2') p.m2 = true; else if(uk){ p.ukind = uk; p.units = unitPreset(uk, ''); } products.push(p); created.push(p); });
+    const catFor = cn => { if(!cn) return cat; let c = cats.find(x => norm(x.name) === norm(cn)); if(!c && cats.length < capCats()){ c = {id: 'c' + uid(), name: cn}; cats.push(c); } return c || cat; };
+    products.forEach(p => { if(p.service) have.add(norm(p.name)); });
+    kit.items.forEach(([name, desc, uk, cn]) => { if(have.has(norm(name))) return; const p = {id: uid(), cat: catFor(cn).id, added: base++, img: svcImg(kit.em, name), name, price: '', features: [desc ? (kit.prod ? desc : 'Detalle: ' + desc) : ''].filter(Boolean)}; if(!kit.prod) p.service = true; if(uk === 'm2') p.m2 = true; else if(uk){ p.ukind = uk; p.units = unitPreset(uk, ''); } products.push(p); created.push(p); });
     save(); renderHome(); fillCatSelect(cat.id);
-    $('qMsg').textContent = created.length ? `Listo: cargué ${created.length} productos en la vitrina “${kit.cat}”. Poné los precios abajo; los que no tenés, borralos, y los tuyos sumalos con su foto.` : 'Esos productos ya estaban cargados.';
+    $('qMsg').textContent = created.length ? `Listo: cargué ${created.length} ${kit.prod ? 'productos' : 'servicios'} ${new Set(created.map(p => p.cat)).size > 1 ? 'repartidos en tus vitrinas' : 'en la vitrina “' + kit.cat + '”'}. Poné los precios abajo; los que no tenés, borralos, y los tuyos sumalos con su foto.` : 'Esos productos ya estaban cargados.';
     if(created.length) showBulkPrices(created, $('qPrices'), $('qMsg'));
   });
   function showBulkPrices(list, box, msgEl){
@@ -6977,12 +6989,34 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         i.innerHTML = ios ? 'En iPhone: tocá <b>Compartir</b> ⬆️ abajo y después <b>“Agregar a inicio”</b> ➕.' : 'Tocá el menú del navegador <b>⋮</b> y después <b>“Instalar app”</b> o <b>“Agregar a la pantalla principal”</b>.'; };
     };
     window.v360App = appSheet;
+    // bienvenida al entrar (QR, link o Facebook): la vendedora saluda, ofrece bajar la app con el logo y sigue con qué necesita
+    const charla = () => { try{ const ids = hList(); hOpen(ids.length ? ids[0] : (isParques() ? 'tomas' : 'sofi'));
+      if(isParques()){
+        $('hChips').innerHTML = [['✂️ Corte de pasto', 'presupuesto corte de pasto'], ['🌳 Poda de plantas o árboles', 'presupuesto poda'], ['🪴 Plantas y rediseño', 'quiero rediseñar mi parque'], ['📅 Ya soy cliente', 'ya soy cliente']].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${q}">${t}</button>`).join('');
+        hSpeak(`¿Qué necesitás para tu parque? ¿Cortar el pasto, podar alguna planta, o agregar plantas y darle una nueva cara? Si ya sos cliente, reservá tu turno de siempre.`);
+      } }catch(e){} };
+    const bienvenida = () => {
+      if(document.getElementById('appOv')) return;
+      let ids = []; try{ ids = hList(); }catch(e){}
+      const quien = ids.length ? (ids[0] === 'duena' ? ownName() : HELPERS[ids[0]].name) : (isParques() ? 'Tomás' : 'Sofi'), nom = storeName(), ov = document.createElement('div'); ov.id = 'appOv';
+      ov.innerHTML = `<div class="appc"><img src="/api/pedidos?icono=${encodeURIComponent(sl)}" alt="" width="64" height="64"><div><b>👋 ¡Hola! ${quien ? 'Soy ' + esc(quien) + ', de ' : 'Bienvenido a '}${esc(nom)}.</b><span>¿Querés tener <b>${esc(nom)}</b> en tu celular, con su logo? Así la próxima vez ${isParques() ? 'pedís presupuesto o reservás tu turno' : 'pedís'} con un toque.</span>
+        <p class="appi" hidden></p><div class="appb"><button type="button" class="pri" data-app="si">📲 Sí, descargar</button><button type="button" data-app="no">Después</button></div></div></div>`;
+      document.body.appendChild(ov);
+      ov.onclick = async e => { const b = e.target.closest('[data-app]'); if(!b) return;
+        if(b.dataset.app === 'seguir'){ ov.remove(); return charla(); }
+        if(b.dataset.app === 'no'){ try{ localStorage.setItem(KN, Date.now()); }catch(err){} ov.remove(); return charla(); }
+        if(BIP){ BIP.prompt(); try{ await BIP.userChoice; }catch(err){} BIP = null; ov.remove(); return charla(); }
+        const i = ov.querySelector('.appi'); i.hidden = false;
+        i.innerHTML = ios ? 'En iPhone: tocá <b>Compartir</b> ⬆️ abajo y después <b>“Agregar a inicio”</b> ➕.' : 'Tocá el menú del navegador <b>⋮</b> y después <b>“Instalar app”</b> o <b>“Agregar a la pantalla principal”</b>.';
+        ov.querySelector('.appb').innerHTML = '<button type="button" class="pri" data-app="seguir">Listo, seguir 👉</button>'; };
+    };
     setTimeout(() => {
       try{ const L0 = String(brand.logo || ''); if(/^https:\/\//.test(L0) && !/\.svg/i.test(L0)){ const a = document.createElement('link'); a.rel = 'apple-touch-icon'; a.href = L0; document.head.appendChild(a); }
         const m = document.querySelector('meta[name="apple-mobile-web-app-title"]'); if(m) m.content = storeName().slice(0, 30); }catch(e){}
       let no = 0; try{ no = +localStorage.getItem(KN) || 0; }catch(e){}
-      if(!STAND && (new URLSearchParams(location.search).has('app') || vis >= 2) && Date.now() - no > 7 * 864e5) appSheet();
-    }, 7000);
+      let visto = false; try{ visto = !!sessionStorage.getItem('v360-bienv-' + sl); sessionStorage.setItem('v360-bienv-' + sl, '1'); }catch(e){}
+      if(!STAND && !visto && Date.now() - no > 3 * 864e5) bienvenida();
+    }, 2500);
   }
   // botón fijo en las tiendas de parquería
   setInterval(() => { let b = document.getElementById('pqFab'); const on = isParques() && (PUBLIC || document.body.classList.contains('clientmode'));
@@ -9548,6 +9582,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   function hAnswer(q){
     const n = norm(q).trim();
     if(/\b(hablar|hablo|comunicar|comunicame|contactar|pasame|atender|atienda|conectar)\b.*\b(duen[oa]|persona|alguien|humano|encargad[oa]|real|vos|ella|el|responsable)\b/.test(n) || /\b(una persona|un humano|persona real|la duena|el dueno|la encargada|el encargado)\b/.test(n) || (ownOn() && n.length < 40 && norm(ownName()).length > 2 && /\b(hablar|hablo|comunicar|pasame|contactar)\b/.test(n) && n.includes(norm(ownName())))) return hHandoff('');
+    if(isParques() && /(ya soy cliente|corte de siempre|lo de siempre|cliente fijo)/.test(n)){ hShow([]); openParque(); setTimeout(() => { const f = document.querySelector('#pqView [data-pq="fijo"]'); if(f) f.click(); }, 50); return; }
     if(isParques() && /(presupuest|cotiz|cuanto (me )?(sale|cobr|cuesta)|jardin|parque|patio|pasto|cesped|terreno|metros|poda|podar|arbol|cerco|ligustro|maleza|yuyo|disen)/.test(n)){ hShow([]); openParque(); return hSpeak('¡Dale! Sacale una o dos fotos a tu parque, que se vea todo. Yo miro cuántos metros tiene, cómo está el pasto y las plantas, y te armo el presupuesto. Si querés, también te muestro cómo podría quedar.'); }
     if(hAskCaja && !hPending && /^(si|sii+|sip|dale|ok|okey|bueno|claro|de una|llevame|vamos|listo|a la caja|caja|por favor)\b/.test(n)){ hAskCaja = false; return hToCaja(); }
     if(hAskCaja && !hPending && /^(no|nop|algo mas|quiero (ver )?algo mas|todavia no|seguir|sigo mirando)\b/.test(n)){ hAskCaja = false; return hSpeak('¡Dale! ¿Qué más querés ver? Decime un producto o una vitrina.'); }
