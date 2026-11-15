@@ -1,6 +1,6 @@
 // Vitrina 360 · IA para reconocer productos. La clave de Anthropic vive en Vercel (variable ANTHROPIC_API_KEY), nunca en la página.
 const TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-const { db, estado, PLANES, planReal } = require('./_comun');
+const { db, estado, PLANES, planReal, esDemo } = require('./_comun');
 const crypto = require('crypto');
 
 // Cupo de productos reconocidos con IA (se guarda en la cuenta del comerciante, donde él no lo puede tocar).
@@ -61,7 +61,7 @@ module.exports = async (req, res) => {
   // ShopCut: el cliente de una tienda (sin cuenta) manda su selfie o la de su mascota y recibe los cortes que mejor le quedan
   { let bb = req.body; if (typeof bb === 'string') { try { bb = JSON.parse(bb); } catch (e) { bb = null; } }
     if (bb && bb.corte) return bb.app ? shopCutApp(req, res, KEY, bb) : shopCut(res, KEY, bb);
-    if (bb && bb.parque) return parqueIA(res, KEY, bb); }
+    if (bb && bb.parque) return parqueIA(res, KEY, bb, req); }
   const tok = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   if (!tok) return res.status(401).json({ error: 'Tenés que entrar a tu tienda.' });
   let user = null;
@@ -218,8 +218,18 @@ Respondé en ${b.lang === 'en' ? 'inglés' : b.lang === 'pt' ? 'portugués' : 'e
 // ---- Parquería: el cliente de la tienda manda fotos de su parque y la IA estima m², altura del pasto, plantas y arma el presupuesto
 //      con los precios del parquero. Tope de presupuestos por mes según el plan (pq en PLANES). Las fotos no se guardan.
 const pnum = v => { const t = String(v || '').replace(/[^\d,.]/g, ''); if (!t) return 0; const n = Number(t.replace(/\./g, '').replace(',', '.')); return isFinite(n) ? n : 0; };
-async function parqueIA(res, KEY, b) {
+async function parqueIA(res, KEY, b, req) {
   const slug = String(b.slug || '');
+  // tienda de muestra: tope por día (total y por persona) para que nadie gaste de más probando
+  if (esDemo(slug)) {
+    const dia = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10), path = scBase() + '/object/' + SC_BUCKET + '/demo-ia/' + dia + '.json';
+    let f = null; try { const r = await fetch(path, { headers: scHead() }); if (r.ok) f = await r.json(); } catch (e) {}
+    f = f && typeof f === 'object' ? f : { total: 0, ip: {} };
+    const ip = String((req && req.headers && req.headers['x-forwarded-for']) || '').split(',')[0].trim() || 'x';
+    if (f.total >= Number(process.env.DEMO_IA_DIA || 60) || (f.ip[ip] || 0) >= Number(process.env.DEMO_IA_PERSONA || 4)) return res.status(429).json({ error: 'Esta es una tienda de muestra y ya se probó mucho hoy. ¡Probá mañana, o pedí la tuya!' });
+    f.total++; f.ip[ip] = (f.ip[ip] || 0) + 1;
+    try { await fetch(path, { method: 'POST', headers: scHead({ 'Content-Type': 'application/json', 'x-upsert': 'true', 'cache-control': 'no-cache' }), body: JSON.stringify(f) }); } catch (e) {}
+  }
   if (!/^[a-z0-9-]{3,40}$/.test(slug)) return res.status(400).json({ error: 'Tienda inválida.' });
   const ims = (Array.isArray(b.images) ? b.images : []).slice(0, 3).filter(im => im && typeof im.data === 'string' && im.data.length > 1000 && im.data.length < 4000000);
   if (!ims.length) return res.status(400).json({ error: 'Subí al menos una foto de tu parque.' });

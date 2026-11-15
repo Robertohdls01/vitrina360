@@ -16,7 +16,7 @@
 //   POST /api/pedidos?accion=resena-mod       (comerciante) {id, oculta?, rta?}
 // Fila: cada pedido nuevo recibe un número del día (#1, #2…). Se guarda en fila/<dueño>.json.
 const crypto = require('crypto');
-const { cuerpo, usuario, db } = require('./_comun');
+const { cuerpo, usuario, db, esDemo } = require('./_comun');
 
 const BUCKET = 'pedidos';
 const ESTADOS = ['preparando', 'salio', 'listo', 'entregado', 'cancelado'];
@@ -214,6 +214,8 @@ module.exports = async (req, res) => {
       if (!/^[a-z0-9-]{3,40}$/.test(slug)) return res.status(400).json({ error: 'Tienda inválida.' });
       const items = Array.isArray(b.items) ? b.items.slice(0, 60).map(it => ({ n: corto(it && it.n, 120), q: Math.max(1, Math.min(999, parseInt(it && it.q, 10) || 1)), p: corto(it && it.p, 30), id: corto(it && it.id, 40) })) : [];
       if (!items.length) return res.status(400).json({ error: 'El pedido está vacío.' });
+      // tienda de muestra: el pedido o turno se "reserva" pero no se guarda (así la agenda de la demo siempre tiene lugar)
+      if (esDemo(slug)) return res.status(200).json({ ref: '00000000-0000-4000-8000-000000000000/demo' + Date.now().toString(36), k: 'demo', turno: 1 + Math.floor(Math.random() * 20), delante: 0, demo: true });
       const rows = await db('GET', '/rest/v1/tiendas?slug=eq.' + slug + '&select=owner,activa,data');
       const t = rows && rows[0];
       if (!t || t.activa === false) return res.status(404).json({ error: 'Esta tienda no está disponible.' });

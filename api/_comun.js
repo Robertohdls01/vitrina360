@@ -31,7 +31,21 @@ async function usuario(req) {
 }
 
 // Base de datos con la clave secreta (solo del servidor): puede marcar pagos.
+// Tiendas de muestra (para mostrar a los clientes sin crear cuentas): se leen de demos.json y no se pueden modificar.
+let DEMOS = null;
+const demos = () => DEMOS || (DEMOS = (() => { try { return require('./demos.json'); } catch (e) { return {}; } })());
+const esDemo = slug => !!demos()[String(slug || '')];
 async function db(method, path, body) {
+  if (method === 'GET' && /^\/rest\/v1\/tiendas\?/.test(path)) {
+    const D = demos(), m1 = path.match(/[?&]slug=eq\.([a-z0-9-]+)/), m2 = path.match(/[?&]slug=in\.\(([^)]*)\)/), m3 = path.match(/[?&]owner=eq\.([0-9a-f-]+)/);
+    if (m1 && D[m1[1]]) return [D[m1[1]]];
+    if (m3) { const d = Object.values(D).find(x => x.owner === m3[1]); if (d) return [d]; }
+    if (m2) { const want = m2[1].split(','), rest = want.filter(s => !D[s]); const real = rest.length ? await dbReal(method, path.replace(m2[1], rest.join(',')), body) : [];
+      return (real || []).concat(want.filter(s => D[s]).map(s => D[s])); }
+  }
+  return dbReal(method, path, body);
+}
+async function dbReal(method, path, body) {
   const k = process.env.SUPABASE_SERVICE_KEY;
   const headers = { apikey: k, 'Content-Type': 'application/json', Prefer: 'return=representation' };
   if (String(k).startsWith('eyJ')) headers.Authorization = 'Bearer ' + k;
@@ -122,4 +136,4 @@ async function aplicarPago(owner, plan, hasta) {
   return db('PATCH', '/rest/v1/tiendas?owner=eq.' + owner, cambio);
 }
 
-module.exports = { cuerpo, usuario, db, mp, sincronizar, estado, PRECIO, PLANES, planReal, enBase, hmPendiente, hmGuardar, hmBorrar, aplicarPago, stHeaders };
+module.exports = { esDemo, cuerpo, usuario, db, mp, sincronizar, estado, PRECIO, PLANES, planReal, enBase, hmPendiente, hmGuardar, hmBorrar, aplicarPago, stHeaders };
