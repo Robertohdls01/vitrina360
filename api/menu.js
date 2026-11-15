@@ -33,43 +33,48 @@ function limpiar(m) {
   const cats = (Array.isArray(m.cats) ? m.cats : []).slice(0, 40).map(c => ({ n: t(c && c.n, 60),
     items: (Array.isArray(c && c.items) ? c.items : []).slice(0, 80).map(i => ({ n: t(i && i.n, 90), d: t(i && i.d, 240), p: t(i && i.p, 30), promo: !!(i && i.promo) })).filter(i => i.n) })).filter(c => c.n || c.items.length);
   const logo = typeof m.logo === 'string' && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(m.logo) && m.logo.length < 120000 ? m.logo : '';
-  return { deco: ['navidad', 'anionuevo', 'deportes', 'fiesta', 'madre', 'padre', 'enamorados', 'halloween', 'verano', 'invierno', 'otono', 'primavera', 'pascua', 'ofertas'].includes(m.deco) ? m.deco : '', musica: !!m.musica, fondoV: /^\d{6,16}$/.test(String(m.fondoV || '')) ? String(m.fondoV) : '', fondoCaja: !!m.fondoCaja, envio: !!m.envio, envioTx: t(m.envioTx, 120), logo, lugar: ['mesa', 'maquina', 'habitacion', 'sombrilla', 'butaca'].includes(m.lugar) ? m.lugar : 'mesa', nombre: t(m.nombre, 60), wa: t(m.wa, 20).replace(/[^\d+]/g, ''), mesas: Math.max(1, Math.min(500, parseInt(m.mesas, 10) || 10)), asistente: t(m.asistente, 20) || 'Lola', avatar: ['moza', 'mozo'].includes(m.avatar) ? m.avatar : '', pelo: ['castano', 'rubio', 'negro', 'colorado', 'canoso'].includes(m.pelo) ? m.pelo : '', largo: m.largo === 'corto' ? 'corto' : 'largo', piel: ['clara', 'media', 'morena', 'oscura'].includes(m.piel) ? m.piel : '', barba: !!m.barba,
+  return { deco: ['navidad', 'anionuevo', 'deportes', 'fiesta', 'madre', 'padre', 'enamorados', 'halloween', 'verano', 'invierno', 'otono', 'primavera', 'pascua', 'ofertas'].includes(m.deco) ? m.deco : '', musica: !!m.musica, idioma: LANGS.includes(m.idioma) ? m.idioma : 'es', fondoV: /^\d{6,16}$/.test(String(m.fondoV || '')) ? String(m.fondoV) : '', fondoCaja: !!m.fondoCaja, envio: !!m.envio, envioTx: t(m.envioTx, 120), logo, lugar: ['mesa', 'maquina', 'habitacion', 'sombrilla', 'butaca'].includes(m.lugar) ? m.lugar : 'mesa', nombre: t(m.nombre, 60), wa: t(m.wa, 20).replace(/[^\d+]/g, ''), mesas: Math.max(1, Math.min(500, parseInt(m.mesas, 10) || 10)), asistente: t(m.asistente, 20) || 'Lola', avatar: ['moza', 'mozo'].includes(m.avatar) ? m.avatar : '', pelo: ['castano', 'rubio', 'negro', 'colorado', 'canoso'].includes(m.pelo) ? m.pelo : '', largo: m.largo === 'corto' ? 'corto' : 'largo', piel: ['clara', 'media', 'morena', 'oscura'].includes(m.piel) ? m.piel : '', barba: !!m.barba,
     saludo: t(m.saludo, 200), moneda: t(m.moneda, 4) || '$', alias: t(m.alias, 60), dueno: t(m.dueno, 30), cajaAva: ['flashi', 'robot', 'gatito', 'igual'].includes(m.cajaAva) ? m.cajaAva : 'flashi', greview: /^https:\/\//i.test(String(m.greview || '')) ? t(m.greview, 300) : '', mozos: (Array.isArray(m.mozos) ? m.mozos : String(m.mozos || '').split(',')).map(x => t(String(x).trim(), 20)).filter(Boolean).slice(0, 12), demora: Math.max(0, Math.min(120, parseInt(m.demora, 10) || 0)), paylink: /^https:\/\//i.test(String(m.paylink || '')) ? t(m.paylink, 300) : '', ig: t(m.ig, 60).replace(/[^\w.@/:\-]/g, ''), fb: t(m.fb, 200).replace(/[\s<>"']/g, ''), tt: t(m.tt, 60).replace(/[^\w.@/:\-]/g, ''), web: /^https:\/\//i.test(String(m.web || '')) ? t(m.web, 300) : '', tienda: /^https:\/\//i.test(String(m.tienda || '')) ? t(m.tienda, 300) : '', tiendaTx: t(m.tiendaTx, 40), nov: t(m.nov, 300), links: (Array.isArray(m.links) ? m.links : []).slice(0, 10).map(x => ({ t: t(x && x.t, 12).replace(/[^a-z]/g, ''), u: t(x && x.u, 300).replace(/[\s<>"']/g, ''), l: t(x && x.l, 40) })).filter(x => x.u && (/^https:\/\//i.test(x.u) || /^(ig|fb|tt|wa|yt)$/.test(x.t))), cats };
 }
 
 
-// Traduce la carta al inglés y al portugués (para turistas). Barato: modelo de texto. Si falla, el menú queda en castellano.
-// traduce un mensaje corto (consultas entre la mesa y el encargado)
+// ---- Idiomas: la carta se carga en un idioma y se traduce sola a los otros 7 (una vez, cuando cambia el texto) ----
+const LANGS = ['es', 'en', 'pt', 'fr', 'it', 'de', 'ru', 'zh'];
+const IDI = { es: 'castellano rioplatense (Argentina)', en: 'English', pt: 'português do Brasil', fr: 'français', it: 'italiano', de: 'Deutsch', ru: 'русский', zh: '简体中文' };
+const IA = async (prompt, max) => {
+  const KEY = process.env.ANTHROPIC_API_KEY; if (!KEY) return '';
+  const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'x-api-key': KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    body: JSON.stringify({ model: process.env.IA_MODEL_TEXT || 'claude-haiku-5-5', max_tokens: max, messages: [{ role: 'user', content: prompt }] }) });
+  if (!r.ok) return '';
+  const j = await r.json(); return (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
+};
+// traduce un mensaje corto (consultas entre la mesa y el encargado, y lo que dice la moza en idiomas extra)
 async function traducirTexto(txt, to) {
-  const KEY = process.env.ANTHROPIC_API_KEY; if (!KEY || !txt) return '';
-  const idi = { es: 'castellano rioplatense (Argentina)', en: 'English', pt: 'português do Brasil' }[to] || to;
-  try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'x-api-key': KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model: process.env.IA_MODEL_TEXT || 'claude-haiku-5-5', max_tokens: 400, messages: [{ role: 'user', content: `Traducí este mensaje de un café/restaurante al ${idi}. Es una charla entre un cliente y el encargado. Respondé SOLO con la traducción, sin comillas ni explicaciones.\n\n${txt}` }] }) });
-    if (!r.ok) return '';
-    const j = await r.json(); return String((j.content || []).filter(c => c.type === 'text').map(c => c.text).join('')).trim().slice(0, 400);
-  } catch (e) { return ''; }
+  if (!txt || !IDI[to]) return '';
+  try { return String(await IA(`Traducí este mensaje de un café/restaurante al ${IDI[to]}. Es una charla entre un cliente y el local. Mantené los emojis, los nombres propios y los precios. Respondé SOLO con la traducción, sin comillas ni explicaciones.\n\n${txt}`, 600)).trim().slice(0, 600); } catch (e) { return ''; }
 }
-async function traducir(menu) {
-  const KEY = process.env.ANTHROPIC_API_KEY; if (!KEY) return null;
+// traduce la carta a un idioma (una llamada por idioma, en paralelo)
+async function traducir1(menu, L) {
   const src = { saludo: menu.saludo || '', cats: menu.cats.map(c => ({ n: c.n, items: c.items.map(i => ({ n: i.n, d: i.d })) })) };
-  const prompt = `Traducí esta carta de restaurante al inglés ("en") y al portugués de Brasil ("pt"). Mantené EXACTAMENTE la misma estructura, el mismo orden y la misma cantidad de secciones y platos. Nombres propios o de marca y platos típicos argentinos (por ejemplo "medialuna", "milanesa", "choripán") dejalos en su nombre original y agregá entre paréntesis una explicación muy corta. Respondé SOLO con JSON: {"en":{"saludo":"","cats":[{"n":"","items":[{"n":"","d":""}]}]},"pt":{...}}
+  const tip = (menu.idioma || 'es') === 'es' ? ' Platos típicos argentinos (por ejemplo "medialuna", "milanesa", "choripán") dejalos en su nombre original y agregá entre paréntesis una explicación muy corta.' : '';
+  const prompt = `Traducí esta carta de restaurante al ${IDI[L]}. Mantené EXACTAMENTE la misma estructura, el mismo orden y la misma cantidad de secciones y platos. Los nombres propios o de marca dejalos igual.${tip} Respondé SOLO con JSON: {"saludo":"","cats":[{"n":"","items":[{"n":"","d":""}]}]}
 ${JSON.stringify(src)}`;
   try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'x-api-key': KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model: process.env.IA_MODEL_TEXT || 'claude-haiku-5-5', max_tokens: 16000, messages: [{ role: 'user', content: prompt }] }) });
-    if (!r.ok) return null;
-    const j = await r.json(), text = (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
-    const out = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1));
-    const tr = {};
-    for (const L of ['en', 'pt']) {
-      const x = out && out[L]; if (!x || !Array.isArray(x.cats) || x.cats.length !== menu.cats.length) continue;
-      const ok = x.cats.every((c, k) => c && Array.isArray(c.items) && c.items.length === menu.cats[k].items.length);
-      if (!ok) continue;
-      tr[L] = { saludo: t(x.saludo, 200), cats: x.cats.map(c => ({ n: t(c.n, 60), items: c.items.map(i => ({ n: t(i && i.n, 90), d: t(i && i.d, 240) })) })) };
-    }
-    return Object.keys(tr).length ? tr : null;
+    const text = await IA(prompt, 12000); if (!text) return null;
+    const x = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1));
+    if (!x || !Array.isArray(x.cats) || x.cats.length !== menu.cats.length) return null;
+    if (!x.cats.every((c, k) => c && Array.isArray(c.items) && c.items.length === menu.cats[k].items.length)) return null;
+    return { saludo: t(x.saludo, 200), cats: x.cats.map(c => ({ n: t(c.n, 60), items: c.items.map(i => ({ n: t(i && i.n, 90), d: t(i && i.d, 240) })) })) };
   } catch (e) { return null; }
+}
+// completa los idiomas que falten (prev = traducciones que ya estaban y siguen sirviendo)
+async function traducir(menu, prev, solo) {
+  const src = menu.idioma || 'es', tr = {};
+  Object.entries(prev || {}).forEach(([L, v]) => { if (LANGS.includes(L) && L !== src && v) tr[L] = v; });
+  const faltan = (solo || LANGS).filter(L => L !== src && !tr[L]);
+  const res = await Promise.all(faltan.map(L => traducir1(menu, L)));
+  faltan.forEach((L, k) => { if (res[k]) tr[L] = res[k]; });
+  return Object.keys(tr).length ? tr : null;
 }
 
 // ---- Cuenta del local: 7 días de prueba, después abono mensual por Mercado Pago (o cobro a mano desde Mis pruebas) ----
@@ -274,7 +279,7 @@ module.exports = async (req, res) => {
       const base0 = { id: Date.now().toString(36) + crypto.randomBytes(3).toString('hex'), k: crypto.randomBytes(8).toString('hex'), mesa, nombre, creado: new Date().toISOString() };
       let nuevo;
       if (q.accion === 'aviso') {
-        const lang = ['en', 'pt'].includes(b.lang) ? b.lang : '';
+        const lang = LANGS.includes(b.lang) && b.lang !== 'es' ? b.lang : '';
         nuevo = Object.assign(base0, { lang, tipo: ['cuenta', 'pago', 'consulta'].includes(b.tipo) ? b.tipo : 'mozo', monto: t(b.monto, 20), pedido_n: parseInt(b.pedido_n, 10) || null, texto: t(b.texto, 300), metodo: ['virtual', 'efectivo', 'caja'].includes(b.metodo) ? b.metodo : '', propina: t(b.propina, 40), estado: 'nuevo' });
         if (lang && nuevo.texto) { const es = await traducirTexto(nuevo.texto, 'es'); if (es) { nuevo.orig = nuevo.texto; nuevo.texto = es; } }
       } else {
@@ -342,6 +347,29 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true });
     }
 
+    // textos de la moza en los idiomas extra (fr, it, de, ru, zh): se traducen una sola vez y quedan guardados
+    if (req.method === 'GET' && q.ui) {
+      const L = String(q.ui); if (!LANGS.includes(L) || ['es', 'en', 'pt'].includes(L)) return res.status(400).json({ error: 'Idioma inválido.' });
+      const base = require('./menu-ui.json'), path = 'menus/ui-' + L + '.json', D = (await leerObj0(path)) || {};
+      const faltan = base.filter(x => !D[x]);
+      for (let k = 0; k < faltan.length; k += 60) {
+        const lote = faltan.slice(k, k + 60);
+        try { const text = await IA(`Traducí al ${IDI[L]} estos textos de la moza virtual de un café (la app con la que el cliente pide desde la mesa). Tono cálido y natural, como una moza amable. Mantené emojis, etiquetas HTML como <b>, comillas y espacios al principio o al final exactamente igual. Respondé SOLO con un JSON array de strings, en el mismo orden y la misma cantidad.\n${JSON.stringify(lote)}`, 8000);
+          const arr = JSON.parse(text.slice(text.indexOf('['), text.lastIndexOf(']') + 1));
+          if (Array.isArray(arr) && arr.length === lote.length) lote.forEach((x, i) => { if (typeof arr[i] === 'string' && arr[i].trim()) D[x] = arr[i]; });
+        } catch (e) {}
+      }
+      if (faltan.length) { try { await guardarObj0(path, D); } catch (e) {} }
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      return res.status(200).json({ d: D });
+    }
+    // traduce una frase corta de la moza o del cliente (idiomas extra). Solo para menús que existen.
+    if (req.method === 'POST' && q.accion === 'trad') {
+      const b = cuerpo(req), to = String(b.to || ''), txt = t(b.texto, 500).trim();
+      if (!okId(b.id) || !LANGS.includes(to) || !txt) return res.status(400).json({ error: 'Datos inválidos.' });
+      if (!(await leerObj('menus/' + b.id + '.json'))) return res.status(404).json({ error: 'No encontramos este menú.' });
+      return res.status(200).json({ texto: (await traducirTexto(txt, to)) || '' });
+    }
     if (req.method === 'GET' && q.id) {
       const id = String(q.id);
       if (!/^[a-z0-9]{6,20}$/.test(id)) return res.status(400).json({ error: 'Menú inválido.' });
@@ -349,6 +377,12 @@ module.exports = async (req, res) => {
       if (!f || !f.menu) return res.status(404).json({ error: 'No encontramos este menú.' });
       if (q.clave) { if (hash(String(q.clave)) !== f.clave) return res.status(403).json({ error: 'La clave no es correcta.' }); return res.status(200).json({ menu: f.menu, edita: true }); }
       const c = await cuenta(id, f);
+      const L = String(q.lang || '');
+      if (LANGS.includes(L) && L !== (f.menu.idioma || 'es') && !(f.menu.tr && f.menu.tr[L]) && f.menu.cats && f.menu.cats.length) {
+        const real = id === PUB ? PUB_BASE : id, f0 = id === PUB ? await leerObj0('menus/' + PUB_BASE + '.json') : f;
+        const tr = f0 && f0.menu ? await traducir(f0.menu, f0.menu.tr, [L]) : null;
+        if (tr && tr[L]) { f0.menu.tr = tr; f.menu.tr = tr; try { await guardarObj0('menus/' + real + '.json', f0); } catch (e) {} }
+      }
       return res.status(200).json({ menu: f.menu, pausado: c.estado === 'vencido' });
     }
 
@@ -357,7 +391,7 @@ module.exports = async (req, res) => {
       if (!menu.cats.length) return res.status(400).json({ error: 'El menú está vacío.' });
       let id = String(b.id || ''), clave = String(b.clave || '');
       // traducción: solo si cambió el texto de la carta (así no se paga de nuevo por cambiar un precio)
-      const firma = crypto.createHash('sha1').update(JSON.stringify([menu.saludo, menu.cats.map(c => [c.n, c.items.map(i => [i.n, i.d])])])).digest('hex');
+      const firma = crypto.createHash('sha1').update(JSON.stringify([menu.idioma, menu.saludo, menu.cats.map(c => [c.n, c.items.map(i => [i.n, i.d])])])).digest('hex');
       let prev = null;
       if (id) {
         if (!/^[a-z0-9]{6,20}$/.test(id)) return res.status(400).json({ error: 'Menú inválido.' });
@@ -365,8 +399,7 @@ module.exports = async (req, res) => {
         prev = await leerObj('menus/' + id + '.json');
         if (!prev || hash(clave) !== prev.clave) return res.status(403).json({ error: 'No tenés permiso para editar este menú.' });
       }
-      if (prev && prev.firma === firma && prev.menu && prev.menu.tr) menu.tr = prev.menu.tr;
-      else { const tr = await traducir(menu); if (tr) menu.tr = tr; }
+      { const tr = await traducir(menu, prev && prev.firma === firma && prev.menu ? prev.menu.tr : null); if (tr) menu.tr = tr; }
       if (prev) {
         await guardarObj('menus/' + id + '.json', Object.assign(prev, { menu, firma, cambiado: new Date().toISOString() }));
       } else {

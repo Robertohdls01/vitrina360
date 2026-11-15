@@ -180,6 +180,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     fx.innerHTML = Array.from({length: 14}, (_, i) => `<span style="left:${Math.round(Math.random() * 96)}%;font-size:${14 + Math.round(Math.random() * 14)}px;animation-duration:${9 + Math.random() * 9}s;animation-delay:${-Math.random() * 15}s">${it[i % it.length]}</span>`).join('');
     const g = document.createElement('div'); g.id = 'decoG'; g.setAttribute('aria-hidden', 'true'); g.textContent = Array.from({length: 10}, (_, i) => it[i % it.length]).join(' ');
     document.body.appendChild(fx); document.body.appendChild(g); };
+  const HABLA = {en: 'inglés', pt: 'portugués', fr: 'francés', it: 'italiano', de: 'alemán', ru: 'ruso', zh: 'chino', es: 'castellano'}, BANDE = {en: '🇺🇸', pt: '🇧🇷', fr: '🇫🇷', it: '🇮🇹', de: '🇩🇪', ru: '🇷🇺', zh: '🇨🇳', es: '🇦🇷'};
   const LUGARES = {mesa: ['mesa', 'table', 'mesa', 'na'], maquina: ['máquina', 'machine', 'máquina', 'na'], habitacion: ['habitación', 'room', 'quarto', 'no'], sombrilla: ['sombrilla', 'umbrella', 'guarda-sol', 'no'], butaca: ['butaca', 'seat', 'assento', 'no']};
   const cap = w => w ? w[0].toUpperCase() + w.slice(1) : w;
   const LTYPES = {ig: ['📸', 'Instagram', u => 'https://instagram.com/' + hdl(u)], fb: ['👍', 'Facebook', u => 'https://facebook.com/' + hdl(u)], tt: ['🎵', 'TikTok', u => 'https://tiktok.com/@' + hdl(u)], wa: ['💬', 'WhatsApp', u => 'https://wa.me/' + (u.replace(/\D/g, '').startsWith('54') ? '' : '549') + u.replace(/\D/g, '')], yt: ['▶️', 'YouTube', u => 'https://youtube.com/@' + hdl(u)], maps: ['📍', 'Cómo llegar (Google Maps)'], web: ['🌐', 'Nuestra web'], tienda: ['🛍️', 'Nuestra tienda'], delivery: ['🛵', 'Pedí delivery'], otro: ['🔗', 'Link']};
@@ -290,6 +291,8 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
           <div class="grid2"><label>Nombre del local<input id="fNombre" maxlength="60" placeholder="Ej: Café La Esquina"></label><label>¿Cuántas mesas (o lugares)?<input id="fMesas" type="number" min="1" max="500"></label></div>
           <div class="grid2"><label>¿Cómo se llaman tus lugares?<select id="fLugar"><option value="mesa">🍽️ Mesas (café, restaurante)</option><option value="maquina">🎰 Máquinas (casino)</option><option value="habitacion">🛏️ Habitaciones (hotel)</option><option value="sombrilla">⛱️ Sombrillas (balneario)</option><option value="butaca">💺 Butacas (cine, teatro, estadio)</option></select></label><span class="note" style="align-self:center">Así lo dicen la moza, los QR y la caja: "Máquina 152".</span></div>
           <div class="grid2"><label>Nombre del asistente<input id="fAsis" maxlength="20" placeholder="Lola"></label><label>Saludo especial (opcional)<input id="fSaludo" maxlength="200" placeholder="Ej: ¡Hoy tenemos música en vivo!"></label></div>
+          <label>Idioma en que cargás la carta<select id="fIdioma"><option value="es">🇦🇷 Castellano</option><option value="en">🇺🇸 Inglés</option><option value="pt">🇧🇷 Portugués</option><option value="fr">🇫🇷 Francés</option><option value="it">🇮🇹 Italiano</option><option value="de">🇩🇪 Alemán</option><option value="ru">🇷🇺 Ruso</option><option value="zh">🇨🇳 Chino</option></select></label>
+          <p class="hint" style="margin:4px 0 10px">🌍 Tus clientes ven la carta y hablan con la moza en <b>8 idiomas</b>: castellano, inglés, portugués, francés, italiano, alemán, ruso y chino. Se traduce sola cuando guardás.</p>
           <div class="grid2"><label>¿Cuánto tarda un pedido? (minutos, aprox.)<input id="fDem" type="number" min="0" max="120" placeholder="Ej: 15"></label><label>Tus mozos (opcional, separados por coma)<input id="fMozos" maxlength="200" placeholder="Ej: Marcos, Sofi, Juan"></label></div>
           <div class="grid2" style="align-items:center"><label style="display:flex;gap:8px;align-items:center;font-weight:700"><input type="checkbox" id="fEnvio" style="width:auto"> 🛵 Llevamos pedidos cerca (oficinas, bancos, negocios)</label><label>Aclaración del envío (opcional)<input id="fEnvioTx" maxlength="120" placeholder="Ej: Solo a 5 cuadras · sin cargo"></label></div>
           <div class="grid2"><label>Alias para que te paguen (opcional)<input id="fAlias" maxlength="60" placeholder="Ej: cafe.laesquina.mp"></label><label>Link de pago de Mercado Pago (opcional)<input id="fPay" maxlength="300" inputmode="url" placeholder="https://link.mercadopago.com.ar/…"></label></div>
@@ -346,7 +349,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       $('#fLinks').innerHTML = Array.from({length: 10}, (_, i) => { const x = L[i] || {t: '', u: '', l: ''}; return `<div class="lrow" style="display:grid;grid-template-columns:minmax(120px,170px) 1fr minmax(100px,170px);gap:6px"><select data-lt aria-label="Tipo de link ${i + 1}"><option value="">${i + 1}. Tipo…</option>${Object.entries(LTYPES).map(([k, v]) => `<option value="${k}" ${k === x.t ? 'selected' : ''}>${v[0]} ${v[1].replace(/ \(.*/, '')}</option>`).join('')}</select><input data-lu maxlength="300" placeholder="Link o @usuario" value="${esc(x.u)}" aria-label="Link ${i + 1}"><input data-ll maxlength="40" placeholder="Texto del botón (opcional)" value="${esc(x.l || '')}" aria-label="Texto del botón ${i + 1}"></div>`; }).join('');
       $('#fLinks').addEventListener('input', e => { if(e.target.matches('[data-lu]')){ const sel = e.target.parentNode.querySelector('[data-lt]'); if(!sel.value && e.target.value.trim()) sel.value = guessT(e.target.value); } }); } $('#fDem').value = menu.demora || ''; $('#fEnvio').checked = !!menu.envio; $('#fEnvioTx').value = menu.envioTx || ''; $('#fMozos').value = (menu.mozos || []).join(', '); $('#fPay').value = menu.paylink || ''; $('#fAsis').value = menu.asistente; $('#fAva').value = menu.avatar || (/a$/i.test(menu.asistente || 'Lola') ? 'moza' : 'mozo'); $('#fPelo').value = menu.pelo || 'castano'; $('#fCajaAva').value = menu.cajaAva || 'flashi'; $('#fLargo').value = menu.largo || 'largo'; $('#fPiel').value = menu.piel || 'media'; $('#fBarba').checked = !!menu.barba;
     const prev = () => { const g = $('#fAva').value; $('#lLargo').style.display = g === 'moza' ? '' : 'none'; $('#lBarba').style.display = g === 'mozo' ? 'flex' : 'none'; $('#avaPrev').innerHTML = makeAva({g, pelo: $('#fPelo').value, largo: $('#fLargo').value, piel: $('#fPiel').value, barba: $('#fBarba').checked, local: $('#fNombre').value}).replace('class="chef"', 'style="width:120px;height:160px"'); };
-    ['#fAva', '#fPelo', '#fLargo', '#fPiel', '#fBarba'].forEach(q => $(q).addEventListener('change', prev)); $('#fNombre').addEventListener('input', prev); prev(); $('#fSaludo').value = menu.saludo || '';
+    ['#fAva', '#fPelo', '#fLargo', '#fPiel', '#fBarba'].forEach(q => $(q).addEventListener('change', prev)); $('#fNombre').addEventListener('input', prev); prev(); $('#fSaludo').value = menu.saludo || ''; $('#fIdioma').value = menu.idioma || 'es';
     const logoPrev = () => { $('#logoPrev').innerHTML = menu.logo ? `<img src="${menu.logo}" alt="Logo" style="height:56px;max-width:140px;object-fit:contain;border-radius:10px;border:1px solid #e6dcfb;background:#fff"><button class="btn sec" type="button" id="logoDel" style="padding:6px 12px">Quitar</button>` : '<span class="note">Sale en tus QR y arriba del menú.</span>'; const d = $('#logoDel'); if(d) d.onclick = () => { menu.logo = ''; logoPrev(); }; };
     logoPrev();
     $('#fLogo').onchange = e => { const f = e.target.files[0]; if(!f) return; const img = new Image(), r = new FileReader();
@@ -358,7 +361,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       $('#fFondo').onchange = e => { const f = e.target.files[0]; if(!f) return; const img = new Image(), r = new FileReader();
         r.onload = () => { img.onload = () => { const k = Math.min(1, 1280 / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); let q = .72, u = c.toDataURL('image/jpeg', q); while(u.length > 550000 && q > .35){ q -= .1; u = c.toDataURL('image/jpeg', q); } subeFondo(u); }; img.src = r.result; }; r.readAsDataURL(f); };
       $('#fFondoCaja').onchange = () => { if(menu.fondoV && ID && CLAVE) api('/api/menu?accion=fondo', {id: ID, clave: CLAVE, img: null, caja: $('#fFondoCaja').checked}).catch(() => {}); }; }
-    const sync = () => { menu.deco = $('#fDeco').value; menu.musica = $('#fMusica').checked; menu.fondoCaja = $('#fFondoCaja').checked; menu.dueno = $('#fDueno').value.trim(); menu.nombre = $('#fNombre').value.trim(); menu.mesas = parseInt($('#fMesas').value, 10) || 10; menu.lugar = $('#fLugar').value; menu.asistente = $('#fAsis').value.trim() || 'Lola'; menu.avatar = $('#fAva').value; menu.pelo = $('#fPelo').value; menu.cajaAva = $('#fCajaAva').value; menu.largo = $('#fLargo').value; menu.piel = $('#fPiel').value; menu.barba = $('#fBarba').checked; menu.saludo = $('#fSaludo').value.trim(); menu.alias = $('#fAlias').value.trim(); menu.greview = $('#fGrev').value.trim(); menu.nov = $('#fNov').value.trim(); menu.links = [...$('#fLinks').querySelectorAll('.lrow')].map(r => { const u = r.querySelector('[data-lu]').value.trim(); return {t: r.querySelector('[data-lt]').value || (u ? guessT(u) : ''), u, l: r.querySelector('[data-ll]').value.trim()}; }).filter(x => x.u); ['ig', 'fb', 'tt', 'web', 'tienda', 'tiendaTx'].forEach(k => menu[k] = ''); menu.wa = $('#fWa').value.replace(/[^\d+]/g, ''); menu.demora = parseInt($('#fDem').value, 10) || 0; menu.envio = $('#fEnvio').checked; menu.envioTx = $('#fEnvioTx').value.trim(); menu.mozos = $('#fMozos').value.split(',').map(x => x.trim()).filter(Boolean); menu.paylink = $('#fPay').value.trim(); };
+    const sync = () => { menu.deco = $('#fDeco').value; menu.musica = $('#fMusica').checked; menu.fondoCaja = $('#fFondoCaja').checked; menu.dueno = $('#fDueno').value.trim(); menu.nombre = $('#fNombre').value.trim(); menu.mesas = parseInt($('#fMesas').value, 10) || 10; menu.lugar = $('#fLugar').value; menu.asistente = $('#fAsis').value.trim() || 'Lola'; menu.avatar = $('#fAva').value; menu.pelo = $('#fPelo').value; menu.cajaAva = $('#fCajaAva').value; menu.largo = $('#fLargo').value; menu.piel = $('#fPiel').value; menu.barba = $('#fBarba').checked; menu.saludo = $('#fSaludo').value.trim(); menu.idioma = $('#fIdioma').value || 'es'; menu.alias = $('#fAlias').value.trim(); menu.greview = $('#fGrev').value.trim(); menu.nov = $('#fNov').value.trim(); menu.links = [...$('#fLinks').querySelectorAll('.lrow')].map(r => { const u = r.querySelector('[data-lu]').value.trim(); return {t: r.querySelector('[data-lt]').value || (u ? guessT(u) : ''), u, l: r.querySelector('[data-ll]').value.trim()}; }).filter(x => x.u); ['ig', 'fb', 'tt', 'web', 'tienda', 'tiendaTx'].forEach(k => menu[k] = ''); menu.wa = $('#fWa').value.replace(/[^\d+]/g, ''); menu.demora = parseInt($('#fDem').value, 10) || 0; menu.envio = $('#fEnvio').checked; menu.envioTx = $('#fEnvioTx').value.trim(); menu.mozos = $('#fMozos').value.split(',').map(x => x.trim()).filter(Boolean); menu.paylink = $('#fPay').value.trim(); };
     $('#bCam').onclick = () => $('#iCam').click(); $('#bGal').onclick = () => $('#iGal').click();
     const addFiles = async fs => { for(const f of [...fs].slice(0, 4 - fotos.length)){ try{ fotos.push(await shrink(f, 1500)); }catch(e){} } $('#thumbs').innerHTML = fotos.map((u, i) => `<img src="${u}" alt="Foto ${i + 1}">`).join('') + (fotos.length ? ` <button class="btn sec" type="button" id="bClr">🗑 Borrar fotos</button>` : ''); $('#bLeer').hidden = !fotos.length; const c = $('#bClr'); if(c) c.onclick = () => { fotos = []; addFiles([]); }; };
     $('#iCam').onchange = e => { addFiles(e.target.files); e.target.value = ''; }; $('#iGal').onchange = e => { addFiles(e.target.files); e.target.value = ''; };
@@ -422,9 +425,18 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     { const IR = {links: 'secRedes', redes: 'secRedes', local: 'paso1', pagos: 'paso1', asistente: 'secAsis', carta: menu.cats.length ? 'edit' : 'secFotos', fotos: 'secFotos'}[Q.get('ir')]; const el = IR && document.getElementById(IR); if(el) setTimeout(() => { el.scrollIntoView({behavior: 'smooth', block: 'start'}); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 3500); }, 500); }
   }
 
-  // =================== MESA: el asistente recibe, recomienda y toma el pedido por voz (español, inglés, portugués) ===================
+  // =================== MESA: el asistente recibe, recomienda y toma el pedido por voz (8 idiomas: es, en, pt, fr, it, de, ru, zh) ===================
   async function mesa(){
-    let M = null; try{ const J = await api('/api/menu?id=' + encodeURIComponent(ID)); M = J.menu; if(J.pausado){ app.innerHTML = `<div style="padding:40px 20px;text-align:center;max-width:420px;margin:auto"><div style="font-size:54px">🍽️</div><h2>${esc(M.nombre || '')}</h2><p>El menú digital está en pausa por el momento.</p><p><b>Pedile la carta al mozo</b> 🙋 ¡Gracias!</p></div>`; return; } }catch(e){ app.innerHTML = `<p style="padding:30px;text-align:center">😕 ${esc(e.message)}</p>`; return; }
+    // idioma: el que eligió, o el del celular (8 idiomas)
+    const LANGS = ['es', 'en', 'pt', 'fr', 'it', 'de', 'ru', 'zh'];
+    let LANG = (Q.get('lang') || (() => { try{ return localStorage.getItem('shopmenu-lang'); }catch(e){ return ''; } })() || navigator.language || 'es').slice(0, 2).toLowerCase();
+    if(!LANGS.includes(LANG)) LANG = 'en';
+    const EXTRA = !['es', 'en', 'pt'].includes(LANG);
+    // textos de la moza en fr/it/de/ru/zh (se guardan en el celular para la próxima)
+    let UI = {}; if(EXTRA){ try{ UI = JSON.parse(localStorage.getItem('shopmenu-ui-' + LANG) || '{}') || {}; }catch(e){}
+      const pu = fetch('/api/menu?ui=' + LANG).then(r => r.ok ? r.json() : null).then(j => { if(j && j.d){ UI = j.d; try{ localStorage.setItem('shopmenu-ui-' + LANG, JSON.stringify(UI)); }catch(e){} } }).catch(() => {});
+      if(!Object.keys(UI).length) await Promise.race([pu, new Promise(r => setTimeout(r, 25000))]); }
+    let M = null; try{ const J = await api('/api/menu?id=' + encodeURIComponent(ID) + '&lang=' + LANG); M = J.menu; if(J.pausado){ app.innerHTML = `<div style="padding:40px 20px;text-align:center;max-width:420px;margin:auto"><div style="font-size:54px">🍽️</div><h2>${esc(M.nombre || '')}</h2><p>El menú digital está en pausa por el momento.</p><p><b>Pedile la carta al mozo</b> 🙋 ¡Gracias!</p></div>`; return; } }catch(e){ app.innerHTML = `<p style="padding:30px;text-align:center">😕 ${esc(e.message)}</p>`; return; }
 
     // ---- App del café (se instala en el celular) + cliente fijo ("lo de siempre") ----
     const APP = Q.has('app'), STANDALONE = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
@@ -453,16 +465,16 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     if(!CLI.cid){ CLI.cid = Array.from({length: 14}, () => 'abcdefghijkmnpqrstuvwxyz23456789'[Math.floor(Math.random() * 32)]).join(''); try{ localStorage.setItem(KCLI, JSON.stringify(CLI)); }catch(e){} }
     const guardaCli = o => { CLI = Object.assign(CLI, o); try{ localStorage.setItem(KCLI, JSON.stringify(CLI)); }catch(e){} };
     let LLEVAR = null; // {tipo:'llevar'|'llego', min}
-    // idioma: el que eligió, o el del celular
-    let LANG = (Q.get('lang') || (() => { try{ return localStorage.getItem('shopmenu-lang'); }catch(e){ return ''; } })() || navigator.language || 'es').slice(0, 2).toLowerCase();
-    if(!['es', 'en', 'pt'].includes(LANG)) LANG = 'en';
-    const T = (es, en, pt) => LANG === 'en' ? en : LANG === 'pt' ? pt : es;
-    const TR = (M.tr && M.tr[LANG]) || null;
+    const UIV = new Set(Object.values(UI).map(x => String(x).trim()));
+    const tr1 = x => { if(typeof x !== 'string') return x; if(UI[x]) return UI[x]; const k = x.trim(), lo = k.toLowerCase(); if(UI[k]) return x.replace(k, UI[k]); if(UI[lo]) return x.replace(k, cap(UI[lo])); return x; };
+    const T = (es, en, pt) => LANG === 'en' ? en : LANG === 'pt' ? pt : LANG === 'es' ? es : Array.isArray(en) ? en.map(tr1) : tr1(en);
+    const SRC = M.idioma || 'es';
+    const TR = (LANG !== SRC && M.tr && M.tr[LANG]) || null;
     // cada plato: nombre original (va a la caja) + nombre en el idioma del cliente
     const ALL = []; M.cats.forEach((c, ci) => c.items.forEach((i, ii) => { const t = TR && TR.cats[ci] && TR.cats[ci].items[ii]; ALL.push(Object.assign({cat: (TR && TR.cats[ci] && TR.cats[ci].n) || c.n, ci, ii, dn: (t && t.n) || i.n, dd: (t && t.d) || i.d}, i)); }));
     const CATS = M.cats.map((c, ci) => ({n: (TR && TR.cats[ci] && TR.cats[ci].n) || c.n, items: ALL.filter(i => i.ci === ci)}));
     const byN = n => ALL.find(i => i.n === n), dn = n => { const i = byN(n); return i ? i.dn : n; };
-    const SALUDO = (TR && TR.saludo) || (LANG === 'es' ? M.saludo : '') || '';
+    const SALUDO = (TR && TR.saludo) || (LANG === SRC ? M.saludo : '') || '';
     CHEF = makeAva(avaOpts(M));
     const PROMOS = ALL.filter(i => i.promo);
     let nombre = '', mute = false, order = {}; const ofrecido = new Set(); const KEYP = 'shopmenu-' + ID + '-' + MESA;
@@ -471,7 +483,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     const keep = () => { try{ localStorage.setItem(KEYP, JSON.stringify({nombre, order, p: presentada, t: Date.now()})); }catch(e){} };
     const terminar = () => { try{ localStorage.removeItem(KEYP); }catch(e){} };
     try{ mute = localStorage.getItem('shopmenu-mute') === '1'; }catch(e){}
-    const FLAGS = {es: '🇦🇷 ES', en: '🇺🇸 EN', pt: '🇧🇷 PT'};
+    const FLAGS = {es: '🇦🇷 ES', en: '🇺🇸 EN', pt: '🇧🇷 PT', fr: '🇫🇷 FR', it: '🇮🇹 IT', de: '🇩🇪 DE', ru: '🇷🇺 RU', zh: '🇨🇳 中文'};
     const REDES = allLinks(M), LG = LUGARES[M.lugar] || LUGARES.mesa;
     app.innerHTML = `<div class="mesa"><div class="mtop"><b style="display:flex;align-items:center;gap:8px">${M.logo ? `<img src="${M.logo}" alt="" style="height:34px;width:34px;object-fit:contain;border-radius:8px;background:#fff">` : ''}${esc(M.nombre)}</b><span class="tag" id="tagMesa">${MESA ? T(cap(LG[0]) + ' ', cap(LG[1]) + ' ', cap(LG[2]) + ' ') + MESA : T('Bienvenido', 'Welcome', 'Bem-vindo')}</span><select id="selLang" aria-label="Idioma / Language" style="width:auto;padding:4px 6px;border-radius:999px;background:rgba(255,255,255,.15);color:#fff;border:0">${Object.entries(FLAGS).map(([k, v]) => `<option value="${k}" ${k === LANG ? 'selected' : ''} style="color:#000">${v}</option>`).join('')}</select>${REDES.length || M.nov ? `<button type="button" id="bRedes" title="${T('Redes y novedades', 'Social & news', 'Redes e novidades')}">📲</button>` : ''}${M.musica ? `<button type="button" id="bMus" title="${T('Música', 'Music', 'Música')}">🎵</button>` : ''}<button type="button" id="bMute" title="Voz">${mute ? '🔇' : '🔊'}</button></div>
       <div class="stage"><div id="ava">${CHEF}</div><div class="bubble" id="say" role="status" aria-live="polite"></div></div>
@@ -482,7 +494,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     $('#selLang').onchange = e => { try{ localStorage.setItem('shopmenu-lang', e.target.value); }catch(err){} const u = new URL(location.href); u.searchParams.set('lang', e.target.value); if(MESA) u.searchParams.set('mesa', MESA); location.href = u.toString(); };
     let chef = $('.chef'); const say = $('#say'), opts = $('#opts'), area = $('#area');
     // ---- voz ----
-    const VL = {es: 'es-AR', en: 'en-US', pt: 'pt-BR'}[LANG];
+    const VL = {es: 'es-AR', en: 'en-US', pt: 'pt-BR', fr: 'fr-FR', it: 'it-IT', de: 'de-DE', ru: 'ru-RU', zh: 'zh-CN'}[LANG];
     // la voz más natural disponible en el celular (las "Natural", "Neural", "Online", "Enhanced" o de Google suenan mucho mejor)
     let voice = null; const pickVoice = () => {
       const vs = speechSynthesis.getVoices().filter(v => v.lang.toLowerCase().replace('_', '-').startsWith(LANG));
@@ -490,7 +502,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       const score = v => genScore(v, G) + (/natural|neural|online|premium|enhanced|wavenet/i.test(v.name) ? 8 : 0) + (/google/i.test(v.name) ? 4 : 0) + (v.lang.replace('_', '-').toLowerCase() === VL.toLowerCase() ? 3 : 0) + (/es-(ar|us|419|mx)/i.test(v.lang.replace('_', '-')) && LANG === 'es' ? 1 : 0) + (v.localService ? 1 : 0);
       voice = vs.sort((a, b) => score(b) - score(a))[0] || null; };
     if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
-    const talk = (txt, chips, ask) => {
+    const talk0 = (txt, chips, ask) => {
       talk.ask = !!ask;
       if(talk.pre){ txt = talk.pre + txt; talk.pre = ''; }
       say.textContent = txt; opts.innerHTML = '';
@@ -507,6 +519,17 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
           if(k === 0) u.onstart = () => chef.classList.add('talk');
           if(k === arr.length - 1) u.onend = u.onerror = () => { chef.classList.remove('talk'); if(talk.listen){ talk.listen = false; listen(); } };
           if(wasSpeaking) setTimeout(() => speechSynthesis.speak(u), 120); else speechSynthesis.speak(u); }); }catch(e){}
+    };
+    // en francés, italiano, alemán, ruso y chino la moza traduce al momento lo que no está en su diccionario
+    const KTRC = 'shopmenu-trc-' + LANG; let TRC = {}; try{ TRC = JSON.parse(localStorage.getItem(KTRC) || '{}') || {}; }catch(e){}
+    let tSeq = 0;
+    const talk = (txt, chips, ask) => { const my = ++tSeq;
+      if(!EXTRA || !txt || UIV.has(String(txt).trim()) || !/[A-Za-z]{3}/.test(String(txt).replace(/<[^>]+>/g, ''))) return talk0(txt, chips, ask);
+      if(TRC[txt]) return talk0(TRC[txt], chips, ask);
+      say.textContent = '…';
+      api('/api/menu?accion=trad', {id: ID, to: LANG, texto: txt}).then(j => (j && j.texto) || '').catch(() => '').then(tx => {
+        if(tx){ TRC[txt] = tx; const ks = Object.keys(TRC); if(ks.length > 300) delete TRC[ks[0]]; try{ localStorage.setItem(KTRC, JSON.stringify(TRC)); }catch(e){} }
+        if(my === tSeq) talk0(tx || txt, chips, ask); });
     };
     if($('#bRedes')) $('#bRedes').onclick = redes; if($('#bMus')) $('#bMus').onclick = () => musica(!MUS.on); setTimeout(bannerApp, 1200); $('#bMute').onclick = () => { mute = !mute; $('#bMute').textContent = mute ? '🔇' : '🔊'; try{ localStorage.setItem('shopmenu-mute', mute ? '1' : '0'); }catch(e){} if(mute) try{ speechSynthesis.cancel(); }catch(e){} };
     // ---- pedido (las claves son los nombres originales: así la caja lo ve en su idioma) ----
@@ -528,6 +551,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       um: 1, uma: 1, doi: 2, dua: 2, trê: 3, tre: 3, quatro: 4, cinco: 5, sei: 6, sete: 7, oito: 8, nove: 9, dez: 10, duzia: 12};
     // se busca por el nombre original y por el traducido
     const IT = []; ALL.forEach(i => { IT.push({i, t: toks(i.n).filter(w => !STOP.has(w))}); if(i.dn !== i.n) IT.push({i, t: toks(i.dn.replace(/\(.*?\)/g, '')).filter(w => !STOP.has(w))}); });
+    if(EXTRA && M.tr && M.tr.en) M.tr.en.cats.forEach((c, ci) => (c.items || []).forEach((x, ii) => { const i = ALL.find(a => a.ci === ci && a.ii === ii); if(i && x && x.n) IT.push({i, t: toks(x.n.replace(/\(.*?\)/g, '')).filter(w => !STOP.has(w))}); }));
     function parse(text){
       const w = toks(text), found = [], amb = [], cands = [];
       IT.forEach(x => { if(!x.t.length) return; for(let s = 0; s < w.length; s++){ if(w[s] !== x.t[0]) continue; let k = 1, end = s; for(let j = s + 1; j < w.length && j <= s + x.t.length + 2 && k < x.t.length; j++) if(w[j] === x.t[k]){ k++; end = j; } cands.push({x, s, end, k, full: k === x.t.length}); } });
@@ -564,7 +588,10 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
         if(sc > bestS){ best = b; bestS = sc; tie = false; } else if(sc && sc === bestS) tie = true; });
       return bestS && !tie ? best : null;
     }
-    function hear(text){
+    // en idiomas extra, lo que dice el cliente se pasa al inglés y la moza lo entiende igual
+    function hear(text){ if(!EXTRA || ['nombre', 'consulta', 'dir'].includes(step) || !String(text || '').trim()) return hear0(text);
+      say.textContent = '…'; api('/api/menu?accion=trad', {id: ID, to: 'en', texto: text}).then(j => hear0((j && j.texto) || text)).catch(() => hear0(text)); }
+    function hear0(text){
       let n = norm(text).trim(); if(!n) return;
       if(step === 'dir'){ step = ''; return setEnvio(String(text).trim()); }
       if(step === 'mesa' && M.envio && /(traigan|traer|llevar a|envio|delivery|deliver|oficina|banco|trabajo)/.test(n) && !/para llevar/.test(n)){ return CLI.dir ? setEnvio(CLI.dir) : pedirDir(); }
@@ -933,7 +960,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       return `${n ? `tenés ${n} ${n === 1 ? 'pedido nuevo' : 'pedidos nuevos'}` : 'no tenés pedidos nuevos'}${pr ? `, ${pr} en preparación` : ''}${li ? `, ${li} listo${li > 1 ? 's' : ''} para llevar` : ''}${av ? ` y ${av} aviso${av > 1 ? 's' : ''} de mesas` : ''}.`; };
     const anunciar = (nuevos) => nuevos.forEach(x => {
       if(x.tipo === 'pedido'){ setTimeout(() => volarA(tkDe(x.id)), 600); cTalk(`${hola()}entró un pedido ${x.llevar ? (x.llevar.tipo === 'envio' ? 'para llevar a ' + (x.llevar.dir || 'una dirección') : x.llevar.tipo === 'llego' ? 'de alguien que llega en ' + x.llevar.min + ' minutos' : 'para llevar') : 'de la ' + LGc[0] + ' ' + x.mesa}${x.nombre ? ', ' + x.nombre : ''}: ${listaItems(x)}. ¿Lo preparo?`, x.llevar ? [] : [[`👨‍🍳 Sí, preparar mesa ${x.mesa}`, () => comando('preparar mesa ' + x.mesa), true]]); }
-      else if(x.tipo === 'consulta') cTalk(`${hola()}la mesa ${x.mesa}${x.lang ? (x.lang === 'en' ? ', que habla inglés,' : ', que habla portugués,') : ''} pregunta: ${x.texto}. Decime "respondé mesa ${x.mesa}" y lo que le contesto.`);
+      else if(x.tipo === 'consulta') cTalk(`${hola()}la mesa ${x.mesa}${x.lang ? ', que habla ' + (HABLA[x.lang] || 'otro idioma') + ',' : ''} pregunta: ${x.texto}. Decime "respondé mesa ${x.mesa}" y lo que le contesto.`);
       else if(x.tipo === 'pago') cTalk(`${hola()}la mesa ${x.mesa} dice que pagó virtual ${x.monto}. Revisá que te haya llegado.`);
       else if(x.tipo === 'cuenta') cTalk(x.metodo === 'efectivo' ? `${hola()}la mesa ${x.mesa} paga en efectivo, ${x.monto}. Mandá a alguien a cobrar.` : x.metodo === 'caja' ? `${hola()}la mesa ${x.mesa} viene a pagar a la caja, ${x.monto}.` : `${hola()}la mesa ${x.mesa} pide la cuenta.`);
       else cTalk(`${hola()}la mesa ${x.mesa} llama al mozo.`);
@@ -1048,7 +1075,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       if(j.nombre && j.nombre !== nombreLocal){ nombreLocal = j.nombre; $('#cName').textContent = '🧾 Caja · ' + j.nombre; }
       const its = j.items || [], ids = new Set(its.filter(x => x.estado === 'nuevo').map(x => x.id));
       if(seen && [...ids].some(id => !seen.has(id))) beep(); seen = ids;
-      $('#avisos').innerHTML = its.filter(x => x.tipo === 'consulta' && x.estado === 'nuevo').map(a => `<div class="aviso" style="flex-wrap:wrap"><span style="flex-basis:100%">💬 Mesa ${a.mesa}${a.nombre ? ' (' + esc(a.nombre) + ')' : ''} pregunta · ${ago(a.creado)}${a.lang ? ` · ${a.lang === 'en' ? '🇺🇸 habla inglés' : '🇧🇷 habla portugués'}` : ''}<br><span style="font-weight:500">“${esc(a.texto)}”</span>${a.orig ? `<br><small style="color:#6b7280">Original: “${esc(a.orig)}” · traducido</small>` : ''}</span><input data-rin="${a.id}" maxlength="300" placeholder="${a.lang ? 'Respondé en castellano: se lo traducimos a su idioma' : 'Tu respuesta (el asistente se la dice a la mesa)'}" style="flex:1"><button class="btn pri" type="button" data-r="${a.id}">Responder</button></div>`).join('') + its.filter(x => x.tipo !== 'pedido' && x.tipo !== 'consulta' && x.estado === 'nuevo').map(a => `<div class="aviso"><span>${a.tipo === 'pago' ? '💰 La mesa ' + a.mesa + ' dice que PAGÓ VIRTUAL ' + esc(a.monto || '') + (a.pedido_n ? ' (pedido #' + a.pedido_n + ')' : '') + ' — revisá que te haya llegado' : a.tipo === 'cuenta' ? (a.metodo === 'efectivo' ? '💵 La mesa ' + a.mesa + ' paga EN EFECTIVO ' + esc(a.monto || '') + ': mandá al mozo a cobrar' : a.metodo === 'caja' ? '🧾 La mesa ' + a.mesa + ' va a pagar EN LA CAJA ' + esc(a.monto || '') : '💳 La mesa ' + a.mesa + ' pide la cuenta') : '🙋 La mesa ' + a.mesa + ' llama al mozo'}${a.propina ? ' · 🎁 ' + esc(a.propina) : ''}${a.nombre ? ' (' + esc(a.nombre) + ')' : ''} · ${ago(a.creado)}</span><button class="btn sec" type="button" data-v="${a.id}">✓ Atendido</button></div>`).join('');
+      $('#avisos').innerHTML = its.filter(x => x.tipo === 'consulta' && x.estado === 'nuevo').map(a => `<div class="aviso" style="flex-wrap:wrap"><span style="flex-basis:100%">💬 Mesa ${a.mesa}${a.nombre ? ' (' + esc(a.nombre) + ')' : ''} pregunta · ${ago(a.creado)}${a.lang ? ` · ${BANDE[a.lang] || '🌍'} habla ${HABLA[a.lang] || 'otro idioma'}` : ''}<br><span style="font-weight:500">“${esc(a.texto)}”</span>${a.orig ? `<br><small style="color:#6b7280">Original: “${esc(a.orig)}” · traducido</small>` : ''}</span><input data-rin="${a.id}" maxlength="300" placeholder="${a.lang ? 'Respondé en castellano: se lo traducimos a su idioma' : 'Tu respuesta (el asistente se la dice a la mesa)'}" style="flex:1"><button class="btn pri" type="button" data-r="${a.id}">Responder</button></div>`).join('') + its.filter(x => x.tipo !== 'pedido' && x.tipo !== 'consulta' && x.estado === 'nuevo').map(a => `<div class="aviso"><span>${a.tipo === 'pago' ? '💰 La mesa ' + a.mesa + ' dice que PAGÓ VIRTUAL ' + esc(a.monto || '') + (a.pedido_n ? ' (pedido #' + a.pedido_n + ')' : '') + ' — revisá que te haya llegado' : a.tipo === 'cuenta' ? (a.metodo === 'efectivo' ? '💵 La mesa ' + a.mesa + ' paga EN EFECTIVO ' + esc(a.monto || '') + ': mandá al mozo a cobrar' : a.metodo === 'caja' ? '🧾 La mesa ' + a.mesa + ' va a pagar EN LA CAJA ' + esc(a.monto || '') : '💳 La mesa ' + a.mesa + ' pide la cuenta') : '🙋 La mesa ' + a.mesa + ' llama al mozo'}${a.propina ? ' · 🎁 ' + esc(a.propina) : ''}${a.nombre ? ' (' + esc(a.nombre) + ')' : ''} · ${ago(a.creado)}</span><button class="btn sec" type="button" data-v="${a.id}">✓ Atendido</button></div>`).join('');
       const peds = its.filter(x => x.tipo === 'pedido').sort((a, b) => String(a.creado).localeCompare(String(b.creado)));
       const ACC = {
         nuevo: p => `<button class="btn pri" type="button" data-s="${p.id}|preparando">👨‍🍳 Preparar</button><button class="btn sec" type="button" data-s="${p.id}|cancelado" aria-label="Cancelar">✕</button>`,
