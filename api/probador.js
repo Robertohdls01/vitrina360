@@ -1,6 +1,6 @@
 // Vitrina 360 · Probador virtual con IA de imágenes (Google Gemini). La clave vive en Vercel: GEMINI_API_KEY.
 //   GET  /api/probador            → { ok } (si está activado)
-//   POST /api/probador { slug | (Bearer del dueño), tipo: 'ropa'|'perro'|'look', nombre, detalle, foto, prenda? }
+//   POST /api/probador { slug | (Bearer del dueño), tipo: 'ropa'|'perro'|'look'|'jardin', nombre, detalle, foto, prenda? }
 //        foto y prenda: imágenes en base64 (data:image/jpeg;base64,...) o prenda como link https.
 //        → { img: 'data:image/...;base64,...' }
 // Las fotos de los clientes NO se guardan: se mandan a Google, vuelve la imagen y listo.
@@ -46,6 +46,9 @@ function prompt(tipo, nombre, detalle, conRef) {
   if (tipo === 'perro') return `The first image is a photo of a dog. Edit it to show the SAME dog after a professional grooming session with this haircut: ${prod}.` +
     (conRef ? ' The second image is a reference of that haircut style.' : '') +
     ' Keep exactly the same dog: breed, fur color and markings, eyes, nose, face, size, pose and background. Only change the fur length and shape as a skilled groomer would. Photorealistic, natural light, no text, no watermark.';
+  if (tipo === 'jardin') return `The image is a photo of a garden, yard or patio. Redesign it as a professional landscaper would, in this style: ${prod}.` +
+    ' Keep the SAME place: the same house walls, fences, windows, doors, ground level, camera angle, perspective and size of the area, and keep big existing trees. Change only the landscaping: a healthy lawn, plants, flower beds, edges, paths, stones, garden lights and simple outdoor furniture if it fits.' +
+    ' It must look realistic and doable by a local gardener in Argentina, with plants that grow there. Photorealistic, natural daylight, no text, no watermark.';
   if (tipo === 'look') return `The first image is a photo of a person. Edit it to show the SAME person with this beauty service done: ${prod}.` +
     (conRef ? ' The second image is a reference of the result.' : '') +
     ' Keep the same face, identity, skin tone, expression, pose, clothes and background. Only change what that service changes (hair, makeup, nails, brows or lashes). Photorealistic, flattering natural light, no text, no watermark.';
@@ -71,7 +74,7 @@ module.exports = async (req, res) => {
   if (!KEY) return res.status(503).json({ error: 'El probador todavía no está activado en esta tienda.' });
   if (!process.env.SUPABASE_SERVICE_KEY) return res.status(503).json({ error: 'Todavía no está configurado.' });
   const b = cuerpo(req) || {};
-  const tipo = ['ropa', 'perro', 'look'].includes(b.tipo) ? b.tipo : 'ropa';
+  const tipo = ['ropa', 'perro', 'look', 'jardin'].includes(b.tipo) ? b.tipo : 'ropa';
   const foto = dataPart(b.foto);
   if (!foto) return res.status(400).json({ error: 'Subí una foto (JPG o PNG) para probar.' });
 

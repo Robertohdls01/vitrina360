@@ -5,6 +5,8 @@
 //   GET  /api/pedidos                         (comerciante) sus pedidos de los últimos días
 //   POST /api/pedidos?accion=estado           (comerciante) {ref, estado, repartidor}
 //   GET  /api/pedidos?fila=slug               (cualquiera)  la fila de pedidos en preparación (número y nombre de pila)
+//   GET  /api/pedidos?ocupados=slug           (cualquiera)  turnos ya reservados (día y hora) para no ofrecerlos
+//   POST con cita: "2026-11-20T10:00"         reserva ese turno (409 si ya está ocupado)
 //   GET  /api/pedidos?resenas=slug            (cualquiera)  reseñas visibles y promedio
 //   POST /api/pedidos?accion=resena           (cliente)     {ref, k, estrellas, texto, nombre}: una por pedido
 //   GET  /api/pedidos?accion=resenas          (comerciante) todas sus reseñas
@@ -52,6 +54,18 @@ async function leerFila(owner) {
 }
 async function guardarFila(owner, f) {
   try { await fetch(base() + '/object/' + BUCKET + '/fila/' + owner + '.json', { method: 'POST', headers: headers({ 'Content-Type': 'application/json', 'x-upsert': 'true', 'cache-control': 'no-cache' }), body: JSON.stringify(f) }); } catch (e) {}
+}
+// Agenda de turnos (parquería y servicios con día y hora): agenda/<dueño>.json = { "2026-11-20T10:00": "id del pedido" }
+const okCita = c => /^20\d\d-\d\d-\d\dT\d\d:\d\d$/.test(String(c || ''));
+async function leerAgenda(owner) {
+  const r = await fetch(base() + '/object/' + BUCKET + '/agenda/' + owner + '.json', { headers: headers({ 'cache-control': 'no-cache' }) });
+  const f = r.ok ? await r.json().catch(() => null) : null;
+  const a = f && typeof f === 'object' ? f : {}, hoy = hoyAR();
+  Object.keys(a).forEach(k => { if (k.slice(0, 10) < hoy) delete a[k]; });   // los turnos pasados se olvidan
+  return a;
+}
+async function guardarAgenda(owner, a) {
+  try { await fetch(base() + '/object/' + BUCKET + '/agenda/' + owner + '.json', { method: 'POST', headers: headers({ 'Content-Type': 'application/json', 'x-upsert': 'true', 'cache-control': 'no-cache' }), body: JSON.stringify(a) }); } catch (e) {}
 }
 const filaPublica = f => f.activos.slice(0, 15).map(a => ({ n: a.n, nombre: a.nombre || '' }));
 // los últimos pedidos que quedaron listos o salieron (15 minutos), para el turnero
@@ -134,6 +148,16 @@ module.exports = async (req, res) => {
     }
 
     // ---- Fila pública de una tienda (número y nombre de pila) ----
+    // turnos ya reservados de una tienda (sin datos de nadie: solo día y hora)
+    if (req.method === 'GET' && q.ocupados) {
+      const slug = String(q.ocupados);
+      if (!/^[a-z0-9-]{3,40}$/.test(slug)) return res.status(400).json({ error: 'Tienda inválida.' });
+      const rows = await db('GET', '/rest/v1/tiendas?slug=eq.' + slug + '&select=owner,activa');
+      const t = rows && rows[0];
+      if (!t || t.activa === false) return res.status(404).json({ error: 'Esta tienda no está disponible.' });
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).json({ ocupados: Object.keys(await leerAgenda(t.owner)) });
+    }
     if (req.method === 'GET' && q.fila) {
       const slug = String(q.fila);
       if (!/^[a-z0-9-]{3,40}$/.test(slug)) return res.status(400).json({ error: 'Tienda inválida.' });
@@ -160,12 +184,16 @@ module.exports = async (req, res) => {
       items.forEach(it => { const f = catalogo[it.id]; if (f) { it.d = 1; it.f = String(f.ref); it.fn = corto(f.name, 120); } it.pid = it.id; delete it.id; });   // pid: para descontar el stock
       await asegurarBucket();
       const id = Date.now().toString(36) + crypto.randomBytes(5).toString('hex');
+      // turno con día y hora: si alguien lo reservó recién, se avisa y no se crea el pedido
+      const cita = okCita(b.cita) ? String(b.cita) : '';
+      let agenda = null;
+      if (cita) { agenda = await leerAgenda(t.owner); if (agenda[cita]) return res.status(409).json({ error: 'Ese horario se acaba de ocupar. Elegí otro, por favor.', ocupado: true }); }
       const ref = t.owner + '/' + id;
       const c = b.comprador || {}, g = b.regalo || {};
       const pedido = {
         id, k: crypto.randomBytes(12).toString('hex'), creado: new Date().toISOString(), estado: 'preparando',
         items, total: corto(b.total, 30), envio: corto(b.envio, 40), envio_id: corto(b.envio_id, 20), demora: corto(b.demora, 40),
-        comprador: { nombre: corto(c.nombre, 80), tel: corto(c.tel, 30), dir: corto(c.dir, 160), ref: corto(c.ref, 160), turno: corto(c.turno, 120), horario: corto(c.horario, 80), lugar: corto(c.lugar, 60) }, servicio: !!b.servicio,
+        comprador: { nombre: corto(c.nombre, 80), tel: corto(c.tel, 30), dir: corto(c.dir, 160), ref: corto(c.ref, 160), turno: corto(c.turno, 120), cita, horario: corto(c.horario, 80), lugar: corto(c.lugar, 60) }, servicio: !!b.servicio,
         regalo: g.si ? { para: corto(g.para, 20), mensaje: corto(g.mensaje, 160) } : null,
         pago: corto(b.pago, 120), paga_ahora: !!b.paga_ahora, pagado: false,
         total_n: Number.isFinite(Number(b.total_n)) && Number(b.total_n) > 0 ? Math.round(Number(b.total_n) * 100) / 100 : null,
@@ -177,6 +205,7 @@ module.exports = async (req, res) => {
       if (fila.dia !== hoyAR()) { fila.dia = hoyAR(); fila.n = 0; }
       fila.n = (Number(fila.n) || 0) + 1; pedido.turno = fila.n;
       await guardar(ref, pedido);
+      if (cita) { agenda[cita] = id; await guardarAgenda(t.owner, agenda); }
       fila.activos = fila.activos.filter(a => a && a.id).concat([{ id, n: fila.n, nombre: pila(pedido.comprador.nombre), creado: pedido.creado }]).slice(-80);
       await guardarFila(t.owner, fila);
       return res.status(200).json({ ref, k: pedido.k, turno: pedido.turno, delante: fila.activos.length - 1 });
@@ -227,6 +256,8 @@ module.exports = async (req, res) => {
       if (b.estado === 'salio') { p.repartidor = corto(b.repartidor, 40); p.salio_en = new Date().toISOString(); }
       if (b.estado === 'listo') p.listo_en = new Date().toISOString();
       await guardar(b.ref, p);
+      // si se cancela un turno, ese horario vuelve a quedar libre
+      if (b.estado === 'cancelado' && p.comprador && okCita(p.comprador.cita)) { const a = await leerAgenda(u.id); if (a[p.comprador.cita] === p.id) { delete a[p.comprador.cita]; await guardarAgenda(u.id, a); } }
       if (b.estado !== 'preparando') {
         const f = await leerFila(u.id), antes = f.activos.length;
         f.activos = f.activos.filter(a => a.id !== p.id);

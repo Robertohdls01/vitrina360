@@ -849,6 +849,17 @@ body:not(.cartbig) .cartsheet .actions{gap:6px}
 .carttotal{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;font-size:18px;padding-top:6px}
 .carttotal .v{font:500 22px var(--mono);color:var(--accent)}
 .paybox[hidden]{display:none!important}
+#pqView{position:fixed;inset:0;z-index:125;background:rgba(12,10,20,.72);display:grid;place-items:center;padding:14px}
+#pqView[hidden]{display:none}
+#pqView .tv{width:min(520px,100%);max-height:calc(100dvh - 28px);overflow:auto;background:var(--surface);color:var(--ink);border-radius:20px;padding:18px;display:grid;gap:12px;box-shadow:0 30px 70px -20px rgba(0,0,0,.5)}
+#pqView h2{margin:0;font:800 21px/1.15 var(--display,var(--body))}
+#pqView input{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;background:var(--bg);color:inherit}
+.pqbox{display:grid;gap:8px;border:1px solid var(--line);border-radius:14px;padding:12px;background:color-mix(in srgb,#22c55e 6%,var(--surface))}
+.pqbox p{margin:0}.pqchips{display:flex;flex-wrap:wrap;gap:6px}.pqchips span{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:13px}
+.pqfotos{display:flex;gap:8px;flex-wrap:wrap}.pqfotos span{position:relative}.pqfotos img{width:96px;height:96px;object-fit:cover;border-radius:12px}.pqfotos button{position:absolute;top:2px;right:2px;border:0;border-radius:50%;width:24px;height:24px;background:rgba(0,0,0,.6);color:#fff;cursor:pointer}
+.pqpl,.pqtr{margin:0;padding:0;list-style:none;display:grid;gap:6px;font-size:14px}.pqtr li{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;border-bottom:1px dashed var(--line);padding-bottom:6px}.pqtr label{display:flex;gap:8px;align-items:flex-start}
+.pqaj{color:#b45309;font-size:12.5px}.pqtot{margin:0;font-size:18px}
+.pqfab{position:fixed;left:14px;bottom:84px;z-index:40;border:0;border-radius:999px;padding:12px 18px;background:#2e7d32;color:#fff;font:700 15px var(--body,system-ui);box-shadow:0 10px 24px -8px rgba(0,0,0,.45);cursor:pointer}
 #tryView{position:fixed;inset:0;z-index:125;background:rgba(12,10,20,.72);display:grid;place-items:center;padding:14px}
 #tryView[hidden]{display:none}
 #tryView .tv{width:min(460px,100%);max-height:calc(100dvh - 28px);overflow:auto;background:var(--surface);color:var(--ink);border-radius:20px;padding:18px;display:grid;gap:12px;box-shadow:0 30px 70px -20px rgba(0,0,0,.55)}
@@ -2562,7 +2573,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
           </details>
         </span>
         <span class="row" style="gap:6px;flex-basis:100%;flex-wrap:wrap;margin-top:4px"><span>⚡ ¿Verdulería, panadería o servicios? Cargá los productos conocidos y solo ponés los precios:</span>
-          <select id="qSvcKind" aria-label="Tipo de comercio"><option value="verdu">🥬 Verdulería (frutas y verduras)</option><option value="pana">🥖 Panadería (panes, facturas, tortas)</option><option value="canina">🐶 Peluquería canina</option><option value="pelu">💇 Peluquería</option><option value="barber">💈 Barbería</option><option value="unas">💅 Uñas y estética</option></select>
+          <select id="qSvcKind" aria-label="Tipo de comercio"><option value="verdu">🥬 Verdulería (frutas y verduras)</option><option value="pana">🥖 Panadería (panes, facturas, tortas)</option><option value="canina">🐶 Peluquería canina</option><option value="pelu">💇 Peluquería</option><option value="barber">💈 Barbería</option><option value="unas">💅 Uñas y estética</option><option value="parques">🌿 Parquería y jardines</option></select>
           <button class="btn" type="button" id="qSvcGo">Cargar la lista</button></span>
       </div>
       <label class="qbrand" for="qBrand">Marca del catálogo <small>(opcional, para “📖 Foto de catálogo”)</small>
@@ -5037,6 +5048,12 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       ['Diseño / rayas', 'Adicional'], ['Corte infantil', 'Hasta 12 años'], ['Color de barba', 'Adicional']]},
     verdu: {cat: 'Verdulería', em: '🥬', prod: true, items: [["Papa", "Precio por kilo", 'kilo'], ["Batata", "Precio por kilo", 'kilo'], ["Cebolla", "Precio por kilo", 'kilo'], ["Cebolla morada", "Precio por kilo", 'kilo'], ["Zanahoria", "Precio por kilo", 'kilo'], ["Tomate", "Precio por kilo", 'kilo'], ["Tomate perita", "Precio por kilo", 'kilo'], ["Zapallo anco", "Precio por kilo", 'kilo'], ["Zapallito redondo", "Precio por kilo", 'kilo'], ["Zucchini", "Precio por kilo", 'kilo'], ["Berenjena", "Precio por kilo", 'kilo'], ["Morrón rojo", "Precio por kilo", 'kilo'], ["Morrón verde", "Precio por kilo", 'kilo'], ["Pepino", "Precio por kilo", 'kilo'], ["Remolacha", "Precio por kilo", 'kilo'], ["Chaucha", "Precio por kilo", 'kilo'], ["Arvejas", "Precio por kilo", 'kilo'], ["Jengibre", "Precio por kilo", 'kilo'], ["Limón", "Precio por kilo", 'kilo'], ["Naranja", "Precio por kilo", 'kilo'], ["Mandarina", "Precio por kilo", 'kilo'], ["Pomelo", "Precio por kilo", 'kilo'], ["Manzana roja", "Precio por kilo", 'kilo'], ["Manzana verde", "Precio por kilo", 'kilo'], ["Pera", "Precio por kilo", 'kilo'], ["Banana", "Precio por kilo", 'kilo'], ["Uva", "Precio por kilo", 'kilo'], ["Frutilla", "Precio por kilo", 'kilo'], ["Durazno", "Precio por kilo", 'kilo'], ["Ciruela", "Precio por kilo", 'kilo'], ["Kiwi", "Precio por kilo", 'kilo'], ["Cereza", "Precio por kilo", 'kilo'], ["Lechuga", "Precio por unidad", 'unidad'], ["Choclo", "Precio por unidad", 'unidad'], ["Acelga (atado)", "Precio por unidad", 'unidad'], ["Espinaca (atado)", "Precio por unidad", 'unidad'], ["Rúcula (atado)", "Precio por unidad", 'unidad'], ["Perejil (atado)", "Precio por unidad", 'unidad'], ["Albahaca (atado)", "Precio por unidad", 'unidad'], ["Cebolla de verdeo (atado)", "Precio por unidad", 'unidad'], ["Ajo (cabeza)", "Precio por unidad", 'unidad'], ["Apio", "Precio por unidad", 'unidad'], ["Brócoli", "Precio por unidad", 'unidad'], ["Coliflor", "Precio por unidad", 'unidad'], ["Repollo", "Precio por unidad", 'unidad'], ["Puerro", "Precio por unidad", 'unidad'], ["Palta", "Precio por unidad", 'unidad'], ["Ananá", "Precio por unidad", 'unidad'], ["Melón", "Precio por unidad", 'unidad'], ["Sandía", "Precio por unidad", 'unidad'], ["Mango", "Precio por unidad", 'unidad'], ["Coco", "Precio por unidad", 'unidad'], ['Huevos', 'Precio por unidad', 'docena']]},
     pana: {cat: 'Panadería', em: '🥖', prod: true, items: [["Pan francés", "Precio por kilo", 'kilo'], ["Pan mignon", "Precio por kilo", 'kilo'], ["Felipe", "Precio por kilo", 'kilo'], ["Pan de salvado", "Precio por kilo", 'kilo'], ["Pan de viena", "Precio por kilo", 'kilo'], ["Grisines", "Precio por kilo", 'kilo'], ["Bizcochitos de grasa", "Precio por kilo", 'kilo'], ["Bizcochitos de manteca", "Precio por kilo", 'kilo'], ["Chipá", "Precio por kilo", 'kilo'], ["Masas finas", "Precio por kilo", 'kilo'], ["Masas secas", "Precio por kilo", 'kilo'], ["Galletitas de manteca", "Precio por kilo", 'kilo'], ["Medialuna de manteca", "Precio por docena", 'docenaF'], ["Medialuna de grasa", "Precio por docena", 'docenaF'], ["Vigilante", "Precio por docena", 'docenaF'], ["Cañoncito de dulce de leche", "Precio por docena", 'docenaF'], ["Bola de fraile", "Precio por docena", 'docenaF'], ["Sacramento", "Precio por docena", 'docenaF'], ["Tortita negra", "Precio por docena", 'docenaF'], ["Palmerita", "Precio por docena", 'docenaF'], ["Libro de membrillo", "Precio por docena", 'docenaF'], ["Churro", "Precio por docena", 'docenaF'], ["Berlinesa", "Precio por docena", 'docenaF'], ["Margarita", "Precio por docena", 'docenaF'], ["Facturas surtidas", "Precio por docena", 'docenaF'], ["Sándwich de miga (jamón y queso)", "Precio por docena", 'docenaF'], ["Sándwich de miga (surtido)", "Precio por docena", 'docenaF'], ["Alfajor de maicena", "Precio por docena", 'docenaF'], ["Pañuelito", "Precio por docena", 'docenaF'], ["Pan de campo", "Precio por unidad", 'unidad'], ["Pan lactal", "Precio por unidad", 'unidad'], ["Baguette", "Precio por unidad", 'unidad'], ["Pan de hamburguesa (x6)", "Precio por unidad", 'unidad'], ["Pan para pancho (x6)", "Precio por unidad", 'unidad'], ["Prepizza", "Precio por unidad", 'unidad'], ["Pastafrola", "Precio por unidad", 'unidad'], ["Budín", "Precio por unidad", 'unidad'], ["Torta de cumpleaños", "Precio por unidad", 'unidad'], ["Lemon pie", "Precio por unidad", 'unidad'], ["Chocotorta", "Precio por unidad", 'unidad'], ["Pan dulce", "Precio por unidad", 'unidad'], ["Rosca de Pascua", "Precio por unidad", 'unidad']]},
+    parques: {cat: 'Corte de pasto', em: '🌿', items: [
+      ['Corte de pasto', 'Precio por m² · incluye bordeado y soplado', 'm2'], ['Corte de pasto muy crecido', 'Precio por m² · pasto alto o abandonado', 'm2'], ['Desmalezado', 'Precio por m²', 'm2'],
+      ['Limpieza de terreno', 'Precio por m² · ramas, hojas y residuos', 'm2'], ['Colocación de césped en panes', 'Precio por m² · con preparación del suelo', 'm2'], ['Fumigación de césped', 'Precio por m²', 'm2'],
+      ['Poda de arbusto o cerco', 'Precio por planta mediana'], ['Poda de árbol chico (hasta 3 m)', 'Precio por árbol'], ['Poda de árbol grande', 'Precio por árbol, con altura'],
+      ['Extracción de árbol', 'A consultar según tamaño'], ['Retiro de residuos verdes', 'Por viaje'], ['Diseño de jardín', 'Proyecto con plantas y ubicación'],
+      ['Instalación de riego', 'A consultar'], ['Mantenimiento mensual', 'Visitas por mes']]},
     unas: {cat: 'Uñas y estética', em: '💅', items: [
       ['Esmaltado semipermanente', 'Manos'], ['Kapping', 'Refuerzo con gel'], ['Uñas esculpidas', 'Acrílico o gel'], ['Manicura', 'Limado y cutículas'], ['Pedicura', 'Pies completos'],
       ['Nail art', 'Diseño por uña, adicional'], ['Perfilado de cejas', 'Con pinza o cera'], ['Lifting de pestañas', 'Con tinte'], ['Extensión de pestañas', 'Pelo por pelo o volumen'], ['Depilación', 'Por zona']]}
@@ -5049,7 +5066,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     let base = products.reduce((m, p) => Math.max(m, p.added), -1) + 1;
     const have = new Set(products.filter(p => p.cat === cat.id).map(p => norm(p.name)));
     const created = [];
-    kit.items.forEach(([name, desc, uk]) => { if(have.has(norm(name))) return; const p = {id: uid(), cat: cat.id, added: base++, img: svcImg(kit.em, name), name, price: '', features: [desc ? (kit.prod ? desc : 'Detalle: ' + desc) : ''].filter(Boolean)}; if(!kit.prod) p.service = true; if(uk){ p.ukind = uk; p.units = unitPreset(uk, ''); } products.push(p); created.push(p); });
+    kit.items.forEach(([name, desc, uk]) => { if(have.has(norm(name))) return; const p = {id: uid(), cat: cat.id, added: base++, img: svcImg(kit.em, name), name, price: '', features: [desc ? (kit.prod ? desc : 'Detalle: ' + desc) : ''].filter(Boolean)}; if(!kit.prod) p.service = true; if(uk === 'm2') p.m2 = true; else if(uk){ p.ukind = uk; p.units = unitPreset(uk, ''); } products.push(p); created.push(p); });
     save(); renderHome(); fillCatSelect(cat.id);
     $('qMsg').textContent = created.length ? `Listo: cargué ${created.length} productos en la vitrina “${kit.cat}”. Poné los precios abajo; los que no tenés, borralos, y los tuyos sumalos con su foto.` : 'Esos productos ya estaban cargados.';
     if(created.length) showBulkPrices(created, $('qPrices'), $('qMsg'));
@@ -6634,6 +6651,185 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       const me = $('tvMe'); me.src = foto; me.hidden = false; $('tvGo').hidden = false; $('tvMsg').textContent = '';
     };
   }
+  // ---- 🌿 Parquería: la vendedora virtual le pide fotos del parque, la IA estima m², pasto y plantas, arma el presupuesto y muestra cómo podría quedar ----
+  const isParques = () => brand.preset === 'parques' || products.some(p => p.m2);
+  const PQ_ESTILOS = [['Prolijo y simple, bajo mantenimiento', '🌱 Simple'], ['Moderno, con piedras, gramíneas y luces', '🪨 Moderno'], ['Campestre, con muchas flores de colores', '🌼 Con flores'], ['Tropical, con plantas grandes y verdes', '🌴 Tropical'], ['Patio para chicos y mascotas, con mucho césped', '⚽ Para jugar']];
+  let pqFotos = [], pqRes = null, pqM2 = 0, pqMap = null, pqPts = [], pqPoly = null, pqDis = null, pqOcup = [], pqDia = '', pqHora = '', pqPago = 'despues';
+  // turnos: dentro del horario de atención de la tienda (o lunes a sábado de 8 a 18), cada 2 horas por defecto
+  const pqYmd = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  function pqDias(){
+    const h = hoursOn() ? brand.hours : {d: [1, 2, 3, 4, 5, 6], a: '08:00', b: '18:00'}, dur = Math.max(30, +brand.svcMin || 120), out = [], now = new Date();
+    for(let k = 0; k < 21 && out.length < 10; k++){ const d = new Date(now); d.setDate(now.getDate() + k); if(!h.d.includes(d.getDay())) continue;
+      const ymd = pqYmd(d), hs = [];
+      for(let m = hm(h.a); m + dur <= hm(h.b); m += dur){ const t = String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+        if(k === 0 && m <= now.getHours() * 60 + now.getMinutes() + 60) continue; if(pqOcup.includes(ymd + 'T' + t)) continue; hs.push(t); }
+      if(hs.length) out.push({ymd, d, hs}); }
+    return out;
+  }
+  async function pqCargarOcupados(){ try{ const r = await fetch('/api/pedidos?ocupados=' + encodeURIComponent(window.VITRINA_SLUG || ''), {cache: 'no-store'}); const j = await r.json(); pqOcup = (j && j.ocupados) || []; }catch(e){ pqOcup = []; } }
+  function pqAgendaHTML(){
+    const ds = pqDias(); if(!ds.length) return '<p class="note" style="margin:0">No hay turnos libres en los próximos días: mandale el presupuesto por WhatsApp y te contesta.</p>';
+    if(!ds.some(x => x.ymd === pqDia)) pqDia = ds[0].ymd;
+    const sel = ds.find(x => x.ymd === pqDia); if(!sel.hs.includes(pqHora)) pqHora = '';
+    return `<div class="pqchips">${ds.map(x => `<button class="btn${x.ymd === pqDia ? ' primary' : ''}" type="button" data-pqd="${x.ymd}">${DAYS_ES[x.d.getDay()]} ${x.d.getDate()}/${x.d.getMonth() + 1}</button>`).join('')}</div>
+      <div class="pqchips">${sel.hs.map(t => `<button class="btn${t === pqHora ? ' primary' : ''}" type="button" data-pqh="${t}">${t} h</button>`).join('')}</div>`;
+  }
+  const pqMoney = n => '$' + Math.round(n || 0).toLocaleString('es-AR');
+  const pqSub = x => (x.porM2 ? x.precio * (pqM2 || 0) : x.precio * (x.cantidad || 1)) * (1 + (x.ajuste || 0) / 100);
+  const pqArea = pts => { if(pts.length < 3) return 0; const R = 6371000, lat0 = pts.reduce((a, p) => a + p[0], 0) / pts.length * Math.PI / 180;
+    const xy = pts.map(([la, lo]) => [R * lo * Math.PI / 180 * Math.cos(lat0), R * la * Math.PI / 180]); let a = 0;
+    xy.forEach((p, i) => { const q = xy[(i + 1) % xy.length]; a += p[0] * q[1] - q[0] * p[1]; }); return Math.abs(a / 2); };
+  function pqTotal(){
+    if(!pqRes) return;
+    const sel = [...document.querySelectorAll('#pqView [data-pqt]')];
+    let tot = 0; sel.forEach(c => { const x = pqRes.trabajos[+c.dataset.pqt]; const v = pqSub(x); const out = document.querySelector(`#pqView [data-pqs="${c.dataset.pqt}"]`); if(out) out.textContent = v ? pqMoney(v) : 'a consultar'; if(c.checked) tot += v; });
+    const t = $('pqTot'); if(t) t.innerHTML = `Total estimado: <b>${pqMoney(tot)}</b>`;
+    return tot;
+  }
+  function pqResHTML(r){
+    const est = r.trabajos.some(x => x.estimado);
+    return `<div class="pqbox"><b>🤖 Lo que veo en tus fotos</b><p>${esc(r.analisis)}</p>
+      <div class="pqchips"><span>🌱 Pasto: ~${r.pasto_cm || '?'} cm${r.pasto_estado ? ' · ' + esc(r.pasto_estado) : ''}</span><span>📐 ~${r.m2 || '?'} m² (confianza ${esc(r.m2_confianza)})</span>${r.tiempo ? `<span>⏱ ${esc(r.tiempo)}</span>` : ''}</div>
+      ${r.plantas.length ? `<ul class="pqpl">${r.plantas.map(p => `<li>🌳 <b>${esc(p.que)}</b> · ${esc(p.tamano)} · ${esc(p.estado)} → <i>${esc(p.trabajo)}</i></li>`).join('')}</ul>` : ''}</div>
+      <div class="pqbox"><b>🧾 Tu presupuesto</b><span class="note">Destildá lo que no quieras. Si sabés los metros exactos, cambialos y se recalcula.</span>
+      <ul class="pqtr">${r.trabajos.map((x, i) => `<li><label><input type="checkbox" checked data-pqt="${i}"> <span><b>${esc(x.titulo)}</b>${x.porM2 ? ' · por m²' : x.cantidad > 1 ? ' · ×' + x.cantidad : ''}${x.ajuste ? ` · <span class="pqaj">${x.ajuste > 0 ? '+' : ''}${x.ajuste}% ${esc(x.motivo)}</span>` : ''}</span></label><b data-pqs="${i}"></b></li>`).join('')}</ul>
+      <p id="pqTot" class="pqtot"></p>${est ? '<p class="note" style="margin:0">Algunos precios son estimados: el parquero te confirma el valor final.</p>' : ''}${r.consejo ? `<p class="note" style="margin:0">💡 ${esc(r.consejo)}</p>` : ''}</div>`;
+  }
+  function openParque(){
+    let ov = document.getElementById('pqView');
+    if(!ov){ ov = document.createElement('div'); ov.id = 'pqView'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); document.body.appendChild(ov); }
+    ov.innerHTML = `<div class="tv"><h2>🌿 Presupuesto de tu parque</h2>
+      <p style="margin:0">Sacale 1 a 3 fotos a tu parque, que se vea todo (el pasto, las plantas y algo de referencia como una puerta o un cerco). La IA mide más o menos, mira el pasto y las plantas y te arma el presupuesto.</p>
+      <div class="pqfotos" id="pqFotos"></div>
+      <label class="btn primary" style="justify-self:start">📷 ${pqFotos.length ? 'Agregar otra foto' : 'Sacar o elegir fotos'}<input type="file" accept="image/*" multiple class="vh" id="pqFile"></label>
+      <div class="pqbox"><b>📐 ¿Cuántos metros tiene? <span class="note">(opcional, si lo sabés)</span></b>
+        <div class="row" style="gap:6px;flex-wrap:wrap;align-items:center"><input id="pqM2" type="number" inputmode="numeric" min="0" placeholder="m²" style="width:100px" value="${pqM2 || ''}"> o <input id="pqL" type="number" inputmode="decimal" placeholder="largo m" style="width:90px"> × <input id="pqA" type="number" inputmode="decimal" placeholder="ancho m" style="width:90px"><button class="btn" type="button" data-pq="mapa">🗺 Medir en el mapa</button></div>
+        <div id="pqMapBox" hidden><div class="row" style="gap:6px;margin:6px 0"><input id="pqDir" placeholder="Tu dirección (calle y número, ciudad)" style="flex:1"><button class="btn" type="button" data-pq="buscar">Buscar</button></div>
+          <div id="pqMapa" style="height:280px;border-radius:12px"></div><p class="note" style="margin:4px 0" id="pqMapTx">Tocá las esquinas de tu parque en el mapa. Se calcula solo.</p>
+          <div class="row" style="gap:6px"><button class="btn" type="button" data-pq="deshacer">↩ Deshacer</button><button class="btn" type="button" data-pq="borrar">🗑 Borrar</button></div></div></div>
+      <label class="note" style="display:grid;gap:4px">¿Qué querés hacer? (opcional)<input id="pqQuiere" maxlength="200" placeholder="Ej: cortar el pasto y podar el ligustro del fondo"></label>
+      <button class="btn primary" type="button" data-pq="analizar" id="pqGo" ${pqFotos.length ? '' : 'disabled'}>🤖 Armar mi presupuesto con IA</button>
+      <p class="msg" id="pqMsg" role="status" style="margin:0"></p>
+      <div id="pqOut">${pqRes ? pqResHTML(pqRes) : ''}</div>
+      <div id="pqDis" class="pqbox" ${pqRes ? '' : 'hidden'}><b>✨ ¿Querés ver cómo podría quedar?</b>
+        <div class="pqchips">${PQ_ESTILOS.map(([v, t], i) => `<button class="btn" type="button" data-pqe="${i}">${t}</button>`).join('')}</div><div id="pqDisOut">${pqDis ? `<img src="${pqDis}" alt="Diseño propuesto" style="width:100%;border-radius:12px">` : ''}</div></div>
+      <div class="pqbox" ${pqRes ? '' : 'hidden'}><b>📅 Reservá tu turno</b>
+        <div id="pqAgenda">${pqRes ? pqAgendaHTML() : ''}</div>
+        <div class="row" style="gap:6px;flex-wrap:wrap"><input id="pqNom" maxlength="60" placeholder="Tu nombre" style="flex:1;min-width:140px"><input id="pqTel" maxlength="30" inputmode="tel" placeholder="Tu WhatsApp" style="flex:1;min-width:140px"></div>
+        <input id="pqDir2" maxlength="120" placeholder="Dirección del trabajo (calle, número, barrio)">
+        <div class="pqchips"><button class="btn${pqPago === 'despues' ? ' primary' : ''}" type="button" data-pqp="despues">💵 Pago después del trabajo</button>${mpAutoOk() ? `<button class="btn${pqPago === 'ahora' ? ' primary' : ''}" type="button" data-pqp="ahora">💳 Dejarlo pago ahora</button>` : ''}</div>
+        <button class="btn primary" type="button" data-pq="reservar">✅ Reservar mi turno</button>
+        <p class="msg" id="pqResMsg" role="status" style="margin:0"></p></div>
+      <button class="btn wa" type="button" data-pq="enviar" id="pqSend" ${pqRes ? '' : 'hidden'}>💬 O mandale el presupuesto por WhatsApp</button>
+      <p class="note" style="margin:0">🔒 Tus fotos no se guardan: se usan solo para armar el presupuesto. Es una estimación: el precio final lo confirma el parquero.</p>
+      <button class="btn" type="button" data-pq="cerrar">Cerrar</button></div>`;
+    ov.hidden = false; pqFotosRender(); pqTotal();
+  }
+  function pqFotosRender(){ const b = $('pqFotos'); if(!b) return; b.innerHTML = pqFotos.map((f, i) => `<span><img src="${f}" alt="Foto ${i + 1}"><button type="button" data-pqx="${i}" aria-label="Sacar foto">✕</button></span>`).join(''); const g = $('pqGo'); if(g) g.disabled = !pqFotos.length; }
+  async function pqMedir(){
+    const box = $('pqMapBox'); box.hidden = false;
+    let L; try{ L = await leaflet(); }catch(e){ $('pqMapTx').textContent = 'No se pudo abrir el mapa. Escribí los metros a mano.'; return; }
+    if(pqMap){ pqMap.remove(); pqMap = null; } pqPts = []; pqPoly = null;
+    pqMap = L.map('pqMapa', {zoomControl: true}).setView([-34.6, -58.4], 5);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom: 20, attribution: 'Esri'}).addTo(pqMap);
+    try{ const c = brand.addr ? await geocode(brand.addr) : null; if(c) pqMap.setView(c, 17); }catch(e){}
+    if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => { if(pqMap) pqMap.setView([p.coords.latitude, p.coords.longitude], 19); }, () => {}, {timeout: 6000});
+    pqMap.on('click', e => { pqPts.push([e.latlng.lat, e.latlng.lng]); pqDraw(); });
+  }
+  function pqDraw(){
+    if(!pqMap) return; const L = window.L; if(pqPoly) pqPoly.remove();
+    pqPoly = pqPts.length > 1 ? L.polygon(pqPts, {color: '#22c55e', weight: 3, fillOpacity: .25}).addTo(pqMap) : (pqPts.length ? L.circleMarker(pqPts[0], {radius: 5, color: '#22c55e'}).addTo(pqMap) : null);
+    const a = Math.round(pqArea(pqPts));
+    $('pqMapTx').textContent = a ? `📐 Tu parque mide más o menos ${a.toLocaleString('es-AR')} m².` : 'Tocá las esquinas de tu parque en el mapa. Se calcula solo.';
+    if(a){ pqM2 = a; $('pqM2').value = a; pqTotal(); }
+  }
+  document.addEventListener('click', async e => {
+    const ov = document.getElementById('pqView'); if(!ov || ov.hidden || !ov.contains(e.target)) return;
+    if(e.target === ov){ ov.hidden = true; return; }
+    const x = e.target.closest('[data-pqx]'); if(x){ pqFotos.splice(+x.dataset.pqx, 1); pqFotosRender(); return; }
+    if(e.target.matches('[data-pqt]')) return pqTotal();
+    const es = e.target.closest('[data-pqe]');
+    if(es){ if(!pqFotos.length) return; const [estilo, lbl] = PQ_ESTILOS[+es.dataset.pqe]; const out = $('pqDisOut');
+      out.innerHTML = `<span class="tvwait"><i></i>Diseñando tu parque estilo ${esc(lbl)}… tarda unos segundos.</span>`;
+      try{ const headers = {'Content-Type': 'application/json'}; if(!PUBLIC && window.VITRINA_TOKEN){ try{ headers.Authorization = 'Bearer ' + await window.VITRINA_TOKEN(); }catch(err){} }
+        const r = await fetch('/api/probador', {method: 'POST', headers, body: JSON.stringify({slug: window.VITRINA_SLUG || '', tipo: 'jardin', nombre: estilo, detalle: ($('pqQuiere').value || '').slice(0, 150), foto: pqFotos[0]})});
+        const j = await r.json().catch(() => ({}));
+        if(!r.ok || !j.img){ out.textContent = j.error || 'No se pudo armar el diseño. Probá de nuevo.'; return; }
+        pqDis = j.img; pqDis.estilo = lbl; out.innerHTML = `<img src="${j.img}" alt="Diseño propuesto ${esc(lbl)}" style="width:100%;border-radius:12px"><a class="btn" href="${j.img}" download="mi-parque-${esc(lbl).replace(/[^a-z]/gi, '')}.png" style="margin-top:6px">⬇ Guardar imagen</a><p class="note" style="margin:4px 0 0">Imagen aproximada hecha con IA, para darte una idea.</p>`;
+        out.dataset.estilo = lbl;
+      }catch(err){ out.textContent = 'No se pudo conectar. Probá de nuevo.'; }
+      return; }
+    const dd = e.target.closest('[data-pqd]'); if(dd){ pqDia = dd.dataset.pqd; pqHora = ''; $('pqAgenda').innerHTML = pqAgendaHTML(); return; }
+    const hh = e.target.closest('[data-pqh]'); if(hh){ pqHora = hh.dataset.pqh; $('pqAgenda').innerHTML = pqAgendaHTML(); return; }
+    const pp = e.target.closest('[data-pqp]'); if(pp){ pqPago = pp.dataset.pqp; ov.querySelectorAll('[data-pqp]').forEach(x => x.classList.toggle('primary', x === pp)); return; }
+    const b = e.target.closest('[data-pq]'); if(!b) return; const k = b.dataset.pq;
+    if(k === 'cerrar'){ ov.hidden = true; return; }
+    if(k === 'reservar'){
+      const msg = $('pqResMsg'), nom = $('pqNom').value.trim(), tel = $('pqTel').value.trim(), dir = $('pqDir2').value.trim();
+      if(!pqHora){ msg.textContent = 'Elegí el día y el horario.'; return; }
+      if(!nom || tel.replace(/\D/g, '').length < 8){ msg.textContent = 'Poné tu nombre y tu WhatsApp, así el parquero te confirma.'; return; }
+      if(!dir){ msg.textContent = 'Poné la dirección del trabajo.'; return; }
+      if(!window.VITRINA_SLUG){ msg.textContent = 'Así se ve la reserva: tus clientes la hacen desde el link de tu tienda.'; return; }
+      const sel = [...ov.querySelectorAll('[data-pqt]')].filter(c => c.checked).map(c => pqRes.trabajos[+c.dataset.pqt]); if(!sel.length){ msg.textContent = 'Tildá al menos un trabajo.'; return; }
+      const tot = pqTotal(), d = new Date(pqDia + 'T12:00'), cuando = `${DAYS_LONG[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1} a las ${pqHora} h`;
+      b.disabled = true; msg.textContent = 'Reservando…';
+      try{
+        const body = {slug: window.VITRINA_SLUG, servicio: true, cita: pqDia + 'T' + pqHora, items: sel.map(x => ({n: x.titulo + (x.porM2 ? ` (${pqM2} m²)` : ''), q: 1, p: pqSub(x) ? pqMoney(pqSub(x)) : 'a consultar'})),
+          total: pqMoney(tot), total_n: tot ? Math.round(tot) : null, moneda: curCode(),
+          comprador: {nombre: nom, tel, dir, turno: cuando + ` · parque ~${pqM2} m², pasto ~${pqRes.pasto_cm} cm`, lugar: 'A domicilio'},
+          pago: pqPago === 'ahora' ? 'Mercado Pago (pagado al reservar)' : 'Paga después del trabajo', paga_ahora: pqPago === 'ahora'};
+        const r = await fetch('/api/pedidos', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+        const j = await r.json().catch(() => ({}));
+        if(r.status === 409){ await pqCargarOcupados(); pqHora = ''; $('pqAgenda').innerHTML = pqAgendaHTML(); msg.textContent = j.error || 'Ese horario se ocupó. Elegí otro.'; b.disabled = false; return; }
+        if(!r.ok || !j.ref){ msg.textContent = j.error || 'No se pudo reservar. Probá de nuevo.'; b.disabled = false; return; }
+        try{ trackStart({ref: j.ref, k: j.k, turno: j.turno || null, slug: window.VITRINA_SLUG, paid: pqPago === 'ahora', start: Date.now()}); }catch(err){}
+        if(pqPago === 'ahora'){ msg.textContent = 'Te llevo a Mercado Pago…';
+          const m = await fetch('/api/mpcobro?accion=pagar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ref: j.ref, k: j.k})}).then(x => x.json()).catch(() => ({}));
+          if(m && m.url){ location.href = m.url; return; } msg.textContent = 'Tu turno quedó reservado, pero no se pudo abrir el pago: pagale al parquero después del trabajo.'; }
+        else msg.innerHTML = `✅ <b>¡Turno reservado!</b> ${esc(cuando)}. El parquero te confirma por WhatsApp. Pagás cuando termine el trabajo.`;
+        try{ hSpeak(`¡Listo, ${nom.split(' ')[0]}! Tu turno quedó para el ${cuando}.`); }catch(err){}
+        b.textContent = '✓ Reservado';
+      }catch(err){ msg.textContent = 'No se pudo conectar. Probá de nuevo.'; b.disabled = false; }
+      return; }
+    if(k === 'mapa') return pqMedir();
+    if(k === 'buscar'){ const q = $('pqDir').value.trim(); if(!q || !pqMap) return; try{ const c = await geocode(q + (shopCity() && !q.includes(',') ? ', ' + shopCity() : '')); if(c) pqMap.setView(c, 19); else $('pqMapTx').textContent = 'No encontré esa dirección. Probá agregando la ciudad.'; }catch(err){} return; }
+    if(k === 'deshacer'){ pqPts.pop(); pqDraw(); return; }
+    if(k === 'borrar'){ pqPts = []; pqDraw(); return; }
+    if(k === 'analizar'){
+      if(!pqFotos.length) return; b.disabled = true; $('pqMsg').innerHTML = '<span class="tvwait"><i></i>La IA está mirando tu parque: mide, revisa el pasto y las plantas… tarda unos segundos.</span>';
+      try{ const images = pqFotos.map(f => ({type: 'image/jpeg', data: f.split(',')[1]}));
+        const r = await fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({parque: 1, slug: window.VITRINA_SLUG || (window.VITRINA_ME || {}).slug || '', images, m2: pqM2 || 0, quiere: $('pqQuiere').value || ''})});
+        const j = await r.json().catch(() => ({}));
+        if(!r.ok){ $('pqMsg').textContent = j.error || 'No se pudo armar el presupuesto. Probá de nuevo.'; b.disabled = false; return; }
+        pqRes = j; if(!pqM2) pqM2 = j.m2 || 0; await pqCargarOcupados(); const q = $('pqQuiere').value; openParque(); $('pqQuiere').value = q;
+        $('pqMsg').textContent = '✅ ¡Listo! Mirá tu presupuesto abajo.';
+        try{ hSpeak && hSpeak(`¡Listo! Tu parque tiene unos ${pqM2} metros cuadrados y el pasto está a unos ${j.pasto_cm} centímetros. Te armé el presupuesto: ${pqMoney(pqTotal())} aproximado.`); }catch(err){}
+      }catch(err){ $('pqMsg').textContent = 'No se pudo conectar. Revisá internet y probá de nuevo.'; b.disabled = false; }
+      return; }
+    if(k === 'enviar'){
+      const sel = [...ov.querySelectorAll('[data-pqt]')].filter(c => c.checked).map(c => pqRes.trabajos[+c.dataset.pqt]);
+      const tot = pqTotal(), dir = ($('pqDir2').value || '').trim(), est = ($('pqDisOut') || {}).dataset ? $('pqDisOut').dataset.estilo : '';
+      const txt = `¡Hola! Quiero un presupuesto para mi parque 🌿\n📐 Superficie: ~${pqM2} m²\n🌱 Pasto: ~${pqRes.pasto_cm} cm${pqRes.pasto_estado ? ' (' + pqRes.pasto_estado + ')' : ''}\n` +
+        (pqRes.plantas.length ? '🌳 Plantas: ' + pqRes.plantas.map(p => `${p.que} ${p.tamano} → ${p.trabajo}`).join('; ') + '\n' : '') +
+        '🧾 Trabajos:\n' + sel.map(x => `• ${x.titulo}: ${pqSub(x) ? pqMoney(pqSub(x)) : 'a consultar'}`).join('\n') + `\n💰 Total estimado: ${pqMoney(tot)}` +
+        (est ? `\n✨ Me gustó el diseño estilo ${est}` : '') + (dir ? `\n📍 Dirección: ${dir}` : '') + `\n📷 Te mando las fotos por acá.`;
+      const url = waHref(txt); if(url) window.open(url, '_blank', 'noopener'); else $('pqMsg').textContent = 'Este negocio todavía no cargó su WhatsApp.';
+      return; }
+  });
+  document.addEventListener('input', e => {
+    const ov = document.getElementById('pqView'); if(!ov || ov.hidden || !ov.contains(e.target)) return;
+    if(e.target.id === 'pqM2'){ pqM2 = Math.max(0, +e.target.value || 0); pqTotal(); }
+    if(e.target.id === 'pqL' || e.target.id === 'pqA'){ const l = +$('pqL').value || 0, a = +$('pqA').value || 0; if(l && a){ pqM2 = Math.round(l * a); $('pqM2').value = pqM2; pqTotal(); } }
+  });
+  document.addEventListener('change', async e => {
+    if(e.target.id !== 'pqFile') return; const fs = [...(e.target.files || [])].slice(0, 3 - pqFotos.length);
+    for(const f of fs){ const u = URL.createObjectURL(f); const d = await tryShrink(u); URL.revokeObjectURL(u); if(d && /^data:/.test(d)) pqFotos.push(d); }
+    pqFotosRender(); e.target.value = '';
+  });
+  // botón fijo en las tiendas de parquería
+  setInterval(() => { let b = document.getElementById('pqFab'); const on = isParques() && (PUBLIC || document.body.classList.contains('clientmode'));
+    if(on && !b){ b = document.createElement('button'); b.id = 'pqFab'; b.type = 'button'; b.className = 'pqfab'; b.textContent = '🌿 Presupuesto de mi parque'; b.onclick = openParque; document.body.appendChild(b); }
+    if(b) b.hidden = !on; }, 2000);
   async function openLens(p){
     const ln = lensOf(p); if(!ln) return;
     const dark = [0.08, 0.22, 0.42, 0.62, 0.82][ln.cat];
@@ -7424,9 +7620,11 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     {id:'estetica', name:'Estética y uñas', hint:'Uñas, cejas, pestañas, depilación', frame:'#d98aa8', shelf:'#fbeef3', edge:'#e2b7c8', kits:['unas'],
      cats:['Uñas y estética','Pies','Uñas esculpidas','Nail art','Cejas','Pestañas','Depilación','Faciales','Masajes','Promos']},
     {id:'canina', name:'Peluquería canina', hint:'Baño y corte de mascotas', frame:'#2e86c1', shelf:'#e9f2f8', edge:'#a9c9de', kits:['canina'],
-     cats:['Peluquería canina','Cortes cómodos','Baño y secado','Adicionales','Gatos','Cachorros','A domicilio','Productos','Accesorios','Promos']}
+     cats:['Peluquería canina','Cortes cómodos','Baño y secado','Adicionales','Gatos','Cachorros','A domicilio','Productos','Accesorios','Promos']},
+    {id:'parques', name:'Parquería y paisajismo', hint:'Corte de pasto, poda, jardines', frame:'#2e7d32', shelf:'#eef6ea', edge:'#a5c99a', kits:['parques'],
+     cats:['Corte de pasto','Poda y árboles','Limpieza de terrenos','Diseño de jardines','Riego','Plantas y flores','Césped en panes','Mantenimiento mensual','Antes y después','Promos']}
   ];
-  const PRESET_COLORS = {"belleza": ["#f7c6d9", "#e91e63", "#fde8ef", "#f3d9c9", "#c9a7e8", "#f4b6c2", "#b9d7f0", "#ffe3b3", "#e8c6f0", "#d32f2f"], "electro": ["#1e5bc6", "#141414", "#4b555c", "#7b1fa2", "#00acc1", "#2e7d32", "#3949ab", "#d32f2f", "#263238", "#ff8f00"], "moda": ["#f7e1e8", "#cfd8dc", "#ffe0b2", "#a1887f", "#e1bee7", "#43a047", "#90a4ae", "#ffcc80", "#d7ccc8", "#d32f2f"], "joyas": ["#c9a227", "#f7e1e8", "#cfd8dc", "#141414", "#ffe0b2", "#7b1fa2", "#b0bec5", "#e0e0e0", "#a1887f", "#e91e63"], "almacen": ["#1e5bc6", "#e91e63", "#fbc02d", "#e3f2fd", "#a1887f", "#00acc1", "#c9a7e8", "#b3e5fc", "#ffcc80", "#d32f2f"], "ferreteria": ["#ff8f00", "#fbc02d", "#1e5bc6", "#9e9e9e", "#6d4c41", "#43a047", "#ffe082", "#d32f2f", "#607d8b", "#e65100"], "mascotas": ["#a1887f", "#ffcc80", "#fbc02d", "#00acc1", "#8d6e63", "#b3e5fc", "#d32f2f", "#4fc3f7", "#c5e1a5", "#ff8f00"], "deportes": ["#43a047", "#ff8f00", "#141414", "#00acc1", "#fbc02d", "#1e5bc6", "#2e7d32", "#7b1fa2", "#90a4ae", "#d32f2f"], "libreria": ["#1e5bc6", "#9e9e9e", "#e91e63", "#fbc02d", "#43a047", "#f7c6d9", "#ff8f00", "#a1887f", "#00acc1", "#d32f2f"], "hogar": ["#ffcc80", "#cfd8dc", "#d7ccc8", "#b3e5fc", "#e0f2f1", "#c5e1a5", "#ffe082", "#e1bee7", "#a5d6a7", "#d32f2f"], "casero": ["#f7c6d9", "#ffcc80", "#ffe082", "#a1887f", "#d7ccc8", "#c5e1a5", "#ffab91", "#fff3e0", "#c8e6c9", "#d32f2f"]};
+  const PRESET_COLORS = {"parques": ["#43a047", "#2e7d32", "#8d6e63", "#66bb6a", "#29b6f6", "#ec407a", "#9ccc65", "#26a69a", "#ffca28", "#d32f2f"], "belleza": ["#f7c6d9", "#e91e63", "#fde8ef", "#f3d9c9", "#c9a7e8", "#f4b6c2", "#b9d7f0", "#ffe3b3", "#e8c6f0", "#d32f2f"], "electro": ["#1e5bc6", "#141414", "#4b555c", "#7b1fa2", "#00acc1", "#2e7d32", "#3949ab", "#d32f2f", "#263238", "#ff8f00"], "moda": ["#f7e1e8", "#cfd8dc", "#ffe0b2", "#a1887f", "#e1bee7", "#43a047", "#90a4ae", "#ffcc80", "#d7ccc8", "#d32f2f"], "joyas": ["#c9a227", "#f7e1e8", "#cfd8dc", "#141414", "#ffe0b2", "#7b1fa2", "#b0bec5", "#e0e0e0", "#a1887f", "#e91e63"], "almacen": ["#1e5bc6", "#e91e63", "#fbc02d", "#e3f2fd", "#a1887f", "#00acc1", "#c9a7e8", "#b3e5fc", "#ffcc80", "#d32f2f"], "ferreteria": ["#ff8f00", "#fbc02d", "#1e5bc6", "#9e9e9e", "#6d4c41", "#43a047", "#ffe082", "#d32f2f", "#607d8b", "#e65100"], "mascotas": ["#a1887f", "#ffcc80", "#fbc02d", "#00acc1", "#8d6e63", "#b3e5fc", "#d32f2f", "#4fc3f7", "#c5e1a5", "#ff8f00"], "deportes": ["#43a047", "#ff8f00", "#141414", "#00acc1", "#fbc02d", "#1e5bc6", "#2e7d32", "#7b1fa2", "#90a4ae", "#d32f2f"], "libreria": ["#1e5bc6", "#9e9e9e", "#e91e63", "#fbc02d", "#43a047", "#f7c6d9", "#ff8f00", "#a1887f", "#00acc1", "#d32f2f"], "hogar": ["#ffcc80", "#cfd8dc", "#d7ccc8", "#b3e5fc", "#e0f2f1", "#c5e1a5", "#ffe082", "#e1bee7", "#a5d6a7", "#d32f2f"], "casero": ["#f7c6d9", "#ffcc80", "#ffe082", "#a1887f", "#d7ccc8", "#c5e1a5", "#ffab91", "#fff3e0", "#c8e6c9", "#d32f2f"]};
   const presetOf = id => PRESETS.find(x => x.id === id) || PRESETS[0];
   function applyTheme(){
     const pr = presetOf(brand.preset), r = document.documentElement.style;
@@ -9125,6 +9323,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   function hAnswer(q){
     const n = norm(q).trim();
     if(/\b(hablar|hablo|comunicar|comunicame|contactar|pasame|atender|atienda|conectar)\b.*\b(duen[oa]|persona|alguien|humano|encargad[oa]|real|vos|ella|el|responsable)\b/.test(n) || /\b(una persona|un humano|persona real|la duena|el dueno|la encargada|el encargado)\b/.test(n) || (ownOn() && n.length < 40 && norm(ownName()).length > 2 && /\b(hablar|hablo|comunicar|pasame|contactar)\b/.test(n) && n.includes(norm(ownName())))) return hHandoff('');
+    if(isParques() && /(presupuest|cotiz|cuanto (me )?(sale|cobr|cuesta)|jardin|parque|patio|pasto|cesped|terreno|metros|poda|podar|arbol|cerco|ligustro|maleza|yuyo|disen)/.test(n)){ hShow([]); openParque(); return hSpeak('¡Dale! Sacale una o dos fotos a tu parque, que se vea todo. Yo miro cuántos metros tiene, cómo está el pasto y las plantas, y te armo el presupuesto. Si querés, también te muestro cómo podría quedar.'); }
     if(hAskCaja && !hPending && /^(si|sii+|sip|dale|ok|okey|bueno|claro|de una|llevame|vamos|listo|a la caja|caja|por favor)\b/.test(n)){ hAskCaja = false; return hToCaja(); }
     if(hAskCaja && !hPending && /^(no|nop|algo mas|quiero (ver )?algo mas|todavia no|seguir|sigo mirando)\b/.test(n)){ hAskCaja = false; return hSpeak('¡Dale! ¿Qué más querés ver? Decime un producto o una vitrina.'); }
     hAskCaja = false;
@@ -9172,7 +9371,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   }
   function hOpen(id){
     hCur = id; $('hPanel').hidden = false;
-    $('hChips').innerHTML = (cartCount() ? `<button class="matbtn" type="button" data-hcaja="1">🧾 Ir a la caja (${cartCount()})</button>` : '') + (waNumber() ? `<button class="matbtn" type="button" data-hlive="1">💬 ${ownOn() ? (id === 'duena' ? 'Hablar conmigo' : 'Hablar con ' + esc(ownName())) : 'Hablar con una persona'}</button>` : '') + [['🏬 Ver vitrinas', 'vitrinas'], ['🔥 Ofertas', 'ofertas'], ['📱 WhatsApp', 'me pasas el numero'], ['🚚 Envíos', 'como hacen los envios'], ['💳 Cómo pago', 'como pago'], ...visCats().slice(0, 4).map(c => [c.name, 'mostrame ' + c.name])].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${esc(q)}">${esc(t)}</button>`).join('');
+    $('hChips').innerHTML = (cartCount() ? `<button class="matbtn" type="button" data-hcaja="1">🧾 Ir a la caja (${cartCount()})</button>` : '') + (waNumber() ? `<button class="matbtn" type="button" data-hlive="1">💬 ${ownOn() ? (id === 'duena' ? 'Hablar conmigo' : 'Hablar con ' + esc(ownName())) : 'Hablar con una persona'}</button>` : '') + [...(isParques() ? [['🌿 Presupuesto de mi parque', 'presupuesto de mi parque']] : []), ['🏬 Ver vitrinas', 'vitrinas'], ['🔥 Ofertas', 'ofertas'], ['📱 WhatsApp', 'me pasas el numero'], ['🚚 Envíos', 'como hacen los envios'], ['💳 Cómo pago', 'como pago'], ...visCats().slice(0, 4).map(c => [c.name, 'mostrame ' + c.name])].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${esc(q)}">${esc(t)}</button>`).join('');
     $('hRow').querySelectorAll('.hav').forEach(b => b.classList.toggle('on', b.dataset.hav === id));
     const ob = document.querySelector('.owbub'); if(ob) ob.remove();
     renderHMode(); hShow([]);

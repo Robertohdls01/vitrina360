@@ -60,7 +60,8 @@ module.exports = async (req, res) => {
 
   // ShopCut: el cliente de una tienda (sin cuenta) manda su selfie o la de su mascota y recibe los cortes que mejor le quedan
   { let bb = req.body; if (typeof bb === 'string') { try { bb = JSON.parse(bb); } catch (e) { bb = null; } }
-    if (bb && bb.corte) return bb.app ? shopCutApp(req, res, KEY, bb) : shopCut(res, KEY, bb); }
+    if (bb && bb.corte) return bb.app ? shopCutApp(req, res, KEY, bb) : shopCut(res, KEY, bb);
+    if (bb && bb.parque) return parqueIA(res, KEY, bb); }
   const tok = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   if (!tok) return res.status(401).json({ error: 'Tenés que entrar a tu tienda.' });
   let user = null;
@@ -211,6 +212,75 @@ Respondé en ${b.lang === 'en' ? 'inglés' : b.lang === 'pt' ? 'portugués' : 'e
     const s = v => String(v || '').slice(0, 400);
     return res.status(200).json({ tipo, analisis: s(out.analisis), consejo: s(out.consejo),
       cortes: (Array.isArray(out.cortes) ? out.cortes : []).slice(0, 5).map(c => ({ nombre: s(c.nombre).slice(0, 80), emoji: s(c.emoji).slice(0, 8), por_que: s(c.por_que), como_pedirlo: s(c.como_pedirlo), mantenimiento: ['bajo', 'medio', 'alto'].includes(c.mantenimiento) ? c.mantenimiento : '', servicio: servicios.includes(c.servicio) ? c.servicio : '' })) });
+  } catch (e) { return res.status(502).json({ error: 'No se pudo hablar con la IA.' }); }
+}
+
+// ---- Parquería: el cliente de la tienda manda fotos de su parque y la IA estima m², altura del pasto, plantas y arma el presupuesto
+//      con los precios del parquero. Usa el cupo de fotos con IA del comercio. Las fotos no se guardan.
+const pnum = v => { const t = String(v || '').replace(/[^\d,.]/g, ''); if (!t) return 0; const n = Number(t.replace(/\./g, '').replace(',', '.')); return isFinite(n) ? n : 0; };
+async function parqueIA(res, KEY, b) {
+  const slug = String(b.slug || '');
+  if (!/^[a-z0-9-]{3,40}$/.test(slug)) return res.status(400).json({ error: 'Tienda inválida.' });
+  const ims = (Array.isArray(b.images) ? b.images : []).slice(0, 3).filter(im => im && typeof im.data === 'string' && im.data.length > 1000 && im.data.length < 4000000);
+  if (!ims.length) return res.status(400).json({ error: 'Subí al menos una foto de tu parque.' });
+  let t = null;
+  try { const rows = await db('GET', '/rest/v1/tiendas?slug=eq.' + slug + '&select=owner,activa,data'); t = rows && rows[0]; } catch (e) {}
+  if (!t || t.activa === false) return res.status(404).json({ error: 'Esta tienda no está disponible.' });
+  // los servicios y precios del parquero
+  const servs = [];
+  try { (t.data.stores || []).forEach(st => (st.products || []).forEach(p => { if (!p || !p.name || servs.length >= 60 || p.sample) return;
+    const txt = (p.name + ' ' + (p.features || []).join(' ')).toLowerCase();
+    servs.push({ n: String(p.name).slice(0, 60), precio: pnum(p.price), m2: !!p.m2 || /m2|m²|metro/.test(txt) }); })); } catch (e) {}
+  const SK = process.env.SUPABASE_SERVICE_KEY, base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
+  let owner = { id: t.owner };
+  try { const h = { apikey: SK }; if (String(SK).startsWith('eyJ')) h.Authorization = 'Bearer ' + SK; const r = await fetch(base + '/auth/v1/admin/users/' + t.owner, { headers: h }); if (r.ok) owner = await r.json(); } catch (e) {}
+  const cupo = await cupoIA(owner);
+  if (cupo && cupo.agotado) return res.status(429).json({ error: 'El presupuesto con IA está descansando por hoy en esta tienda. Escribile al parquero por WhatsApp.' });
+  const m2 = Math.max(0, Math.min(200000, Number(b.m2) || 0));
+  const quiere = String(b.quiere || '').slice(0, 300);
+  const prompt = `Sos un parquero y paisajista con muchos años de experiencia en Argentina. Un cliente te manda ${ims.length > 1 ? ims.length + ' fotos' : 'una foto'} de su parque, jardín o terreno para que le pases un presupuesto.
+Mirá con atención y estimá, como lo haría un profesional en la visita:
+- La superficie de césped o terreno a trabajar en m² (usá referencias: puertas ~2 m de alto y ~0,8 m de ancho, ladrillos, baldosas de 30–40 cm, autos ~4,5 m, cercos ~1,8 m, personas).${m2 ? ' El cliente midió ' + m2 + ' m²: usá ese número.' : ''}
+- La altura aproximada del pasto en cm y su estado (prolijo, crecido, muy crecido/abandonado, con malezas, seco, con pozos).
+- Cada planta, arbusto, cerco o árbol que haya que trabajar: qué es, tamaño aproximado (altura en metros, ancho), estado y qué trabajo necesita (poda de mantenimiento, poda de formación, rebaje, extracción, etc.).
+- Si hay que limpiar (ramas, hojas, escombros), desmalezar, bordear o retirar residuos.
+${quiere ? 'Lo que pide el cliente: "' + quiere + '".\n' : ''}Servicios y precios del parquero (usá EXACTAMENTE estos nombres cuando correspondan; "m2": true quiere decir precio por m²):
+${JSON.stringify(servs)}
+Para cada trabajo: si hay un servicio de la lista que corresponde, poné su nombre exacto en "servicio". Si el pasto está muy crecido, hay mucha maleza, el terreno es difícil o la planta es muy grande, poné un "ajuste_pct" positivo (por ejemplo 30 o 60) con el motivo; si es fácil, 0. Si NO hay un servicio de la lista, poné "servicio": "" y en "precio_estimado" un precio razonable en pesos argentinos de hoy para ese trabajo completo.
+Sé honesto: es una estimación por foto. Si en las fotos no se ve un parque, jardín, patio o terreno, devolvé {"error":"…"} en una frase corta diciendo qué foto sacar.
+Respondé en español rioplatense (con "vos") y SOLO con JSON válido:
+{"analisis":"2 o 3 frases de lo que ves","m2":número,"m2_confianza":"baja|media|alta","pasto_cm":número,"pasto_estado":"…","plantas":[{"que":"…","tamano":"…","estado":"…","trabajo":"…"}],"trabajos":[{"titulo":"nombre corto del trabajo","servicio":"nombre exacto o vacío","cantidad":número,"unidad":"m2|unidad|trabajo","ajuste_pct":número,"motivo":"…","precio_estimado":número}],"consejo":"1 frase útil para el cliente","tiempo":"duración aproximada del trabajo"}`;
+  const model = process.env.IA_MODEL_PARQUE || 'claude-opus-5-5';
+  const ask = () => fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST', headers: { 'x-api-key': KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    body: JSON.stringify({ model, max_tokens: 2500, messages: [{ role: 'user', content: [
+      ...ims.map(im => ({ type: 'image', source: { type: 'base64', media_type: TYPES.includes(im.type) ? im.type : 'image/jpeg', data: im.data } })),
+      { type: 'text', text: prompt }] }] })
+  });
+  try {
+    let r = await ask(), j = await r.json().catch(() => ({}));
+    for (let k = 0; k < 2 && !r.ok && [429, 500, 502, 503, 529].includes(r.status); k++) { await new Promise(ok => setTimeout(ok, 1500 * (k + 1))); r = await ask(); j = await r.json().catch(() => ({})); }
+    if (!r.ok) return res.status(502).json({ error: 'No pude analizar las fotos ahora. Probá en un rato.' });
+    const text = (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
+    let out = null; try { out = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)); } catch (e) {}
+    if (!out) return res.status(502).json({ error: 'No pude leer bien las fotos. Probá con otras, con buena luz y que se vea todo el parque.' });
+    if (out.error) return res.status(422).json({ error: String(out.error).slice(0, 300) });
+    if (cupo && cupo.sumar) await cupo.sumar();
+    const s = (v, n) => String(v == null ? '' : v).slice(0, n || 300), num = v => Math.max(0, Number(v) || 0);
+    const M2 = m2 || Math.round(num(out.m2));
+    // el precio lo arma el servidor con los precios del parquero (la IA solo estima cantidades y dificultad)
+    const trabajos = (Array.isArray(out.trabajos) ? out.trabajos : []).slice(0, 12).map(x => {
+      const sv = servs.find(v => v.n.toLowerCase() === String(x.servicio || '').toLowerCase().trim());
+      const aj = Math.max(-30, Math.min(150, Number(x.ajuste_pct) || 0));
+      const porM2 = sv ? sv.m2 : x.unidad === 'm2';
+      const cant = porM2 ? 0 : Math.max(1, Math.min(500, Math.round(num(x.cantidad) || 1)));
+      const precio = sv && sv.precio ? sv.precio : num(x.precio_estimado) / (porM2 ? Math.max(1, M2) : (cant || 1));
+      return { titulo: s(x.titulo, 80), servicio: sv ? sv.n : '', porM2, cantidad: cant, precio: Math.round(precio * 100) / 100, ajuste: aj, motivo: s(x.motivo, 160), estimado: !(sv && sv.precio) };
+    }).filter(x => x.titulo);
+    return res.status(200).json({ analisis: s(out.analisis, 600), m2: M2, m2_confianza: ['baja', 'media', 'alta'].includes(out.m2_confianza) ? out.m2_confianza : 'baja',
+      pasto_cm: Math.round(num(out.pasto_cm)), pasto_estado: s(out.pasto_estado, 120), consejo: s(out.consejo, 300), tiempo: s(out.tiempo, 80),
+      plantas: (Array.isArray(out.plantas) ? out.plantas : []).slice(0, 10).map(p => ({ que: s(p.que, 60), tamano: s(p.tamano, 60), estado: s(p.estado, 80), trabajo: s(p.trabajo, 80) })),
+      trabajos });
   } catch (e) { return res.status(502).json({ error: 'No se pudo hablar con la IA.' }); }
 }
 
