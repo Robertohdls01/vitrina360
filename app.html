@@ -7993,10 +7993,14 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     $('myLinkName').value = ''; $('myLinkUrl').value = ''; $('myLinkMsg').textContent = '';
   });
   // ---- Chat con IA dentro del rectángulo (usa la IA de la tienda, con cupo por plan) ----
-  let aiHist = [];
-  try{ aiHist = JSON.parse(localStorage.getItem('vitrina360-aichat') || '[]').slice(-20); }catch(e){}
-  const aiKeep = () => { try{ localStorage.setItem('vitrina360-aichat', JSON.stringify(aiHist.slice(-20))); }catch(e){} };
+  // la charla se guarda por tienda: así no se mezclan los productos de una tienda con los de otra
+  let aiHist = [], aiKey = '';
+  const aiK = () => 'vitrina360-aichat-' + (((window.VITRINA_ME || {}).slug) || window.VITRINA_SLUG || '') + '-' + storeName();
+  const aiLoad = () => { const k = aiK(); if(k === aiKey) return; aiKey = k; try{ aiHist = JSON.parse(localStorage.getItem(k) || '[]').slice(-20); }catch(e){ aiHist = []; } };
+  try{ localStorage.removeItem('vitrina360-aichat'); }catch(e){}
+  const aiKeep = () => { try{ localStorage.setItem(aiKey || aiK(), JSON.stringify(aiHist.slice(-20))); }catch(e){} };
   function aiRender(wait){
+    aiLoad();
     const log = $('aiLog');
     log.querySelectorAll('.aim').forEach(x => x.remove());
     log.querySelector('.aihint').hidden = !!aiHist.length || !!wait;
@@ -8008,9 +8012,13 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(wait){ const d = document.createElement('div'); d.className = 'aim a wait'; d.textContent = 'Pensando…'; log.appendChild(d); }
     log.scrollTop = log.scrollHeight;
   }
+  // todos los productos de ESTA tienda, ordenados por vitrina (antes iban solo los primeros 40 y la IA no veía el resto)
   function aiCtx(){
-    const list = products.filter(p => !p.sample).slice(0, 40).map(p => `- ${p.name}${curPrice(p) ? ' (' + curPrice(p) + ')' : ''}${(catOf(p.cat) || {}).name ? ' · ' + catOf(p.cat).name : ''}`).join('\n');
-    return [`Nombre: ${storeName()}`, brand.addr ? `Dirección: ${brand.addr}` : '', `Vitrinas: ${cats.map(c => c.name).join(', ')}`, list ? 'Productos:\n' + list : ''].filter(Boolean).join('\n');
+    const real = products.filter(p => !p.sample);
+    let txt = cats.map(c => { const ps = real.filter(p => p.cat === c.id); if(!ps.length) return `Vitrina "${c.name}": (vacía)`;
+      return `Vitrina "${c.name}":\n` + ps.map(p => `- ${p.name}${curPrice(p) ? ' (' + curPrice(p) + ')' : ''}`).join('\n'); }).join('\n');
+    if(txt.length > 11000) txt = txt.slice(0, 11000) + '\n…';
+    return [`Nombre de la tienda: ${storeName()}`, brand.addr ? `Dirección: ${brand.addr}` : '', `Cantidad de productos: ${real.length}`, txt].filter(Boolean).join('\n');
   }
   $('aiForm').addEventListener('submit', async e => {
     e.preventDefault();
@@ -8722,7 +8730,11 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     duck(true); speechSynthesis.cancel(); speechSynthesis.speak(u);
   }
   const STOP = new Set('mostrame mostra mostrar muestrame quiero queres ver hay que el la los las lo de del un una unos unas me por favor busco buscar tenes tienen tiene algo dame con para en y o a al mi es son cuanto cuesta sale precio vitrina tienda ahi aca esto eso'.split(' '));
-  const stem = w => w.length > 4 ? w.replace(/(es|s)$/, '') : w;
+  // "autitos" → "auto", "perrito" → "perr": los diminutivos encuentran el producto (salvo que la palabra exista tal cual en la tienda)
+  let STXT = '', STXTt = 0; const stxt = () => { if(Date.now() - STXTt > 5000){ STXT = norm(products.map(p => p.name + ' ' + ((catOf(p.cat) || {}).name || '')).join(' ')); STXTt = Date.now(); } return STXT; };
+  const stem = w => { const x = w.length > 4 ? w.replace(/(es|s)$/, '') : w;
+    if(x.length > 5 && /it[oa]$/.test(x) && !stxt().includes(x)){ const r = x.replace(/c?it[oa]$/, ''); if(r.length >= 3) return r; }
+    return x; };
   function hFind(q){
     const toks = norm(q).replace(/[^a-z0-9ñ ]/g, ' ').split(/\s+/).filter(w => w && !STOP.has(w)).map(stem);
     if(!toks.length) return [];

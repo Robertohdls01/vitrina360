@@ -128,11 +128,11 @@ async function chatIA(req, res, KEY, user, body) {
   if (!msgs.length || msgs[msgs.length - 1].role !== 'user') return res.status(400).json({ error: 'Escribí tu pregunta.' });
   const cupo = await cupoIA(user, true);
   if (cupo && cupo.agotado) return res.status(403).json({ error: cupo.aviso, limite: cupo.limite });
-  const ctx = typeof body.ctx === 'string' ? body.ctx.slice(0, 3000) : '';
+  const ctx = typeof body.ctx === 'string' ? body.ctx.slice(0, 12000) : '';
   const system = 'Sos el asistente de ShopFlash, una tienda online con vitrinas que giran. Ayudás al dueño o la dueña del comercio a vender: '
     + 'descripciones de productos, textos para redes y WhatsApp, respuestas a clientes, ideas de precios y promociones, y cómo usar su tienda. '
     + 'Respondé en el idioma en que te escriben (si es español, en español rioplatense, con "vos"), claro, cálido y breve, con pasos o textos listos para copiar. '
-    + 'No inventes datos de la tienda que no estén abajo; si falta algo, preguntá. Si te piden algo ilegal o dañino, no lo hagas.'
+    + 'Usá SOLO los productos y vitrinas de la lista de abajo, que es la tienda actual. Nunca nombres productos que no estén en la lista (por ejemplo, si preguntan por autitos, hablá de los autitos de la lista, no de otra cosa). Si algo no está, decí que no lo ves cargado y preguntá. No inventes datos de la tienda que no estén abajo. Si te piden algo ilegal o dañino, no lo hagas.'
     + (ctx ? '\n\nDatos de la tienda:\n' + ctx : '');
   const model = process.env.IA_MODEL_CHAT || process.env.IA_MODEL_TEXT || 'claude-haiku-5-5';
   const ask = () => fetch('https://api.anthropic.com/v1/messages', {
