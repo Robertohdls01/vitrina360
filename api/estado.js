@@ -1,5 +1,5 @@
 // Vitrina 360 · estado de la suscripción del comerciante que está en su panel.
-const { usuario, db, sincronizar, estado, PRECIO, PLANES, hmPendiente, hmBorrar, aplicarPago } = require('./_comun');
+const { usuario, db, sincronizar, estado, PRECIO, PLANES, planReal, hmPendiente, hmBorrar, aplicarPago } = require('./_comun');
 module.exports = async (req, res) => {
   try {
     if (!process.env.SUPABASE_SERVICE_KEY) return res.status(200).json({ configurado: false });
@@ -21,7 +21,13 @@ module.exports = async (req, res) => {
       } catch (e) { /* si falla, se reintenta la próxima vez */ }
     }
     const e = estado(row);
-    return res.status(200).json(Object.assign({ configurado: true, mp: !!process.env.MP_ACCESS_TOKEN, precio: PRECIO(), planes: PLANES(), suscripto: !!row.mp_suscripcion, mp_estado: row.mp_estado || null, prueba_hasta: row.prueba_hasta, pagada_hasta: row.pagada_hasta }, e));
+    // presupuestos de parques con IA usados este mes (para avisarle antes de que se le terminen)
+    let pq = null;
+    try { const m = u.meta || {}, pr = planReal(row), P = PLANES()[pr] || {}, paga = e.estado === 'activa';
+      const usadas = paga ? (m.pq_mes === new Date().toISOString().slice(0, 7) ? Number(m.pq_usadas) || 0 : 0) : Number(m.pq_prueba) || 0;
+      const limite = paga ? Number(P.pq || (pr === 'pro' ? 150 : pr === 'comercio' ? 60 : 30)) : Number(process.env.PQ_PRUEBA || 10);
+      if (usadas > 0 || P.parq) pq = { usadas, limite, plan: pr, prueba: !paga }; } catch (err) {}
+    return res.status(200).json(Object.assign({ pq, configurado: true, mp: !!process.env.MP_ACCESS_TOKEN, precio: PRECIO(), planes: PLANES(), suscripto: !!row.mp_suscripcion, mp_estado: row.mp_estado || null, prueba_hasta: row.prueba_hasta, pagada_hasta: row.pagada_hasta }, e));
   } catch (e) {
     return res.status(500).json({ error: 'No se pudo ver el estado de tu cuenta.' });
   }

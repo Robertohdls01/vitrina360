@@ -27,7 +27,7 @@ async function usuario(req) {
   const r = await fetch(SURL() + '/auth/v1/user', { headers: { apikey: process.env.SUPABASE_KEY, Authorization: 'Bearer ' + tok } });
   if (!r.ok) return null;
   const u = await r.json();
-  return u && u.id ? { id: u.id, email: u.email || '' } : null;
+  return u && u.id ? { id: u.id, email: u.email || '', meta: u.app_metadata || {} } : null;
 }
 
 // Base de datos con la clave secreta (solo del servidor): puede marcar pagos.

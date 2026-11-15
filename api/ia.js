@@ -1,6 +1,6 @@
 // Vitrina 360 · IA para reconocer productos. La clave de Anthropic vive en Vercel (variable ANTHROPIC_API_KEY), nunca en la página.
 const TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-const { db, estado, PLANES, planReal, esDemo } = require('./_comun');
+const { db, estado, PLANES, planReal, esDemo, usuario } = require('./_comun');
 const crypto = require('crypto');
 
 // Cupo de productos reconocidos con IA (se guarda en la cuenta del comerciante, donde él no lo puede tocar).
@@ -61,7 +61,8 @@ module.exports = async (req, res) => {
   // ShopCut: el cliente de una tienda (sin cuenta) manda su selfie o la de su mascota y recibe los cortes que mejor le quedan
   { let bb = req.body; if (typeof bb === 'string') { try { bb = JSON.parse(bb); } catch (e) { bb = null; } }
     if (bb && bb.corte) return bb.app ? shopCutApp(req, res, KEY, bb) : shopCut(res, KEY, bb);
-    if (bb && bb.parque) return parqueIA(res, KEY, bb, req); }
+    if (bb && bb.parque) return parqueIA(res, KEY, bb, req);
+    if (bb && (bb.pqPendientes || bb.pqProcesar)) return pqPendientes(req, res, KEY, bb); }
   const tok = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   if (!tok) return res.status(401).json({ error: 'Tenés que entrar a tu tienda.' });
   let user = null;
@@ -251,7 +252,21 @@ async function parqueIA(res, KEY, b, req) {
   const metaO = owner.app_metadata || {}, mesPq = new Date().toISOString().slice(0, 7);
   const pqUsadas = pqPaga ? (metaO.pq_mes === mesPq ? Number(metaO.pq_usadas) || 0 : 0) : Number(metaO.pq_prueba) || 0;
   const libresPq = String(process.env.IA_SIN_LIMITE || '').toLowerCase().split(',').map(x => x.trim()).filter(Boolean);
-  if (!(owner.email && libresPq.includes(String(owner.email).toLowerCase())) && pqUsadas >= pqLim) return res.status(429).json({ error: 'Este mes ya se armaron todos los presupuestos con IA de esta tienda. Mandale las fotos al parquero por WhatsApp y te contesta.' });
+  if (!(owner.email && libresPq.includes(String(owner.email).toLowerCase())) && pqUsadas >= pqLim) {
+    if (b._interno) return res.status(429).json({ error: 'Todavía no tenés presupuestos disponibles este mes: pasate al plan siguiente para destrabarlos.' });
+    // sin cupo: el pedido del cliente queda guardado (con sus fotos) y el parquero lo destraba al pasar de plan
+    const nom = String(b.nombre || '').trim().slice(0, 60), tel = String(b.tel || '').trim().slice(0, 30);
+    if (b.guardar && nom && tel.replace(/\D/g, '').length >= 8) {
+      const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6), dir = scBase() + '/object/' + SC_BUCKET + '/pqpend/' + t.owner + '/';
+      let idx = []; try { const r = await fetch(dir + 'index.json', { headers: scHead({ 'cache-control': 'no-cache' }) }); if (r.ok) idx = await r.json(); } catch (e) {}
+      idx = Array.isArray(idx) ? idx : []; if (idx.length >= 60) return res.status(429).json({ error: 'El parquero tiene muchos pedidos esperando. Escribile por WhatsApp.' });
+      await fetch(dir + id + '.json', { method: 'POST', headers: scHead({ 'Content-Type': 'application/json', 'x-upsert': 'true' }), body: JSON.stringify({ images: ims, m2: Number(b.m2) || 0, quiere: String(b.quiere || '').slice(0, 300) }) });
+      idx.unshift({ id, nombre: nom, tel, fecha: new Date().toISOString(), quiere: String(b.quiere || '').slice(0, 120), m2: Number(b.m2) || 0, fotos: ims.length });
+      await fetch(dir + 'index.json', { method: 'POST', headers: scHead({ 'Content-Type': 'application/json', 'x-upsert': 'true', 'cache-control': 'no-cache' }), body: JSON.stringify(idx) });
+      return res.status(200).json({ guardado: true });
+    }
+    return res.status(429).json({ cupo: true, error: 'Este mes el parquero ya usó todos sus presupuestos automáticos. Dejá tu nombre y tu WhatsApp: tus fotos quedan guardadas y te manda el presupuesto.' });
+  }
   const sumarPq = async () => { try { const h = { apikey: SK, 'Content-Type': 'application/json' }; if (String(SK).startsWith('eyJ')) h.Authorization = 'Bearer ' + SK;
     const cambio = pqPaga ? { pq_mes: mesPq, pq_usadas: pqUsadas + 1 } : { pq_prueba: pqUsadas + 1 };
     await fetch(base + '/auth/v1/admin/users/' + t.owner, { method: 'PUT', headers: h, body: JSON.stringify({ app_metadata: Object.assign({}, metaO, cambio) }) }); } catch (e) {} };
@@ -318,6 +333,28 @@ Respondé en español rioplatense (con "vos") y SOLO con JSON válido:
         return { que: s(it ? it.n : x.que, 80), cantidad: Math.max(1, Math.min(300, Math.round(num(x.cantidad) || 1))), donde: s(x.donde, 100), por_que: s(x.por_que, 140),
           precio: it && it.precio ? it.precio : num(x.precio_estimado), vivero: it ? it.v : '', link: it && it.slug !== slug ? '/t/' + it.slug : '', estimado: !(it && it.precio) }; }).filter(x => x.que) } : {}) });
   } catch (e) { return res.status(502).json({ error: 'No se pudo hablar con la IA.' }); }
+}
+
+// ---- Parquería: los pedidos que quedaron guardados cuando se terminó el cupo (el parquero los ve y los destraba al pasar de plan)
+async function pqPendientes(req, res, KEY, b) {
+  const u = await usuario(req); if (!u) return res.status(401).json({ error: 'Tenés que entrar a tu tienda.' });
+  const rows = await db('GET', '/rest/v1/tiendas?owner=eq.' + u.id + '&select=slug');
+  const row = rows && rows[0]; if (!row) return res.status(404).json({ error: 'Todavía no creaste tu tienda.' });
+  const dir = scBase() + '/object/' + SC_BUCKET + '/pqpend/' + u.id + '/';
+  let idx = []; try { const r = await fetch(dir + 'index.json', { headers: scHead({ 'cache-control': 'no-cache' }) }); if (r.ok) idx = await r.json(); } catch (e) {}
+  idx = Array.isArray(idx) ? idx : [];
+  if (b.pqPendientes) return res.status(200).json({ pendientes: idx });
+  const it = idx.find(x => x.id === String(b.pqProcesar)); if (!it) return res.status(404).json({ error: 'Ese pedido ya no está.' });
+  let f = null; try { const r = await fetch(dir + it.id + '.json', { headers: scHead() }); if (r.ok) f = await r.json(); } catch (e) {}
+  if (!f || !Array.isArray(f.images)) return res.status(404).json({ error: 'No encontré las fotos de ese pedido.' });
+  // se arma con el mismo análisis que ve el cliente (y cuenta como un presupuesto del mes)
+  const out = await new Promise(ok => { const fr = { _s: 200, status(s) { this._s = s; return this; }, setHeader() {}, json(j) { ok([this._s, j]); }, send(x) { ok([this._s, x]); }, end() { ok([this._s, {}]); } };
+    parqueIA(fr, KEY, { parque: 1, slug: row.slug, images: f.images, m2: f.m2, quiere: f.quiere, _interno: 1 }, req); });
+  if (out[0] !== 200) return res.status(out[0]).json(out[1]);
+  try { await fetch(dir + it.id + '.json', { method: 'DELETE', headers: scHead() }); } catch (e) {}
+  const resto = idx.filter(x => x.id !== it.id);
+  await fetch(dir + 'index.json', { method: 'POST', headers: scHead({ 'Content-Type': 'application/json', 'x-upsert': 'true', 'cache-control': 'no-cache' }), body: JSON.stringify(resto) });
+  return res.status(200).json({ cliente: it, presupuesto: out[1], quedan: resto.length });
 }
 
 // ---- ShopCut como app propia (shopcut.html): gratis, con tope por celular/IP y tope total por día para no gastar de más ----

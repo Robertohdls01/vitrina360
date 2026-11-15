@@ -341,10 +341,54 @@
   // ---------- Abono mensual (Mercado Pago) ----------
   const money = n => '$' + Number(n || 0).toLocaleString('es-AR');
   const fecha = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('es-AR', {day: 'numeric', month: 'numeric', year: 'numeric'}); };
+  // pedidos de presupuesto guardados: la IA los arma de a uno y el parquero se los manda al cliente por WhatsApp
+  function pqPendSheet(pend){
+    const ov = document.createElement('div'); ov.style.cssText = 'position:fixed;inset:0;z-index:150;background:rgba(10,20,10,.6);display:grid;place-items:center;padding:14px';
+    const fm = n => '$' + Math.round(n || 0).toLocaleString('es-AR'), wa = t => String(t || '').replace(/[^\d]/g, '').replace(/^0/, '').replace(/^(?!54)/, '549');
+    const sub = (x, m2) => (x.porM2 ? x.precio * (m2 || 0) : x.precio * (x.cantidad || 1)) * (1 + (x.ajuste || 0) / 100);
+    ov.innerHTML = `<div style="width:min(560px,100%);max-height:calc(100dvh - 28px);overflow:auto;background:#fff;color:#1f2a1f;border-radius:20px;padding:18px;display:grid;gap:10px;font:15px system-ui,sans-serif"><h2 style="margin:0">🌿 Pedidos de presupuesto guardados</h2><p style="margin:0;color:#5b6b5b">Tocá <b>Armar</b> y la IA hace el presupuesto con tus precios. Después se lo mandás al cliente por WhatsApp.</p>
+      ${pend.map(p => `<div data-pp="${esc(p.id)}" style="border:1.5px solid #d5e8cc;border-radius:14px;padding:10px 12px;display:grid;gap:6px"><b>${esc(p.nombre)}</b><span style="color:#5b6b5b;font-size:14px">📷 ${p.fotos} foto${p.fotos > 1 ? 's' : ''}${p.m2 ? ' · ' + p.m2 + ' m²' : ''}${p.quiere ? ' · “' + esc(p.quiere) + '”' : ''} · ${new Date(p.fecha).toLocaleDateString('es-AR')}</span><span data-ppo></span><button type="button" data-ppgo style="justify-self:start;border:0;border-radius:999px;padding:8px 14px;background:#2e7d32;color:#fff;font-weight:800;cursor:pointer">🤖 Armar presupuesto</button></div>`).join('')}
+      <button type="button" data-ppx style="border:1px solid #d5e8cc;background:#fff;border-radius:999px;padding:9px 14px;cursor:pointer">Cerrar</button></div>`;
+    document.body.appendChild(ov);
+    ov.onclick = async ev => {
+      if(ev.target === ov || ev.target.closest('[data-ppx]')) return ov.remove();
+      const g = ev.target.closest('[data-ppgo]'); if(!g) return; const card = g.closest('[data-pp]'), it = pend.find(p => p.id === card.dataset.pp), out = card.querySelector('[data-ppo]');
+      g.disabled = true; out.textContent = '⏳ La IA está mirando las fotos…';
+      try{ const r = await fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await token()}, body: JSON.stringify({pqProcesar: it.id})});
+        const j = await r.json().catch(() => ({}));
+        if(!r.ok){ out.textContent = j.error || 'No se pudo armar.'; g.disabled = false; return; }
+        const P = j.presupuesto, m2 = P.m2 || 0, tot = P.trabajos.reduce((a, x) => a + sub(x, m2), 0);
+        const txt = `¡Hola ${it.nombre.split(' ')[0]}! Soy de ${(() => { try{ const d0 = window.VITRINA_REMOTE_DATA; return d0.stores[d0.active || 0].brand.name || 'tu parquero'; }catch(e){ return 'tu parquero'; } })()} 🌿 Te paso el presupuesto de tu parque (~${m2} m², pasto ~${P.pasto_cm} cm):\n` + P.trabajos.map(x => `• ${x.titulo}: ${sub(x, m2) ? fm(sub(x, m2)) : 'a consultar'}`).join('\n') + `\n💰 Total estimado: ${fm(tot)}\n¿Qué día te queda bien?`;
+        out.innerHTML = `<span style="display:block;color:#1f2a1f">${esc(P.analisis)}</span><b style="display:block;margin:4px 0">Total estimado: ${fm(tot)}</b><a href="https://wa.me/${esc(wa(it.tel))}?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener" style="display:inline-block;border-radius:999px;padding:8px 14px;background:#25d366;color:#fff;font-weight:800;text-decoration:none">💬 Mandárselo por WhatsApp</a>`;
+        g.remove();
+      }catch(err){ out.textContent = 'No se pudo conectar.'; g.disabled = false; }
+    };
+  }
   async function plan(box){
     let e = estadoCache;
     if(!e){ try{ const r = await fetch('/api/estado', {headers: {Authorization: 'Bearer ' + await token()}}); if(!r.ok) return; e = await r.json(); }catch(err){ return; } }
     if(!e || !e.configurado) return;
+    // aviso: se le están por terminar los presupuestos con IA del mes → que pase al plan siguiente antes de quedarse sin
+    try{ const q = e.pq; if(q && q.limite && q.usadas >= Math.floor(q.limite * 0.8) && !document.getElementById('pqAviso')){
+      const queda = Math.max(0, q.limite - q.usadas), plus = q.plan === 'parquero', sig = q.prueba ? 'Parques y Jardines' : plus ? 'Parques y Jardines Plus' : 'Pro';
+      const av = document.createElement('div'); av.id = 'pqAviso'; av.setAttribute('role', 'status');
+      av.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);top:12px;z-index:140;max-width:min(560px,94vw);background:#fff8e1;color:#5d4037;border:2px solid #ffca28;border-radius:16px;padding:12px 14px;box-shadow:0 14px 30px -12px rgba(0,0,0,.35);display:flex;gap:10px;align-items:center;flex-wrap:wrap;font:600 15px system-ui,sans-serif';
+      av.innerHTML = `<span style="flex:1;min-width:200px">${queda ? `🌿 Te quedan <b>${queda} presupuestos con IA</b> este mes (usaste ${q.usadas} de ${q.limite}).` : `⛔ Usaste los <b>${q.limite} presupuestos con IA</b> de este mes: tus clientes nuevos ahora te escriben por WhatsApp.`} ${q.prueba ? 'Elegí tu plan para seguir.' : `Pasate a <b>${sig}</b> para no quedarte sin.`}</span><button type="button" data-pqup style="border:0;border-radius:999px;padding:9px 14px;background:#2e7d32;color:#fff;font-weight:800;cursor:pointer">⭐ ${q.prueba ? 'Elegir plan' : 'Pasarme a ' + (plus ? 'Plus' : sig)}</button><button type="button" data-pqx aria-label="Cerrar" style="border:0;background:none;font-size:18px;cursor:pointer">✕</button>`;
+      document.body.appendChild(av);
+      av.querySelector('[data-pqx]').onclick = () => av.remove();
+      av.querySelector('[data-pqup]').onclick = () => { av.remove(); const ac = document.querySelector('[data-acct]'); if(ac && ac.getAttribute('aria-expanded') !== 'true') ac.click(); setTimeout(() => { const b = (box && box.querySelector('[data-sub]')) || box; if(b){ b.scrollIntoView({block: 'center', behavior: 'smooth'}); if(b.matches && b.matches('[data-sub]')) b.click(); } }, 300); };
+    } }catch(err){}
+    try{ if(e.pq && !window.__pqPendVisto){ window.__pqPendVisto = true;
+      const r = await fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await token()}, body: JSON.stringify({pqPendientes: 1})});
+      const j = r.ok ? await r.json() : null, pend = (j && j.pendientes) || [];
+      if(pend.length){ const hay = e.pq.usadas < e.pq.limite, av = document.getElementById('pqAviso') || document.createElement('div');
+        if(!av.id){ av.id = 'pqAviso'; av.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);top:12px;z-index:140;max-width:min(560px,94vw);background:#fff8e1;color:#5d4037;border:2px solid #ffca28;border-radius:16px;padding:12px 14px;box-shadow:0 14px 30px -12px rgba(0,0,0,.35);display:flex;gap:10px;align-items:center;flex-wrap:wrap;font:600 15px system-ui,sans-serif'; document.body.appendChild(av); }
+        const ln = document.createElement('div'); ln.style.cssText = 'width:100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px dashed #ffca28;padding-top:8px';
+        ln.innerHTML = hay ? `<span style="flex:1">🔓 Tenés <b>${pend.length} pedido${pend.length > 1 ? 's' : ''} de presupuesto</b> guardado${pend.length > 1 ? 's' : ''}, con fotos.</span><button type="button" data-pqver style="border:0;border-radius:999px;padding:9px 14px;background:#2e7d32;color:#fff;font-weight:800;cursor:pointer">🤖 Armar presupuestos</button>`
+          : `<span style="flex:1">🔒 <b>${pend.length} cliente${pend.length > 1 ? 's' : ''} te dej${pend.length > 1 ? 'aron' : 'ó'} fotos</b> esperando presupuesto. Pasate de plan para destrabarlos.</span>`;
+        av.appendChild(ln); if(!av.querySelector('[data-pqx]')){ const x = document.createElement('button'); x.type = 'button'; x.dataset.pqx = ''; x.textContent = '✕'; x.style.cssText = 'border:0;background:none;font-size:18px;cursor:pointer'; x.onclick = () => av.remove(); av.prepend(x); }
+        const bv = ln.querySelector('[data-pqver]'); if(bv) bv.onclick = () => { av.remove(); pqPendSheet(pend); };
+      } } }catch(err){}
     if(e.limites && !estadoCache){ window.VITRINA_LIMITS = e.limites; try{ window.VITRINA_REFRESH?.(); }catch(err){} }
     const pn = k => (e.planes && e.planes[k] && e.planes[k].nombre) || k;
     const btn = e.mp ? `<button type="button" data-sub>${e.suscripto && e.mp_estado === 'pending' ? T('Completar el pago', 'Finish payment', 'Concluir pagamento') : T('Elegir plan', 'Choose plan', 'Escolher plano') + ' · ' + T('desde', 'from', 'a partir de') + ' ' + money(e.precio) + T('/mes', '/mo', '/mês')}</button>` : '';
@@ -6848,6 +6892,16 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       }catch(err){ msg.textContent = 'No se pudo conectar. Probá de nuevo.'; b.disabled = false; }
       return; }
     if(k === 'mapa') return pqMedir();
+    if(k === 'guardar'){
+      const nom = ($('pqGNom') || {}).value || '', tel = ($('pqGTel') || {}).value || '';
+      if(!nom.trim() || tel.replace(/\D/g, '').length < 8){ $('pqGNom').focus(); return; }
+      b.disabled = true;
+      try{ const images = pqFotos.map(f => ({type: 'image/jpeg', data: f.split(',')[1]}));
+        const r = await fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({parque: 1, guardar: 1, nombre: nom, tel, slug: window.VITRINA_SLUG || '', images, m2: pqM2 || 0, quiere: ($('pqQuiere') || {}).value || ''})});
+        const j = await r.json().catch(() => ({}));
+        $('pqMsg').innerHTML = r.ok && j.guardado ? '✅ <b>¡Listo! Tu pedido quedó guardado</b> con tus fotos. El parquero te manda el presupuesto por WhatsApp.' : esc(j.error || 'No se pudo guardar. Escribile al parquero por WhatsApp.');
+      }catch(err){ $('pqMsg').textContent = 'No se pudo conectar. Probá de nuevo.'; b.disabled = false; }
+      return; }
     if(k === 'fijo'){
       let ult = null; try{ ult = JSON.parse(localStorage.getItem('pq-ultimo-' + (window.VITRINA_SLUG || '')) || 'null'); }catch(err){}
       pqRes = {fijo: true, analisis: '', m2: ult ? ult.m2 : 0, pasto_cm: 0, pasto_estado: '', plantas: [], consejo: '', tiempo: '', m2_confianza: 'media',
@@ -6865,6 +6919,9 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       try{ const images = pqFotos.map(f => ({type: 'image/jpeg', data: f.split(',')[1]}));
         const r = await fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({parque: 1, slug: window.VITRINA_SLUG || (window.VITRINA_ME || {}).slug || '', images, m2: pqM2 || 0, quiere: $('pqQuiere').value || ''})});
         const j = await r.json().catch(() => ({}));
+        if(r.status === 429 && j.cupo){
+          $('pqMsg').innerHTML = `<span>${esc(j.error)}</span><span style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><input id="pqGNom" maxlength="60" placeholder="Tu nombre" style="flex:1;min-width:120px"><input id="pqGTel" maxlength="30" inputmode="tel" placeholder="Tu WhatsApp" style="flex:1;min-width:120px"><button class="btn primary" type="button" data-pq="guardar">📩 Guardar mi pedido</button></span>`;
+          b.disabled = false; return; }
         if(!r.ok){ $('pqMsg').textContent = j.error || 'No se pudo armar el presupuesto. Probá de nuevo.'; b.disabled = false; return; }
         pqRes = j; if(!pqM2) pqM2 = j.m2 || 0; await pqCargarOcupados(); const q = $('pqQuiere').value; openParque(); $('pqQuiere').value = q;
         $('pqMsg').textContent = '✅ ¡Listo! Mirá tu presupuesto abajo.';
