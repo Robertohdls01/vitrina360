@@ -158,6 +158,18 @@ module.exports = async (req, res) => {
       } catch (e) {}
       return res.status(200).json({ ok: true, kit: k });
     }
+    // ícono propio de cada café (SVG): su logo, o sus iniciales, sobre fondo violeta. tipo=caja le agrega la etiqueta CAJA
+    if (req.method === 'GET' && q.icono) {
+      const id = String(q.icono); if (!okId(id)) return res.status(400).end();
+      const f = await leerObj('menus/' + id + '.json'); const m = (f && f.menu) || {}, nom = String(m.nombre || 'Menú');
+      const ini = nom.replace(/^(caf[eé]|bar|resto|restaurante|el|la|los|las)\s+/i, '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase().replace(/[<>&"']/g, '') || '🍽';
+      const caja = q.tipo === 'caja';
+      const centro = m.logo ? `<rect x="64" y="64" width="384" height="384" rx="70" fill="#fff"/><image href="${m.logo}" x="84" y="84" width="344" height="344" preserveAspectRatio="xMidYMid meet"/>`
+        : `<circle cx="256" cy="246" r="170" fill="#fff" opacity=".96"/><text x="256" y="${ini.length > 1 ? 300 : 310}" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="${ini.length > 1 ? 150 : 180}" fill="#6d28d9">${ini}</text>`;
+      const badge = caja ? `<rect x="136" y="404" width="240" height="78" rx="39" fill="#22c55e"/><text x="256" y="458" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="46" fill="#fff">CAJA</text>` : '';
+      res.setHeader('Content-Type', 'image/svg+xml'); res.setHeader('Cache-Control', 'public, max-age=3600');
+      return res.status(200).send(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7c3aed"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs><rect width="512" height="512" rx="110" fill="url(#g)"/>${centro}${badge}</svg>`);
+    }
     // manifest para instalar el menú de un café como app en el celular
     if (req.method === 'GET' && q.manifest) {
       const id = String(q.manifest); if (!okId(id)) return res.status(400).json({ error: 'Menú inválido.' });
@@ -166,11 +178,11 @@ module.exports = async (req, res) => {
         const su = '/menu?m=' + id + '&e=' + encodeURIComponent(q.e) + '&caja=1';
         res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8'); res.setHeader('Cache-Control', 'private, max-age=600');
         return res.status(200).send(JSON.stringify({ name: 'Caja · ' + nom, short_name: ('Caja ' + nom).slice(0, 14), id: '/menu?m=' + id + '&caja=1', start_url: su, scope: '/', display: 'standalone', background_color: '#faf8ff', theme_color: '#7c3aed', lang: 'es',
-          icons: [{ src: '/icons/menu-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: '/icons/menu-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' }] }));
+          icons: [{ src: '/api/menu?icono=' + id + '&tipo=caja', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }, { src: '/icons/menu-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: '/icons/menu-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' }] }));
       }
       res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8'); res.setHeader('Cache-Control', 'public, max-age=3600');
       return res.status(200).send(JSON.stringify({ name: nom + ' · Pedí acá', short_name: nom.slice(0, 14), id: '/menu?m=' + id + '&app=1', start_url: '/menu?m=' + id + '&app=1', scope: '/', display: 'standalone', orientation: 'portrait', background_color: '#faf8ff', theme_color: '#7c3aed', lang: 'es',
-        icons: [{ src: '/icons/menu-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: '/icons/menu-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' }, { src: '/icons/menu-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }] }));
+        icons: [{ src: '/api/menu?icono=' + id, sizes: 'any', type: 'image/svg+xml', purpose: 'any' }, { src: '/icons/menu-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: '/icons/menu-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' }, { src: '/icons/menu-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }] }));
     }
     if (req.method === 'GET' && q.id && q.caja) {
       if (!okId(q.id)) return res.status(400).json({ error: 'Menú inválido.' });

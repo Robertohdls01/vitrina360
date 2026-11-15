@@ -466,7 +466,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
           if(k === arr.length - 1) u.onend = u.onerror = () => { chef.classList.remove('talk'); if(talk.listen){ talk.listen = false; listen(); } };
           if(wasSpeaking) setTimeout(() => speechSynthesis.speak(u), 120); else speechSynthesis.speak(u); }); }catch(e){}
     };
-    if($('#bRedes')) $('#bRedes').onclick = redes; $('#bMute').onclick = () => { mute = !mute; $('#bMute').textContent = mute ? '🔇' : '🔊'; try{ localStorage.setItem('shopmenu-mute', mute ? '1' : '0'); }catch(e){} if(mute) try{ speechSynthesis.cancel(); }catch(e){} };
+    if($('#bRedes')) $('#bRedes').onclick = redes; setTimeout(bannerApp, 1200); $('#bMute').onclick = () => { mute = !mute; $('#bMute').textContent = mute ? '🔇' : '🔊'; try{ localStorage.setItem('shopmenu-mute', mute ? '1' : '0'); }catch(e){} if(mute) try{ speechSynthesis.cancel(); }catch(e){} };
     // ---- pedido (las claves son los nombres originales: así la caja lo ve en su idioma) ----
     const count = () => Object.values(order).reduce((a, b) => a + b, 0);
     const total = () => Object.entries(order).reduce((a, [n, q]) => { const it = byN(n); return a + (it ? priceN(it.p) * q : 0); }, 0);
@@ -652,9 +652,28 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     const awake = async () => { try{ if('wakeLock' in navigator && !wl){ wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release', () => { wl = null; }); } }catch(e){} };
     document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && ultimo) awake(); });
     const payNow = j => ['💳 ' + T('Pagar ahora', 'Pay now', 'Pagar agora'), () => pagar(j), true];
+    { const fi = document.querySelector('link[rel=icon]') || document.createElement('link'); fi.rel = 'icon'; fi.href = '/api/menu?icono=' + encodeURIComponent(ID); document.head.appendChild(fi); }
+    async function instalarApp(box){
+      const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      if(BIP){ BIP.prompt(); try{ const r = await BIP.userChoice; if(r && r.outcome === 'accepted'){ guardaCli({noApp: true}); if(box) box.innerHTML = '✅ ' + T('¡Listo! Ya tenés el ícono en tu celular.', 'Done! The icon is on your phone.', 'Pronto! O ícone já está no seu celular.'); } }catch(e){} BIP = null; return; }
+      const t = ios ? T('En iPhone: tocá <b>Compartir</b> ⬆️ (abajo en Safari) y después <b>"Agregar a inicio"</b> ➕.', 'On iPhone: tap <b>Share</b> ⬆️, then <b>"Add to Home Screen"</b> ➕.', 'No iPhone: toque <b>Compartilhar</b> ⬆️ e depois <b>"Adicionar à Tela de Início"</b> ➕.')
+        : T('Tocá los <b>tres puntitos ⋮</b> del navegador y después <b>"Instalar app"</b> o <b>"Agregar a la pantalla principal"</b>.', 'Tap the browser menu <b>⋮</b>, then <b>"Install app"</b> or <b>"Add to Home screen"</b>.', 'Toque no menu <b>⋮</b> e depois <b>"Instalar app"</b> ou <b>"Adicionar à tela inicial"</b>.');
+      if(box){ const n = box.querySelector('.instSteps'); if(n){ n.innerHTML = t; n.style.display = 'block'; } }
+    }
+    // apenas escanea: le pregunta si quiere el ícono del café (una vez; si dice que no, sigue igual)
+    function bannerApp(){
+      if(STANDALONE || CLI.noApp || CLI.vioBanner || $('#appTop')) return;
+      const b = document.createElement('div'); b.id = 'appTop'; b.setAttribute('role', 'dialog');
+      b.style.cssText = 'position:fixed;left:8px;right:8px;top:8px;z-index:75;background:#fff;border:2px solid #ddd6fe;border-radius:16px;padding:10px 12px;box-shadow:0 8px 24px rgba(91,33,182,.18);display:grid;gap:6px;max-width:520px;margin:0 auto';
+      b.innerHTML = `<div style="display:flex;gap:10px;align-items:center"><img src="/api/menu?icono=${encodeURIComponent(ID)}" alt="" width="44" height="44" style="border-radius:10px"><span><b>${T(`¿Querés el ícono de ${esc(M.nombre)} en tu celular?`, `Add ${esc(M.nombre)} to your phone?`, `Quer o ícone do ${esc(M.nombre)} no seu celular?`)}</b><br><span style="color:#6b5b86;font-size:14px">${T('Así la próxima pedís más rápido.', 'Order faster next time.', 'Assim você pede mais rápido.')}</span></span></div>
+        <div style="display:flex;gap:8px"><button class="btn pri" type="button" id="atSi" style="flex:1">📲 ${T('Sí, descargar', 'Yes, add it', 'Sim, baixar')}</button><button class="btn sec" type="button" id="atNo">${T('No, gracias', 'No, thanks', 'Não, obrigado')}</button></div><div class="instSteps note" style="display:none"></div>`;
+      document.body.appendChild(b); guardaCli({vioBanner: true});
+      b.querySelector('#atNo').onclick = () => { guardaCli({noApp: true}); b.remove(); };
+      b.querySelector('#atSi').onclick = async () => { await instalarApp(b); if(BIP === null && STANDALONE) b.remove(); setTimeout(() => { if(CLI.noApp) b.remove(); }, 2500); };
+    }
     // después del pedido: le ofrece instalar la app del café (una vez)
     function ofrecerApp(){
-      if(STANDALONE || CLI.noApp || $('#appBox')) return;
+      if(STANDALONE || CLI.noApp || CLI.vioBanner || $('#appBox')) return;
       const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
       const box = document.createElement('div'); box.id = 'appBox'; box.className = 'card'; box.style.cssText = 'margin-top:10px;border:2px solid #ddd6fe;background:#faf8ff;display:grid;gap:8px';
       box.innerHTML = `<b>📲 ${T(`¿Venís seguido? Tené a ${esc(M.nombre)} en tu celular`, `Come often? Keep ${esc(M.nombre)} on your phone`, `Vem sempre? Tenha ${esc(M.nombre)} no seu celular`)}</b><span style="color:#6b5b86">${T('La próxima pedís en 2 toques, para la mesa, para llevar o antes de llegar. Y te guardo "lo de siempre".', 'Next time order in 2 taps: at the table, takeaway or ahead. I\'ll remember your usual.', 'Na próxima peça em 2 toques: na mesa, para levar ou antes de chegar. Guardo o seu de sempre.')}</span><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn pri" type="button" id="bInst">📲 ${T('Instalar la app', 'Install the app', 'Instalar o app')}</button><button class="btn sec" type="button" id="bNoInst">${T('Ahora no', 'Not now', 'Agora não')}</button></div><div id="iosSteps" class="note" style="display:none">${T('En iPhone: tocá <b>Compartir</b> ⬆️ (abajo en Safari) y después <b>"Agregar a inicio"</b> ➕.', 'On iPhone: tap <b>Share</b> ⬆️ (bottom of Safari), then <b>"Add to Home Screen"</b> ➕.', 'No iPhone: toque <b>Compartilhar</b> ⬆️ e depois <b>"Adicionar à Tela de Início"</b> ➕.')}</div>`;
@@ -895,6 +914,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     { const l = document.createElement('link'); l.rel = 'manifest'; l.href = '/api/menu?manifest=' + encodeURIComponent(ID) + '&caja=1&e=' + encodeURIComponent(CLAVE); document.head.appendChild(l);
       const a = document.createElement('link'); a.rel = 'apple-touch-icon'; a.href = '/icons/menu-192.png'; document.head.appendChild(a);
       if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {}); }
+    { const fi = document.querySelector('link[rel=icon]') || document.createElement('link'); fi.rel = 'icon'; fi.href = '/api/menu?icono=' + encodeURIComponent(ID) + '&tipo=caja'; document.head.appendChild(fi); }
     let BIPc = null; window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); BIPc = e; });
     const yaInst = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
     if(yaInst) setTimeout(() => { const b = $('#bInstCaja'); if(b) b.remove(); }, 0);
@@ -965,6 +985,8 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       MOZOS = j.mozos || []; DUENO = j.dueno || ''; 
       if(!asisInit){ asisInit = true; CGEN = j.cajaAva === 'igual' ? (j.avatar || (/a$/i.test(j.asistente || 'Lola') ? 'moza' : 'mozo')) : ''; $('#cAva').innerHTML = j.cajaAva === 'igual' ? makeAva({g: CGEN, pelo: j.pelo, largo: j.largo, piel: j.piel, barba: j.barba, local: j.nombre}).replace('class="chef"', 'class="chef" style="width:84px;height:110px"') : `<div style="position:relative;width:84px;height:84px">${(CAJA_AVAS[j.cajaAva] || CAJA_AVAS.flashi).replace('class="chef"', 'class="chef" style="width:84px;height:84px"')}<span class="wave">👋</span></div>`; if('speechSynthesis' in window) cPick(); if(DUENO) $('#cSay').innerHTML = `👋 ¡Hola, ${esc(DUENO)}! Tocá <b>🎙️</b> para que te avise de los pedidos con la voz.`;
         let visto = false; try{ visto = !!localStorage.getItem('shopmenu-tour-' + ID); }catch(e){}
+        let noInst = false; try{ noInst = !!localStorage.getItem('shopmenu-noinst-' + ID); }catch(e){}
+        if(visto && !yaInst && !noInst) setTimeout(() => cTalk(`📌 ${DUENO ? DUENO + ', ¿' : '¿'}querés el ícono de tu caja en esta compu? Así entrás directo, sin buscar el link.`, [['📌 Sí, ponerlo', instalarCaja, true], ['No, gracias', () => { try{ localStorage.setItem('shopmenu-noinst-' + ID, '1'); }catch(e){} cTalk('Dale. Si cambiás de idea, está el botón 📌 en Tu local.'); }]]), 1500);
         if(!visto) setTimeout(() => cTalk(`👋 ¡Hola${DUENO ? ', ' + DUENO : ''}! Es tu primera vez en la caja. ¿Querés que te muestre todo lo que tenés y dónde se cargan los links, las redes y la carta?`, [['👀 Sí, mostrame todo', () => tour(0), true], ['Ahora no', () => { try{ localStorage.setItem('shopmenu-tour-' + ID, '1'); }catch(e){} cTalk('Dale. Cuando quieras, decime "mostrame todo" o preguntame, por ejemplo: "¿dónde pongo los links?".'); }]]), 900); }
       { const prev = heard; heard = new Set((j.items || []).filter(x => x.estado === 'nuevo').map(x => x.id)); if(prev) anunciar((j.items || []).filter(x => x.estado === 'nuevo' && !prev.has(x.id)).reverse()); }
       ITEMS = j.items || []; LGc = LUGARES[j.lugar] || LUGARES.mesa;
