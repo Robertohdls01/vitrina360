@@ -5,6 +5,9 @@
 //   GET  /api/pedidos                         (comerciante) sus pedidos de los últimos días
 //   POST /api/pedidos?accion=estado           (comerciante) {ref, estado, repartidor}
 //   GET  /api/pedidos?fila=slug               (cualquiera)  la fila de pedidos en preparación (número y nombre de pila)
+//   GET  /api/pedidos?perfil=slug             (cualquiera)  nombre, WhatsApp y rubro de un comercio (para conectarlo a la red)
+//   POST /api/pedidos?accion=conectar          (comerciante) {slug, quitar?}: se conecta con un vivero/insumos/taller
+//   GET  /api/pedidos?accion=red               (comerciante) los parqueros que se conectaron con mi negocio
 //   GET  /api/pedidos?ocupados=slug           (cualquiera)  turnos ya reservados (día y hora) para no ofrecerlos
 //   POST con cita: "2026-11-20T10:00"         reserva ese turno (409 si ya está ocupado)
 //   GET  /api/pedidos?resenas=slug            (cualquiera)  reseñas visibles y promedio
@@ -175,6 +178,15 @@ module.exports = async (req, res) => {
       res.setHeader('Content-Type', 'image/svg+xml'); res.setHeader('Cache-Control', 'public, max-age=3600');
       return res.status(200).send(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><rect width="512" height="512" rx="110" fill="url(#g)"/>${centro}</svg>`);
     }
+    // ---- Red de Parques y Jardines: datos públicos de un comercio (para conectarlo) ----
+    if (req.method === 'GET' && q.perfil) {
+      const slug = String(q.perfil);
+      if (!/^[a-z0-9-]{3,40}$/.test(slug)) return res.status(400).json({ error: 'Tienda inválida.' });
+      const rows = await db('GET', '/rest/v1/tiendas?slug=eq.' + slug + '&select=nombre,data,activa');
+      const t = rows && rows[0]; if (!t || t.activa === false) return res.status(404).json({ error: 'No encontramos esa tienda.' });
+      const d = t.data || {}, br = ((d.stores || [])[d.active || 0] || {}).brand || {};
+      return res.status(200).json({ slug, nombre: corto(br.name || t.nombre || slug, 40), wa: corto(String(br.wa || '').replace(/[^\d+]/g, ''), 20), rubro: corto(br.preset || '', 20), dir: corto(br.addr || '', 120) });
+    }
     // turnos ya reservados de una tienda (sin datos de nadie: solo día y hora)
     if (req.method === 'GET' && q.ocupados) {
       const slug = String(q.ocupados);
@@ -241,6 +253,25 @@ module.exports = async (req, res) => {
     // ---- Comerciante ----
     const u = await usuario(req);
     if (!u) return res.status(401).json({ error: 'Tenés que entrar a tu tienda.' });
+
+    // ---- Red: el parquero se conecta (o desconecta) con un vivero, tienda de insumos o taller; el otro lo ve en su panel ----
+    if (q.accion === 'conectar' || q.accion === 'red') {
+      const mine = await db('GET', '/rest/v1/tiendas?owner=eq.' + u.id + '&select=slug,nombre,data');
+      const me = mine && mine[0]; if (!me) return res.status(404).json({ error: 'Primero creá tu tienda.' });
+      const redPath = s => base() + '/object/' + BUCKET + '/red/' + s + '.json';
+      const leerRed = async s => { const r = await fetch(redPath(s), { headers: headers({ 'cache-control': 'no-cache' }) }); const f = r.ok ? await r.json().catch(() => null) : null; return Array.isArray(f) ? f : []; };
+      if (req.method === 'GET' && q.accion === 'red') return res.status(200).json({ red: await leerRed(me.slug) });
+      if (req.method === 'POST') {
+        const b = cuerpo(req), prov = String(b.slug || '');
+        if (!/^[a-z0-9-]{3,40}$/.test(prov) || prov === me.slug) return res.status(400).json({ error: 'Tienda inválida.' });
+        const d = me.data || {}, br = ((d.stores || [])[d.active || 0] || {}).brand || {};
+        await asegurarBucket();
+        let lista = (await leerRed(prov)).filter(x => x && x.slug !== me.slug);
+        if (!b.quitar) lista = [{ slug: me.slug, n: corto(br.name || me.nombre || me.slug, 40), wa: corto(String(br.wa || '').replace(/[^\d+]/g, ''), 20), rubro: corto(br.preset || '', 20), dir: corto(br.addr || '', 120), desde: new Date().toISOString() }].concat(lista).slice(0, 500);
+        await fetch(redPath(prov), { method: 'POST', headers: headers({ 'Content-Type': 'application/json', 'x-upsert': 'true', 'cache-control': 'no-cache' }), body: JSON.stringify(lista) });
+        return res.status(200).json({ ok: true });
+      }
+    }
 
     // ---- Comerciante: sus reseñas (también las ocultas), ocultar/mostrar y responder ----
     if (req.method === 'GET' && q.accion === 'resenas') {

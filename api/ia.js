@@ -247,6 +247,18 @@ async function parqueIA(res, KEY, b) {
     await fetch(base + '/auth/v1/admin/users/' + t.owner, { method: 'PUT', headers: h, body: JSON.stringify({ app_metadata: Object.assign({}, metaO, cambio) }) }); } catch (e) {} };
   const m2 = Math.max(0, Math.min(200000, Number(b.m2) || 0));
   const quiere = String(b.quiere || '').slice(0, 300);
+  const diseno = b.modo === 'diseno', estilo = String(b.estilo || '').slice(0, 120);
+  // plantas y materiales: los del parquero (productos que no son servicios) + los de los viveros que conectó (sus tiendas ShopFlash)
+  const cat = [];
+  if (diseno) {
+    const add = (p, v, vslug) => { if (!p || !p.name || p.service || p.sample || cat.length >= 220) return; cat.push({ n: String(p.name).slice(0, 70), precio: pnum(p.price), v: v, slug: vslug }); };
+    try { (t.data.stores || []).forEach(st => (st.products || []).forEach(p => add(p, 'el parquero', slug))); } catch (e) {}
+    try { const bv = ((t.data.stores || [])[t.data.active || 0] || {}).brand || {};
+      const vs = (Array.isArray(bv.viveros) ? bv.viveros : []).filter(x => x && x.tipo !== 'taller').map(x => String(x && x.slug || '')).filter(x => /^[a-z0-9-]{3,40}$/.test(x)).slice(0, 5);
+      if (vs.length) { const rows = await db('GET', '/rest/v1/tiendas?slug=in.(' + vs.join(',') + ')&select=slug,nombre,data,activa');
+        (rows || []).filter(r => r.activa !== false).forEach(r => { const d = r.data || {}, st = (d.stores || [])[d.active || 0] || {}, nom = String((st.brand || {}).name || r.nombre || r.slug).slice(0, 40);
+          (st.products || []).slice(0, 80).forEach(p => add(p, nom, r.slug)); }); } } catch (e) {}
+  }
   const prompt = `Sos un parquero y paisajista con muchos años de experiencia en Argentina. Un cliente te manda ${ims.length > 1 ? ims.length + ' fotos' : 'una foto'} de su parque, jardín o terreno para que le pases un presupuesto.
 Mirá con atención y estimá, como lo haría un profesional en la visita:
 - La superficie de césped o terreno a trabajar en m² (usá referencias: puertas ~2 m de alto y ~0,8 m de ancho, ladrillos, baldosas de 30–40 cm, autos ~4,5 m, cercos ~1,8 m, personas).${m2 ? ' El cliente midió ' + m2 + ' m²: usá ese número.' : ''}
@@ -256,13 +268,14 @@ Mirá con atención y estimá, como lo haría un profesional en la visita:
 ${quiere ? 'Lo que pide el cliente: "' + quiere + '".\n' : ''}Servicios y precios del parquero (usá EXACTAMENTE estos nombres cuando correspondan; "m2": true quiere decir precio por m²):
 ${JSON.stringify(servs)}
 Para cada trabajo: si hay un servicio de la lista que corresponde, poné su nombre exacto en "servicio". Si el pasto está muy crecido, hay mucha maleza, el terreno es difícil o la planta es muy grande, poné un "ajuste_pct" positivo (por ejemplo 30 o 60) con el motivo; si es fácil, 0. Si NO hay un servicio de la lista, poné "servicio": "" y en "precio_estimado" un precio razonable en pesos argentinos de hoy para ese trabajo completo.
-Sé honesto: es una estimación por foto. Si en las fotos no se ve un parque, jardín, patio o terreno, devolvé {"error":"…"} en una frase corta diciendo qué foto sacar.
+${diseno ? `ADEMÁS el cliente quiere REDISEÑAR su parque${estilo ? ' con este estilo: "' + estilo + '"' : ''}. Armá un plan concreto y realizable: qué poner, cuántas unidades y dónde (por ejemplo "frente, contra el cerco, al sol"), pensando en el sol y la sombra que ves, el clima de Argentina y poco mantenimiento. Usá en lo posible plantas y materiales de este catálogo (el número "i" es su posición; "v" es el vivero que lo vende): ${JSON.stringify(cat.map((x, i) => ({ i, n: x.n, precio: x.precio, v: x.v })))}. Si algo necesario no está en el catálogo, poné "i": -1 y un "precio_estimado" por unidad en pesos argentinos de hoy. Agregá también en "trabajos" la mano de obra del rediseño (preparar la tierra, plantar, colocar piedras, etc.) con los servicios del parquero si corresponden.
+` : ''}Sé honesto: es una estimación por foto. Si en las fotos no se ve un parque, jardín, patio o terreno, devolvé {"error":"…"} en una frase corta diciendo qué foto sacar.
 Respondé en español rioplatense (con "vos") y SOLO con JSON válido:
-{"analisis":"2 o 3 frases de lo que ves","m2":número,"m2_confianza":"baja|media|alta","pasto_cm":número,"pasto_estado":"…","plantas":[{"que":"…","tamano":"…","estado":"…","trabajo":"…"}],"trabajos":[{"titulo":"nombre corto del trabajo","servicio":"nombre exacto o vacío","cantidad":número,"unidad":"m2|unidad|trabajo","ajuste_pct":número,"motivo":"…","precio_estimado":número}],"consejo":"1 frase útil para el cliente","tiempo":"duración aproximada del trabajo"}`;
-  const model = process.env.IA_MODEL_PARQUE || 'claude-sonnet-5-5';
+{"analisis":"2 o 3 frases de lo que ves","m2":número,"m2_confianza":"baja|media|alta","pasto_cm":número,"pasto_estado":"…","plantas":[{"que":"…","tamano":"…","estado":"…","trabajo":"…"}],"trabajos":[{"titulo":"nombre corto del trabajo","servicio":"nombre exacto o vacío","cantidad":número,"unidad":"m2|unidad|trabajo","ajuste_pct":número,"motivo":"…","precio_estimado":número}],"consejo":"1 frase útil para el cliente","tiempo":"duración aproximada del trabajo"${diseno ? ',"plan":[{"que":"planta o material","cantidad":número,"donde":"dónde va","por_que":"por qué conviene, corto","i":número,"precio_estimado":número}],"resumen":"2 frases de cómo va a quedar el parque"' : ''}}`;
+  const model = process.env.IA_MODEL_PARQUE || 'claude-opus-5-5';
   const ask = () => fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST', headers: { 'x-api-key': KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-    body: JSON.stringify({ model, max_tokens: 2500, messages: [{ role: 'user', content: [
+    body: JSON.stringify({ model, max_tokens: 4000, messages: [{ role: 'user', content: [
       ...ims.map(im => ({ type: 'image', source: { type: 'base64', media_type: TYPES.includes(im.type) ? im.type : 'image/jpeg', data: im.data } })),
       { type: 'text', text: prompt }] }] })
   });
@@ -289,7 +302,10 @@ Respondé en español rioplatense (con "vos") y SOLO con JSON válido:
     return res.status(200).json({ analisis: s(out.analisis, 600), m2: M2, m2_confianza: ['baja', 'media', 'alta'].includes(out.m2_confianza) ? out.m2_confianza : 'baja',
       pasto_cm: Math.round(num(out.pasto_cm)), pasto_estado: s(out.pasto_estado, 120), consejo: s(out.consejo, 300), tiempo: s(out.tiempo, 80),
       plantas: (Array.isArray(out.plantas) ? out.plantas : []).slice(0, 10).map(p => ({ que: s(p.que, 60), tamano: s(p.tamano, 60), estado: s(p.estado, 80), trabajo: s(p.trabajo, 80) })),
-      trabajos });
+      trabajos,
+      ...(diseno ? { resumen: s(out.resumen, 400), plan: (Array.isArray(out.plan) ? out.plan : []).slice(0, 15).map(x => { const it = cat[Number(x.i)] && Number(x.i) >= 0 ? cat[Number(x.i)] : null;
+        return { que: s(it ? it.n : x.que, 80), cantidad: Math.max(1, Math.min(300, Math.round(num(x.cantidad) || 1))), donde: s(x.donde, 100), por_que: s(x.por_que, 140),
+          precio: it && it.precio ? it.precio : num(x.precio_estimado), vivero: it ? it.v : '', link: it && it.slug !== slug ? '/t/' + it.slug : '', estimado: !(it && it.precio) }; }).filter(x => x.que) } : {}) });
   } catch (e) { return res.status(502).json({ error: 'No se pudo hablar con la IA.' }); }
 }
 

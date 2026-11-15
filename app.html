@@ -2257,6 +2257,18 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
       <p class="note" style="margin:0">Elegí una plantilla: pone nombre a las 10 vitrinas y cambia el estilo del mueble. Tus productos no se borran; los de ejemplo se quitan.</p>
       <div class="presetgrid" id="presetGrid"></div>
       <p class="note" id="presetMsg" role="status" style="margin:0"></p>
+      <div id="viverosBox" hidden style="border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:8px;margin-top:10px;background:color-mix(in srgb,#22c55e 6%,var(--surface))">
+        <strong>🤝 Mi red: viveros, insumos y talleres</strong>
+        <span class="note">Conectá los negocios con los que trabajás (que tengan su tienda ShopFlash) y tenelos a mano para escribirles. Cuando un cliente rediseña su parque con la IA, le propone plantas de tus viveros y materiales de tus proveedores, con su precio.</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><select id="vivTipo" style="border:1px solid var(--line);border-radius:10px;padding:8px;font:inherit;background:var(--bg);color:inherit"><option value="vivero">🌱 Vivero</option><option value="insumos">🛒 Insumos y herramientas</option><option value="taller">🔧 Taller de máquinas</option></select><input id="vivIn" placeholder="Link de su tienda, ej: vitrina360app.com.ar/t/vivero-el-ceibo" style="flex:1;min-width:200px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;background:var(--bg);color:inherit"><button class="btn" type="button" id="vivAdd">＋ Conectar</button></div>
+        <ul id="vivList" style="margin:0;padding:0;list-style:none;display:grid;gap:6px"></ul>
+        <p class="note" id="vivMsg" role="status" style="margin:0"></p>
+      </div>
+      <div id="redBox" hidden style="border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:8px;margin-top:10px;background:color-mix(in srgb,#0ea5e9 6%,var(--surface))">
+        <strong>🤝 Parqueros y paisajistas conectados con vos</strong>
+        <span class="note">Te eligieron como su vivero, proveedor o taller. Escribiles cuando tengas ofertas, repuestos nuevos o turnos libres.</span>
+        <ul id="redList" style="margin:0;padding:0;list-style:none;display:grid;gap:6px"></ul>
+      </div>
     </div>
     <div class="presets">
       <strong>Tipo de vitrina</strong>
@@ -2577,7 +2589,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
           </details>
         </span>
         <span class="row" style="gap:6px;flex-basis:100%;flex-wrap:wrap;margin-top:4px"><span>⚡ ¿Verdulería, panadería o servicios? Cargá los productos conocidos y solo ponés los precios:</span>
-          <select id="qSvcKind" aria-label="Tipo de comercio"><option value="verdu">🥬 Verdulería (frutas y verduras)</option><option value="pana">🥖 Panadería (panes, facturas, tortas)</option><option value="canina">🐶 Peluquería canina</option><option value="pelu">💇 Peluquería</option><option value="barber">💈 Barbería</option><option value="unas">💅 Uñas y estética</option><option value="parques">🌿 Parquería y jardines</option></select>
+          <select id="qSvcKind" aria-label="Tipo de comercio"><option value="verdu">🥬 Verdulería (frutas y verduras)</option><option value="pana">🥖 Panadería (panes, facturas, tortas)</option><option value="canina">🐶 Peluquería canina</option><option value="pelu">💇 Peluquería</option><option value="barber">💈 Barbería</option><option value="unas">💅 Uñas y estética</option><option value="parques">🌿 Parquería y jardines</option><option value="taller">🔧 Taller de máquinas de jardín</option></select>
           <button class="btn" type="button" id="qSvcGo">Cargar la lista</button></span>
       </div>
       <label class="qbrand" for="qBrand">Marca del catálogo <small>(opcional, para “📖 Foto de catálogo”)</small>
@@ -5058,6 +5070,11 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       ['Poda de arbusto o cerco', 'Precio por planta mediana'], ['Poda de árbol chico (hasta 3 m)', 'Precio por árbol'], ['Poda de árbol grande', 'Precio por árbol, con altura'],
       ['Extracción de árbol', 'A consultar según tamaño'], ['Retiro de residuos verdes', 'Por viaje'], ['Diseño de jardín', 'Proyecto con plantas y ubicación'],
       ['Instalación de riego', 'A consultar'], ['Mantenimiento mensual', 'Visitas por mes']]},
+    taller: {cat: 'Service y reparación', em: '🔧', items: [
+      ['Afilado de cuchilla de cortadora', 'Con balanceo'], ['Afilado de cadena de motosierra', 'Por cadena'], ['Service de motoguadaña', 'Bujía, filtro, carburador y limpieza'],
+      ['Service de cortadora de césped', 'Cambio de aceite, filtro y afilado'], ['Service de motosierra', 'Limpieza, ajuste y afilado'], ['Reparación de carburador', 'Limpieza y regulación'],
+      ['Cambio de tanza o cabezal', 'Con la tanza incluida'], ['Cambio de bujía y filtro', 'Repuestos incluidos'], ['Revisión y presupuesto', 'Te decimos qué tiene la máquina'],
+      ['Retiro y entrega a domicilio', 'Buscamos y llevamos la máquina']]},
     unas: {cat: 'Uñas y estética', em: '💅', items: [
       ['Esmaltado semipermanente', 'Manos'], ['Kapping', 'Refuerzo con gel'], ['Uñas esculpidas', 'Acrílico o gel'], ['Manicura', 'Limado y cutículas'], ['Pedicura', 'Pies completos'],
       ['Nail art', 'Diseño por uña, adicional'], ['Perfilado de cejas', 'Con pinza o cera'], ['Lifting de pestañas', 'Con tinte'], ['Extensión de pestañas', 'Pelo por pelo o volumen'], ['Depilación', 'Por zona']]}
@@ -6695,8 +6712,9 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     return `<div class="pqbox"><b>🤖 Lo que veo en tus fotos</b><p>${esc(r.analisis)}</p>
       <div class="pqchips"><span>🌱 Pasto: ~${r.pasto_cm || '?'} cm${r.pasto_estado ? ' · ' + esc(r.pasto_estado) : ''}</span><span>📐 ~${r.m2 || '?'} m² (confianza ${esc(r.m2_confianza)})</span>${r.tiempo ? `<span>⏱ ${esc(r.tiempo)}</span>` : ''}</div>
       ${r.plantas.length ? `<ul class="pqpl">${r.plantas.map(p => `<li>🌳 <b>${esc(p.que)}</b> · ${esc(p.tamano)} · ${esc(p.estado)} → <i>${esc(p.trabajo)}</i></li>`).join('')}</ul>` : ''}</div>
-      <div class="pqbox"><b>🧾 Tu presupuesto</b><span class="note">Destildá lo que no quieras. Si sabés los metros exactos, cambialos y se recalcula.</span>
-      <ul class="pqtr">${r.trabajos.map((x, i) => `<li><label><input type="checkbox" checked data-pqt="${i}"> <span><b>${esc(x.titulo)}</b>${x.porM2 ? ' · por m²' : x.cantidad > 1 ? ' · ×' + x.cantidad : ''}${x.ajuste ? ` · <span class="pqaj">${x.ajuste > 0 ? '+' : ''}${x.ajuste}% ${esc(x.motivo)}</span>` : ''}</span></label><b data-pqs="${i}"></b></li>`).join('')}</ul>
+      ${r.plan && r.plan.length ? `<div class="pqbox"><b>🪴 Tu parque rediseñado${r.estiloLbl ? ' · ' + esc(r.estiloLbl) : ''}</b><p>${esc(r.resumen || '')}</p><span class="note">Las plantas ya están sumadas abajo, con el precio de ${[...new Set(r.plan.map(x => x.vivero).filter(Boolean))].map(esc).join(', ') || 'los viveros'}. El parquero se encarga de comprarlas y plantarlas.</span></div>` : ''}
+      <div class="pqbox"><b>🧾 Tu presupuesto${r.plan && r.plan.length ? ' completo (plantas + trabajo)' : ''}</b><span class="note">Destildá lo que no quieras. Si sabés los metros exactos, cambialos y se recalcula.</span>
+      <ul class="pqtr">${r.trabajos.map((x, i) => `<li><label><input type="checkbox" checked data-pqt="${i}"> <span><b>${esc(x.titulo)}</b>${x.plan ? (x.motivo ? ` · <span class="note">${esc(x.motivo)}</span>` : '') + (x.link ? ` · <a href="${esc(x.link)}" target="_blank" rel="noopener">🛒 ver en el vivero</a>` : '') : (x.porM2 ? ' · por m²' : x.cantidad > 1 ? ' · ×' + x.cantidad : '') + (x.ajuste ? ` · <span class="pqaj">${x.ajuste > 0 ? '+' : ''}${x.ajuste}% ${esc(x.motivo)}</span>` : '')}</span></label><b data-pqs="${i}"></b></li>`).join('')}</ul>
       <p id="pqTot" class="pqtot"></p>${est ? '<p class="note" style="margin:0">Algunos precios son estimados: el parquero te confirma el valor final.</p>' : ''}${r.consejo ? `<p class="note" style="margin:0">💡 ${esc(r.consejo)}</p>` : ''}</div>`;
   }
   function openParque(){
@@ -6715,7 +6733,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       <button class="btn primary" type="button" data-pq="analizar" id="pqGo" ${pqFotos.length ? '' : 'disabled'}>🤖 Armar mi presupuesto con IA</button>
       <p class="msg" id="pqMsg" role="status" style="margin:0"></p>
       <div id="pqOut">${pqRes ? pqResHTML(pqRes) : ''}</div>
-      <div id="pqDis" class="pqbox" ${pqRes ? '' : 'hidden'}><b>✨ ¿Querés ver cómo podría quedar?</b>
+      <div id="pqDis" class="pqbox" ${pqRes ? '' : 'hidden'}><b>🪴 ¿Querés rediseñar tu parque?</b><span class="note">Elegí un estilo: la IA te arma un plan con qué plantas poner y dónde, con precios de los viveros, y te muestra cómo quedaría.</span>
         <div class="pqchips">${PQ_ESTILOS.map(([v, t], i) => `<button class="btn" type="button" data-pqe="${i}">${t}</button>`).join('')}</div><div id="pqDisOut">${pqDis ? `<img src="${pqDis}" alt="Diseño propuesto" style="width:100%;border-radius:12px">` : ''}</div></div>
       <div class="pqbox" ${pqRes ? '' : 'hidden'}><b>📅 Reservá tu turno</b>
         <div id="pqAgenda">${pqRes ? pqAgendaHTML() : ''}</div>
@@ -6754,14 +6772,27 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(e.target.matches('[data-pqt]')) return pqTotal();
     const es = e.target.closest('[data-pqe]');
     if(es){ if(!pqFotos.length) return; const [estilo, lbl] = PQ_ESTILOS[+es.dataset.pqe]; const out = $('pqDisOut');
-      out.innerHTML = `<span class="tvwait"><i></i>Diseñando tu parque estilo ${esc(lbl)}… tarda unos segundos.</span>`;
-      try{ const headers = {'Content-Type': 'application/json'}; if(!PUBLIC && window.VITRINA_TOKEN){ try{ headers.Authorization = 'Bearer ' + await window.VITRINA_TOKEN(); }catch(err){} }
-        const r = await fetch('/api/probador', {method: 'POST', headers, body: JSON.stringify({slug: window.VITRINA_SLUG || '', tipo: 'jardin', nombre: estilo, detalle: ($('pqQuiere').value || '').slice(0, 150), foto: pqFotos[0]})});
+      ov.querySelectorAll('[data-pqe]').forEach(x => x.disabled = true);
+      out.innerHTML = `<span class="tvwait"><i></i>Armando el plan de tu parque estilo ${esc(lbl)}: qué plantas van, dónde y cuánto salen…</span>`;
+      try{
+        const images = pqFotos.map(f => ({type: 'image/jpeg', data: f.split(',')[1]}));
+        const r1 = await fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({parque: 1, modo: 'diseno', estilo, slug: window.VITRINA_SLUG || (window.VITRINA_ME || {}).slug || '', images, m2: pqM2 || 0, quiere: ($('pqQuiere') || {}).value || ''})});
+        const j1 = await r1.json().catch(() => ({}));
+        if(!r1.ok){ out.textContent = j1.error || 'No se pudo armar el plan. Probá de nuevo.'; ov.querySelectorAll('[data-pqe]').forEach(x => x.disabled = false); return; }
+        j1.estiloLbl = lbl;
+        (j1.plan || []).forEach(x => j1.trabajos.push({titulo: `${x.cantidad} × ${x.que}${x.vivero && x.vivero !== 'el parquero' ? ' (' + x.vivero + ')' : ''}`, porM2: false, cantidad: x.cantidad, precio: x.precio, ajuste: 0, motivo: x.donde, estimado: x.estimado, plan: true, link: x.link}));
+        pqRes = j1; if(!pqM2) pqM2 = j1.m2 || 0;
+        const q = ($('pqQuiere') || {}).value || ''; openParque(); $('pqQuiere').value = q;
+        const out2 = $('pqDisOut'); out2.innerHTML = `<span class="tvwait"><i></i>Dibujando tu parque con esas plantas… tarda unos segundos.</span>`;
+        try{ hSpeak(`¡Listo! Te armé el plan de tu parque estilo ${lbl}. Abajo tenés las plantas, dónde van y el presupuesto completo.`); }catch(err){}
+        const headers = {'Content-Type': 'application/json'}; if(!PUBLIC && window.VITRINA_TOKEN){ try{ headers.Authorization = 'Bearer ' + await window.VITRINA_TOKEN(); }catch(err){} }
+        const det = (j1.plan || []).map(x => `${x.cantidad} ${x.que} (${x.donde})`).join('; ').slice(0, 155);
+        const r = await fetch('/api/probador', {method: 'POST', headers, body: JSON.stringify({slug: window.VITRINA_SLUG || '', tipo: 'jardin', nombre: estilo, detalle: det, foto: pqFotos[0]})});
         const j = await r.json().catch(() => ({}));
-        if(!r.ok || !j.img){ out.textContent = j.error || 'No se pudo armar el diseño. Probá de nuevo.'; return; }
-        pqDis = j.img; pqDis.estilo = lbl; out.innerHTML = `<img src="${j.img}" alt="Diseño propuesto ${esc(lbl)}" style="width:100%;border-radius:12px"><a class="btn" href="${j.img}" download="mi-parque-${esc(lbl).replace(/[^a-z]/gi, '')}.png" style="margin-top:6px">⬇ Guardar imagen</a><p class="note" style="margin:4px 0 0">Imagen aproximada hecha con IA, para darte una idea.</p>`;
-        out.dataset.estilo = lbl;
-      }catch(err){ out.textContent = 'No se pudo conectar. Probá de nuevo.'; }
+        if(!r.ok || !j.img){ out2.textContent = (j.error || 'No se pudo dibujar el diseño.') + ' El plan y el presupuesto igual quedaron armados.'; return; }
+        pqDis = j.img; out2.innerHTML = `<img src="${j.img}" alt="Diseño propuesto ${esc(lbl)}" style="width:100%;border-radius:12px"><a class="btn" href="${j.img}" download="mi-parque.png" style="margin-top:6px">⬇ Guardar imagen</a><p class="note" style="margin:4px 0 0">Imagen aproximada hecha con IA, para darte una idea.</p>`;
+        out2.dataset.estilo = lbl;
+      }catch(err){ out.textContent = 'No se pudo conectar. Probá de nuevo.'; ov.querySelectorAll('[data-pqe]').forEach(x => x.disabled = false); }
       return; }
     const dd = e.target.closest('[data-pqd]'); if(dd){ pqDia = dd.dataset.pqd; pqHora = ''; $('pqAgenda').innerHTML = pqAgendaHTML(); return; }
     const hh = e.target.closest('[data-pqh]'); if(hh){ pqHora = hh.dataset.pqh; $('pqAgenda').innerHTML = pqAgendaHTML(); return; }
@@ -6812,7 +6843,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       return; }
     if(k === 'enviar'){
       const sel = [...ov.querySelectorAll('[data-pqt]')].filter(c => c.checked).map(c => pqRes.trabajos[+c.dataset.pqt]);
-      const tot = pqTotal(), dir = ($('pqDir2').value || '').trim(), est = ($('pqDisOut') || {}).dataset ? $('pqDisOut').dataset.estilo : '';
+      const tot = pqTotal(), dir = ($('pqDir2').value || '').trim(), est = (pqRes && pqRes.estiloLbl) || (($('pqDisOut') || {}).dataset || {}).estilo || '';
       const txt = `¡Hola! Quiero un presupuesto para mi parque 🌿\n📐 Superficie: ~${pqM2} m²\n🌱 Pasto: ~${pqRes.pasto_cm} cm${pqRes.pasto_estado ? ' (' + pqRes.pasto_estado + ')' : ''}\n` +
         (pqRes.plantas.length ? '🌳 Plantas: ' + pqRes.plantas.map(p => `${p.que} ${p.tamano} → ${p.trabajo}`).join('; ') + '\n' : '') +
         '🧾 Trabajos:\n' + sel.map(x => `• ${x.titulo}: ${pqSub(x) ? pqMoney(pqSub(x)) : 'a consultar'}`).join('\n') + `\n💰 Total estimado: ${pqMoney(tot)}` +
@@ -7655,9 +7686,11 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     {id:'canina', name:'Peluquería canina', hint:'Baño y corte de mascotas', frame:'#2e86c1', shelf:'#e9f2f8', edge:'#a9c9de', kits:['canina'],
      cats:['Peluquería canina','Cortes cómodos','Baño y secado','Adicionales','Gatos','Cachorros','A domicilio','Productos','Accesorios','Promos']},
     {id:'parques', name:'Parquería y paisajismo', hint:'Corte de pasto, poda, jardines', frame:'#2e7d32', shelf:'#eef6ea', edge:'#a5c99a', kits:['parques'],
-     cats:['Corte de pasto','Poda y árboles','Limpieza de terrenos','Diseño de jardines','Riego','Plantas y flores','Césped en panes','Mantenimiento mensual','Antes y después','Promos']}
+     cats:['Corte de pasto','Poda y árboles','Limpieza de terrenos','Diseño de jardines','Riego','Plantas y flores','Césped en panes','Mantenimiento mensual','Antes y después','Promos']},
+    {id:'taller', name:'Taller de máquinas de jardín', hint:'Afilado, service, repuestos', frame:'#e65100', shelf:'#fff3e0', edge:'#ffb74d', kits:['taller'],
+     cats:['Afilado','Service y reparación','Motoguadañas','Cortadoras de césped','Motosierras','Repuestos','Tanzas y cadenas','Aceites y combustible','Máquinas usadas','Promos']}
   ];
-  const PRESET_COLORS = {"parques": ["#43a047", "#2e7d32", "#8d6e63", "#66bb6a", "#29b6f6", "#ec407a", "#9ccc65", "#26a69a", "#ffca28", "#d32f2f"], "belleza": ["#f7c6d9", "#e91e63", "#fde8ef", "#f3d9c9", "#c9a7e8", "#f4b6c2", "#b9d7f0", "#ffe3b3", "#e8c6f0", "#d32f2f"], "electro": ["#1e5bc6", "#141414", "#4b555c", "#7b1fa2", "#00acc1", "#2e7d32", "#3949ab", "#d32f2f", "#263238", "#ff8f00"], "moda": ["#f7e1e8", "#cfd8dc", "#ffe0b2", "#a1887f", "#e1bee7", "#43a047", "#90a4ae", "#ffcc80", "#d7ccc8", "#d32f2f"], "joyas": ["#c9a227", "#f7e1e8", "#cfd8dc", "#141414", "#ffe0b2", "#7b1fa2", "#b0bec5", "#e0e0e0", "#a1887f", "#e91e63"], "almacen": ["#1e5bc6", "#e91e63", "#fbc02d", "#e3f2fd", "#a1887f", "#00acc1", "#c9a7e8", "#b3e5fc", "#ffcc80", "#d32f2f"], "ferreteria": ["#ff8f00", "#fbc02d", "#1e5bc6", "#9e9e9e", "#6d4c41", "#43a047", "#ffe082", "#d32f2f", "#607d8b", "#e65100"], "mascotas": ["#a1887f", "#ffcc80", "#fbc02d", "#00acc1", "#8d6e63", "#b3e5fc", "#d32f2f", "#4fc3f7", "#c5e1a5", "#ff8f00"], "deportes": ["#43a047", "#ff8f00", "#141414", "#00acc1", "#fbc02d", "#1e5bc6", "#2e7d32", "#7b1fa2", "#90a4ae", "#d32f2f"], "libreria": ["#1e5bc6", "#9e9e9e", "#e91e63", "#fbc02d", "#43a047", "#f7c6d9", "#ff8f00", "#a1887f", "#00acc1", "#d32f2f"], "hogar": ["#ffcc80", "#cfd8dc", "#d7ccc8", "#b3e5fc", "#e0f2f1", "#c5e1a5", "#ffe082", "#e1bee7", "#a5d6a7", "#d32f2f"], "casero": ["#f7c6d9", "#ffcc80", "#ffe082", "#a1887f", "#d7ccc8", "#c5e1a5", "#ffab91", "#fff3e0", "#c8e6c9", "#d32f2f"]};
+  const PRESET_COLORS = {"taller": ["#e65100", "#455a64", "#2e7d32", "#ff8f00", "#6d4c41", "#1e88e5", "#fbc02d", "#8d6e63", "#78909c", "#d32f2f"], "parques": ["#43a047", "#2e7d32", "#8d6e63", "#66bb6a", "#29b6f6", "#ec407a", "#9ccc65", "#26a69a", "#ffca28", "#d32f2f"], "belleza": ["#f7c6d9", "#e91e63", "#fde8ef", "#f3d9c9", "#c9a7e8", "#f4b6c2", "#b9d7f0", "#ffe3b3", "#e8c6f0", "#d32f2f"], "electro": ["#1e5bc6", "#141414", "#4b555c", "#7b1fa2", "#00acc1", "#2e7d32", "#3949ab", "#d32f2f", "#263238", "#ff8f00"], "moda": ["#f7e1e8", "#cfd8dc", "#ffe0b2", "#a1887f", "#e1bee7", "#43a047", "#90a4ae", "#ffcc80", "#d7ccc8", "#d32f2f"], "joyas": ["#c9a227", "#f7e1e8", "#cfd8dc", "#141414", "#ffe0b2", "#7b1fa2", "#b0bec5", "#e0e0e0", "#a1887f", "#e91e63"], "almacen": ["#1e5bc6", "#e91e63", "#fbc02d", "#e3f2fd", "#a1887f", "#00acc1", "#c9a7e8", "#b3e5fc", "#ffcc80", "#d32f2f"], "ferreteria": ["#ff8f00", "#fbc02d", "#1e5bc6", "#9e9e9e", "#6d4c41", "#43a047", "#ffe082", "#d32f2f", "#607d8b", "#e65100"], "mascotas": ["#a1887f", "#ffcc80", "#fbc02d", "#00acc1", "#8d6e63", "#b3e5fc", "#d32f2f", "#4fc3f7", "#c5e1a5", "#ff8f00"], "deportes": ["#43a047", "#ff8f00", "#141414", "#00acc1", "#fbc02d", "#1e5bc6", "#2e7d32", "#7b1fa2", "#90a4ae", "#d32f2f"], "libreria": ["#1e5bc6", "#9e9e9e", "#e91e63", "#fbc02d", "#43a047", "#f7c6d9", "#ff8f00", "#a1887f", "#00acc1", "#d32f2f"], "hogar": ["#ffcc80", "#cfd8dc", "#d7ccc8", "#b3e5fc", "#e0f2f1", "#c5e1a5", "#ffe082", "#e1bee7", "#a5d6a7", "#d32f2f"], "casero": ["#f7c6d9", "#ffcc80", "#ffe082", "#a1887f", "#d7ccc8", "#c5e1a5", "#ffab91", "#fff3e0", "#c8e6c9", "#d32f2f"]};
   const presetOf = id => PRESETS.find(x => x.id === id) || PRESETS[0];
   function applyTheme(){
     const pr = presetOf(brand.preset), r = document.documentElement.style;
@@ -7688,7 +7721,34 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const b = e.target.closest('.matbtn[data-mat]'); if(!b) return;
     brand.material = b.dataset.mat; applyTheme(); save(); render();
   });
+  function renderViveros(){
+    const bx = $('viverosBox'); if(!bx) return; bx.hidden = brand.preset !== 'parques';
+    const vs = Array.isArray(brand.viveros) ? brand.viveros : [], EM = {vivero: '🌱', insumos: '🛒', taller: '🔧'}, TX = {vivero: 'Vivero', insumos: 'Insumos y herramientas', taller: 'Taller de máquinas'};
+    const wa = (n, t) => n ? `<a class="btn wa" href="https://wa.me/${esc(String(n).replace(/[^\d]/g, '').replace(/^0/, '').replace(/^(?!54)/, '549'))}?text=${encodeURIComponent(t)}" target="_blank" rel="noopener">💬 WhatsApp</a>` : '';
+    $('vivList').innerHTML = vs.length ? ['vivero', 'insumos', 'taller'].map(k => vs.filter(v => (v.tipo || 'vivero') === k).map(v => { const i = vs.indexOf(v); return `<li style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;border:1px solid var(--line);border-radius:10px;padding:6px 10px"><span>${EM[k]} <b>${esc(v.n || v.slug)}</b> <small class="note">${TX[k]}</small></span><span style="display:flex;gap:6px;flex-wrap:wrap">${wa(v.wa, `¡Hola! Soy ${storeName()}, te escribo desde ShopFlash. `)}<a class="btn" href="/t/${esc(v.slug)}" target="_blank" rel="noopener">🛒 Ver tienda</a><button class="btn" type="button" data-vivx="${i}" aria-label="Desconectar">✕</button></span></li>`; }).join('')).join('') : '<li class="note">Todavía no conectaste ningún negocio.</li>';
+  }
+  if($('vivAdd')){
+    $('vivAdd').onclick = async () => {
+      const raw = $('vivIn').value.trim().toLowerCase(), m = raw.match(/\/t\/([a-z0-9-]{3,40})/) || raw.match(/^([a-z0-9-]{3,40})$/), msg = $('vivMsg');
+      if(!m){ msg.textContent = 'Pegá el link de la tienda del vivero, por ejemplo vitrina360app.com.ar/t/vivero-el-ceibo'; return; }
+      const sl = m[1]; brand.viveros = Array.isArray(brand.viveros) ? brand.viveros : [];
+      if(brand.viveros.some(v => v.slug === sl)){ msg.textContent = 'Ese vivero ya está conectado.'; return; }
+      if(brand.viveros.length >= 15){ msg.textContent = 'Podés conectar hasta 15 negocios.'; return; }
+      msg.textContent = 'Buscando…';
+      try{ const r = await fetch('/api/pedidos?perfil=' + encodeURIComponent(sl)); if(!r.ok) throw 0; const j = await r.json();
+        brand.viveros.push({slug: sl, n: String(j.nombre || sl).slice(0, 40), wa: j.wa || '', tipo: $('vivTipo').value}); save(); renderViveros(); $('vivIn').value = ''; msg.textContent = `✅ Listo: ${j.nombre || sl} quedó conectado. Ahora vos aparecés en su panel.`;
+        if(window.VITRINA_TOKEN) fetch('/api/pedidos?accion=conectar', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await window.VITRINA_TOKEN()}, body: JSON.stringify({slug: sl})}).catch(() => {}); }
+      catch(err){ msg.textContent = 'No encontré esa tienda. Revisá el link (tiene que ser una tienda de ShopFlash).'; }
+    };
+    $('vivList').addEventListener('click', async e => { const x = e.target.closest('[data-vivx]'); if(!x) return; const [v] = brand.viveros.splice(+x.dataset.vivx, 1); save(); renderViveros(); $('vivMsg').textContent = 'Negocio desconectado.';
+      if(v && window.VITRINA_TOKEN) fetch('/api/pedidos?accion=conectar', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await window.VITRINA_TOKEN()}, body: JSON.stringify({slug: v.slug, quitar: true})}).catch(() => {}); });
+    // el vivero, la tienda o el taller ve a los parqueros que lo conectaron
+    if(!PUBLIC) setTimeout(async () => { try{ if(!window.VITRINA_TOKEN) return; const r = await fetch('/api/pedidos?accion=red', {headers: {Authorization: 'Bearer ' + await window.VITRINA_TOKEN()}}); if(!r.ok) return; const j = await r.json(); const red = (j && j.red) || []; if(!red.length) return;
+      $('redList').innerHTML = red.map(p => `<li style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;border:1px solid var(--line);border-radius:10px;padding:6px 10px"><span>🌿 <b>${esc(p.n)}</b>${p.dir ? ` <small class="note">${esc(p.dir)}</small>` : ''}</span><span style="display:flex;gap:6px;flex-wrap:wrap">${p.wa ? `<a class="btn wa" href="https://wa.me/${esc(String(p.wa).replace(/[^\d]/g, '').replace(/^0/, '').replace(/^(?!54)/, '549'))}?text=${encodeURIComponent('¡Hola! Te escribo de ' + storeName() + ' por ShopFlash. ')}" target="_blank" rel="noopener">💬 WhatsApp</a>` : ''}<a class="btn" href="/t/${esc(p.slug)}" target="_blank" rel="noopener">Ver su página</a></span></li>`).join('');
+      $('redBox').hidden = false; }catch(e){} }, 5000);
+  }
   function renderPresets(){
+    try{ renderViveros(); }catch(e){}
     $('presetGrid').innerHTML = PRESETS.map(pr => `<button class="preset" type="button" data-preset="${pr.id}" aria-pressed="${(brand.preset||'general')===pr.id}">
       <span class="swatch"><i style="background:${pr.frame}"></i><i style="background:${pr.shelf}"></i><i style="background:${pr.edge}"></i></span>
       <strong>${esc(pr.name)}</strong><small>${esc(pr.hint)}</small></button>`).join('');
