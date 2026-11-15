@@ -17,8 +17,15 @@ const head = extra => { const k = process.env.SUPABASE_SERVICE_KEY, h = Object.a
 const TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const t = (v, n) => String(v == null ? '' : v).slice(0, n);
 const hash = s => crypto.createHash('sha256').update('shopmenu|' + s).digest('hex');
-async function leerObj(path) { const r = await fetch(base() + '/object/' + BUCKET + '/' + path, { headers: head() }); return r.ok ? r.json().catch(() => null) : null; }
-async function guardarObj(path, obj) { await fetch(base() + '/object/' + BUCKET + '/' + path, { method: 'POST', headers: head({ 'Content-Type': 'application/json', 'x-upsert': 'true', 'cache-control': 'no-cache' }), body: JSON.stringify(obj) }); }
+async function leerObj0(path) { const r = await fetch(base() + '/object/' + BUCKET + '/' + path, { headers: head() }); return r.ok ? r.json().catch(() => null) : null; }
+async function guardarObj0(path, obj) { await fetch(base() + '/object/' + BUCKET + '/' + path, { method: 'POST', headers: head({ 'Content-Type': 'application/json', 'x-upsert': 'true', 'cache-control': 'no-cache' }), body: JSON.stringify(obj) }); }
+// Café de prueba público (/shopmenu "Probalo vos mismo"): usa la carta del Café Demo, con sus propios pedidos; la caja abre con la clave "demo" y la carta no se puede cambiar.
+const PUB = 'demopublico', PUB_BASE = 'fdaf46084d';
+async function leerObj(path) {
+  if (path === 'menus/' + PUB + '.json') { const f = await leerObj0('menus/' + PUB_BASE + '.json'); if (!f) return null; f.clave = hash('demo'); f.libre = true; f.menu = Object.assign({}, f.menu, { nombre: 'Café de Prueba', dueno: '', mozos: [], paylink: '', alias: '' }); return f; }
+  return leerObj0(path);
+}
+async function guardarObj(path, obj) { if (path === 'menus/' + PUB + '.json') return; return guardarObj0(path, obj); }
 
 // deja el menú limpio y con tamaños razonables
 function limpiar(m) {
@@ -157,6 +164,7 @@ module.exports = async (req, res) => {
       if (!f || hash(String(q.clave || '')) !== f.clave) return res.status(403).json({ error: 'La clave no es correcta.' });
       const L = (await leerObj(pedPath(q.id))) || { items: [] };
       const cu = await cuenta(q.id, f);
+      if (q.id === PUB) L.items = (L.items || []).filter(it => Date.now() - Date.parse(it.creado) < 3 * 3600e3);
       return res.status(200).json({ cuenta: cu, items: (L.items || []).map(x => Object.assign({}, x, { k: undefined })), nombre: f.menu.nombre, mozos: f.menu.mozos || [], dueno: f.menu.dueno || '', cajaAva: f.menu.cajaAva || 'flashi', asistente: f.menu.asistente || 'Lola', avatar: f.menu.avatar || '', pelo: f.menu.pelo || '', largo: f.menu.largo || '', piel: f.menu.piel || '', barba: !!f.menu.barba });
     }
     if (req.method === 'POST' && q.accion === 'suscribir') {
@@ -259,6 +267,7 @@ module.exports = async (req, res) => {
       let prev = null;
       if (id) {
         if (!/^[a-z0-9]{6,20}$/.test(id)) return res.status(400).json({ error: 'Menú inválido.' });
+        if (id === PUB) return res.status(403).json({ error: 'El café de prueba no se puede editar.' });
         prev = await leerObj('menus/' + id + '.json');
         if (!prev || hash(clave) !== prev.clave) return res.status(403).json({ error: 'No tenés permiso para editar este menú.' });
       }

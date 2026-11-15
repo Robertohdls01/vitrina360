@@ -57,7 +57,7 @@ details p{margin:10px 0 0;color:var(--muted)}
 .mini .q{width:90px;height:90px;background:repeating-conic-gradient(#2a1d3d 0 25%,#fff 0 50%) 0 0/18px 18px;border:6px solid #2a1d3d}
 .mini b{display:block;font-size:12px}.mini strong{display:block;font-size:22px;color:var(--o)}.mini small{font-size:11px;color:var(--muted)}
 footer{padding:30px 0 50px;text-align:center;color:var(--muted);font-size:15px}
-.final{text-align:center}
+.final{text-align:center}.duo{grid-template-columns:1fr 1fr}@media(max-width:700px){.duo{grid-template-columns:1fr}}#qrDemo svg{width:100%;height:100%}
 @media(max-width:860px){.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr 1fr}.steps{grid-template-columns:1fr 1fr;row-gap:28px}}
 @media(max-width:560px){.grid,.steps{grid-template-columns:1fr}.phone{width:270px;height:540px}.cut{grid-template-columns:1fr;justify-items:center;text-align:center}}
 </style>
@@ -69,16 +69,27 @@ footer{padding:30px 0 50px;text-align:center;color:var(--muted);font-size:15px}
     <div>
       <h1>Tu carta con una <span>moza virtual</span> que atiende cada mesa</h1>
       <p>Subí una foto de tu carta y en minutos tenés un menú QR donde una moza virtual saluda, recomienda, toma el pedido <b>hablando</b> y lo manda directo a tu caja. Tus clientes no esperan y vos no perdés pedidos.</p>
-      <div class="ctas"><a class="btn pri" href="/menu">🚀 Probalo 7 días gratis</a><a class="btn sec" href="#demo">👀 Ver cómo funciona</a></div>
+      <div class="ctas"><a class="btn pri" href="/menu">🚀 Probalo 7 días gratis</a><a class="btn sec" href="#probalo">👀 Probalo vos mismo</a></div>
       <div class="chips"><span>📸 Carta leída con IA</span><span>🎤 Pedidos por voz</span><span>🌎 Español · English · Português</span><span>📲 Sin descargar nada</span></div>
     </div>
     <div id="demo">
-      <div class="phone"><iframe src="/menu?m=fdaf46084d&mesa=1" title="Demo de ShopMenu: mesa 1 del Café Demo" loading="lazy" allow="microphone; autoplay"></iframe></div>
+      <div class="phone"><iframe src="/menu?m=demopublico&mesa=1" title="Demo de ShopMenu: mesa 1 del Café Demo" loading="lazy" allow="microphone; autoplay"></iframe></div>
       <small>☝️ Probalo acá: es la mesa 1 de un café de prueba</small>
     </div>
   </div>
 </div>
 
+
+<section id="probalo"><div class="wrap">
+  <h2>Probalo vos mismo en 2 minutos</h2>
+  <p class="sub">Necesitás tu celular y esta página abierta en la compu (o un segundo celular). No hace falta registrarse.</p>
+  <div class="grid duo" style="align-items:start">
+    <div class="card" style="text-align:center"><div class="ic">📱</div><h3>1. Escaneá con tu celular</h3><p>Sos el cliente sentado en la mesa 1.</p><div id="qrDemo" style="width:200px;height:200px;margin:12px auto"></div><a class="btn sec" href="/menu?m=demopublico&mesa=1" target="_blank" rel="noopener" style="font-size:15px">o abrí la mesa acá</a></div>
+    <div class="card" style="text-align:center"><div class="ic">🧾</div><h3>2. Mirá la caja</h3><p>Sos el dueño. Pedí un café desde el celular y fijate cómo llega acá, con sonido.</p><a class="btn pri" href="/menu?m=demopublico&e=demo&caja=1" target="_blank" rel="noopener" style="margin-top:14px">🧾 Abrir la caja de prueba</a><p style="margin-top:12px;font-size:14px">Tocá la pantalla de la caja una vez para que suene el aviso.</p></div>
+  </div>
+</div></section>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script>try{ const q = qrcode(0, 'M'); q.addData(location.origin + '/menu?m=demopublico&mesa=1'); q.make(); document.getElementById('qrDemo').innerHTML = q.createSvgTag({cellSize: 5, margin: 2, scalable: true}); }catch(e){ document.getElementById('qrDemo').style.display = 'none'; }</script>
 <section class="alt"><div class="wrap">
   <h2>Todo lo que hace por tu local</h2>
   <p class="sub">El cliente escanea el QR de su mesa con el celular. No baja ninguna app.</p>
@@ -140,6 +151,7 @@ footer{padding:30px 0 50px;text-align:center;color:var(--muted);font-size:15px}
 <section class="alt"><div class="wrap">
   <h2>Preguntas frecuentes</h2>
   <p class="sub"></p>
+  <details><summary>Ya tengo un sistema de caja o de facturación. ¿Lo tengo que cambiar?</summary><p>No. ShopMenu es un complemento: toma los pedidos de las mesas y te los muestra en una pantalla aparte (compu, tablet o celular). Seguís cobrando y facturando con tu sistema de siempre.</p></details>
   <details><summary>¿Mis clientes tienen que descargar algo?</summary><p>No. Escanean el QR con la cámara del celular y se abre el menú en el navegador. Funciona en Android y iPhone.</p></details>
   <details><summary>¿Y si el cliente no quiere hablar?</summary><p>Puede pedir tocando los botones de la carta, como en cualquier menú. Hablar es opcional, y la voz se puede apagar.</p></details>
   <details><summary>¿Cómo cambio un precio?</summary><p>Desde "Editar menú" en tu caja. El cambio se ve al instante y los QR siguen siendo los mismos.</p></details>
