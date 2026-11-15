@@ -251,6 +251,15 @@ module.exports = async (req, res) => {
         const lv = b.llevar && ['llevar', 'llego', 'envio'].includes(b.llevar.tipo) ? { tipo: b.llevar.tipo, min: Math.max(0, Math.min(120, parseInt(b.llevar.min, 10) || 0)), dir: t(b.llevar.dir, 120) } : null;
         if (lv && lv.tipo === 'llego') lv.llega = new Date(Date.now() + lv.min * 60e3).toISOString();
         nuevo = Object.assign(base0, { tipo: 'pedido', n: L.n, items, nota: t(b.nota, 200), estado: 'nuevo' }, lv ? { llevar: lv } : {});
+        // cliente: lo reconoce por el código que guarda su celular → nuevo o fijo
+        const cid = /^[a-z0-9]{8,24}$/.test(String(b.cid || '')) ? String(b.cid) : '';
+        if (cid) { try {
+          const C = (await leerObj('menus/' + b.id + '-clientes.json')) || { c: {} }, ahora = new Date().toISOString(), c0 = C.c[cid] || { n: 0, primera: ahora };
+          c0.n = (c0.n || 0) + 1; c0.ultima = ahora; if (nombre) c0.nombre = nombre; c0.modo = nuevo.llevar ? nuevo.llevar.tipo : 'mesa'; if (nuevo.llevar && nuevo.llevar.dir) c0.dir = nuevo.llevar.dir; if (mesa) c0.mesa = mesa;
+          c0.ult = items.slice(0, 6).map(x => x.q + ' ' + x.n).join(', ');
+          C.c[cid] = c0; const ks = Object.keys(C.c); if (ks.length > 1500) ks.sort((x, y) => String(C.c[x].ultima).localeCompare(String(C.c[y].ultima))).slice(0, ks.length - 1500).forEach(k => delete C.c[k]);
+          await guardarObj('menus/' + b.id + '-clientes.json', C); nuevo.cli = { n: c0.n };
+        } catch (e) {} }
       }
       L.items = [nuevo].concat((L.items || []).filter(x => Date.now() - Date.parse(x.creado) < 2 * 864e5)).slice(0, 150);
       await guardarObj(pedPath(b.id), L);
@@ -270,6 +279,14 @@ module.exports = async (req, res) => {
       R.items = [{ e, tx: t(b.tx, 300), nombre: t(b.nombre, 30) || 'Cliente', mesa: p.mesa, f: new Date().toISOString() }].concat(R.items || []).slice(0, 300);
       await guardarObj('menus/' + b.id + '-resenas.json', R);
       return res.status(200).json({ ok: true });
+    }
+    if (req.method === 'GET' && q.id && q.clientes) {
+      if (!okId(q.id)) return res.status(400).json({ error: 'Menú inválido.' });
+      const f = await leerObj('menus/' + q.id + '.json');
+      if (!f || hash(String(q.clave || '')) !== f.clave) return res.status(403).json({ error: 'La clave no es correcta.' });
+      const C = (await leerObj('menus/' + q.id + '-clientes.json')) || { c: {} };
+      const items = Object.values(C.c).sort((x, y) => String(y.ultima).localeCompare(String(x.ultima))).slice(0, 300).map(x => ({ nombre: x.nombre || '', n: x.n, primera: x.primera, ultima: x.ultima, modo: x.modo, dir: x.dir || '', mesa: x.mesa || 0, ult: x.ult || '' }));
+      return res.status(200).json({ items });
     }
     if (req.method === 'GET' && q.id && q.resenas) {
       if (!okId(q.id)) return res.status(400).json({ error: 'Menú inválido.' });
