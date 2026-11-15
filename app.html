@@ -2514,7 +2514,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
       </label>
       <button class="matbtn" type="button" id="revQrTog" aria-pressed="false" style="justify-self:start">📱 Opiniones con QR, sin compra online</button>
       <span class="note" style="margin:0">Ideal si vendés en la calle, en un puesto o en tu local: imprimí el cartel, pegalo a la vista y tus clientes escanean y te dejan sus estrellas. Sin chip ni nada: es tu app. Queda marcado “Opinó desde el QR del local”.</span>
-      <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn" type="button" id="revCartel">🖨 Cartel grande (A4)</button><button class="btn" type="button" id="revCartelChico">🔲 Cartelitos chicos de mostrador (4 por hoja)</button></div>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn" type="button" id="revCartel">🖨 Cartel grande (A4)</button><button class="btn" type="button" id="revCartelChico">🔲 Cartelito 10×15 (tamaño foto)</button></div>
       <div id="revAdmin" class="revadmin"></div>
     </div>
     <div class="presets" id="hoyBox" hidden>
@@ -6877,7 +6877,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(pr === 'oficio'){ const n = String(brand.oficio || '').trim() || 'Oficios';
       return Object.assign({id: 'oficio'}, OFI_BASE, {em: '🛠', t: 'Presupuesto · ' + n, fab: '🛠 Pedí tu presupuesto', lema: n + ' · Presupuestos y turnos', saludo: '¿Qué necesitás? Pasame una foto y contame qué pasa, y te digo más o menos cuánto sale.',
         chips: [['📷 Pedir presupuesto', 'presupuesto'], ['📅 Sacar turno', 'quiero un turno']]}); }
-    if(products.some(p => p.m2)) return Object.assign({id: 'parques'}, OFI_BASE, OFI.parques);
+    if((!pr || pr === 'general') && products.some(p => p.m2)) return Object.assign({id: 'parques'}, OFI_BASE, OFI.parques);
     return null;
   }
   const isParques = () => !!ofi();          // tiene presupuesto con fotos (parquero u otro oficio)
@@ -7221,7 +7221,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       const inp = $('hNom'); if(inp){ inp.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); go(true); } }); setTimeout(() => inp.focus(), 300); }
     }catch(e){} };
     const bienvenida = () => {
-      if(document.getElementById('appOv')) return;
+      if(document.getElementById('appOv') || window.V360_CARTEL) return;
       let ids = []; try{ ids = hList(); }catch(e){}
       const quien = ids.length ? (ids[0] === 'duena' ? ownName() : HELPERS[ids[0]].name) : (isParques() ? 'Tomás' : 'Sofi'), nom = storeName(), ov = document.createElement('div'); ov.id = 'appOv';
       ov.innerHTML = `<div class="appc"><img src="/api/pedidos?icono=${encodeURIComponent(sl)}" alt="" width="64" height="64"><div><b>👋 ¡Hola! ${quien ? 'Soy ' + esc(quien) + ', de ' : 'Bienvenido a '}${esc(nom)}.</b><span>¿Querés tener <b>${esc(nom)}</b> en tu celular, con su logo? Así la próxima vez ${isParques() ? 'pedís presupuesto o reservás tu turno' : 'pedís'} con un toque.</span>
@@ -7244,7 +7244,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     }, 2500);
   }
   // botón fijo en las tiendas de parquería
-  setInterval(() => { let b = document.getElementById('pqFab'); const on = isParques() && (PUBLIC || document.body.classList.contains('clientmode'));
+  setInterval(() => { let b = document.getElementById('pqFab'); const on = !window.V360_CARTEL && isParques() && (PUBLIC || document.body.classList.contains('clientmode'));
     if(on && !b){ b = document.createElement('button'); b.id = 'pqFab'; b.type = 'button'; b.className = 'pqfab'; b.textContent = ofi().fab; b.onclick = openParque; document.body.appendChild(b); }
     if(b) b.hidden = !on; }, 2000);
   async function openLens(p){
@@ -7962,28 +7962,31 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         load();
       };
     };
-    // ---- Panel del comercio ----
-    if(!PUBLIC){
-      const gi = $('b-greview'), tg = $('revTog'), adm = $('revAdmin'), tq = $('revQrTog');
-      const mark = () => { tg.setAttribute('aria-pressed', String(!brand.revOff)); gi.value = brand.googleReview || ''; tq.setAttribute('aria-pressed', String(qrOk())); };
-      tq.onclick = () => { if(qrOk()){ brand.revQr = false; if(brand.preset === 'informal') brand.revQrNo = true; } else { brand.revQr = true; delete brand.revQrNo; } save(); mark(); };
-      const cartel = async chico => {
-        const sl = (window.VITRINA_ME && window.VITRINA_ME.slug) || ''; if(!sl){ alert('Primero guardá tu tienda.'); return; }
-        if(!qrOk()){ brand.revQr = true; save(); mark(); }
+    // cartel de reseñas: A4 o cartelito 10x15 (tamaño foto, se imprime en cualquier casa de fotos)
+    window.v360Cartel = async (chico, sl, w0) => {
+        sl = sl || (window.VITRINA_ME && window.VITRINA_ME.slug) || ''; if(!sl){ alert('Primero guardá tu tienda.'); return; }
         try{ if(!window.qrcode) await new Promise((ok, ko) => { const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'; sc.onload = ok; sc.onerror = ko; document.head.appendChild(sc); }); }catch(e){ alert('No se pudo armar el QR. Revisá tu conexión.'); return; }
         const link = location.origin + '/t/' + sl + '?opinar=1', q = window.qrcode(0, 'M'); q.addData(link); q.make();
-        const w = open('', '_blank'); if(!w){ alert('Permití las ventanas emergentes para imprimir el cartel.'); return; }
-        if(chico){ const one = `<div class="k"><b>${esc(storeName())}</b><div class="st">★★★★★</div><div class="q">${q.createSvgTag({cellSize: 4, margin: 1, scalable: true})}</div><span>¿Te gustó? Escaneá y dejanos tus estrellas</span>${gLink() ? '<small>⭐ y también en Google</small>' : ''}<i>ShopFlash · Pro Video JSR(HG)</i></div>`;
-          w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Cartelitos de reseñas · ${esc(storeName())}</title><style>@page{size:A4;margin:10mm}body{margin:0;font-family:system-ui,Arial,sans-serif;color:#1f2937}
-.g{display:grid;grid-template-columns:repeat(2,90mm);gap:8mm;justify-content:center}.k{width:90mm;height:120mm;box-sizing:border-box;border:2px dashed #f59e0b;border-radius:16px;padding:7mm;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;background:#fffbeb}
-.k b{font-size:20px}.st{font-size:28px;letter-spacing:4px;color:#f59e0b}.q svg{width:58mm;height:58mm}.k span{font-size:15px;font-weight:600}.k small{font-size:12px}.k i{font-size:10px;color:#999;font-style:normal}</style></head><body><div class="g">${one.repeat(4)}</div><script>setTimeout(()=>print(),400)<\/script></body></html>`);
+        const w = w0 || open('', '_blank'); if(!w){ alert('Permití las ventanas emergentes para imprimir el cartel.'); return; }
+        if(chico){
+          w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Cartelito 10x15 · ${esc(storeName())}</title><style>@page{size:100mm 150mm;margin:0}html,body{margin:0}body{font-family:system-ui,Arial,sans-serif;color:#1f2937}
+.k{width:100mm;height:150mm;box-sizing:border-box;padding:8mm 7mm;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;background:#fffbeb;border:3mm solid #f59e0b;border-radius:6mm}
+.k b{font-size:22px;line-height:1.15}.st{font-size:32px;letter-spacing:5px;color:#f59e0b}.q{background:#fff;padding:2mm;border-radius:3mm}.q svg{width:66mm;height:66mm;display:block}.k span{font-size:17px;font-weight:700}.k small{font-size:13px}.k i{font-size:10px;color:#999;font-style:normal}
+@media screen{body{background:#eee;display:grid;place-items:center;min-height:100vh}}</style></head><body><div class="k"><b>${esc(storeName())}</b><div class="st">★★★★★</div><div class="q">${q.createSvgTag({cellSize: 4, margin: 1, scalable: true})}</div><span>¿Te gustó? Escaneá y dejanos tus estrellas</span>${gLink() ? '<small>⭐ y también en Google</small>' : ''}<i>ShopFlash · Pro Video JSR(HG)</i></div><script>setTimeout(()=>print(),500)<\/script></body></html>`);
           w.document.close(); return; }
         w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Cartel de reseñas · ${esc(storeName())}</title><style>@page{size:A4;margin:12mm}body{margin:0;font-family:system-ui,Arial,sans-serif;color:#1f2937}
 .c{max-width:170mm;margin:0 auto;border:3px solid #f59e0b;border-radius:24px;padding:14mm 12mm;text-align:center;background:#fffbeb}h1{font-size:34px;margin:0 0 4px}h2{font-size:24px;margin:0 0 10px;font-weight:600}.st{font-size:44px;letter-spacing:6px;color:#f59e0b}
 .q svg{width:95mm;height:95mm}p{font-size:19px;margin:8px 0}.by{font-size:12px;color:#888;margin-top:10px}</style></head><body><div class="c"><h1>${esc(storeName())}</h1><h2>¿Te gustó? ¡Dejanos tus estrellas!</h2><div class="st">★★★★★</div>
 <div class="q">${q.createSvgTag({cellSize: 6, margin: 2, scalable: true})}</div><p>📲 Escaneá con la cámara del celular y opiná en 10 segundos.</p>${gLink() ? '<p>⭐ También podés dejar tu reseña en Google.</p>' : ''}<div class="by">Pro Video JSR(HG) · ShopFlash</div></div><script>setTimeout(()=>print(),400)<\/script></body></html>`);
         w.document.close(); };
-      $('revCartel').onclick = () => cartel(false); $('revCartelChico').onclick = () => cartel(true);
+    // link público para imprimir el cartelito de una tienda: /t/su-tienda?cartel=1 (o ?cartel=a4)
+    if(PUBLIC){ let cq = ''; try{ cq = new URLSearchParams(location.search).get('cartel') || ''; }catch(e){} if(cq){ window.V360_CARTEL = true; setTimeout(() => window.v360Cartel(cq !== 'a4', window.VITRINA_SLUG, window), 1500); } }
+    // ---- Panel del comercio ----
+    if(!PUBLIC){
+      const gi = $('b-greview'), tg = $('revTog'), adm = $('revAdmin'), tq = $('revQrTog');
+      const mark = () => { tg.setAttribute('aria-pressed', String(!brand.revOff)); gi.value = brand.googleReview || ''; tq.setAttribute('aria-pressed', String(qrOk())); };
+      tq.onclick = () => { if(qrOk()){ brand.revQr = false; if(brand.preset === 'informal') brand.revQrNo = true; } else { brand.revQr = true; delete brand.revQrNo; } save(); mark(); };
+      $('revCartel').onclick = () => { if(!qrOk()){ brand.revQr = true; save(); mark(); } window.v360Cartel(false); }; $('revCartelChico').onclick = () => { if(!qrOk()){ brand.revQr = true; save(); mark(); } window.v360Cartel(true); };
       const hb = $('hoyBox'), hoyMark = () => { hb.hidden = brand.preset !== 'informal'; const h = brand.hoy; $('hoyTx').value = h && Date.now() - h.t < 864e5 ? h.tx || '' : ''; $('hoyMsg').textContent = h && Date.now() - h.t < 864e5 ? '✅ Tus clientes ven: “' + (h.tx || 'Hoy estoy acá') + '”' + (h.lat ? ' con el mapa' : '') : ''; };
       $('hoyTx').addEventListener('change', e => { const v = e.target.value.trim(); brand.hoy = Object.assign({}, brand.hoy || {}, {tx: v.slice(0, 120), t: Date.now()}); if(!v && !(brand.hoy || {}).lat) delete brand.hoy; save(); hoyMark(); });
       $('hoyOff').onclick = () => { delete brand.hoy; save(); hoyMark(); $('hoyMsg').textContent = 'Listo: hoy no aparece ningún lugar.'; };
