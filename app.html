@@ -7754,6 +7754,11 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       <span class="swatch"><i style="background:${pr.frame}"></i><i style="background:${pr.shelf}"></i><i style="background:${pr.edge}"></i></span>
       <strong>${esc(pr.name)}</strong><small>${esc(pr.hint)}</small></button>`).join('');
   }
+  // si entró desde una página de venta de un rubro (/panel?rubro=parques), su tienda arranca con esa plantilla
+  if(!PUBLIC){ let rb = ''; try{ rb = new URLSearchParams(location.search).get('rubro') || localStorage.getItem('v360-rubro') || ''; if(rb) localStorage.setItem('v360-rubro', rb); }catch(e){}
+    if(rb && PRESETS.some(p => p.id === rb)) setTimeout(function ap(){ if(!window.VITRINA_TOKEN || document.querySelector('.v3o')) return setTimeout(ap, 2000);
+      if(!brand.preset || brand.preset === 'general'){ if(!document.querySelector(`#presetGrid .preset[data-preset="${rb}"]`)){ try{ renderPresets(); }catch(e){} } const b = document.querySelector(`#presetGrid .preset[data-preset="${rb}"]`); if(b) b.click(); }
+      try{ localStorage.removeItem('v360-rubro'); }catch(e){} }, 3500); }
   // plantillas de servicios: cargar con un toque los servicios conocidos (el cliente pide turno)
   document.addEventListener('click', e => {
     const k = e.target.closest('[data-loadkits]'); if(!k) return;

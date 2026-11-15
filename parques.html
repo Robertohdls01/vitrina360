@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ShopFlash Parques y Jardines 🌿 · Tu app con tu logo, presupuestos con IA y turnos</title>
+<meta name="description" content="Para parqueros, paisajistas y jardineros: tu cliente manda fotos de su parque, la IA mide, mira el pasto y las plantas y arma el presupuesto con tus precios. Reserva el turno y paga por Mercado Pago. 7 días gratis.">
+<meta property="og:title" content="ShopFlash Parques y Jardines 🌿 · Presupuestos con IA y turnos">
+<meta property="og:description" content="Tu cliente manda fotos de su parque y la IA le arma el presupuesto con tus precios. Turnos, Mercado Pago y tu app con tu logo. Probalo 7 días gratis.">
+<meta property="og:image" content="https://vitrina360app.com.ar/og.png">
+<meta name="theme-color" content="#2e7d32">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+<style>
+:root{--g:#2e7d32;--g2:#43a047;--ink:#1f2a1f;--muted:#5b6b5b;--cream:#f7fbf4;--soft:#eaf5e4;--line:#d5e8cc;--sun:#f9a825}
+*{box-sizing:border-box}
+body{margin:0;font:400 17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--cream)}
+a{color:var(--g)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 18px}
+.btn{border:0;border-radius:999px;padding:14px 22px;font-weight:800;font-size:17px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;cursor:pointer}
+.pri{background:linear-gradient(90deg,var(--g),var(--g2));color:#fff;box-shadow:0 8px 22px rgba(46,125,50,.28)}
+.sec{background:#fff;color:var(--g);border:2px solid var(--line)}
+nav{display:flex;justify-content:space-between;align-items:center;padding:14px 0;gap:10px;flex-wrap:wrap}
+nav b{font-size:22px}
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:30px;align-items:center;padding:20px 0 40px}
+.hero h1{font-size:clamp(32px,5vw,50px);line-height:1.08;margin:0 0 14px}
+.hero h1 span{color:var(--g)}
+.hero p{font-size:19px;color:var(--muted);margin:0 0 22px}
+.ctas{display:flex;gap:10px;flex-wrap:wrap}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.chips span{background:#fff;border:2px solid var(--line);border-radius:999px;padding:5px 12px;font-weight:700;font-size:14px}
+.phone{justify-self:center;width:300px;height:600px;border-radius:40px;background:#1d2b1d;padding:12px;box-shadow:0 30px 60px rgba(27,94,32,.25)}
+.phone iframe{width:100%;height:100%;border:0;border-radius:30px;background:#fff}
+.phone small{display:block;text-align:center;color:var(--muted);margin-top:10px}
+section{padding:46px 0}
+section.alt{background:var(--soft)}
+h2{font-size:clamp(26px,3.6vw,36px);margin:0 0 8px;text-align:center}
+.sub{text-align:center;color:var(--muted);margin:0 auto 28px;max-width:680px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:#fff;border:2px solid var(--line);border-radius:22px;padding:20px}
+.card .ic{font-size:34px}
+.card h3{margin:6px 0 6px;font-size:19px}
+.card p{margin:0;color:var(--muted);font-size:16px}
+.steps{counter-reset:s;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.steps .card{position:relative;padding-top:34px}
+.steps .card::before{counter-increment:s;content:counter(s);position:absolute;top:-16px;left:18px;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--g2));color:#fff;font-weight:900;display:grid;place-items:center;font-size:18px}
+.prices{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:820px;margin:0 auto}
+.price{text-align:center;border:3px solid var(--line);position:relative}
+.price.top{border-color:var(--g2)}
+.price .tag{position:absolute;top:-15px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--g),var(--g2));color:#fff;border-radius:999px;padding:4px 14px;font-weight:800;font-size:14px;white-space:nowrap}
+.price .amt{font-size:44px;font-weight:900;margin:8px 0 0;color:var(--ink)}
+.price .amt small{font-size:18px;color:var(--muted);font-weight:700}
+.price ul{text-align:left;padding:0;list-style:none;margin:16px 0 20px;display:grid;gap:8px;font-size:16px}
+.price li::before{content:"✅ "}
+details{background:#fff;border:2px solid var(--line);border-radius:16px;padding:14px 18px;margin:0 auto 10px;max-width:760px}
+summary{font-weight:800;cursor:pointer}
+details p{margin:10px 0 0;color:var(--muted)}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:center}
+.card.quote{font-size:15px}
+.quote .row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding:6px 0}
+.quote .tot{font-size:20px;font-weight:900;text-align:right;margin-top:8px}
+.tarjeta{width:300px;aspect-ratio:9/5;border-radius:14px;background:#fff;border:2px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.08);display:grid;grid-template-columns:1fr auto;gap:10px;padding:14px;align-items:center;justify-self:center}
+.tarjeta b{font-size:18px;display:block}.tarjeta small{color:var(--muted);display:block}
+.tarjeta .q{width:96px;height:96px;background:repeating-conic-gradient(#1f2a1f 0 25%,#fff 0 50%) 0 0/16px 16px;border:6px solid #1f2a1f;border-radius:4px}
+footer{padding:30px 0 50px;text-align:center;color:var(--muted);font-size:15px}
+.final{text-align:center}
+@media(max-width:860px){.hero,.duo{grid-template-columns:1fr}.grid{grid-template-columns:1fr 1fr}.steps{grid-template-columns:1fr 1fr}.prices{grid-template-columns:1fr}.phone{width:280px;height:560px}}
+@media(max-width:560px){.grid,.steps{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><b>🌿 ShopFlash <span style="color:var(--g)">Parques y Jardines</span></b><a class="btn sec" href="/panel?rubro=parques" style="padding:10px 16px;font-size:15px">Entrar / Crear mi app</a></nav>
+  <div class="hero">
+    <div>
+      <h1>Tu trabajo, tus clientes y tus turnos, <span>en una app con tu logo</span>.</h1>
+      <p>Para parqueros, paisajistas y jardineros. Tu cliente te manda fotos de su parque, la IA mide, mira el pasto y las plantas y le arma el presupuesto <b>con tus precios</b>. Reserva el turno y paga como prefiera.</p>
+      <div class="ctas"><a class="btn pri" href="/panel?rubro=parques">🚀 Probalo 7 días gratis</a><a class="btn sec" href="/t/parques-demo" target="_blank" rel="noopener">👀 Ver una app de ejemplo</a></div>
+      <div class="chips"><span>📷 Presupuesto con fotos</span><span>📐 Mide los m²</span><span>🪴 Rediseño con IA</span><span>📅 Turnos</span><span>💳 Mercado Pago</span><span>📲 App con tu logo</span></div>
+    </div>
+    <div><div class="phone"><iframe src="/t/parques-demo" title="App de ejemplo de un parquero" loading="lazy"></iframe></div><small>App de ejemplo: tocá <b>🌿 Presupuesto de mi parque</b>.</small></div>
+  </div>
+</div>
+
+<section class="alt">
+  <div class="wrap">
+    <h2>Así lo usa tu cliente</h2>
+    <p class="sub">Sin llamadas ni idas y vueltas: llega con el presupuesto armado y el turno elegido.</p>
+    <div class="steps">
+      <div class="card"><h3>📷 Saca fotos de su parque</h3><p>Una a tres fotos con el celular. Si quiere, marca su terreno en el mapa satelital.</p></div>
+      <div class="card"><h3>🤖 La IA le arma el presupuesto</h3><p>Mide los m², ve la altura del pasto, cada planta y su estado, y calcula con tus precios.</p></div>
+      <div class="card"><h3>🪴 Ve cómo quedaría</h3><p>Elige un estilo y la IA le propone qué plantas poner y dónde, y le muestra su parque rediseñado.</p></div>
+      <div class="card"><h3>📅 Reserva y paga</h3><p>Elige día y horario libres de tu agenda. Paga después del trabajo o lo deja pago con Mercado Pago.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap duo">
+    <div>
+      <h2 style="text-align:left">Un presupuesto en segundos, con tus precios</h2>
+      <p class="sub" style="text-align:left;margin:0 0 14px">La IA mira las fotos como en una visita: si el pasto está muy alto o el cerco es grande, suma el recargo y explica el motivo. El cliente ve todo claro y vos no perdés tiempo yendo a cotizar.</p>
+      <p style="color:var(--muted);margin:0">Es una estimación por foto: vos confirmás el precio final cuando vas.</p>
+    </div>
+    <div class="card quote">
+      <b>🧾 Presupuesto estimado · ~120 m²</b>
+      <div class="row"><span>🌱 Pasto ~18 cm (crecido)</span><span></span></div>
+      <div class="row"><span>Corte de pasto muy crecido · por m²</span><b>$42.000</b></div>
+      <div class="row"><span>Poda del ligustro · <span style="color:#b45309">+30% es alto</span></span><b>$26.000</b></div>
+      <div class="row"><span>6 × Lavanda (Vivero La Glicina)</span><b>$27.000</b></div>
+      <div class="row"><span>Plantación ×6</span><b>$15.000</b></div>
+      <div class="tot">Total: $110.000</div>
+      <span style="color:var(--muted);font-size:13px">Ejemplo con precios de la app de muestra.</span>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <h2>Todo lo que necesitás, en un solo lugar</h2>
+    <p class="sub">Tus trabajos, tus fotos y tus clientes, ordenados. Se maneja desde el celular.</p>
+    <div class="grid">
+      <div class="card"><div class="ic">📲</div><h3>Tu app con tu logo</h3><p>Tus clientes escanean tu QR y te instalan en su celular, con tu logo. La próxima vez te reservan con un toque.</p></div>
+      <div class="card"><div class="ic">🙋</div><h3>Una vendedora que atiende 24 h</h3><p>Responde por voz o por escrito, pide las fotos y arma el presupuesto aunque estés cortando pasto.</p></div>
+      <div class="card"><div class="ic">📐</div><h3>Mide en el mapa</h3><p>El cliente marca su terreno en el mapa satelital y se calculan los metros cuadrados solos.</p></div>
+      <div class="card"><div class="ic">📅</div><h3>Agenda sin superposiciones</h3><p>Ofrece solo tus horarios libres. Si cancelás un turno, ese horario vuelve a quedar disponible.</p></div>
+      <div class="card"><div class="ic">💳</div><h3>Cobrá como quieras</h3><p>Después del trabajo, como siempre, o pago por adelantado con Mercado Pago, directo a tu cuenta.</p></div>
+      <div class="card"><div class="ic">📸</div><h3>Antes y después</h3><p>Mostrá tus mejores trabajos con fotos. Es lo que más convence a un cliente nuevo.</p></div>
+      <div class="card"><div class="ic">🤝</div><h3>Tu red, a mano</h3><p>Conectá tus viveros, tus tiendas de insumos y el taller donde afilás y arreglás las máquinas, con WhatsApp directo.</p></div>
+      <div class="card"><div class="ic">🎤</div><h3>Te guía por voz</h3><p>Flashi, tu ayudante, te arma la app paso a paso. Le hablás y te lleva a cada lugar.</p></div>
+      <div class="card"><div class="ic">⭐</div><h3>Reseñas y Google</h3><p>Tus clientes te califican y les pedimos la reseña en Google, para que te encuentren más.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap duo">
+    <div class="tarjeta"><div><b>🌿 Parques Don Juan</b><small>Corte de pasto · Poda · Jardines</small><small>📲 Escaneá y pedí tu presupuesto</small></div><div class="q" aria-hidden="true"></div></div>
+    <div>
+      <h2 style="text-align:left">Chau a la tarjetita de papel</h2>
+      <p class="sub" style="text-align:left;margin:0">Seguís repartiendo tarjetas como siempre, pero ahora cada una tiene <b>tu QR</b>. Tu cliente la escanea, ve tus trabajos, pide el presupuesto y te reserva. Las imprimís desde tu panel en cualquier gráfica.</p>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <h2>¿Tenés un vivero, una tienda de insumos o un taller?</h2>
+    <p class="sub">También es para vos. Armá tu tienda ShopFlash y que los parqueros de tu zona te conecten.</p>
+    <div class="grid">
+      <div class="card"><div class="ic">🌱</div><h3>Viveros</h3><p>Cuando un cliente de un parquero rediseña su parque con la IA, se le proponen <b>tus plantas con tu precio</b>, con link a tu tienda.</p></div>
+      <div class="card"><div class="ic">🛒</div><h3>Insumos y herramientas</h3><p>Tus productos quedan a mano de cada parquero que te conecta: tanzas, cadenas, aceites, piedras, tierra.</p></div>
+      <div class="card"><div class="ic">🔧</div><h3>Talleres de máquinas</h3><p>Afilado, service y repuestos con turnos. Ves en tu panel a <b>todos los parqueros conectados</b>, con su WhatsApp.</p></div>
+    </div>
+    <p class="final" style="margin-top:20px"><a class="btn sec" href="/t/vivero-demo" target="_blank" rel="noopener">👀 Ver un vivero de ejemplo</a> <a class="btn pri" href="/panel">🚀 Crear mi tienda</a></p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Precios claros, sin comisiones</h2>
+    <p class="sub">7 días gratis para probar con tus propios clientes. Después, se cobra solo todos los meses por Mercado Pago. Te das de baja cuando quieras.</p>
+    <div class="prices">
+      <div class="card price top"><span class="tag">🎁 7 días gratis</span><h3>Parques y Jardines</h3><div class="amt">$9.900<small>/mes</small></div>
+        <ul><li>Tu app con tu logo y tu QR</li><li>20 presupuestos con IA por mes</li><li>10 diseños de parques por mes</li><li>Turnos y cobro con Mercado Pago</li><li>Tu red de viveros, insumos y talleres</li></ul>
+        <a class="btn pri" href="/panel?rubro=parques" style="width:100%">🚀 Empezar gratis</a></div>
+      <div class="card price"><h3>Parques y Jardines Plus</h3><div class="amt">$14.900<small>/mes</small></div>
+        <ul><li>Todo lo del plan anterior</li><li>60 presupuestos con IA por mes</li><li>30 diseños de parques por mes</li><li>20 vitrinas para tus servicios y trabajos</li><li>Ideal si trabajás con cuadrilla</li></ul>
+        <a class="btn sec" href="/panel?rubro=parques" style="width:100%">Empezar con Plus</a></div>
+    </div>
+    <p class="sub" style="margin-top:16px">Con un solo corte de pasto ya pagaste el mes. Sin comisión por cada trabajo: lo que cobrás es tuyo.</p>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <h2>Preguntas frecuentes</h2>
+    <details><summary>¿La IA acierta con los metros y el precio?</summary><p>Estima como en una visita rápida, por las fotos y lo que marca el cliente en el mapa. Por eso el presupuesto dice "estimado": vos confirmás el valor final cuando vas. Lo bueno es que el cliente ya llega con una idea clara y vos no perdés viajes.</p></details>
+    <details><summary>¿Tengo que saber de computación?</summary><p>No. Se maneja desde el celular y Flashi, el ayudante, te arma todo paso a paso. Le podés hablar: "quiero poner mi WhatsApp", "cargar mis precios", y te lleva.</p></details>
+    <details><summary>¿Me cobran comisión por cada trabajo?</summary><p>No. Pagás solo el abono mensual. Si el cliente paga por Mercado Pago, la plata va directo a tu cuenta.</p></details>
+    <details><summary>¿Y si el cliente prefiere pagar después del trabajo?</summary><p>Puede: al reservar elige "pago después del trabajo" o "dejarlo pago ahora". Vos decidís cómo trabajar.</p></details>
+    <details><summary>¿Qué pasa si se terminan los presupuestos con IA del mes?</summary><p>El cliente igual te puede mandar las fotos por WhatsApp desde tu app, así no perdés ningún pedido. El 1° de cada mes se renuevan, o pasás al plan Plus.</p></details>
+    <details><summary>¿Funciona en mi ciudad?</summary><p>Sí, funciona en todo el país. Solo necesitás internet en el celular.</p></details>
+    <details><summary>¿Qué pasa después de los 7 días?</summary><p>Si te gustó, seguís por $9.900 por mes. Si no, no pagás nada y no te cobramos.</p></details>
+  </div>
+</section>
+
+<section>
+  <div class="wrap final">
+    <h2>Dale a tu trabajo la vidriera que se merece</h2>
+    <p class="sub">En 10 minutos tenés tu app lista para compartir.</p>
+    <a class="btn pri" href="/panel?rubro=parques">🚀 Crear mi app gratis</a>
+  </div>
+</section>
+<footer>🌿 ShopFlash Parques y Jardines · by Vitrina 360 · Pro Video</footer>
+</body>
+</html>

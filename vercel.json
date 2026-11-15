@@ -27,6 +27,10 @@
     {
       "source": "/folleto",
       "destination": "/folleto.html"
+    },
+    {
+      "source": "/parques",
+      "destination": "/parques.html"
     }
   ],
   "functions": {
