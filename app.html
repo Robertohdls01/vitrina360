@@ -4538,7 +4538,9 @@ Respondé SOLO con JSON: {"letras": [ ... ]} con ${n} letra${n === 1 ? '' : 's'}
   }).catch(() => {});
 
   const PROMPT = `Esta foto muestra un producto que una tienda va a exhibir en su vitrina online.
-Identificá qué producto es. Si se lee con claridad la marca o el modelo, usalos; si no, describilo de forma genérica (por ejemplo "Campera de cuero marrón").
+Identificá qué producto es y nombralo como lo pediría un cliente en el negocio: tipo de producto + marca + variedad o tamaño (por ejemplo "Fideos Moños Lucchetti 500 g" o "Jugo de limón Minerva 1 L").
+MARCAS: copiá la marca letra por letra como está impresa. Si lo que leés se parece a una marca conocida (de Argentina o internacional), escribila con su ortografía correcta (por ejemplo Lucchetti, Matarazzo, Marolio, Arcor, La Serenísima, Natura, Cif, Ala), nunca una versión parecida o inventada. Si la marca no se lee bien, no la adivines: dejala afuera.
+NUNCA nombres el producto por el color del envase o de la tapa (mal: "Botella verde con tapa amarilla", "Paquete azul"). Deducí QUÉ ES por todo lo que se ve: el color y la transparencia del líquido o del contenido, la forma del envase, la tapa, la etiqueta, el precio y el rubro del negocio. Por ejemplo, en un almacén una botella de plástico verde con tapa amarilla es casi siempre jugo de limón; una botella oscura puede ser salsa de soja, vinagre de alcohol o aceto; un frasco rojo, salsa de tomate o ají. Si dudás, poné tu mejor suposición del tipo de producto (y si querés agregá en "features" "A confirmar: …"). Solo si de verdad no se puede saber qué es, describilo por su uso (por ejemplo "Aderezo en botella").
 La foto puede estar sacada con el celular en casa: con poca luz, sombras, reflejos, borrosa, de costado, al revés o con otras cosas alrededor (mesa, mano, fondo, otros productos). Eso NO es un problema y nunca es motivo para no responder: concentrate en el producto principal (el más grande, el más nítido o el del centro) e ignorá el resto.
 Para reconocerlo, leé con atención etiquetas, logos y textos del envase aunque estén de costado o al revés, y usá también la forma, los colores y el tipo de envase. Si la marca no se lee, igual nombrá el producto por lo que es (por ejemplo "Detergente líquido 750 ml" o "Zapatilla urbana negra").
 Nunca respondas que la foto es mala ni pidas otra foto: siempre devolvé tu mejor reconocimiento.
@@ -4578,7 +4580,8 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
 
   async function recognize(item, signal, forceAuto){
     const auto = forceAuto === true || (forceAuto !== false && $('f-cat').value === '__auto');
-    const prompt = (auto ? PROMPT + `\nAdemás elegí en qué vitrina va. Vitrinas:\n${catList()}\nAgregá al JSON el campo "vitrina" con el número de la que mejor corresponda.` + newCatRule() : PROMPT) + aiLang();
+    const ctxRubro = `\nDatos del negocio (usalos para deducir qué es el producto): se llama "${storeName()}"${(() => { try{ return ', rubro: ' + presetOf(brand.preset).name; }catch(e){ return ''; } })()}${(() => { const c = !auto && (catOf($('f-cat').value) || catOf(currentCat)); return c ? ', y la foto se cargó en la vitrina "' + c.name + '"' : ''; })()}.`;
+    const prompt = ctxRubro + (auto ? PROMPT + `\nAdemás elegí en qué vitrina va. Vitrinas:\n${catList()}\nAgregá al JSON el campo "vitrina" con el número de la que mejor corresponda.` + newCatRule() : PROMPT) + aiLang();
     const r = await sampler.json(prompt, {images: item.blob, signal});
     await applyRot(item, r);
     const vi = auto && r ? parseInt(r.vitrina, 10) : NaN;
