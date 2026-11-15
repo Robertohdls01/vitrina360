@@ -142,6 +142,14 @@ module.exports = async (req, res) => {
       } catch (e) {}
       return res.status(200).json({ ok: true, kit: k });
     }
+    // manifest para instalar el menú de un café como app en el celular
+    if (req.method === 'GET' && q.manifest) {
+      const id = String(q.manifest); if (!okId(id)) return res.status(400).json({ error: 'Menú inválido.' });
+      const f = await leerObj('menus/' + id + '.json'); const nom = (f && f.menu && f.menu.nombre) || 'Menú';
+      res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8'); res.setHeader('Cache-Control', 'public, max-age=3600');
+      return res.status(200).send(JSON.stringify({ name: nom + ' · Pedí acá', short_name: nom.slice(0, 14), id: '/menu?m=' + id + '&app=1', start_url: '/menu?m=' + id + '&app=1', scope: '/', display: 'standalone', orientation: 'portrait', background_color: '#faf8ff', theme_color: '#7c3aed', lang: 'es',
+        icons: [{ src: '/icons/menu-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: '/icons/menu-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' }, { src: '/icons/menu-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }] }));
+    }
     if (req.method === 'GET' && q.id && q.caja) {
       if (!okId(q.id)) return res.status(400).json({ error: 'Menú inválido.' });
       const f = await leerObj('menus/' + q.id + '.json');
@@ -188,7 +196,9 @@ module.exports = async (req, res) => {
         const items = (Array.isArray(b.items) ? b.items : []).slice(0, 60).map(i => ({ n: t(i && i.n, 90), q: Math.max(1, Math.min(99, parseInt(i && i.q, 10) || 1)) })).filter(i => valid[i.n] !== undefined).map(i => Object.assign(i, { p: valid[i.n] }));
         if (!items.length) return res.status(400).json({ error: 'El pedido está vacío.' });
         L.n = (L.n || 0) + 1;
-        nuevo = Object.assign(base0, { tipo: 'pedido', n: L.n, items, nota: t(b.nota, 200), estado: 'nuevo' });
+        const lv = b.llevar && ['llevar', 'llego'].includes(b.llevar.tipo) ? { tipo: b.llevar.tipo, min: Math.max(0, Math.min(120, parseInt(b.llevar.min, 10) || 0)) } : null;
+        if (lv && lv.tipo === 'llego') lv.llega = new Date(Date.now() + lv.min * 60e3).toISOString();
+        nuevo = Object.assign(base0, { tipo: 'pedido', n: L.n, items, nota: t(b.nota, 200), estado: 'nuevo' }, lv ? { llevar: lv } : {});
       }
       L.items = [nuevo].concat((L.items || []).filter(x => Date.now() - Date.parse(x.creado) < 2 * 864e5)).slice(0, 150);
       await guardarObj(pedPath(b.id), L);

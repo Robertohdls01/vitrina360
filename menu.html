@@ -367,6 +367,17 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
   // =================== MESA: el asistente recibe, recomienda y toma el pedido por voz (español, inglés, portugués) ===================
   async function mesa(){
     let M = null; try{ const J = await api('/api/menu?id=' + encodeURIComponent(ID)); M = J.menu; if(J.pausado){ app.innerHTML = `<div style="padding:40px 20px;text-align:center;max-width:420px;margin:auto"><div style="font-size:54px">🍽️</div><h2>${esc(M.nombre || '')}</h2><p>El menú digital está en pausa por el momento.</p><p><b>Pedile la carta al mozo</b> 🙋 ¡Gracias!</p></div>`; return; } }catch(e){ app.innerHTML = `<p style="padding:30px;text-align:center">😕 ${esc(e.message)}</p>`; return; }
+
+    // ---- App del café (se instala en el celular) + cliente fijo ("lo de siempre") ----
+    const APP = Q.has('app'), STANDALONE = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+    { const l = document.createElement('link'); l.rel = 'manifest'; l.href = '/api/menu?manifest=' + encodeURIComponent(ID); document.head.appendChild(l);
+      const a = document.createElement('link'); a.rel = 'apple-touch-icon'; a.href = '/icons/menu-192.png'; document.head.appendChild(a);
+      const t = document.createElement('meta'); t.name = 'apple-mobile-web-app-title'; t.content = String(M.nombre || 'Menú').slice(0, 30); document.head.appendChild(t);
+      if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {}); }
+    let BIP = null; window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); BIP = e; });
+    const KCLI = 'shopmenu-cli-' + ID; let CLI = {}; try{ CLI = JSON.parse(localStorage.getItem(KCLI) || '{}') || {}; }catch(e){}
+    const guardaCli = o => { CLI = Object.assign(CLI, o); try{ localStorage.setItem(KCLI, JSON.stringify(CLI)); }catch(e){} };
+    let LLEVAR = null; // {tipo:'llevar'|'llego', min}
     // idioma: el que eligió, o el del celular
     let LANG = (Q.get('lang') || (() => { try{ return localStorage.getItem('shopmenu-lang'); }catch(e){ return ''; } })() || navigator.language || 'es').slice(0, 2).toLowerCase();
     if(!['es', 'en', 'pt'].includes(LANG)) LANG = 'en';
@@ -501,6 +512,8 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       if(/^(no|nada|nada mas|no gracias|no, gracias|nope|nao|não)$/.test(n) && count()) return verPedido(true);
       if(GRACIAS.test(n) && n.split(' ').length <= 3) return talk(T(`¡De nada${nombre ? ', ' + nombre : ''}! Cualquier cosa, acá estoy 😊`, `You're welcome${nombre ? ', ' + nombre : ''}! I'm here if you need anything 😊`, `De nada${nombre ? ', ' + nombre : ''}! Qualquer coisa, estou aqui 😊`), mainChips());
       if(/^(si|dale|bueno|ok|okay|yes|yeah|sure|sim|claro|sumalo|sumamelo)\b/.test(n.trim())){ const b = opts.querySelector('button.pri'); if(b && b.dataset.up){ b.click(); return; } }
+      if(step === 'mesa' && /(llevar|take ?away|to go|levar)/.test(n)){ setLlevar('llevar'); return; }
+      if(step === 'mesa' && /(llego|antes de llegar|ahead|chego)/.test(n)){ pedirLlego(); return; }
       if(step === 'mesa'){ const m = n.match(/\d+/), w = {uno: 1, una: 1, one: 1, um: 1, dos: 2, two: 2, dois: 2, tres: 3, three: 3, cuatro: 4, four: 4, quatro: 4, cinco: 5, five: 5, seis: 6, six: 6, siete: 7, seven: 7, sete: 7, ocho: 8, eight: 8, oito: 8, nueve: 9, nine: 9, nove: 9, diez: 10, ten: 10, dez: 10, once: 11, eleven: 11, onze: 11, doce: 12, twelve: 12, doze: 12}; const k = m ? +m[0] : (n.split(/\s+/).map(x => w[x]).find(Boolean) || 0); if(k > 0 && k <= 500) setMesa(k); else talk(T('No te entendí el número 🙈. Decime solo el número de la mesa, por ejemplo "cinco".', 'I didn\'t catch the number 🙈. Just tell me your table number, like "five".', 'Não entendi o número 🙈. Diga só o número da mesa, por exemplo "cinco".')); return; }
       if(!nombre && step === 'nombre'){ setName(text); return; }
       if(step === 'consulta'){ consulta(text); return; }
@@ -584,7 +597,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     function verPedido(enviar){
       if(!Object.keys(order).length){ talk(T('Tu pedido está vacío todavía. ¿Qué te traigo?', 'Your order is still empty. What can I get you?', 'Seu pedido ainda está vazio. O que eu trago?'), mainChips()); return; }
       const sh = document.createElement('div'); sh.className = 'sheet';
-      const paint = () => { const e2 = Object.entries(order); sh.innerHTML = `<div><h2 style="margin:0">🧾 ${T('Tu pedido', 'Your order', 'Seu pedido')} · ${T('Mesa', 'Table', 'Mesa')} ${MESA}</h2>${e2.map(([n, q]) => { const it = byN(n); return `<div class="line"><span><b>${esc(dn(n))}</b><br><small>${esc(it ? it.p : '')}</small></span><button type="button" data-m="${esc(n)}">−</button><b>${q}</b><button type="button" data-p="${esc(n)}">+</button></div>`; }).join('')}
+      const paint = () => { const e2 = Object.entries(order); sh.innerHTML = `<div><h2 style="margin:0">🧾 ${T('Tu pedido', 'Your order', 'Seu pedido')} · ${MESA ? T('Mesa', 'Table', 'Mesa') + ' ' + MESA : $('#tagMesa').textContent}</h2>${e2.map(([n, q]) => { const it = byN(n); return `<div class="line"><span><b>${esc(dn(n))}</b><br><small>${esc(it ? it.p : '')}</small></span><button type="button" data-m="${esc(n)}">−</button><b>${q}</b><button type="button" data-p="${esc(n)}">+</button></div>`; }).join('')}
         <b style="font-size:20px;text-align:right">Total: ${money(total())}</b>
         <input id="iNota" maxlength="200" placeholder="${T('¿Alguna aclaración? (ej: sin cebolla)', 'Any notes? (e.g. no onion)', 'Alguma observação? (ex: sem cebola)')}">
         <button class="btn pri" type="button" id="bSendOrder">✅ ${T('Enviar a la cocina', 'Send to the kitchen', 'Enviar para a cozinha')}</button><button class="btn sec" type="button" id="bClose">${T('Seguir pidiendo', 'Keep ordering', 'Continuar pedindo')}</button></div>`;
@@ -593,8 +606,9 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
         sh.querySelector('#bClose').onclick = () => sh.remove();
         sh.querySelector('#bSendOrder').onclick = async ev => { ev.target.disabled = true; ev.target.textContent = '…';
           const nota = sh.querySelector('#iNota').value;
-          try{ const j = await api('/api/menu?accion=pedido', {id: ID, mesa: MESA, nombre, nota: (LANG !== 'es' && nota ? '[' + LANG.toUpperCase() + '] ' : '') + nota, items: Object.entries(order).map(([n, q]) => ({n, q}))});
-            totalUlt += total(); sh.remove(); order = {}; paintCart(); seguir(j);
+          try{ const favNow = Object.entries(order).map(([n, q]) => ({n, q}));
+          const j = await api('/api/menu?accion=pedido', {id: ID, mesa: MESA, nombre, llevar: LLEVAR, nota: (LANG !== 'es' && nota ? '[' + LANG.toUpperCase() + '] ' : '') + nota, items: Object.entries(order).map(([n, q]) => ({n, q}))});
+            totalUlt += total(); sh.remove(); order = {}; paintCart(); guardaCli({nombre: nombre || CLI.nombre || '', fav: favNow}); seguir(j); setTimeout(ofrecerApp, 2500);
           }catch(e){ ev.target.disabled = false; ev.target.textContent = '✅ ' + T('Enviar a la cocina', 'Send to the kitchen', 'Enviar para a cozinha'); alert(e.message); } };
       };
       paint(); sh.onclick = e => { if(e.target === sh) sh.remove(); }; document.body.appendChild(sh);
@@ -605,6 +619,18 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     const awake = async () => { try{ if('wakeLock' in navigator && !wl){ wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release', () => { wl = null; }); } }catch(e){} };
     document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && ultimo) awake(); });
     const payNow = j => ['💳 ' + T('Pagar ahora', 'Pay now', 'Pagar agora'), () => pagar(j), true];
+    // después del pedido: le ofrece instalar la app del café (una vez)
+    function ofrecerApp(){
+      if(STANDALONE || CLI.noApp || $('#appBox')) return;
+      const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      const box = document.createElement('div'); box.id = 'appBox'; box.className = 'card'; box.style.cssText = 'margin-top:10px;border:2px solid #ddd6fe;background:#faf8ff;display:grid;gap:8px';
+      box.innerHTML = `<b>📲 ${T(`¿Venís seguido? Tené a ${esc(M.nombre)} en tu celular`, `Come often? Keep ${esc(M.nombre)} on your phone`, `Vem sempre? Tenha ${esc(M.nombre)} no seu celular`)}</b><span style="color:#6b5b86">${T('La próxima pedís en 2 toques, para la mesa, para llevar o antes de llegar. Y te guardo "lo de siempre".', 'Next time order in 2 taps: at the table, takeaway or ahead. I\'ll remember your usual.', 'Na próxima peça em 2 toques: na mesa, para levar ou antes de chegar. Guardo o seu de sempre.')}</span><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn pri" type="button" id="bInst">📲 ${T('Instalar la app', 'Install the app', 'Instalar o app')}</button><button class="btn sec" type="button" id="bNoInst">${T('Ahora no', 'Not now', 'Agora não')}</button></div><div id="iosSteps" class="note" style="display:none">${T('En iPhone: tocá <b>Compartir</b> ⬆️ (abajo en Safari) y después <b>"Agregar a inicio"</b> ➕.', 'On iPhone: tap <b>Share</b> ⬆️ (bottom of Safari), then <b>"Add to Home Screen"</b> ➕.', 'No iPhone: toque <b>Compartilhar</b> ⬆️ e depois <b>"Adicionar à Tela de Início"</b> ➕.')}</div>`;
+      area.appendChild(box);
+      box.querySelector('#bNoInst').onclick = () => { guardaCli({noApp: true}); box.remove(); };
+      box.querySelector('#bInst').onclick = async () => {
+        if(BIP){ BIP.prompt(); try{ const r = await BIP.userChoice; if(r && r.outcome === 'accepted'){ box.innerHTML = '✅ ' + T('¡Listo! Ya tenés la app en tu celular.', 'Done! The app is on your phone.', 'Pronto! O app já está no seu celular.'); guardaCli({noApp: true}); } }catch(e){} BIP = null; return; }
+        box.querySelector('#iosSteps').style.display = 'block'; if(!ios) box.querySelector('#iosSteps').innerHTML = T('Tocá los <b>tres puntitos ⋮</b> del navegador y después <b>"Instalar app"</b> o <b>"Agregar a la pantalla principal"</b>.', 'Tap the browser menu <b>⋮</b> and then <b>"Install app"</b> or <b>"Add to Home screen"</b>.', 'Toque no menu <b>⋮</b> do navegador e depois <b>"Instalar app"</b> ou <b>"Adicionar à tela inicial"</b>.'); };
+    }
     function seguir(j){
       awake(); ultimo = j;
       let last = 'nuevo';
@@ -727,12 +753,27 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     const skipName = () => [T('Prefiero no decirlo', 'I\'d rather not say', 'Prefiro não dizer'), () => { step = ''; pregunta(); }];
     const namePh = () => { $('#iTxt').placeholder = T('Escribí tu nombre o tocá 🎤', 'Type your name or tap 🎤', 'Escreva seu nome ou toque 🎤'); };
     const soy = () => saludoHora + ' ' + T(`¿Cómo estás? Bienvenido a ${M.nombre}. Mi nombre es ${M.asistente || 'Lola'} y hoy te voy a atender yo.`, `How are you? Welcome to ${M.nombre}. My name is ${M.asistente || 'Lola'} and I'll be taking care of you today.`, `Tudo bem? Bem-vindo ao ${M.nombre}. Meu nome é ${M.asistente || 'Lola'} e hoje eu vou te atender.`);
-    const pedirMesa = () => { step = 'mesa'; talk.listen = !mute; presentada = true; talk(soy() + ' ' + T('¿En qué mesa estás? Decime el número.', 'Which table are you at? Tell me the number.', 'Em qual mesa você está? Diga o número.'), Array.from({length: Math.min(M.mesas || 10, 12)}, (_, i) => [String(i + 1), () => setMesa(i + 1)])); $('#iTxt').placeholder = T('Número de mesa', 'Table number', 'Número da mesa'); };
-    function setMesa(n){ MESA = n; $('#tagMesa').textContent = T('Mesa ', 'Table ', 'Mesa ') + n; step = 'nombre'; talk.listen = !mute; talk(T(`¡Perfecto, mesa ${n}! `, `Perfect, table ${n}! `, `Perfeito, mesa ${n}! `) + askName(), [skipName()]); namePh(); }
+    const pedirMesa = () => { step = 'mesa'; talk.listen = !mute; presentada = true; talk((CLI.nombre ? saludoHora + ' ' + T(`¡Qué bueno verte de nuevo, ${CLI.nombre}! Soy ${M.asistente || 'Lola'}, de ${M.nombre}.`, `Great to see you again, ${CLI.nombre}! I'm ${M.asistente || 'Lola'}, from ${M.nombre}.`, `Que bom te ver de novo, ${CLI.nombre}! Sou ${M.asistente || 'Lola'}, do ${M.nombre}.`) : soy()) + ' ' + T('¿En qué mesa estás? Si pedís para llevar o antes de llegar, tocá abajo.', 'Which table are you at? For takeaway or ordering ahead, tap below.', 'Em qual mesa você está? Para levar ou pedir antes de chegar, toque abaixo.'), [['🛍️ ' + T('Para llevar', 'Takeaway', 'Para levar'), () => setLlevar('llevar')], ['🚶 ' + T('Pido antes de llegar', 'Order ahead', 'Peço antes de chegar'), pedirLlego]].concat(Array.from({length: Math.min(M.mesas || 10, 12)}, (_, i) => [String(i + 1), () => setMesa(i + 1)]))); $('#iTxt').placeholder = T('Número de mesa', 'Table number', 'Número da mesa'); };
+    function pedirLlego(){ step = ''; talk(T('¿En cuánto llegás?', 'How soon will you arrive?', 'Em quanto tempo você chega?'), [5, 10, 15, 20, 30].map(m => [m + ' min', () => setLlevar('llego', m)])); }
+    function setLlevar(tipo, min){ MESA = 0; LLEVAR = {tipo, min: min || 0}; $('#tagMesa').textContent = tipo === 'llego' ? '🚶 ' + T(`Llegás en ${min} min`, `Arriving in ${min} min`, `Chega em ${min} min`) : '🛍️ ' + T('Para llevar', 'Takeaway', 'Para levar');
+      const t0 = tipo === 'llego' ? T(`¡Genial! Te lo tenemos listo para cuando llegues, en unos ${min} minutos.`, `Great! It'll be ready when you arrive in about ${min} minutes.`, `Ótimo! Vai estar pronto quando você chegar, em uns ${min} minutos.`) : T('¡Dale, para llevar!', 'Takeaway it is!', 'Certo, para levar!');
+      if(CLI.nombre){ nombre = CLI.nombre; keep(); step = ''; return ofrecerFav(t0); }
+      step = 'nombre'; talk.listen = !mute; talk(t0 + ' ' + askName(), [skipName()]); namePh(); }
+    // cliente fijo: le ofrece "lo de siempre"
+    function ofrecerFav(pre){
+      const fav = (CLI.fav || []).filter(x => byN(x.n));
+      if(!fav.length) return pregunta();
+      const txt = fav.map(x => `${x.q} ${dn(x.n)}`).join(', ');
+      talk.listen = !mute;
+      const yo = nombre && !String(pre || '').includes(nombre);
+      talk((pre ? pre + ' ' : '') + T(`${yo ? nombre + ', ¿' : '¿'}te traigo lo de siempre? ${txt}.`, `${yo ? nombre + ', s' : 'S'}hall I bring your usual? ${txt}.`, `${yo ? nombre + ', q' : 'Q'}uer o de sempre? ${txt}.`), [['✅ ' + T('Sí, lo de siempre', 'Yes, my usual', 'Sim, o de sempre'), () => { fav.forEach(x => { order[x.n] = (order[x.n] || 0) + x.q; }); paintCart(); verPedido(true); }, true], ['📖 ' + T('Hoy quiero otra cosa', 'Something else today', 'Hoje quero outra coisa'), pregunta]]);
+    }
+    function setMesa(n){ MESA = n; LLEVAR = null; $('#tagMesa').textContent = T('Mesa ', 'Table ', 'Mesa ') + n; if(CLI.nombre){ nombre = CLI.nombre; keep(); step = ''; return ofrecerFav(T(`¡Perfecto, mesa ${n}!`, `Perfect, table ${n}!`, `Perfeito, mesa ${n}!`)); } step = 'nombre'; talk.listen = !mute; talk(T(`¡Perfecto, mesa ${n}! `, `Perfect, table ${n}! `, `Perfeito, mesa ${n}! `) + askName(), [skipName()]); namePh(); }
     let started = false;
     const start = () => { if(started) return; started = true; area.innerHTML = '';
       if(volvio){ talk.listen = !mute; talk(T(`¡Acá estoy, ${nombre}! ¿En qué te ayudo? ¿Querés pedir algo más?`, `I'm here, ${nombre}! How can I help? Would you like anything else?`, `Estou aqui, ${nombre}! Como posso ajudar? Quer pedir mais alguma coisa?`), CATS.filter(c => c.items.length).slice(0, 8).map(c => [c.n, () => verCat([c])]).concat([['📖 ' + T('Ver toda la carta', 'See the full menu', 'Ver o cardápio completo'), () => promos(true), true]]), true); return; }
       if(!MESA) return pedirMesa();
+      if(CLI.nombre){ nombre = CLI.nombre; keep(); step = ''; presentada = true; talk.listen = !mute; return ofrecerFav(saludoHora + ' ' + T(`¡Qué bueno verte de nuevo, ${nombre}! Soy ${M.asistente || 'Lola'}. Estás en la mesa ${MESA}.`, `Great to see you again, ${nombre}! I'm ${M.asistente || 'Lola'}. You're at table ${MESA}.`, `Que bom te ver de novo, ${nombre}! Sou ${M.asistente || 'Lola'}. Você está na mesa ${MESA}.`)); }
       step = 'nombre'; talk.listen = !mute; presentada = true;
       talk(soy() + ' ' + T(`Estás en la mesa ${MESA}.`, `You're at table ${MESA}.`, `Você está na mesa ${MESA}.`) + (SALUDO ? ' ' + SALUDO : '') + ' ' + askName(), [skipName()]);
       namePh();
@@ -758,8 +799,9 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     $('#bDing').onclick = () => { unlock(); beep(); };
     const ago = iso => { const m = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 60000)); return m < 1 ? 'recién' : 'hace ' + m + ' min'; };
     const set = async (pid, estado) => { const mz = app.querySelector(`[data-mz="${pid}"]`); try{ await api('/api/menu?accion=estado', {id: ID, clave: CLAVE, pid, estado, mozo: estado === 'listo' && mz && mz.value ? mz.value : undefined}); }catch(e){ alert(e.message); } load(); };
+    const lugar = p => p.llevar ? (p.llevar.tipo === 'llego' ? `🚶 Llega ${p.llevar.llega ? new Date(p.llevar.llega).toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit', hour12: false}) : 'pronto'}` : '🛍️ Para llevar') : 'Mesa ' + p.mesa;
     const EST = {nuevo: '🆕 Nuevo', preparando: '👨‍🍳 En preparación', listo: '✅ Listo para llevar'};
-    const tk = (p, btns) => `<div class="tk ${p.estado}" data-pid="${p.id}"><div class="h"><span>Mesa ${p.mesa} · #${p.n}</span><small>${ago(p.creado)}</small></div>${EST[p.estado] ? `<span class="est ${p.estado}">${EST[p.estado]}</span>` : ''}${p.nombre ? `<span>👤 ${esc(p.nombre)}</span>` : ''}<ul>${p.items.map(i => `<li><b>${i.q}×</b> ${esc(i.n)}</li>`).join('')}</ul>${p.nota ? `<span>📝 ${esc(p.nota)}</span>` : ''}<b>Total: ${money(p.items.reduce((a, i) => a + priceN(i.p) * i.q, 0))}</b><div class="row">${btns}</div></div>`;
+    const tk = (p, btns) => `<div class="tk ${p.estado}" data-pid="${p.id}"><div class="h"><span>${lugar(p)} · #${p.n}</span><small>${ago(p.creado)}</small></div>${EST[p.estado] ? `<span class="est ${p.estado}">${EST[p.estado]}</span>` : ''}${p.nombre ? `<span>👤 ${esc(p.nombre)}</span>` : ''}<ul>${p.items.map(i => `<li><b>${i.q}×</b> ${esc(i.n)}</li>`).join('')}</ul>${p.nota ? `<span>📝 ${esc(p.nota)}</span>` : ''}<b>Total: ${money(p.items.reduce((a, i) => a + priceN(i.p) * i.q, 0))}</b><div class="row">${btns}</div></div>`;
     // ---- asistente de voz de la caja: saluda al dueño, avisa de cada pedido y entiende comandos hablados ----
     let cOn = false, cVoice = null, DUENO = '', ITEMS = [], heard = null, asisInit = false, CGEN = '';
     const cPick = () => { const vs = speechSynthesis.getVoices().filter(v => /^es/i.test(v.lang)); const sc = v => genScore(v, CGEN) + (/natural|neural|online|premium|enhanced/i.test(v.name) ? 8 : 0) + (/google/i.test(v.name) ? 4 : 0) + (/es[-_]ar/i.test(v.lang) ? 3 : 0); cVoice = vs.sort((a, b) => sc(b) - sc(a))[0] || null; };
@@ -786,7 +828,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     const resumen = () => { const n = ITEMS.filter(x => x.tipo === 'pedido' && x.estado === 'nuevo').length, pr = ITEMS.filter(x => x.tipo === 'pedido' && x.estado === 'preparando').length, li = ITEMS.filter(x => x.tipo === 'pedido' && x.estado === 'listo').length, av = ITEMS.filter(x => x.tipo !== 'pedido' && x.estado === 'nuevo').length;
       return `${n ? `tenés ${n} ${n === 1 ? 'pedido nuevo' : 'pedidos nuevos'}` : 'no tenés pedidos nuevos'}${pr ? `, ${pr} en preparación` : ''}${li ? `, ${li} listo${li > 1 ? 's' : ''} para llevar` : ''}${av ? ` y ${av} aviso${av > 1 ? 's' : ''} de mesas` : ''}.`; };
     const anunciar = (nuevos) => nuevos.forEach(x => {
-      if(x.tipo === 'pedido'){ setTimeout(() => volarA(tkDe(x.id)), 600); cTalk(`${hola()}entró un pedido de la mesa ${x.mesa}${x.nombre ? ', ' + x.nombre : ''}: ${listaItems(x)}. ¿Lo preparo?`, [[`👨‍🍳 Sí, preparar mesa ${x.mesa}`, () => comando('preparar mesa ' + x.mesa), true]]); }
+      if(x.tipo === 'pedido'){ setTimeout(() => volarA(tkDe(x.id)), 600); cTalk(`${hola()}entró un pedido ${x.llevar ? (x.llevar.tipo === 'llego' ? 'de alguien que llega en ' + x.llevar.min + ' minutos' : 'para llevar') : 'de la mesa ' + x.mesa}${x.nombre ? ', ' + x.nombre : ''}: ${listaItems(x)}. ¿Lo preparo?`, x.llevar ? [] : [[`👨‍🍳 Sí, preparar mesa ${x.mesa}`, () => comando('preparar mesa ' + x.mesa), true]]); }
       else if(x.tipo === 'consulta') cTalk(`${hola()}la mesa ${x.mesa} pregunta: ${x.texto}. Decime "respondé mesa ${x.mesa}" y lo que le contesto.`);
       else if(x.tipo === 'pago') cTalk(`${hola()}la mesa ${x.mesa} dice que pagó virtual ${x.monto}. Revisá que te haya llegado.`);
       else if(x.tipo === 'cuenta') cTalk(x.metodo === 'efectivo' ? `${hola()}la mesa ${x.mesa} paga en efectivo, ${x.monto}. Mandá a alguien a cobrar.` : x.metodo === 'caja' ? `${hola()}la mesa ${x.mesa} viene a pagar a la caja, ${x.monto}.` : `${hola()}la mesa ${x.mesa} pide la cuenta.`);
