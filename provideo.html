@@ -180,6 +180,57 @@ footer b{color:var(--ink)}
     </div>
   </section>
 
+  <section id="canales">
+    <div class="wrap">
+      <h2>▶️ Nuestros canales</h2>
+      <p class="sub">Además de las apps, en Pro Video hacemos contenido todos los días: historias, tutoriales, recomendaciones, noticias y programas para chicos.</p>
+      <div class="grid">
+        <article class="card">
+          <div class="ic">🛠️</div>
+          <h3>Pro Video desde Cero</h3>
+          <p>Videos cortos de cómo se hacen las cosas, paso a paso.</p>
+          <div class="acts"><a class="btn sec" data-link="ytDesdeCero" href="#" target="_blank" rel="noopener" hidden>▶️ Ver el canal</a></div>
+        </article>
+        <article class="card">
+          <div class="ic">📖</div>
+          <h3>Biographies.</h3>
+          <p>Historias de personas y marcas que cambiaron el mundo, en inglés y en castellano.</p>
+          <div class="acts"><a class="btn sec" data-link="ytBio" href="#" target="_blank" rel="noopener" hidden>▶️ Ver el canal</a></div>
+        </article>
+        <article class="card">
+          <div class="ic">🛒</div>
+          <h3>Vale la Pena Compras</h3>
+          <p>Lo que vale la pena de Mercado Libre: productos probados y recomendados.</p>
+          <div class="acts"><a class="btn sec" data-link="ytValeLaPena" href="#" target="_blank" rel="noopener" hidden>▶️ Ver el canal</a></div>
+        </article>
+        <article class="card">
+          <div class="ic">🚀</div>
+          <h3>El Universo de Tino</h3>
+          <p>Aventuras de Tino y las Supermascotas para que los chicos aprendan jugando.</p>
+          <div class="acts"><a class="btn sec" data-link="tino" href="#" target="_blank" rel="noopener" hidden>▶️ Ver el canal</a></div>
+        </article>
+        <article class="card">
+          <div class="ic">📰</div>
+          <h3>PRO-VIDEO-NEWS</h3>
+          <p>Noticias, clima y deportes con nuestro equipo de presentadores.</p>
+          <div class="acts"><a class="btn sec" data-link="ytNews" href="#" target="_blank" rel="noopener" hidden>▶️ Ver el canal</a></div>
+        </article>
+        <article class="card">
+          <div class="ic">✨</div>
+          <h3>Pro Video Energía +</h3>
+          <p>Programas para empezar el día con energía positiva.</p>
+          <div class="acts"><a class="btn sec" data-link="ytEnergia" href="#" target="_blank" rel="noopener" hidden>▶️ Ver el canal</a></div>
+        </article>
+        <article class="card">
+          <div class="ic">🎬</div>
+          <h3>Pro Video JSR(HG)</h3>
+          <p>El canal principal de Pro Video: novedades de todos nuestros productos.</p>
+          <div class="acts"><a class="btn sec" data-link="ytProVideo" href="#" target="_blank" rel="noopener" hidden>▶️ Ver el canal</a></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
   <section class="alt" id="tino">
     <div class="wrap">
       <div class="card big" style="background:#fff8e6;border-color:#f3e0b0">
@@ -231,7 +282,8 @@ footer b{color:var(--ink)}
 
 <script>
 // Datos de contacto de Pro Video: se cargan en un solo lugar (los botones se muestran solos cuando hay dato)
-const PV = {wa: '', fb: '', ig: '', tt: '', yt: '', tino: '', kitPareja: '', kitHogar: '', packPrompts: ''};
+const PV = {wa: '', fb: '', ig: '', tt: '', yt: '', tino: '', kitPareja: '', kitHogar: '', packPrompts: '',
+  ytDesdeCero: '', ytBio: 'https://www.youtube.com/@Biographies-z8o', ytValeLaPena: '', ytNews: '', ytEnergia: '', ytProVideo: ''};
 (() => {
   const n = String(PV.wa || '').replace(/\D/g, '');
   const num = n ? (n.startsWith('54') ? n : '549' + n.replace(/^0/, '').replace(/^(\d{2,4})15/, '$1')) : '';
