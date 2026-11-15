@@ -1,14 +1,14 @@
 // Vitrina 360 · IA para reconocer productos. La clave de Anthropic vive en Vercel (variable ANTHROPIC_API_KEY), nunca en la página.
 const TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-const { db, estado } = require('./_comun');
+const { db, estado, PLANES } = require('./_comun');
 const crypto = require('crypto');
 
 // Cupo de productos reconocidos con IA (se guarda en la cuenta del comerciante, donde él no lo puede tocar).
 // Prueba gratis o cuenta sin pagar: LIMITE_FOTOS_PRUEBA en total (10). Planes pagos: por mes, se renueva el día 1:
 // LIMITE_FOTOS_START (150), LIMITE_FOTOS_PLUS (300), LIMITE_FOTOS_PRO (500): así ningún cliente cuesta en IA más de lo que paga. IA_SIN_LIMITE (mails separados por coma) no tiene límite.
-const PLAN_CUPO = { emprendedora: ['LIMITE_FOTOS_START', 150, 'Start'], comercio: ['LIMITE_FOTOS_PLUS', 300, 'Plus'], pro: ['LIMITE_FOTOS_PRO', 500, 'Pro'] };
+const PLAN_CUPO = { parquero: ['LIMITE_FOTOS_START', 150, 'Parques y Jardines'], parquero_plus: ['LIMITE_FOTOS_PLUS', 300, 'Parques y Jardines Plus'], emprendedora: ['LIMITE_FOTOS_START', 150, 'Start'], comercio: ['LIMITE_FOTOS_PLUS', 300, 'Plus'], pro: ['LIMITE_FOTOS_PRO', 500, 'Pro'] };
 // Cupo del chat con IA del panel (mensajes por mes): LIMITE_CHAT_START (150), LIMITE_CHAT_PLUS (300), LIMITE_CHAT_PRO (800); prueba: LIMITE_CHAT_PRUEBA (15) en total.
-const PLAN_CHAT = { emprendedora: ['LIMITE_CHAT_START', 150, 'Start'], comercio: ['LIMITE_CHAT_PLUS', 300, 'Plus'], pro: ['LIMITE_CHAT_PRO', 800, 'Pro'] };
+const PLAN_CHAT = { parquero: ['LIMITE_CHAT_START', 150, 'Parques y Jardines'], parquero_plus: ['LIMITE_CHAT_PLUS', 300, 'Parques y Jardines Plus'], emprendedora: ['LIMITE_CHAT_START', 150, 'Start'], comercio: ['LIMITE_CHAT_PLUS', 300, 'Plus'], pro: ['LIMITE_CHAT_PRO', 800, 'Pro'] };
 async function cupoIA(user, chat) {
   const SK = process.env.SUPABASE_SERVICE_KEY, base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
   if (!SK || !user || !user.id) return null;
@@ -216,7 +216,7 @@ Respondé en ${b.lang === 'en' ? 'inglés' : b.lang === 'pt' ? 'portugués' : 'e
 }
 
 // ---- Parquería: el cliente de la tienda manda fotos de su parque y la IA estima m², altura del pasto, plantas y arma el presupuesto
-//      con los precios del parquero. Usa el cupo de fotos con IA del comercio. Las fotos no se guardan.
+//      con los precios del parquero. Tope de presupuestos por mes según el plan (pq en PLANES). Las fotos no se guardan.
 const pnum = v => { const t = String(v || '').replace(/[^\d,.]/g, ''); if (!t) return 0; const n = Number(t.replace(/\./g, '').replace(',', '.')); return isFinite(n) ? n : 0; };
 async function parqueIA(res, KEY, b) {
   const slug = String(b.slug || '');
@@ -234,8 +234,17 @@ async function parqueIA(res, KEY, b) {
   const SK = process.env.SUPABASE_SERVICE_KEY, base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
   let owner = { id: t.owner };
   try { const h = { apikey: SK }; if (String(SK).startsWith('eyJ')) h.Authorization = 'Bearer ' + SK; const r = await fetch(base + '/auth/v1/admin/users/' + t.owner, { headers: h }); if (r.ok) owner = await r.json(); } catch (e) {}
-  const cupo = await cupoIA(owner);
-  if (cupo && cupo.agotado) return res.status(429).json({ error: 'El presupuesto con IA está descansando por hoy en esta tienda. Escribile al parquero por WhatsApp.' });
+  // tope de presupuestos con IA por mes según el plan (así nunca cuesta más de lo que paga el parquero)
+  let pqLim = Number(process.env.PQ_PRUEBA || 10), pqPaga = false;
+  try { const rr = await db('GET', '/rest/v1/tiendas?slug=eq.' + slug + '&select=plan,prueba_hasta,pagada_hasta,activa'); const row = rr && rr[0];
+    if (row && estado(row).estado === 'activa') { pqPaga = true; const P = PLANES()[row.plan] || {}; pqLim = Number(P.pq || (row.plan === 'pro' ? 60 : row.plan === 'comercio' ? 30 : 15)); } } catch (e) {}
+  const metaO = owner.app_metadata || {}, mesPq = new Date().toISOString().slice(0, 7);
+  const pqUsadas = pqPaga ? (metaO.pq_mes === mesPq ? Number(metaO.pq_usadas) || 0 : 0) : Number(metaO.pq_prueba) || 0;
+  const libresPq = String(process.env.IA_SIN_LIMITE || '').toLowerCase().split(',').map(x => x.trim()).filter(Boolean);
+  if (!(owner.email && libresPq.includes(String(owner.email).toLowerCase())) && pqUsadas >= pqLim) return res.status(429).json({ error: 'Este mes ya se armaron todos los presupuestos con IA de esta tienda. Mandale las fotos al parquero por WhatsApp y te contesta.' });
+  const sumarPq = async () => { try { const h = { apikey: SK, 'Content-Type': 'application/json' }; if (String(SK).startsWith('eyJ')) h.Authorization = 'Bearer ' + SK;
+    const cambio = pqPaga ? { pq_mes: mesPq, pq_usadas: pqUsadas + 1 } : { pq_prueba: pqUsadas + 1 };
+    await fetch(base + '/auth/v1/admin/users/' + t.owner, { method: 'PUT', headers: h, body: JSON.stringify({ app_metadata: Object.assign({}, metaO, cambio) }) }); } catch (e) {} };
   const m2 = Math.max(0, Math.min(200000, Number(b.m2) || 0));
   const quiere = String(b.quiere || '').slice(0, 300);
   const prompt = `Sos un parquero y paisajista con muchos años de experiencia en Argentina. Un cliente te manda ${ims.length > 1 ? ims.length + ' fotos' : 'una foto'} de su parque, jardín o terreno para que le pases un presupuesto.
@@ -250,7 +259,7 @@ Para cada trabajo: si hay un servicio de la lista que corresponde, poné su nomb
 Sé honesto: es una estimación por foto. Si en las fotos no se ve un parque, jardín, patio o terreno, devolvé {"error":"…"} en una frase corta diciendo qué foto sacar.
 Respondé en español rioplatense (con "vos") y SOLO con JSON válido:
 {"analisis":"2 o 3 frases de lo que ves","m2":número,"m2_confianza":"baja|media|alta","pasto_cm":número,"pasto_estado":"…","plantas":[{"que":"…","tamano":"…","estado":"…","trabajo":"…"}],"trabajos":[{"titulo":"nombre corto del trabajo","servicio":"nombre exacto o vacío","cantidad":número,"unidad":"m2|unidad|trabajo","ajuste_pct":número,"motivo":"…","precio_estimado":número}],"consejo":"1 frase útil para el cliente","tiempo":"duración aproximada del trabajo"}`;
-  const model = process.env.IA_MODEL_PARQUE || 'claude-opus-5-5';
+  const model = process.env.IA_MODEL_PARQUE || 'claude-sonnet-5-5';
   const ask = () => fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST', headers: { 'x-api-key': KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
     body: JSON.stringify({ model, max_tokens: 2500, messages: [{ role: 'user', content: [
@@ -265,7 +274,7 @@ Respondé en español rioplatense (con "vos") y SOLO con JSON válido:
     let out = null; try { out = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)); } catch (e) {}
     if (!out) return res.status(502).json({ error: 'No pude leer bien las fotos. Probá con otras, con buena luz y que se vea todo el parque.' });
     if (out.error) return res.status(422).json({ error: String(out.error).slice(0, 300) });
-    if (cupo && cupo.sumar) await cupo.sumar();
+    await sumarPq();
     const s = (v, n) => String(v == null ? '' : v).slice(0, n || 300), num = v => Math.max(0, Number(v) || 0);
     const M2 = m2 || Math.round(num(out.m2));
     // el precio lo arma el servidor con los precios del parquero (la IA solo estima cantidades y dificultad)

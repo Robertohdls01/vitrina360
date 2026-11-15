@@ -6,7 +6,7 @@
 // Las fotos de los clientes NO se guardan: se mandan a Google, vuelve la imagen y listo.
 // Límites para que no se dispare el gasto: PROBADOR_TIENDA_DIA (40 por tienda por día) y PROBADOR_CLIENTE_DIA (4 por cliente por día).
 // Modelo: GEMINI_IMAGE_MODEL (por defecto gemini-2.5-flash-image).
-const { cuerpo, usuario, db, estado, stHeaders } = require('./_comun');
+const { cuerpo, usuario, db, estado, stHeaders, PLANES } = require('./_comun');
 
 const SURL = () => String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const B = 'probador';
@@ -98,6 +98,13 @@ module.exports = async (req, res) => {
   if (cnt.total >= limT) return res.status(429).json({ error: 'El probador de esta tienda ya se usó mucho hoy. Probá de nuevo mañana.' });
   if (!dueno && (cnt.ips[ip] || 0) >= limC) return res.status(429).json({ error: `Ya usaste las ${limC} pruebas de hoy. Mañana podés probar de nuevo.` });
 
+  // diseños del parque: tope por mes según el plan de la tienda
+  let mesPath = '', mesCnt = null;
+  if (tipo === 'jardin') {
+    const P = PLANES()[row.plan] || {}, lim = st === 'activa' ? Number(P.dis || (row.plan === 'pro' ? 30 : row.plan === 'comercio' ? 15 : 8)) : Number(process.env.DIS_PRUEBA || 5);
+    mesPath = 'm/' + row.slug + '/' + dia.slice(0, 7) + '.json'; mesCnt = (await leer(mesPath)) || { jardin: 0 };
+    if (!dueno && (mesCnt.jardin || 0) >= lim) return res.status(429).json({ error: 'Este mes ya se usaron todos los diseños con IA de esta tienda. Pedile ideas al parquero por WhatsApp.' });
+  }
   const ref = b.prenda ? (dataPart(b.prenda) || await urlPart(b.prenda)) : null;
   const parts = [{ text: prompt(tipo, corto(b.nombre, 90) || 'producto', corto(b.detalle, 160), !!ref) }, foto];
   if (ref) parts.push(ref);
@@ -124,6 +131,7 @@ module.exports = async (req, res) => {
     return res.status(422).json({ error: why && /SAFETY|PROHIBITED|IMAGE_SAFETY/.test(why) ? 'Esa foto no se puede usar para el probador. Probá con otra.' : 'La IA no devolvió imagen. Probá con otra foto, de frente y con buena luz.' });
   }
   cnt.total++; cnt.ips[ip] = (cnt.ips[ip] || 0) + 1;
+  if (mesPath) { mesCnt.jardin = (mesCnt.jardin || 0) + 1; await guardar(mesPath, mesCnt); }
   await guardar(path, cnt);
   return res.status(200).json({ img: 'data:' + (d.mimeType || d.mime_type || 'image/png') + ';base64,' + d.data, quedan: dueno ? null : Math.max(0, limC - cnt.ips[ip]) });
 };

@@ -3,7 +3,10 @@ const SURL = () => String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const PLANES = () => ({
   emprendedora: { nombre: 'Start', precio: Number(process.env.PRECIO_START || process.env.PRECIO_EMPRENDEDORA || process.env.PRECIO_ARS || 7500), vitrinas: 10, tiendas: 1, productos: 30, fotos: 5, videos: 10 },
   comercio: { nombre: 'Plus', precio: Number(process.env.PRECIO_PLUS || process.env.PRECIO_COMERCIO || 10900), vitrinas: 20, tiendas: 1, productos: 30, fotos: 8, videos: 30 },
-  pro: { nombre: 'Pro', precio: Number(process.env.PRECIO_PRO || 14900), vitrinas: 20, tiendas: 4, productos: 30, fotos: 8, videos: 60 }
+  pro: { nombre: 'Pro', precio: Number(process.env.PRECIO_PRO || 14900), vitrinas: 20, tiendas: 4, productos: 30, fotos: 8, videos: 60 },
+  // planes para parqueros y paisajistas (solo se ofrecen a las tiendas de parquería): pq = presupuestos con IA por mes, dis = diseños del parque por mes
+  parquero: { nombre: 'Parques y Jardines', precio: Number(process.env.PRECIO_PARQUERO || 9900), vitrinas: 10, tiendas: 1, productos: 30, fotos: 5, videos: 10, pq: Number(process.env.PQ_PARQUERO || 20), dis: Number(process.env.DIS_PARQUERO || 10), parq: true },
+  parquero_plus: { nombre: 'Parques y Jardines Plus', precio: Number(process.env.PRECIO_PARQUERO_PLUS || 14900), vitrinas: 20, tiendas: 1, productos: 30, fotos: 8, videos: 30, pq: Number(process.env.PQ_PARQUERO_PLUS || 60), dis: Number(process.env.DIS_PARQUERO_PLUS || 30), parq: true }
 });
 const PRECIO = () => PLANES().emprendedora.precio;
 
