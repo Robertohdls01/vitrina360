@@ -4943,6 +4943,13 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     const openFl = () => { box.hidden = false; $('flFab').hidden = true; applyMode(); const f = st(); if(!f.name && !f.noname) askName(); else menu(f.done.length ? '' : `¡Hola${f.name ? ', ' + f.name : ''}! ¿Empezamos a armar tu tienda? Te recomiendo arrancar por el nombre y el logo.`); };
     const closeFl = () => { box.hidden = true; aim = null; placeBuddy(); $('flFab').hidden = false; try{ speechSynthesis.cancel(); }catch(e){} document.querySelectorAll('.flhi').forEach(x => x.classList.remove('flhi')); };
     $('flFab').onclick = openFl; $('flX').onclick = closeFl;
+    // avisos de Flashi: pedidos y turnos nuevos, turnos del día (los llama el panel de pedidos)
+    window.flAvisar = (t, btn, fn) => {
+      box.hidden = false; $('flFab').hidden = true; try{ applyMode(); }catch(e){}
+      talk(t); inp.innerHTML = qRow('Decime o escribí qué querés hacer');
+      chips.innerHTML = (btn ? `<button type="button" class="pri" data-flav>${btn}</button>` : '') + `<button type="button" data-fl="menu">📋 Ver todos los pasos</button>`;
+      const b = chips.querySelector('[data-flav]'); if(b) b.onclick = () => { closeFl(); try{ fn && fn(); }catch(e){} };
+    };
     $('flMode').onclick = () => { const f = st(); f.modo = isMun() ? 'cuadro' : 'muneco'; save(); applyMode(); talk(isMun() ? '¡Listo! Ahora te acompaño como muñequito y te señalo dónde está cada cosa 🙂' : 'Listo, ahora te hablo desde este cuadrito.'); };
     $('flMute').onclick = () => { muted = !muted; $('flMute').textContent = muted ? '🔇' : '🔊'; try{ localStorage.setItem('flashi-mudo', muted ? '1' : '0'); speechSynthesis.cancel(); }catch(e){} };
     box.addEventListener('keydown', e => { if(e.key === 'Enter' && e.target.matches('input')){ e.preventDefault(); const b = inp.querySelector('.pri'); if(b) b.click(); } if(e.key === 'Escape') closeFl(); });
@@ -7356,10 +7363,43 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   const ORD_ST = {preparando: '⏱ En preparación', salio: '🛵 Salió', listo: '✅ Listo', entregado: '📦 Entregado', cancelado: '✕ Cancelado'};
   let ordList = [], ordSeen = 0, ordTimer = null;
   try{ ordSeen = +localStorage.getItem('vitrina360-pedidos-vistos') || 0; }catch(e){}
+  // ---- Flashi le avisa al comerciante: pedido o turno nuevo, y los turnos de hoy ----
+  let ordAvisados = null;
+  const ordDing = () => { try{ const C = window.AudioContext || window.webkitAudioContext; const a = new C(), t0 = a.currentTime;
+    [880, 1320].forEach((f, i) => { const o = a.createOscillator(), g = a.createGain(); o.frequency.value = f; o.connect(g); g.connect(a.destination); g.gain.setValueAtTime(.0001, t0 + i * .18); g.gain.exponentialRampToValueAtTime(.25, t0 + i * .18 + .02); g.gain.exponentialRampToValueAtTime(.0001, t0 + i * .18 + .35); o.start(t0 + i * .18); o.stop(t0 + i * .18 + .4); }); }catch(e){} };
+  const verPedidos = () => { const b = $('ordersBtn'); if(b) b.click(); };
+  function ordAvisos(){
+    if(!window.flAvisar) return;
+    const K = 'v360-avisados-' + (((window.VITRINA_ME || {}).slug) || ''), act = ordList.filter(p => p.estado === 'preparando');
+    if(ordAvisados === null){ try{ ordAvisados = new Set(JSON.parse(localStorage.getItem(K) || '[]')); }catch(e){ ordAvisados = new Set(); }
+      if(!ordAvisados.size) act.forEach(p => ordAvisados.add(p.id)); }   // la primera vez no avisa lo viejo
+    const nuevos = act.filter(p => !ordAvisados.has(p.id));
+    const parq = brand.preset === 'parques' || brand.preset === 'taller';
+    if(nuevos.length){
+      nuevos.forEach(p => ordAvisados.add(p.id)); try{ localStorage.setItem(K, JSON.stringify([...ordAvisados].slice(-300))); }catch(e){}
+      const p = nuevos[0], c = p.comprador || {}, nom = String(c.nombre || 'un cliente').split(' ')[0], cita = c.cita ? new Date(c.cita) : null;
+      const cuando = cita && !isNaN(cita) ? `para el ${DAYS_LONG[cita.getDay()]} ${cita.getDate()}/${cita.getMonth() + 1} a las ${String(cita.getHours()).padStart(2, '0')}:${String(cita.getMinutes()).padStart(2, '0')}` : '';
+      const que = (p.items || []).slice(0, 2).map(i => i.n).join(' y ');
+      ordDing();
+      window.flAvisar(nuevos.length > 1 ? `¡Te llegaron ${nuevos.length} ${parq ? 'pedidos y turnos' : 'pedidos'} nuevos! El último es de ${nom}${cuando ? ', ' + cuando : ''}.`
+        : cita ? `¡Te llegó un turno nuevo! ${nom} reservó ${cuando}${que ? ': ' + que : ''}${p.total ? '. Total ' + p.total : ''}${c.dir ? '. Dirección: ' + c.dir : ''}.`
+        : `¡Te llegó un pedido nuevo de ${nom}!${que ? ' Pidió ' + que + '.' : ''}${p.total ? ' Total ' + p.total + '.' : ''}`, '📋 Ver el pedido', verPedidos);
+      return;
+    }
+    // a la mañana (o la primera vez que abre el panel en el día): los turnos de hoy
+    const hoy = new Date(), ymd = hoy.getFullYear() + '-' + String(hoy.getMonth() + 1).padStart(2, '0') + '-' + String(hoy.getDate()).padStart(2, '0'), KD = 'v360-turnos-dia-' + (((window.VITRINA_ME || {}).slug) || '');
+    let ya = ''; try{ ya = localStorage.getItem(KD) || ''; }catch(e){}
+    if(ya === ymd) return;
+    const deHoy = act.filter(p => p.comprador && String(p.comprador.cita || '').slice(0, 10) === ymd).sort((a, b) => String(a.comprador.cita).localeCompare(String(b.comprador.cita)));
+    if(!deHoy.length) return;
+    try{ localStorage.setItem(KD, ymd); }catch(e){}
+    window.flAvisar(`¡Buen día! Hoy tenés ${deHoy.length} turno${deHoy.length > 1 ? 's' : ''}: ` + deHoy.map(p => `a las ${String(p.comprador.cita).slice(11, 16)}, ${String(p.comprador.nombre || '').split(' ')[0]}${p.comprador.dir ? ' en ' + p.comprador.dir : ''}`).join('; ') + '.', '📋 Ver mis turnos', verPedidos);
+  }
   async function ordFetch(){
     if(PUBLIC || !window.VITRINA_TOKEN) return null;
     try{ const r = await fetch('/api/pedidos', {headers: {Authorization: 'Bearer ' + await window.VITRINA_TOKEN()}, cache: 'no-store'}); if(!r.ok) return null; const j = await r.json(); ordList = j.pedidos || []; }catch(e){ return null; }
     const nuevos = ordList.filter(p => p.estado === 'preparando' && Date.parse(p.creado) > ordSeen).length;
+    try{ ordAvisos(); }catch(e){}
     const n = $('ordersN'); if(n){ n.textContent = nuevos; n.hidden = !nuevos; }
     if(!$('ordersModal').hidden) renderOrders();
     try{ tvQueuePoll(); }catch(e){}
