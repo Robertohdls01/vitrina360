@@ -9,7 +9,7 @@
 //   GET  /api/menu?id=…&clave=…&caja=1                               la caja ve los pedidos y avisos
 //   POST /api/menu?accion=estado   {id, clave, pid, estado}          la caja cambia el estado
 const crypto = require('crypto');
-const { cuerpo } = require('./_comun');
+const { cuerpo, mp } = require('./_comun');
 
 const BUCKET = 'pedidos';
 const base = () => String(process.env.SUPABASE_URL || '').replace(/\/+$/, '') + '/storage/v1';
@@ -53,6 +53,27 @@ ${JSON.stringify(src)}`;
   } catch (e) { return null; }
 }
 
+// ---- Cuenta del local: 7 días de prueba, después abono mensual por Mercado Pago (o cobro a mano desde Mis pruebas) ----
+const PRECIO = () => parseInt(process.env.SHOPMENU_PRECIO, 10) || 15000;
+const LIBRES = ['fdaf46084d']; // Café Demo
+async function cuenta(id, f) {
+  const ahora = Date.now(); let cambio = false;
+  if (LIBRES.includes(id) || f.libre) return { estado: 'activo', libre: true };
+  if (!f.creado) { f.creado = new Date().toISOString(); cambio = true; }
+  const finPrueba = Date.parse(f.creado) + 7 * 864e5;
+  let hasta = f.pagoHasta ? Date.parse(f.pagoHasta) : 0;
+  if (hasta < ahora && f.mpSus && process.env.MP_ACCESS_TOKEN && (!f.mpCheck || ahora - Date.parse(f.mpCheck) > 3 * 3600e3)) {
+    f.mpCheck = new Date().toISOString(); cambio = true;
+    try { const pre = await mp('GET', '/preapproval/' + encodeURIComponent(f.mpSus));
+      if (pre && pre.status === 'authorized') { const prox = Date.parse(pre.next_payment_date || '') || (ahora + 30 * 864e5); hasta = Math.max(ahora + 3 * 864e5, prox + 3 * 864e5); f.pagoHasta = new Date(hasta).toISOString(); f.mpEstado = 'authorized'; }
+      else if (pre) f.mpEstado = pre.status; } catch (e) {}
+  }
+  if (cambio) { try { await guardarObj('menus/' + id + '.json', f); } catch (e) {} }
+  if (hasta > ahora) return { estado: 'activo', hasta: new Date(hasta).toISOString(), mp: !!f.mpSus };
+  if (ahora < finPrueba) return { estado: 'prueba', dias: Math.ceil((finPrueba - ahora) / 864e5), precio: PRECIO() };
+  return { estado: 'vencido', precio: PRECIO(), mpEstado: f.mpEstado || '' };
+}
+
 module.exports = async (req, res) => {
   try {
     const q = req.query || {};
@@ -85,6 +106,12 @@ module.exports = async (req, res) => {
         P.clave = hash('admin|' + adm); await guardarObj('menus/pruebas.json', P); return res.status(200).json({ items: P.items || [] });
       }
       if (hash('admin|' + adm) !== P.clave) return res.status(403).json({ error: 'Clave incorrecta.' });
+      if (req.method === 'POST' && b.pagar && okId(b.pagar.id)) { // cobro a mano (efectivo / transferencia) o dejarlo gratis
+        const g = await leerObj('menus/' + b.pagar.id + '.json'); if (!g) return res.status(404).json({ error: 'No encontramos ese menú.' });
+        if (b.pagar.libre !== undefined) g.libre = !!b.pagar.libre;
+        else { const d = Math.max(1, Math.min(400, parseInt(b.pagar.dias, 10) || 30)), desde = Math.max(Date.now(), Date.parse(g.pagoHasta || '') || 0); g.pagoHasta = new Date(desde + d * 864e5).toISOString(); }
+        await guardarObj('menus/' + b.pagar.id + '.json', g); return res.status(200).json({ ok: true, cuenta: await cuenta(b.pagar.id, g) });
+      }
       if (req.method === 'POST' && Array.isArray(b.kitsCodes)) { // asigna kits impresos a un vendedor
         P.kits = P.kits || {}; const v = t(b.vend, 40);
         b.kitsCodes.slice(0, 60).map(c => String(c).toUpperCase().replace(/[^A-Z0-9]/g, '')).filter(okKit).forEach(c => { if (v) P.kits[c] = v; else delete P.kits[c]; });
@@ -94,7 +121,9 @@ module.exports = async (req, res) => {
         P.items = b.items.slice(0, 300).map(x => ({ kit: t(x.kit, 10).toUpperCase().replace(/[^A-Z0-9]/g, ''), id: okId(x.id) ? x.id : '', local: t(x.local, 60), wa: t(x.wa, 30), desde: t(x.desde, 30) || new Date().toISOString(), estado: ['probando', 'contrato', 'devolver', 'devuelto'].includes(x.estado) ? x.estado : 'probando', nota: t(x.nota, 400), vend: t(x.vend, 40) }));
         await guardarObj('menus/pruebas.json', P);
       }
-      return res.status(200).json({ items: P.items || [], kits: P.kits || {} });
+      const cuentas = {};
+      for (const x of (P.items || []).filter(x => x.id).slice(0, 40)) { if (cuentas[x.id]) continue; const g = await leerObj('menus/' + x.id + '.json'); if (g) cuentas[x.id] = await cuenta(x.id, g); }
+      return res.status(200).json({ items: P.items || [], kits: P.kits || {}, cuentas });
     }
     if (req.method === 'POST' && q.accion === 'kit') {
       const b = cuerpo(req), k = String(b.kit || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -118,13 +147,34 @@ module.exports = async (req, res) => {
       const f = await leerObj('menus/' + q.id + '.json');
       if (!f || hash(String(q.clave || '')) !== f.clave) return res.status(403).json({ error: 'La clave no es correcta.' });
       const L = (await leerObj(pedPath(q.id))) || { items: [] };
-      return res.status(200).json({ items: (L.items || []).map(x => Object.assign({}, x, { k: undefined })), nombre: f.menu.nombre, mozos: f.menu.mozos || [], dueno: f.menu.dueno || '', cajaAva: f.menu.cajaAva || 'flashi', asistente: f.menu.asistente || 'Lola', avatar: f.menu.avatar || '', pelo: f.menu.pelo || '', largo: f.menu.largo || '', piel: f.menu.piel || '', barba: !!f.menu.barba });
+      const cu = await cuenta(q.id, f);
+      return res.status(200).json({ cuenta: cu, items: (L.items || []).map(x => Object.assign({}, x, { k: undefined })), nombre: f.menu.nombre, mozos: f.menu.mozos || [], dueno: f.menu.dueno || '', cajaAva: f.menu.cajaAva || 'flashi', asistente: f.menu.asistente || 'Lola', avatar: f.menu.avatar || '', pelo: f.menu.pelo || '', largo: f.menu.largo || '', piel: f.menu.piel || '', barba: !!f.menu.barba });
+    }
+    if (req.method === 'POST' && q.accion === 'suscribir') {
+      const b = cuerpo(req);
+      if (!okId(b.id)) return res.status(400).json({ error: 'Menú inválido.' });
+      const f = await leerObj('menus/' + b.id + '.json');
+      if (!f || hash(String(b.clave || '')) !== f.clave) return res.status(403).json({ error: 'La clave no es correcta.' });
+      if (!process.env.MP_ACCESS_TOKEN) return res.status(503).json({ error: 'El cobro todavía no está configurado.' });
+      const email = String(b.email || '').trim().toLowerCase();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return res.status(400).json({ error: 'Revisá el mail de Mercado Pago.' });
+      const origin = 'https://' + (req.headers['x-forwarded-host'] || req.headers.host);
+      try {
+        const pre = await mp('POST', '/preapproval', { reason: 'ShopMenu · ' + (f.menu.nombre || 'Menú QR'), external_reference: 'menu:' + b.id, payer_email: email, back_url: origin + '/menu?pagado=1', status: 'pending',
+          auto_recurring: { frequency: 1, frequency_type: 'months', transaction_amount: PRECIO(), currency_id: 'ARS' } });
+        f.mpSus = pre.id; f.mpEmail = email; f.mpCheck = ''; await guardarObj('menus/' + b.id + '.json', f);
+        return res.status(200).json({ url: pre.init_point });
+      } catch (e) {
+        console.error('shopmenu suscribir', e.status || '', e.message, e.body ? JSON.stringify(e.body).slice(0, 400) : '');
+        return res.status(502).json({ error: (e.status === 400 || e.status === 422 ? 'Mercado Pago rechazó el pedido: revisá que el mail sea el de tu cuenta de Mercado Pago.' : 'No se pudo conectar con Mercado Pago. Probá en un rato.') + ' [' + (e.status || 'error') + ': ' + String(e.message || '').slice(0, 120) + ']' });
+      }
     }
     if (req.method === 'POST' && (q.accion === 'pedido' || q.accion === 'aviso')) {
       const b = cuerpo(req);
       if (!okId(b.id)) return res.status(400).json({ error: 'Menú inválido.' });
       const f = await leerObj('menus/' + b.id + '.json');
       if (!f || !f.menu) return res.status(404).json({ error: 'No encontramos este menú.' });
+      if ((await cuenta(b.id, f)).estado === 'vencido') return res.status(402).json({ error: 'Este menú está en pausa. Pedile al mozo.' });
       const mesa = Math.max(0, Math.min(500, parseInt(b.mesa, 10) || 0)), nombre = t(b.nombre, 30);
       const L = (await leerObj(pedPath(b.id))) || { items: [], n: 0 };
       const dia = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
@@ -185,7 +235,8 @@ module.exports = async (req, res) => {
       const f = await leerObj('menus/' + id + '.json');
       if (!f || !f.menu) return res.status(404).json({ error: 'No encontramos este menú.' });
       if (q.clave) { if (hash(String(q.clave)) !== f.clave) return res.status(403).json({ error: 'La clave no es correcta.' }); return res.status(200).json({ menu: f.menu, edita: true }); }
-      return res.status(200).json({ menu: f.menu });
+      const c = await cuenta(id, f);
+      return res.status(200).json({ menu: f.menu, pausado: c.estado === 'vencido' });
     }
 
     if (req.method === 'POST' && q.accion === 'guardar') {
