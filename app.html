@@ -771,6 +771,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 .flin{display:flex;gap:6px}.flin:empty{display:none}.flin input{flex:1;min-width:0;border:1px solid #9cc7a8;border-radius:12px;padding:9px 11px;font:inherit;background:#fff;color:#111}
 .flin button,.flchips button{border:1px solid #9cc7a8;background:#fff;color:#13241a;border-radius:999px;padding:8px 12px;font:600 14px var(--body,system-ui);cursor:pointer}
 .flin button.pri,.flchips button.pri{background:#15803d;color:#fff;border-color:#15803d}
+.flin .flmic{font-size:18px;padding:6px 11px}.flin .flmic.on{background:#fee2e2;border-color:#ef4444;animation:flpulse 1s infinite}@keyframes flpulse{50%{transform:scale(1.08)}}.flin .flmicnote{display:flex;align-items:center;gap:8px;font-size:13px;color:#3f5a48}
 .flchips{display:flex;flex-wrap:wrap;gap:6px}
 .revchip{display:inline-flex;align-items:center;gap:6px;margin:6px 0 2px;border:1px solid var(--line,#ddd);background:var(--surface,#fff);color:inherit;border-radius:999px;padding:5px 12px;font:600 14px var(--body,system-ui);cursor:pointer}
 .revchip[hidden]{display:none}.revchip .st{color:#f59e0b;letter-spacing:1px}
@@ -4765,10 +4766,35 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     ];
     const ASK = {nombre: /nombre|logo|cartel/, rubro: /rubro|tipo de negocio|plantilla/, precios: /porcentaje|aument|subir precio|bajar precio|ganancia|stock|lista de precio|proveedor|costo/, pedidos: /pedido|como cliente|ver como/, resenas: /resen|opinion|estrella|calific/, productos: /producto|foto|cargar|subir|folleto|catalogo|lista/, cantidades: /kilo|docena|unidad|cantidad|gramo/, whatsapp: /whats|wsp|telefono|celular/,
       cobros: /cobr|pag|mercado ?pago|tarjeta|alias|cbu|transfer/, reparto: /repart|cadete|mensajero|moto|delivery/, tv: /tele|televisor|pantalla|led|oferta|turnero/, 'redes@2': /mapa|maps|google|direccion/, 'redes@3': /facebook/, 'redes@4': /(?<!mi )(?<!tienda )link/, 'redes@7': /ia|inteligencia/, entregas: /envio|entrega|horario|retiro/, colores: /color|fondo|lindo|estilo/, vendedores: /vendedor|avatar|munequ|asistent|pregunta/, musica: /music|cancion|mp3/, redes: /youtube|spotify|video|redes|instagram|tiktok|herramienta|lugares|16/, botones: /boton/, compartir: /compart|qr|mi link|difund/};
+    // ---- hablarle a Flashi por micrófono ----
+    const SRf = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let flRec = null, flOn = false;
+    const micBtn = () => SRf ? `<button type="button" data-fl="mic" class="flmic" title="Hablale a Flashi" aria-label="Hablarle a Flashi por micrófono">🎤</button>` : '';
+    const qRow = ph => `<input type="text" id="flQ" maxlength="120" placeholder="${ph}">${micBtn()}<button type="button" class="pri" data-fl="q">Preguntar</button>`;
+    const micUI = on => box.querySelectorAll('[data-fl="mic"]').forEach(b => { b.textContent = on ? '🔴' : '🎤'; b.classList.toggle('on', on); });
+    const oir = () => {
+      if(!SRf) return; if(flOn){ try{ flRec.stop(); }catch(e){} return; }
+      try{ speechSynthesis.cancel(); }catch(e){}
+      flRec = new SRf(); flRec.lang = 'es-AR'; flRec.interimResults = false; flRec.maxAlternatives = 1;
+      flRec.onresult = e => { const t = e.results[0][0].transcript; flOn = false; micUI(false); voz(t); };
+      flRec.onend = flRec.onerror = () => { flOn = false; micUI(false); };
+      try{ flRec.start(); flOn = true; micUI(true); say.textContent = '👂 Te escucho… hablá tranquilo.'; }catch(e){ flOn = false; micUI(false); }
+    };
+    const voz = t => {
+      const n = norm(t).trim(); if(!n) return;
+      const nm = $('flName'); if(nm){ nm.value = t.replace(/^(me llamo|soy|mi nombre es)\s+/i, '').trim(); const b = box.querySelector('[data-fl="name"]'); if(b) b.click(); return; }
+      const pick = sel => { const b = chips.querySelector(sel); if(b){ b.click(); return true; } return false; };
+      if(/^(siguiente|segui|seguimos|dale|ok|okey|si|el que sigue|otro paso)\b/.test(n) && (pick('[data-fl^="t:"].pri') || pick('[data-fl^="ok:"].pri'))) return;
+      if(/^(anterior|atras|volve|volver atras|el de antes)\b/.test(n) && pick('button[data-fl^="t:"]:not(.pri)')) return;
+      if(/^(listo|ya lo se|ya esta|hecho|termine|ya lo hice)\b/.test(n) && pick('[data-fl^="ok:"]')) return;
+      if(/^(menu|ver todos|todos los pasos|volver al menu)\b/.test(n) && pick('[data-fl="menu"]')) return;
+      if(!$('flQ')) question();
+      $('flQ').value = t; const b = box.querySelector('[data-fl="q"]'); if(b) b.click();
+    };
     const menu = (pre) => {
       const f = st(), left = STEPS.filter(x => !f.done.includes(x.id));
       aim = null; setTimeout(reB, 50);
-      inp.innerHTML = '';
+      inp.innerHTML = qRow('Decime o escribí qué querés hacer');
       if(!left.length){ talk(`¡Felicitaciones${f.name ? ', ' + f.name : ''}! 🎉 Tu tienda está lista. Ahora compartila con tus clientes y empezá a recibir pedidos.`); }
       else talk(pre || `${f.name ? f.name + ', ¿' : '¿'}por dónde querés seguir? Te recomiendo: ${left[0].t}.`);
       chips.innerHTML = STEPS.map(x => `<button type="button" data-fl="${x.id}"${left[0] && x.id === left[0].id ? ' class="pri"' : ''}>${f.done.includes(x.id) ? '✅' : x.em} ${esc(x.t)}</button>`).join('') + `<button type="button" data-fl="?">❓ Otra pregunta</button>`;
@@ -4777,7 +4803,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       const x = STEPS.find(s => s.id === id); if(!x) return menu();
       n = n || 0; const tot = x.tour ? x.tour.length : 1;
       const txt = x.tour ? x.tour[n]() : x.go(); talk((isMun() ? '' : '👉 ') + txt);
-      inp.innerHTML = '';
+      inp.innerHTML = SRf ? `<span class="flmicnote">${micBtn()} Decime “siguiente”, “anterior” o “listo”</span>` : '';
       chips.innerHTML = (n < tot - 1
         ? `<button type="button" class="pri" data-fl="t:${x.id}:${n + 1}">➡ Siguiente (${n + 1} de ${tot})</button>${n ? `<button type="button" data-fl="t:${x.id}:${n - 1}">⬅ Anterior</button>` : ''}<button type="button" data-fl="ok:${x.id}">⏭ Ya lo sé</button>`
         : `<button type="button" class="pri" data-fl="ok:${x.id}">✅ Listo, ¿qué sigue?</button>${n ? `<button type="button" data-fl="t:${x.id}:${n - 1}">⬅ Anterior</button>` : ''}`)
@@ -4785,13 +4811,13 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     };
     const askName = () => {
       talk('¡Hola! Soy Flashi ⚡, tu ayudante de ShopFlash. Te voy a acompañar a dejar tu tienda lista, paso a paso. ¿Cómo te llamás?');
-      inp.innerHTML = `<input type="text" id="flName" maxlength="30" placeholder="Tu nombre" autocomplete="given-name"><button type="button" class="pri" data-fl="name">Listo</button>`;
+      inp.innerHTML = `<input type="text" id="flName" maxlength="30" placeholder="Tu nombre" autocomplete="given-name">${micBtn()}<button type="button" class="pri" data-fl="name">Listo</button>`;
       chips.innerHTML = `<button type="button" data-fl="skipname">Prefiero no decirlo</button>`;
       setTimeout(() => { const i = $('flName'); if(i) i.focus(); }, 200);
     };
     const question = () => {
       talk('Contame qué querés hacer, con tus palabras. Por ejemplo: “quiero poner mi WhatsApp” o “cómo vendo por kilo”.');
-      inp.innerHTML = `<input type="text" id="flQ" maxlength="120" placeholder="Escribí tu duda"><button type="button" class="pri" data-fl="q">Preguntar</button>`;
+      inp.innerHTML = qRow('Escribí o decime tu duda');
       chips.innerHTML = `<button type="button" data-fl="menu">↩ Ver todos los pasos</button>`;
       setTimeout(() => { const i = $('flQ'); if(i) i.focus(); }, 200);
     };
@@ -4804,6 +4830,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     box.addEventListener('click', e => {
       const b = e.target.closest('[data-fl]'); if(!b) return;
       const k = b.dataset.fl, f = st();
+      if(k === 'mic') return oir();
       if(k === 'name'){ const v = ($('flName').value || '').trim().split(/\s+/)[0]; if(!v){ $('flName').focus(); return; } f.name = v.charAt(0).toUpperCase() + v.slice(1); save(); return menu(`¡Un gusto, ${f.name}! 🙂 ¿Por dónde querés empezar? Si no sabés, arrancamos por el nombre y el logo de tu negocio.`); }
       if(k === 'skipname'){ f.noname = true; save(); return menu('¡Dale! ¿Por dónde querés empezar? Si no sabés, arrancamos por el nombre y el logo de tu negocio.'); }
       if(k === 'menu') return menu();
