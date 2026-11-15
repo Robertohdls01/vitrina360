@@ -4764,8 +4764,33 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       {id: 'resenas', em: '⭐', t: 'Reseñas y Google', go: () => { openBrand(); const g = $('b-greview'); show(byTitle('Reseñas de tus clientes'), g, g ? (g.closest('label') || g) : null); return 'Tus clientes te califican con estrellas después de su pedido, y el promedio se ve arriba de tu tienda. Pegá acá tu link de reseñas de Google (en Google Maps, tu perfil de empresa → “Pedir reseñas”): así cada cliente también puede dejarte 5 estrellas en Google.'; }},
       {id: 'compartir', em: '🔗', t: 'Compartir mi tienda', go: () => { const q = document.querySelector('[data-qr]'); show(q, null, q); return 'Tocá “Mi link y QR”: ahí tenés tu código QR para imprimir y pegar en el mostrador, y tu link para copiar o mandar directo por WhatsApp, Instagram o donde quieras vender.'; }}
     ];
-    const ASK = {nombre: /nombre|logo|cartel/, rubro: /rubro|tipo de negocio|plantilla/, precios: /porcentaje|aument|subir precio|bajar precio|ganancia|stock|lista de precio|proveedor|costo/, pedidos: /pedido|como cliente|ver como/, resenas: /resen|opinion|estrella|calific/, productos: /producto|foto|cargar|subir|folleto|catalogo|lista/, cantidades: /kilo|docena|unidad|cantidad|gramo/, whatsapp: /whats|wsp|telefono|celular/,
-      cobros: /cobr|pag|mercado ?pago|tarjeta|alias|cbu|transfer/, reparto: /repart|cadete|mensajero|moto|delivery/, tv: /tele|televisor|pantalla|led|oferta|turnero/, 'redes@2': /mapa|maps|google|direccion/, 'redes@3': /facebook/, 'redes@4': /(?<!mi )(?<!tienda )link/, 'redes@7': /ia|inteligencia/, entregas: /envio|entrega|horario|retiro/, colores: /color|fondo|lindo|estilo/, vendedores: /vendedor|avatar|munequ|asistent|pregunta/, musica: /music|cancion|mp3/, redes: /youtube|spotify|video|redes|instagram|tiktok|herramienta|lugares|16/, botones: /boton/, compartir: /compart|qr|mi link|difund/};
+    const ASK = {nombre: /nombre|logo|cartel/, rubro: /rubro|tipo de negocio|tipo de tienda|tipo de comercio|que vendo|plantilla|mi negocio es|tengo un (negocio|local|comercio)/, precios: /porcentaje|aument|subir precio|bajar precio|ganancia|stock|lista de precio|proveedor|costo/, pedidos: /pedido|como cliente|ver como/, resenas: /resen|opinion|estrella|calific/, productos: /producto|foto|cargar|subir|folleto|catalogo|lista/, cantidades: /kilo|docena|unidad|cantidad|gramo/, whatsapp: /whats|wsp|telefono|celular/,
+      cobros: /cobr|pag|mercado ?pago|tarjeta|alias|cbu|transfer/, reparto: /repart|cadete|mensajero|moto|delivery/, tv: /tele|televisor|pantalla|led|oferta|turnero/, 'redes@2': /mapa|maps|google|direccion/, 'redes@3': /facebook/, 'redes@4': /(?<!mi )(?<!tienda )link/, 'redes@7': /\bia\b|inteligencia/, entregas: /envio|entrega|horario|retiro/, colores: /^(?!.*boton).*(color|fondo|lindo|estilo)/, vendedores: /vendedor|avatar|munequ|asistent|pregunta/, musica: /music|cancion|mp3/, redes: /youtube|spotify|video|redes|instagram|tiktok|herramienta|lugares|16/, botones: /boton/, compartir: /compart|qr|mi link|difund/};
+    // ---- entender más: el rubro dicho con palabras ("almacén y kiosco") y los pasos por su nombre ----
+    const NOW = new Set(['para', 'y', 'de', 'con', 'todo', 'poco', 'un', 'una', 'los', 'las', 'del']);
+    const presetFrom = n => {
+      let best = null, bs = 0;
+      PRESETS.forEach(pr => { if(pr.id === 'general') return;
+        const ws = norm(pr.name + ' ' + pr.hint).split(/[^a-z0-9ñ]+/).filter(w => w.length > 3 && !NOW.has(w)).map(w => w.replace(/(es|s)$/, ''));
+        const sc = [...new Set(ws)].filter(w => w.length > 3 && new RegExp('\\b' + w).test(n)).length;
+        if(sc > bs){ bs = sc; best = pr; } });
+      return best;
+    };
+    const ponerRubro = pr => {
+      openBrand(); let b = document.querySelector(`#presetGrid .preset[data-preset="${pr.id}"]`);
+      if(!b){ try{ renderPresets(); }catch(e){} b = document.querySelector(`#presetGrid .preset[data-preset="${pr.id}"]`); }
+      if(!b) return step('rubro');
+      b.click(); const f = st(); if(!f.done.includes('rubro')) f.done.push('rubro'); save();
+      show(slotOf($('presetGrid')), null, b);
+      talk(`¡Listo${f.name ? ', ' + f.name : ''}! ✅ Puse tu tienda como “${pr.name}”: tus vitrinas ya tienen los nombres de ese rubro. Tus productos no se borran. ¿Seguimos con otro paso?`);
+      inp.innerHTML = qRow('Decime o escribí qué querés hacer');
+      chips.innerHTML = `<button type="button" class="pri" data-fl="menu">➡ Ver qué sigue</button>`;
+    };
+    const stepFrom = n => { let best = null, bs = 0;
+      STEPS.forEach(x => { const ws = norm(x.t).split(/[^a-z0-9ñ]+/).filter(w => w.length > 3 && !NOW.has(w)).map(w => w.replace(/(es|s)$/, ''));
+        const sc = ws.filter(w => n.includes(w)).length; if(sc > bs){ bs = sc; best = x; } });
+      return best;
+    };
     // ---- hablarle a Flashi por micrófono ----
     const SRf = window.SpeechRecognition || window.webkitSpeechRecognition;
     let flRec = null, flOn = false;
@@ -4780,30 +4805,35 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       flRec.onend = flRec.onerror = () => { flOn = false; micUI(false); };
       try{ flRec.start(); flOn = true; micUI(true); say.textContent = '👂 Te escucho… hablá tranquilo.'; }catch(e){ flOn = false; micUI(false); }
     };
+    const navPick = n => {
+      const pick = sel => { const b = chips.querySelector(sel); if(b){ b.click(); return true; } return false; };
+      if(/^(siguiente|segui|seguimos|dale|ok|okey|si|el que sigue|otro paso)\b/.test(n) && (pick('[data-fl^="t:"].pri') || pick('[data-fl^="ok:"].pri') || pick('[data-fl="menu"].pri'))) return true;
+      if(/^(anterior|atras|volve|volver atras|el de antes)\b/.test(n) && pick('button[data-fl^="t:"]:not(.pri)')) return true;
+      if(/^(listo|ya lo se|ya esta|hecho|termine|ya lo hice)\b/.test(n) && (pick('[data-fl^="ok:"]') || pick('[data-fl="menu"]'))) return true;
+      if(/^(menu|ver todos|todos los pasos|volver al menu)\b/.test(n) && pick('[data-fl="menu"]')) return true;
+      return false;
+    };
     const voz = t => {
       const n = norm(t).trim(); if(!n) return;
       const nm = $('flName'); if(nm){ nm.value = t.replace(/^(me llamo|soy|mi nombre es)\s+/i, '').trim(); const b = box.querySelector('[data-fl="name"]'); if(b) b.click(); return; }
-      const pick = sel => { const b = chips.querySelector(sel); if(b){ b.click(); return true; } return false; };
-      if(/^(siguiente|segui|seguimos|dale|ok|okey|si|el que sigue|otro paso)\b/.test(n) && (pick('[data-fl^="t:"].pri') || pick('[data-fl^="ok:"].pri'))) return;
-      if(/^(anterior|atras|volve|volver atras|el de antes)\b/.test(n) && pick('button[data-fl^="t:"]:not(.pri)')) return;
-      if(/^(listo|ya lo se|ya esta|hecho|termine|ya lo hice)\b/.test(n) && pick('[data-fl^="ok:"]')) return;
-      if(/^(menu|ver todos|todos los pasos|volver al menu)\b/.test(n) && pick('[data-fl="menu"]')) return;
+      if(navPick(n)) return;
       if(!$('flQ')) question();
       $('flQ').value = t; const b = box.querySelector('[data-fl="q"]'); if(b) b.click();
     };
     const menu = (pre) => {
       const f = st(), left = STEPS.filter(x => !f.done.includes(x.id));
-      aim = null; setTimeout(reB, 50);
+      aim = null; curStep = ''; setTimeout(reB, 50);
       inp.innerHTML = qRow('Decime o escribí qué querés hacer');
       if(!left.length){ talk(`¡Felicitaciones${f.name ? ', ' + f.name : ''}! 🎉 Tu tienda está lista. Ahora compartila con tus clientes y empezá a recibir pedidos.`); }
       else talk(pre || `${f.name ? f.name + ', ¿' : '¿'}por dónde querés seguir? Te recomiendo: ${left[0].t}.`);
       chips.innerHTML = STEPS.map(x => `<button type="button" data-fl="${x.id}"${left[0] && x.id === left[0].id ? ' class="pri"' : ''}>${f.done.includes(x.id) ? '✅' : x.em} ${esc(x.t)}</button>`).join('') + `<button type="button" data-fl="?">❓ Otra pregunta</button>`;
     };
-    const step = (id, n) => {
+    let curStep = '';
+    const step = (id, n) => { curStep = id;
       const x = STEPS.find(s => s.id === id); if(!x) return menu();
       n = n || 0; const tot = x.tour ? x.tour.length : 1;
       const txt = x.tour ? x.tour[n]() : x.go(); talk((isMun() ? '' : '👉 ') + txt);
-      inp.innerHTML = SRf ? `<span class="flmicnote">${micBtn()} Decime “siguiente”, “anterior” o “listo”</span>` : '';
+      inp.innerHTML = qRow('“siguiente”, “listo” u otra pregunta');
       chips.innerHTML = (n < tot - 1
         ? `<button type="button" class="pri" data-fl="t:${x.id}:${n + 1}">➡ Siguiente (${n + 1} de ${tot})</button>${n ? `<button type="button" data-fl="t:${x.id}:${n - 1}">⬅ Anterior</button>` : ''}<button type="button" data-fl="ok:${x.id}">⏭ Ya lo sé</button>`
         : `<button type="button" class="pri" data-fl="ok:${x.id}">✅ Listo, ¿qué sigue?</button>${n ? `<button type="button" data-fl="t:${x.id}:${n - 1}">⬅ Anterior</button>` : ''}`)
@@ -4835,8 +4865,14 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       if(k === 'skipname'){ f.noname = true; save(); return menu('¡Dale! ¿Por dónde querés empezar? Si no sabés, arrancamos por el nombre y el logo de tu negocio.'); }
       if(k === 'menu') return menu();
       if(k === '?') return question();
-      if(k === 'q'){ const n = norm($('flQ').value || ''); const hit = Object.keys(ASK).find(id => ASK[id].test(n)); if(hit){ const [hid, hn] = hit.split('@'); return step(hid, +hn || 0); }
-        return menu('Esa no la sé todavía 🙈. Elegí uno de estos pasos, o escribile a quien te vendió ShopFlash: te ayuda con gusto.'); }
+      if(k === 'q' && navPick(norm($('flQ').value || '').trim())) return;
+      if(k === 'q'){ const n = norm($('flQ').value || '').replace(/^(llevame|ir|anda|quiero ir|mostrame|abri|abrime|como hago|como)\s+(a la|al|a|el|la|para)?\s*/, ' ').trim(); if(!n) return;
+        const pr = presetFrom(n), rub = curStep === 'rubro' || /rubro|tipo de|negocio|plantilla|tengo un|vendo/.test(n);
+        if(pr && rub) return ponerRubro(pr);
+        const hit = Object.keys(ASK).find(id => ASK[id].test(n)); if(hit){ const [hid, hn] = hit.split('@'); return step(hid, +hn || 0); }
+        if(pr && n.split(/\s+/).length <= 5) return ponerRubro(pr);
+        const sf = stepFrom(n); if(sf) return step(sf.id);
+        return menu('Esa no la entendí 🙈. Probá decirlo de otra forma, por ejemplo “tipo de negocio”, “mi WhatsApp” o “cargar productos”, o tocá uno de estos pasos.'); }
       if(k.startsWith('t:')){ const [, id, n] = k.split(':'); return step(id, +n); }
       if(k.startsWith('ok:')){ const id = k.slice(3); if(!f.done.includes(id)) f.done.push(id); save(); document.querySelectorAll('.flhi').forEach(x => x.classList.remove('flhi'));
         const left = STEPS.filter(x => !f.done.includes(x.id)); return left.length ? menu(`¡Muy bien${f.name ? ', ' + f.name : ''}! ✅ Seguimos con: ${left[0].t}. ¿O preferís otro?`) : menu(); }
