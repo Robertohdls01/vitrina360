@@ -6726,19 +6726,21 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     return tot;
   }
   function pqResHTML(r){
-    const est = r.trabajos.some(x => x.estimado);
-    return `<div class="pqbox"><b>🤖 Lo que veo en tus fotos</b><p>${esc(r.analisis)}</p>
+    const est = r.trabajos.some(x => x.estimado && !r.fijo);
+    return `${r.fijo ? '' : `<div class="pqbox"><b>🤖 Lo que veo en tus fotos</b><p>${esc(r.analisis)}</p>
       <div class="pqchips"><span>🌱 Pasto: ~${r.pasto_cm || '?'} cm${r.pasto_estado ? ' · ' + esc(r.pasto_estado) : ''}</span><span>📐 ~${r.m2 || '?'} m² (confianza ${esc(r.m2_confianza)})</span>${r.tiempo ? `<span>⏱ ${esc(r.tiempo)}</span>` : ''}</div>
-      ${r.plantas.length ? `<ul class="pqpl">${r.plantas.map(p => `<li>🌳 <b>${esc(p.que)}</b> · ${esc(p.tamano)} · ${esc(p.estado)} → <i>${esc(p.trabajo)}</i></li>`).join('')}</ul>` : ''}</div>
+      ${r.plantas.length ? `<ul class="pqpl">${r.plantas.map(p => `<li>🌳 <b>${esc(p.que)}</b> · ${esc(p.tamano)} · ${esc(p.estado)} → <i>${esc(p.trabajo)}</i></li>`).join('')}</ul>` : ''}</div>`}
       ${r.plan && r.plan.length ? `<div class="pqbox"><b>🪴 Tu parque rediseñado${r.estiloLbl ? ' · ' + esc(r.estiloLbl) : ''}</b><p>${esc(r.resumen || '')}</p><span class="note">Las plantas ya están sumadas abajo, con el precio de ${[...new Set(r.plan.map(x => x.vivero).filter(Boolean))].map(esc).join(', ') || 'los viveros'}. El parquero se encarga de comprarlas y plantarlas.</span></div>` : ''}
-      <div class="pqbox"><b>🧾 Tu presupuesto${r.plan && r.plan.length ? ' completo (plantas + trabajo)' : ''}</b><span class="note">Destildá lo que no quieras. Si sabés los metros exactos, cambialos y se recalcula.</span>
+      <div class="pqbox"><b>🧾 ${r.fijo ? 'Tu trabajo de siempre' : 'Tu presupuesto' + (r.plan && r.plan.length ? ' completo (plantas + trabajo)' : '')}</b><span class="note">${r.fijo ? 'Es lo mismo que la última vez. Si querés algo distinto, contáselo al parquero por WhatsApp.' : 'Destildá lo que no quieras. Si sabés los metros exactos, cambialos y se recalcula.'}</span>
       <ul class="pqtr">${r.trabajos.map((x, i) => `<li><label><input type="checkbox" checked data-pqt="${i}"> <span><b>${esc(x.titulo)}</b>${x.plan ? (x.motivo ? ` · <span class="note">${esc(x.motivo)}</span>` : '') + (x.link ? ` · <a href="${esc(x.link)}" target="_blank" rel="noopener">🛒 ver en el vivero</a>` : '') : (x.porM2 ? ' · por m²' : x.cantidad > 1 ? ' · ×' + x.cantidad : '') + (x.ajuste ? ` · <span class="pqaj">${x.ajuste > 0 ? '+' : ''}${x.ajuste}% ${esc(x.motivo)}</span>` : '')}</span></label><b data-pqs="${i}"></b></li>`).join('')}</ul>
       <p id="pqTot" class="pqtot"></p>${est ? '<p class="note" style="margin:0">Algunos precios son estimados: el parquero te confirma el valor final.</p>' : ''}${r.consejo ? `<p class="note" style="margin:0">💡 ${esc(r.consejo)}</p>` : ''}</div>`;
   }
   function openParque(){
     let ov = document.getElementById('pqView');
     if(!ov){ ov = document.createElement('div'); ov.id = 'pqView'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); document.body.appendChild(ov); }
+    let ult = null; try{ ult = JSON.parse(localStorage.getItem('pq-ultimo-' + (window.VITRINA_SLUG || '')) || 'null'); }catch(e){}
     ov.innerHTML = `<div class="tv"><h2>🌿 Presupuesto de tu parque</h2>
+      ${pqRes && pqRes.fijo ? '' : `<div class="pqbox" style="background:color-mix(in srgb,#0ea5e9 7%,var(--surface))"><b>📅 ¿Ya sos cliente?</b><span class="note">${ult ? `Reservá tu corte de siempre (${esc(ult.trabajos.map(x => x.titulo).join(', ').slice(0, 90))}) sin sacar fotos.` : 'Si el parquero ya conoce tu parque, reservá tu turno directo, sin fotos.'}</span><button class="btn primary" type="button" data-pq="fijo" style="justify-self:start">📅 Reservar mi corte de siempre</button></div>`}
       <p style="margin:0">Sacale 1 a 3 fotos a tu parque, que se vea todo (el pasto, las plantas y algo de referencia como una puerta o un cerco). La IA mide más o menos, mira el pasto y las plantas y te arma el presupuesto.</p>
       <div class="pqfotos" id="pqFotos"></div>
       <label class="btn primary" style="justify-self:start">📷 ${pqFotos.length ? 'Agregar otra foto' : 'Sacar o elegir fotos'}<input type="file" accept="image/*" multiple class="vh" id="pqFile"></label>
@@ -6829,13 +6831,14 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       try{
         const body = {slug: window.VITRINA_SLUG, servicio: true, cita: pqDia + 'T' + pqHora, items: sel.map(x => ({n: x.titulo + (x.porM2 ? ` (${pqM2} m²)` : ''), q: 1, p: pqSub(x) ? pqMoney(pqSub(x)) : 'a consultar'})),
           total: pqMoney(tot), total_n: tot ? Math.round(tot) : null, moneda: curCode(),
-          comprador: {nombre: nom, tel, dir, turno: cuando + ` · parque ~${pqM2} m², pasto ~${pqRes.pasto_cm} cm`, lugar: 'A domicilio'},
+          comprador: {nombre: nom, tel, dir, turno: cuando + (pqRes.fijo ? ' · cliente fijo (su trabajo de siempre)' : ` · parque ~${pqM2} m², pasto ~${pqRes.pasto_cm} cm`), lugar: 'A domicilio'},
           pago: pqPago === 'ahora' ? 'Mercado Pago (pagado al reservar)' : 'Paga después del trabajo', paga_ahora: pqPago === 'ahora'};
         const r = await fetch('/api/pedidos', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
         const j = await r.json().catch(() => ({}));
         if(r.status === 409){ await pqCargarOcupados(); pqHora = ''; $('pqAgenda').innerHTML = pqAgendaHTML(); msg.textContent = j.error || 'Ese horario se ocupó. Elegí otro.'; b.disabled = false; return; }
         if(!r.ok || !j.ref){ msg.textContent = j.error || 'No se pudo reservar. Probá de nuevo.'; b.disabled = false; return; }
         try{ trackStart({ref: j.ref, k: j.k, turno: j.turno || null, slug: window.VITRINA_SLUG, paid: pqPago === 'ahora', start: Date.now()}); }catch(err){}
+        try{ localStorage.setItem('pq-ultimo-' + window.VITRINA_SLUG, JSON.stringify({m2: pqM2, nom, tel, dir, trabajos: sel.filter(x => !x.plan).map(x => ({titulo: x.titulo, porM2: x.porM2, cantidad: x.cantidad, precio: x.precio, ajuste: x.ajuste, motivo: x.motivo, estimado: x.estimado}))})); }catch(err){}
         if(pqPago === 'ahora'){ msg.textContent = 'Te llevo a Mercado Pago…';
           const m = await fetch('/api/mpcobro?accion=pagar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ref: j.ref, k: j.k})}).then(x => x.json()).catch(() => ({}));
           if(m && m.url){ location.href = m.url; return; } msg.textContent = 'Tu turno quedó reservado, pero no se pudo abrir el pago: pagale al parquero después del trabajo.'; }
@@ -6845,6 +6848,15 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       }catch(err){ msg.textContent = 'No se pudo conectar. Probá de nuevo.'; b.disabled = false; }
       return; }
     if(k === 'mapa') return pqMedir();
+    if(k === 'fijo'){
+      let ult = null; try{ ult = JSON.parse(localStorage.getItem('pq-ultimo-' + (window.VITRINA_SLUG || '')) || 'null'); }catch(err){}
+      pqRes = {fijo: true, analisis: '', m2: ult ? ult.m2 : 0, pasto_cm: 0, pasto_estado: '', plantas: [], consejo: '', tiempo: '', m2_confianza: 'media',
+        trabajos: ult && ult.trabajos.length ? ult.trabajos : [{titulo: 'Mi corte de siempre', porM2: false, cantidad: 1, precio: 0, ajuste: 0, motivo: '', estimado: true}]};
+      pqM2 = pqRes.m2 || 0; await pqCargarOcupados(); openParque();
+      if(ult){ $('pqNom').value = ult.nom || ''; $('pqTel').value = ult.tel || ''; $('pqDir2').value = ult.dir || ''; }
+      const bx = $('pqAgenda'); if(bx) bx.scrollIntoView({block: 'center', behavior: 'smooth'});
+      try{ hSpeak(ult ? `¡Hola de nuevo${ult.nom ? ', ' + ult.nom.split(' ')[0] : ''}! Elegí el día y el horario para tu corte de siempre.` : '¡Dale! Elegí el día y el horario, y el parquero te confirma.'); }catch(err){}
+      return; }
     if(k === 'buscar'){ const q = $('pqDir').value.trim(); if(!q || !pqMap) return; try{ const c = await geocode(q + (shopCity() && !q.includes(',') ? ', ' + shopCity() : '')); if(c) pqMap.setView(c, 19); else $('pqMapTx').textContent = 'No encontré esa dirección. Probá agregando la ciudad.'; }catch(err){} return; }
     if(k === 'deshacer'){ pqPts.pop(); pqDraw(); return; }
     if(k === 'borrar'){ pqPts = []; pqDraw(); return; }

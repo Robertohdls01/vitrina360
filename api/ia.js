@@ -247,7 +247,7 @@ async function parqueIA(res, KEY, b, req) {
   // tope de presupuestos con IA por mes según el plan (así nunca cuesta más de lo que paga el parquero)
   let pqLim = Number(process.env.PQ_PRUEBA || 10), pqPaga = false;
   try { const rr = await db('GET', '/rest/v1/tiendas?slug=eq.' + slug + '&select=plan,mp_plan,prueba_hasta,pagada_hasta,activa'); const row = rr && rr[0];
-    if (row && estado(row).estado === 'activa') { pqPaga = true; const pr = planReal(row), P = PLANES()[pr] || {}; pqLim = Number(P.pq || (pr === 'pro' ? 60 : pr === 'comercio' ? 30 : 15)); } } catch (e) {}
+    if (row && estado(row).estado === 'activa') { pqPaga = true; const pr = planReal(row), P = PLANES()[pr] || {}; pqLim = Number(P.pq || (pr === 'pro' ? 150 : pr === 'comercio' ? 60 : 30)); } } catch (e) {}
   const metaO = owner.app_metadata || {}, mesPq = new Date().toISOString().slice(0, 7);
   const pqUsadas = pqPaga ? (metaO.pq_mes === mesPq ? Number(metaO.pq_usadas) || 0 : 0) : Number(metaO.pq_prueba) || 0;
   const libresPq = String(process.env.IA_SIN_LIMITE || '').toLowerCase().split(',').map(x => x.trim()).filter(Boolean);
@@ -282,7 +282,8 @@ ${diseno ? `ADEMÁS el cliente quiere REDISEÑAR su parque${estilo ? ' con este 
 ` : ''}Sé honesto: es una estimación por foto. Si en las fotos no se ve un parque, jardín, patio o terreno, devolvé {"error":"…"} en una frase corta diciendo qué foto sacar.
 Respondé en español rioplatense (con "vos") y SOLO con JSON válido:
 {"analisis":"2 o 3 frases de lo que ves","m2":número,"m2_confianza":"baja|media|alta","pasto_cm":número,"pasto_estado":"…","plantas":[{"que":"…","tamano":"…","estado":"…","trabajo":"…"}],"trabajos":[{"titulo":"nombre corto del trabajo","servicio":"nombre exacto o vacío","cantidad":número,"unidad":"m2|unidad|trabajo","ajuste_pct":número,"motivo":"…","precio_estimado":número}],"consejo":"1 frase útil para el cliente","tiempo":"duración aproximada del trabajo"${diseno ? ',"plan":[{"que":"planta o material","cantidad":número,"donde":"dónde va","por_que":"por qué conviene, corto","i":número,"precio_estimado":número}],"resumen":"2 frases de cómo va a quedar el parque"' : ''}}`;
-  const model = process.env.IA_MODEL_PARQUE || 'claude-opus-5-5';
+  // presupuesto común: IA rápida y más económica; rediseño del parque (plantas, viveros): la más potente
+  const model = diseno ? (process.env.IA_MODEL_PARQUE || 'claude-opus-5-5') : (process.env.IA_MODEL_PRESUPUESTO || 'claude-sonnet-5-5');
   const ask = () => fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST', headers: { 'x-api-key': KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
     body: JSON.stringify({ model, max_tokens: 4000, messages: [{ role: 'user', content: [
