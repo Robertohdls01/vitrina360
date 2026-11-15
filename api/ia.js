@@ -272,7 +272,7 @@ async function parqueIA(res, KEY, b, req) {
     await fetch(base + '/auth/v1/admin/users/' + t.owner, { method: 'PUT', headers: h, body: JSON.stringify({ app_metadata: Object.assign({}, metaO, cambio) }) }); } catch (e) {} };
   const m2 = Math.max(0, Math.min(200000, Number(b.m2) || 0));
   const quiere = String(b.quiere || '').slice(0, 300);
-  const diseno = b.modo === 'diseno', estilo = String(b.estilo || '').slice(0, 120);
+  const opciones = b.modo === 'opciones', diseno = b.modo === 'diseno' || opciones, estilo = String(b.estilo || '').slice(0, 120);
   // plantas y materiales: los del parquero (productos que no son servicios) + los de los viveros que conectó (sus tiendas ShopFlash)
   const cat = [];
   if (diseno) {
@@ -293,15 +293,16 @@ Mirá con atención y estimá, como lo haría un profesional en la visita:
 ${quiere ? 'Lo que pide el cliente: "' + quiere + '".\n' : ''}Servicios y precios del parquero (usá EXACTAMENTE estos nombres cuando correspondan; "m2": true quiere decir precio por m²):
 ${JSON.stringify(servs)}
 Para cada trabajo: si hay un servicio de la lista que corresponde, poné su nombre exacto en "servicio". Si el parquero tiene precios distintos según la altura del pasto, elegí el que corresponde a la altura que ves. Si un servicio es "por metro lineal" (cercos, bordes, surcos, canteros), poné en "cantidad" los metros que estimás; si es por árbol o por planta, la cantidad de árboles o plantas; si es por viaje, los viajes. Si el pasto está muy crecido, hay mucha maleza, el terreno es difícil o la planta es muy grande, poné un "ajuste_pct" positivo (por ejemplo 30 o 60) con el motivo; si es fácil, 0. Si NO hay un servicio de la lista, poné "servicio": "" y en "precio_estimado" un precio razonable en pesos argentinos de hoy para ese trabajo completo.
-${diseno ? `ADEMÁS el cliente quiere REDISEÑAR su parque${estilo ? ' con este estilo: "' + estilo + '"' : ''}. Armá un plan concreto y realizable: qué poner, cuántas unidades y dónde (por ejemplo "frente, contra el cerco, al sol"), pensando en el sol y la sombra que ves, el clima de Argentina y poco mantenimiento. Usá en lo posible plantas y materiales de este catálogo (el número "i" es su posición; "v" es el vivero que lo vende): ${JSON.stringify(cat.map((x, i) => ({ i, n: x.n, precio: x.precio, v: x.v })))}. Si algo necesario no está en el catálogo, poné "i": -1 y un "precio_estimado" por unidad en pesos argentinos de hoy. Agregá también en "trabajos" la mano de obra del rediseño (preparar la tierra, plantar, colocar piedras, etc.) con los servicios del parquero si corresponden.
+${opciones ? `ADEMÁS el cliente pregunta "¿qué me recomendás para este patio?". Proponele 3 OPCIONES bien distintas, de la más simple y económica a la más completa (por ejemplo: 1) dejarlo prolijo: corte, bordes y limpieza; 2) prolijo + canteros con plantas; 3) rediseño completo con plantas, piedras o corteza, y luces si queda bien). Cada opción con sus propios trabajos y su propio plan de plantas y materiales. Pensá en el sol y la sombra que ves, el clima de Argentina y el mantenimiento. Usá en lo posible este catálogo ("i" es su posición; "v" es el vivero que lo vende): ${JSON.stringify(cat.map((x, i) => ({ i, n: x.n, precio: x.precio, v: x.v })))}. Si algo no está en el catálogo, poné "i": -1 y un "precio_estimado" por unidad en pesos argentinos de hoy.
+` : diseno ? `ADEMÁS el cliente quiere REDISEÑAR su parque${estilo ? ' con este estilo: "' + estilo + '"' : ''}. Armá un plan concreto y realizable: qué poner, cuántas unidades y dónde (por ejemplo "frente, contra el cerco, al sol"), pensando en el sol y la sombra que ves, el clima de Argentina y poco mantenimiento. Usá en lo posible plantas y materiales de este catálogo (el número "i" es su posición; "v" es el vivero que lo vende): ${JSON.stringify(cat.map((x, i) => ({ i, n: x.n, precio: x.precio, v: x.v })))}. Si algo necesario no está en el catálogo, poné "i": -1 y un "precio_estimado" por unidad en pesos argentinos de hoy. Agregá también en "trabajos" la mano de obra del rediseño (preparar la tierra, plantar, colocar piedras, etc.) con los servicios del parquero si corresponden.
 ` : ''}Sé honesto: es una estimación por foto. Si en las fotos no se ve un parque, jardín, patio o terreno, devolvé {"error":"…"} en una frase corta diciendo qué foto sacar.
 Respondé en español rioplatense (con "vos") y SOLO con JSON válido:
-{"analisis":"2 o 3 frases de lo que ves","m2":número,"m2_confianza":"baja|media|alta","pasto_cm":número,"pasto_estado":"…","plantas":[{"que":"…","tamano":"…","estado":"…","trabajo":"…"}],"trabajos":[{"titulo":"nombre corto del trabajo","servicio":"nombre exacto o vacío","cantidad":número,"unidad":"m2|unidad|trabajo","ajuste_pct":número,"motivo":"…","precio_estimado":número}],"consejo":"1 frase útil para el cliente","tiempo":"duración aproximada del trabajo"${diseno ? ',"plan":[{"que":"planta o material","cantidad":número,"donde":"dónde va","por_que":"por qué conviene, corto","i":número,"precio_estimado":número}],"resumen":"2 frases de cómo va a quedar el parque"' : ''}}`;
+{"analisis":"2 o 3 frases de lo que ves","m2":número,"m2_confianza":"baja|media|alta","pasto_cm":número,"pasto_estado":"…","plantas":[{"que":"…","tamano":"…","estado":"…","trabajo":"…"}],"trabajos":[{"titulo":"nombre corto del trabajo","servicio":"nombre exacto o vacío","cantidad":número,"unidad":"m2|unidad|trabajo","ajuste_pct":número,"motivo":"…","precio_estimado":número}],"consejo":"1 frase útil para el cliente","tiempo":"duración aproximada del trabajo"${opciones ? ',"opciones":[{"titulo":"nombre corto y atractivo","descripcion":"2 frases de cómo queda y para quién conviene","estilo":"estilo visual en pocas palabras, para dibujarlo","mantenimiento":"bajo|medio|alto","trabajos":[igual formato que trabajos],"plan":[{"que":"…","cantidad":número,"donde":"…","por_que":"…","i":número,"precio_estimado":número}]}]' : diseno ? ',"plan":[{"que":"planta o material","cantidad":número,"donde":"dónde va","por_que":"por qué conviene, corto","i":número,"precio_estimado":número}],"resumen":"2 frases de cómo va a quedar el parque"' : ''}}`;
   // presupuesto común: IA rápida y más económica; rediseño del parque (plantas, viveros): la más potente
   const model = diseno ? (process.env.IA_MODEL_PARQUE || 'claude-opus-5-5') : (process.env.IA_MODEL_PRESUPUESTO || 'claude-sonnet-5-5');
   const ask = () => fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST', headers: { 'x-api-key': KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-    body: JSON.stringify({ model, max_tokens: 4000, messages: [{ role: 'user', content: [
+    body: JSON.stringify({ model, max_tokens: opciones ? 7000 : 4000, messages: [{ role: 'user', content: [
       ...ims.map(im => ({ type: 'image', source: { type: 'base64', media_type: TYPES.includes(im.type) ? im.type : 'image/jpeg', data: im.data } })),
       { type: 'text', text: prompt }] }] })
   });
@@ -317,7 +318,7 @@ Respondé en español rioplatense (con "vos") y SOLO con JSON válido:
     const s = (v, n) => String(v == null ? '' : v).slice(0, n || 300), num = v => Math.max(0, Number(v) || 0);
     const M2 = m2 || Math.round(num(out.m2));
     // el precio lo arma el servidor con los precios del parquero (la IA solo estima cantidades y dificultad)
-    const trabajos = (Array.isArray(out.trabajos) ? out.trabajos : []).slice(0, 12).map(x => {
+    const mapTrab = arr => (Array.isArray(arr) ? arr : []).slice(0, 12).map(x => {
       const sv = servs.find(v => v.n.toLowerCase() === String(x.servicio || '').toLowerCase().trim());
       const aj = Math.max(-30, Math.min(150, Number(x.ajuste_pct) || 0));
       const porM2 = sv ? sv.m2 : x.unidad === 'm2';
@@ -325,13 +326,17 @@ Respondé en español rioplatense (con "vos") y SOLO con JSON válido:
       const precio = sv && sv.precio ? sv.precio : num(x.precio_estimado) / (porM2 ? Math.max(1, M2) : (cant || 1));
       return { titulo: s(x.titulo, 80), servicio: sv ? sv.n : '', porM2, cantidad: cant, precio: Math.round(precio * 100) / 100, ajuste: aj, motivo: s(x.motivo, 160), estimado: !(sv && sv.precio) };
     }).filter(x => x.titulo);
+    const mapPlan = arr => (Array.isArray(arr) ? arr : []).slice(0, 15).map(x => { const it = cat[Number(x.i)] && Number(x.i) >= 0 ? cat[Number(x.i)] : null;
+        return { que: s(it ? it.n : x.que, 80), cantidad: Math.max(1, Math.min(300, Math.round(num(x.cantidad) || 1))), donde: s(x.donde, 100), por_que: s(x.por_que, 140),
+          precio: it && it.precio ? it.precio : num(x.precio_estimado), vivero: it ? it.v : '', link: it && it.slug !== slug ? '/t/' + it.slug : '', estimado: !(it && it.precio) }; }).filter(x => x.que);
+    const trabajos = mapTrab(out.trabajos);
     return res.status(200).json({ analisis: s(out.analisis, 600), m2: M2, m2_confianza: ['baja', 'media', 'alta'].includes(out.m2_confianza) ? out.m2_confianza : 'baja',
       pasto_cm: Math.round(num(out.pasto_cm)), pasto_estado: s(out.pasto_estado, 120), consejo: s(out.consejo, 300), tiempo: s(out.tiempo, 80),
       plantas: (Array.isArray(out.plantas) ? out.plantas : []).slice(0, 10).map(p => ({ que: s(p.que, 60), tamano: s(p.tamano, 60), estado: s(p.estado, 80), trabajo: s(p.trabajo, 80) })),
       trabajos,
-      ...(diseno ? { resumen: s(out.resumen, 400), plan: (Array.isArray(out.plan) ? out.plan : []).slice(0, 15).map(x => { const it = cat[Number(x.i)] && Number(x.i) >= 0 ? cat[Number(x.i)] : null;
-        return { que: s(it ? it.n : x.que, 80), cantidad: Math.max(1, Math.min(300, Math.round(num(x.cantidad) || 1))), donde: s(x.donde, 100), por_que: s(x.por_que, 140),
-          precio: it && it.precio ? it.precio : num(x.precio_estimado), vivero: it ? it.v : '', link: it && it.slug !== slug ? '/t/' + it.slug : '', estimado: !(it && it.precio) }; }).filter(x => x.que) } : {}) });
+      ...(opciones ? { opciones: (Array.isArray(out.opciones) ? out.opciones : []).slice(0, 3).map(o => ({ titulo: s(o.titulo, 60), descripcion: s(o.descripcion, 300), estilo: s(o.estilo, 120),
+          mantenimiento: ['bajo', 'medio', 'alto'].includes(o.mantenimiento) ? o.mantenimiento : '', trabajos: mapTrab(o.trabajos), plan: mapPlan(o.plan) })).filter(o => o.titulo) }
+        : diseno ? { resumen: s(out.resumen, 400), plan: mapPlan(out.plan) } : {}) });
   } catch (e) { return res.status(502).json({ error: 'No se pudo hablar con la IA.' }); }
 }
 

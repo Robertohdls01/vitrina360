@@ -6781,16 +6781,39 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   const pqArea = pts => { if(pts.length < 3) return 0; const R = 6371000, lat0 = pts.reduce((a, p) => a + p[0], 0) / pts.length * Math.PI / 180;
     const xy = pts.map(([la, lo]) => [R * lo * Math.PI / 180 * Math.cos(lat0), R * la * Math.PI / 180]); let a = 0;
     xy.forEach((p, i) => { const q = xy[(i + 1) % xy.length]; a += p[0] * q[1] - q[0] * p[1]; }); return Math.abs(a / 2); };
+  let pqOps = null, pqPaso = '';
+  const pqCliNom = () => { try{ return localStorage.getItem('v360-cli-nombre-' + (window.VITRINA_SLUG || '')) || ''; }catch(e){ return ''; } };
+  const pqSlotTxt = (ymd, h) => { const d = new Date(ymd + 'T12:00'); return `${DAYS_LONG[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1} a las ${h} h`; };
+  function pqNextHTML(r){
+    if(!r || r.fijo || !pqPaso) return '';
+    const quien = (() => { try{ const ids = hList(); return ids.length ? (ids[0] === 'duena' ? ownName() : HELPERS[ids[0]].name) : (isParques() ? 'Tomás' : 'Sofi'); }catch(e){ return 'Tomás'; } })(), nom = pqCliNom();
+    if(pqPaso === 'agregar') return `<div class="pqbox" style="background:color-mix(in srgb,#f59e0b 8%,var(--surface))"><b>🙋 ${esc(quien)}</b><p>¡Listo${nom ? ', ' + esc(nom) : ''}! Tu presupuesto da <b id="pqNextTot"></b>. ¿Querés agregarle algo?</p>
+      <div class="pqchips"><button class="btn primary" type="button" data-pqn="no">👍 No, así está bien</button><button class="btn" type="button" data-pqn="poda">🌳 Sumar poda de plantas</button><button class="btn" type="button" data-pqn="plantas">🪴 Agregar plantas o piedras</button></div></div>`;
+    if(pqPaso === 'turno'){ const ds = pqDias(), q = []; ds.forEach(x => x.hs.forEach(h => { if(q.length < 4) q.push([x.ymd, h]); }));
+      return `<div class="pqbox" style="background:color-mix(in srgb,#f59e0b 8%,var(--surface))"><b>🙋 ${esc(quien)}</b><p>${q.length ? `¡Perfecto! El primer turno libre es el <b>${esc(pqSlotTxt(q[0][0], q[0][1]))}</b>. ¿Te queda bien? Si no, elegí otro:` : 'Ahora no tengo turnos libres en los próximos días: mandale el presupuesto al parquero por WhatsApp y te contesta.'}</p>
+        <div class="pqchips">${q.map(([y, h], i) => `<button class="btn${i === 0 ? ' primary' : ''}" type="button" data-pqq="${y}|${h}">${i === 0 ? '✅ ' : ''}${esc(pqSlotTxt(y, h))}</button>`).join('')}</div><span class="note">Más días y horarios, abajo en “Reservá tu turno”.</span></div>`; }
+    return '';
+  }
+  const pqOpTotal = (o, m2) => o.trabajos.reduce((a, x) => a + (x.porM2 ? x.precio * (m2 || 0) : x.precio * (x.cantidad || 1)) * (1 + (x.ajuste || 0) / 100), 0) + o.plan.reduce((a, x) => a + x.precio * x.cantidad, 0);
+  function pqOpsHTML(){
+    if(!pqOps || !pqOps.opciones || !pqOps.opciones.length) return '';
+    const m2 = pqM2 || pqOps.m2 || 0, MT = {bajo: '🟢 poco mantenimiento', medio: '🟡 mantenimiento medio', alto: '🟠 más mantenimiento'};
+    return `<div class="pqbox"><b>💡 Mis recomendaciones para tu patio</b><p>${esc(pqOps.analisis)}</p></div>` + pqOps.opciones.map((o, i) => `<div class="pqbox" data-pqop="${i}"><b>${['1️⃣', '2️⃣', '3️⃣'][i]} ${esc(o.titulo)}</b><p>${esc(o.descripcion)}</p>
+      <div class="pqchips">${o.mantenimiento ? `<span>${MT[o.mantenimiento]}</span>` : ''}<span>💰 ${pqMoney(pqOpTotal(o, m2))} aprox.</span></div>
+      <ul class="pqpl">${o.trabajos.map(x => `<li>🔧 ${esc(x.titulo)}</li>`).join('')}${o.plan.map(x => `<li>🪴 ${x.cantidad} × ${esc(x.que)}${x.vivero && x.vivero !== 'el parquero' ? ' (' + esc(x.vivero) + ')' : ''}${x.donde ? ' · ' + esc(x.donde) : ''}</li>`).join('')}</ul>
+      <div data-pqoimg></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" type="button" data-pqoi="${i}">✨ Ver cómo quedaría</button><button class="btn primary" type="button" data-pqoe="${i}">✅ Elijo esta</button></div></div>`).join('');
+  }
   function pqTotal(){
     if(!pqRes) return;
     const sel = [...document.querySelectorAll('#pqView [data-pqt]')];
     let tot = 0; sel.forEach(c => { const x = pqRes.trabajos[+c.dataset.pqt]; const v = pqSub(x); const out = document.querySelector(`#pqView [data-pqs="${c.dataset.pqt}"]`); if(out) out.textContent = v ? pqMoney(v) : 'a consultar'; if(c.checked) tot += v; });
     const t = $('pqTot'); if(t) t.innerHTML = `Total estimado: <b>${pqMoney(tot)}</b>`;
+    const nt = $('pqNextTot'); if(nt) nt.textContent = pqMoney(tot) + ' aprox.';
     return tot;
   }
   function pqResHTML(r){
     const est = r.trabajos.some(x => x.estimado && !r.fijo);
-    return `${r.fijo ? '' : `<div class="pqbox"><b>🤖 Lo que veo en tus fotos</b><p>${esc(r.analisis)}</p>
+    return `${pqNextHTML(r)}${r.fijo ? '' : `<div class="pqbox"><b>🤖 Lo que veo en tus fotos</b><p>${esc(r.analisis)}</p>
       <div class="pqchips"><span>🌱 Pasto: ~${r.pasto_cm || '?'} cm${r.pasto_estado ? ' · ' + esc(r.pasto_estado) : ''}</span><span>📐 ~${r.m2 || '?'} m² (confianza ${esc(r.m2_confianza)})</span>${r.tiempo ? `<span>⏱ ${esc(r.tiempo)}</span>` : ''}</div>
       ${r.plantas.length ? `<ul class="pqpl">${r.plantas.map(p => `<li>🌳 <b>${esc(p.que)}</b> · ${esc(p.tamano)} · ${esc(p.estado)} → <i>${esc(p.trabajo)}</i></li>`).join('')}</ul>` : ''}</div>`}
       ${r.plan && r.plan.length ? `<div class="pqbox"><b>🪴 Tu parque rediseñado${r.estiloLbl ? ' · ' + esc(r.estiloLbl) : ''}</b><p>${esc(r.resumen || '')}</p><span class="note">Las plantas ya están sumadas abajo, con el precio de ${[...new Set(r.plan.map(x => x.vivero).filter(Boolean))].map(esc).join(', ') || 'los viveros'}. El parquero se encarga de comprarlas y plantarlas.</span></div>` : ''}
@@ -6803,7 +6826,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(!ov){ ov = document.createElement('div'); ov.id = 'pqView'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); document.body.appendChild(ov); }
     let ult = null; try{ ult = JSON.parse(localStorage.getItem('pq-ultimo-' + (window.VITRINA_SLUG || '')) || 'null'); }catch(e){}
     ov.innerHTML = `<div class="tv"><h2>🌿 Presupuesto de tu parque</h2>
-      ${pqRes && pqRes.fijo ? '' : `<div class="pqbox" style="background:color-mix(in srgb,#0ea5e9 7%,var(--surface))"><b>📅 ¿Ya sos cliente?</b><span class="note">${ult ? `Reservá tu corte de siempre (${esc(ult.trabajos.map(x => x.titulo).join(', ').slice(0, 90))}) sin sacar fotos.` : 'Si el parquero ya conoce tu parque, reservá tu turno directo, sin fotos.'}</span><button class="btn primary" type="button" data-pq="fijo" style="justify-self:start">📅 Reservar mi corte de siempre</button></div>`}
+      ${pqRes ? '' : `<div class="pqbox" style="background:color-mix(in srgb,#0ea5e9 7%,var(--surface))"><b>📅 ¿Ya sos cliente?</b><span class="note">${ult ? `Reservá tu corte de siempre (${esc(ult.trabajos.map(x => x.titulo).join(', ').slice(0, 90))}) sin sacar fotos.` : 'Si el parquero ya conoce tu parque, reservá tu turno directo, sin fotos.'}</span><button class="btn primary" type="button" data-pq="fijo" style="justify-self:start">📅 Reservar mi corte de siempre</button></div>`}
       <p style="margin:0">Sacale 1 a 3 fotos a tu parque, que se vea todo (el pasto, las plantas y algo de referencia como una puerta o un cerco). La IA mide más o menos, mira el pasto y las plantas y te arma el presupuesto.</p>
       <div class="pqfotos" id="pqFotos"></div>
       <label class="btn primary" style="justify-self:start">📷 ${pqFotos.length ? 'Agregar otra foto' : 'Sacar o elegir fotos'}<input type="file" accept="image/*" multiple class="vh" id="pqFile"></label>
@@ -6813,14 +6836,15 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
           <div id="pqMapa" style="height:280px;border-radius:12px"></div><p class="note" style="margin:4px 0" id="pqMapTx">Tocá las esquinas de tu parque en el mapa. Se calcula solo.</p>
           <div class="row" style="gap:6px"><button class="btn" type="button" data-pq="deshacer">↩ Deshacer</button><button class="btn" type="button" data-pq="borrar">🗑 Borrar</button></div></div></div>
       <label class="note" style="display:grid;gap:4px">¿Qué querés hacer? (opcional)<input id="pqQuiere" maxlength="200" placeholder="Ej: cortar el pasto y podar el ligustro del fondo"></label>
-      <button class="btn primary" type="button" data-pq="analizar" id="pqGo" ${pqFotos.length ? '' : 'disabled'}>🤖 Armar mi presupuesto con IA</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" data-pq="analizar" id="pqGo" ${pqFotos.length ? '' : 'disabled'}>🤖 Armar mi presupuesto con IA</button><button class="btn" type="button" data-pq="opciones" id="pqOpt" ${pqFotos.length ? '' : 'disabled'}>💡 ¿Qué me recomendás? Ver 3 opciones</button></div>
+      <div id="pqOps">${pqRes ? '' : pqOpsHTML()}</div>
       <p class="msg" id="pqMsg" role="status" style="margin:0"></p>
       <div id="pqOut">${pqRes ? pqResHTML(pqRes) : ''}</div>
       <div id="pqDis" class="pqbox" ${pqRes ? '' : 'hidden'}><b>🪴 ¿Querés rediseñar tu parque?</b><span class="note">Elegí un estilo: la IA te arma un plan con qué plantas poner y dónde, con precios de los viveros, y te muestra cómo quedaría.</span>
         <div class="pqchips">${PQ_ESTILOS.map(([v, t], i) => `<button class="btn" type="button" data-pqe="${i}">${t}</button>`).join('')}</div><div id="pqDisOut">${pqDis ? `<img src="${pqDis}" alt="Diseño propuesto" style="width:100%;border-radius:12px">` : ''}</div></div>
       <div class="pqbox" ${pqRes ? '' : 'hidden'}><b>📅 Reservá tu turno</b>
         <div id="pqAgenda">${pqRes ? pqAgendaHTML() : ''}</div>
-        <div class="row" style="gap:6px;flex-wrap:wrap"><input id="pqNom" maxlength="60" placeholder="Tu nombre" style="flex:1;min-width:140px"><input id="pqTel" maxlength="30" inputmode="tel" placeholder="Tu WhatsApp" style="flex:1;min-width:140px"></div>
+        <div class="row" style="gap:6px;flex-wrap:wrap"><input id="pqNom" maxlength="60" placeholder="Tu nombre" style="flex:1;min-width:140px" value="${(() => { try{ return esc(localStorage.getItem('v360-cli-nombre-' + (window.VITRINA_SLUG || '')) || ''); }catch(e){ return ''; } })()}"><input id="pqTel" maxlength="30" inputmode="tel" placeholder="Tu WhatsApp" style="flex:1;min-width:140px"></div>
         <input id="pqDir2" maxlength="120" placeholder="Dirección del trabajo (calle, número, barrio)">
         <div class="pqchips"><button class="btn${pqPago === 'despues' ? ' primary' : ''}" type="button" data-pqp="despues">💵 Pago después del trabajo</button>${mpAutoOk() ? `<button class="btn${pqPago === 'ahora' ? ' primary' : ''}" type="button" data-pqp="ahora">💳 Dejarlo pago ahora</button>` : ''}</div>
         <button class="btn primary" type="button" data-pq="reservar">✅ Reservar mi turno</button>
@@ -6830,7 +6854,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       <button class="btn" type="button" data-pq="cerrar">Cerrar</button></div>`;
     ov.hidden = false; pqFotosRender(); pqTotal();
   }
-  function pqFotosRender(){ const b = $('pqFotos'); if(!b) return; b.innerHTML = pqFotos.map((f, i) => `<span><img src="${f}" alt="Foto ${i + 1}"><button type="button" data-pqx="${i}" aria-label="Sacar foto">✕</button></span>`).join(''); const g = $('pqGo'); if(g) g.disabled = !pqFotos.length; }
+  function pqFotosRender(){ const b = $('pqFotos'); if(!b) return; b.innerHTML = pqFotos.map((f, i) => `<span><img src="${f}" alt="Foto ${i + 1}"><button type="button" data-pqx="${i}" aria-label="Sacar foto">✕</button></span>`).join(''); const g = $('pqGo'); if(g) g.disabled = !pqFotos.length; const o = $('pqOpt'); if(o) o.disabled = !pqFotos.length; }
   async function pqMedir(){
     const box = $('pqMapBox'); box.hidden = false;
     let L; try{ L = await leaflet(); }catch(e){ $('pqMapTx').textContent = 'No se pudo abrir el mapa. Escribí los metros a mano.'; return; }
@@ -6853,6 +6877,27 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(e.target === ov){ ov.hidden = true; return; }
     const x = e.target.closest('[data-pqx]'); if(x){ pqFotos.splice(+x.dataset.pqx, 1); pqFotosRender(); return; }
     if(e.target.matches('[data-pqt]')) return pqTotal();
+    const oi = e.target.closest('[data-pqoi]');
+    if(oi && pqOps){ const o = pqOps.opciones[+oi.dataset.pqoi], out = oi.closest('[data-pqop]').querySelector('[data-pqoimg]');
+      oi.disabled = true; out.innerHTML = `<span class="tvwait"><i></i>Dibujando tu patio con “${esc(o.titulo)}”…</span>`;
+      try{ const headers = {'Content-Type': 'application/json'}; if(!PUBLIC && window.VITRINA_TOKEN){ try{ headers.Authorization = 'Bearer ' + await window.VITRINA_TOKEN(); }catch(err){} }
+        const det = (o.trabajos.map(x => x.titulo).join(', ') + '; ' + o.plan.map(x => `${x.cantidad} ${x.que} (${x.donde})`).join('; ')).slice(0, 155);
+        const r = await fetch('/api/probador', {method: 'POST', headers, body: JSON.stringify({slug: window.VITRINA_SLUG || '', tipo: 'jardin', nombre: o.estilo || o.titulo, detalle: det, foto: pqFotos[0]})});
+        const j = await r.json().catch(() => ({}));
+        out.innerHTML = r.ok && j.img ? `<img src="${j.img}" alt="Así quedaría: ${esc(o.titulo)}" style="width:100%;border-radius:12px">` : esc(j.error || 'No se pudo dibujar. Probá de nuevo.');
+        if(!(r.ok && j.img)) oi.disabled = false;
+      }catch(err){ out.textContent = 'No se pudo conectar.'; oi.disabled = false; }
+      return; }
+    const oe = e.target.closest('[data-pqoe]');
+    if(oe && pqOps){ const o = pqOps.opciones[+oe.dataset.pqoe];
+      const res = Object.assign({}, pqOps, {opciones: undefined, plan: o.plan, resumen: o.descripcion, estiloLbl: o.titulo, trabajos: o.trabajos.slice()});
+      o.plan.forEach(x => res.trabajos.push({titulo: `${x.cantidad} × ${x.que}${x.vivero && x.vivero !== 'el parquero' ? ' (' + x.vivero + ')' : ''}`, porM2: false, cantidad: x.cantidad, precio: x.precio, ajuste: 0, motivo: x.donde, estimado: x.estimado, plan: true, link: x.link}));
+      const img = oe.closest('[data-pqop]').querySelector('[data-pqoimg] img'); if(img) pqDis = img.src;
+      pqRes = res; await pqCargarOcupados(); pqPaso = 'turno'; { const ds = pqDias(); if(ds.length){ pqDia = ds[0].ymd; pqHora = ds[0].hs[0]; } } openParque();
+      if(img){ const d = $('pqDisOut'); if(d){ d.innerHTML = `<img src="${img.src}" alt="Así quedaría" style="width:100%;border-radius:12px">`; d.dataset.estilo = o.titulo; } }
+      try{ hSpeak(`¡Buena elección! Elegiste ${o.titulo}. Abajo tenés el presupuesto completo y podés reservar el día.`); }catch(err){}
+      const t = $('pqOut'); if(t) t.scrollIntoView({block: 'start', behavior: 'smooth'});
+      return; }
     const es = e.target.closest('[data-pqe]');
     if(es){ if(!pqFotos.length) return; const [estilo, lbl] = PQ_ESTILOS[+es.dataset.pqe]; const out = $('pqDisOut');
       ov.querySelectorAll('[data-pqe]').forEach(x => x.disabled = true);
@@ -6876,6 +6921,22 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         pqDis = j.img; out2.innerHTML = `<img src="${j.img}" alt="Diseño propuesto ${esc(lbl)}" style="width:100%;border-radius:12px"><a class="btn" href="${j.img}" download="mi-parque.png" style="margin-top:6px">⬇ Guardar imagen</a><p class="note" style="margin:4px 0 0">Imagen aproximada hecha con IA, para darte una idea.</p>`;
         out2.dataset.estilo = lbl;
       }catch(err){ out.textContent = 'No se pudo conectar. Probá de nuevo.'; ov.querySelectorAll('[data-pqe]').forEach(x => x.disabled = false); }
+      return; }
+    const nx = e.target.closest('[data-pqn]');
+    if(nx){ const v = nx.dataset.pqn;
+      if(v === 'no'){ pqPaso = 'turno'; const ds = pqDias(); if(ds.length){ pqDia = ds[0].ymd; pqHora = ds[0].hs[0]; }
+        const keep = {nom: ($('pqNom') || {}).value || '', tel: ($('pqTel') || {}).value || '', dir: ($('pqDir2') || {}).value || ''}; openParque(); if(keep.nom) $('pqNom').value = keep.nom; if(keep.tel) $('pqTel').value = keep.tel; if(keep.dir) $('pqDir2').value = keep.dir;
+        const bx = document.querySelector('#pqView [data-pqq]'); if(bx) bx.closest('.pqbox').scrollIntoView({block: 'start', behavior: 'smooth'});
+        try{ hSpeak(pqHora ? `¡Perfecto! El primer turno libre es el ${pqSlotTxt(pqDia, pqHora)}. ¿Te queda bien? Si no, elegí otro día y horario. Después poné tu WhatsApp y la dirección, y listo.` : 'Ahora no tengo turnos libres en los próximos días. Mandale el presupuesto al parquero por WhatsApp.'); }catch(err){}
+        return; }
+      if(v === 'poda'){ const qi = $('pqQuiere'), val = (qi.value ? qi.value + ' + ' : '') + 'podar las plantas que lo necesiten'; pqPaso = ''; pqRes = null; openParque(); $('pqQuiere').value = val; const g = $('pqGo'); if(g) g.click(); return; }
+      if(v === 'plantas'){ pqRes = null; pqPaso = ''; const q = ($('pqQuiere') || {}).value || ''; openParque(); $('pqQuiere').value = q; const o = $('pqOpt'); if(o) o.click(); return; }
+    }
+    const qq = e.target.closest('[data-pqq]');
+    if(qq){ const [y, h] = qq.dataset.pqq.split('|'); pqDia = y; pqHora = h; $('pqAgenda').innerHTML = pqAgendaHTML();
+      ov.querySelectorAll('[data-pqq]').forEach(x => x.classList.toggle('primary', x === qq));
+      const nm = $('pqNom'); if(nm){ nm.scrollIntoView({block: 'center', behavior: 'smooth'}); if(!nm.value) nm.focus(); else if($('pqTel') && !$('pqTel').value) $('pqTel').focus(); }
+      try{ hSpeak(`Anoté el ${pqSlotTxt(y, h)}. Poné tu WhatsApp y la dirección, y tocá Reservar.`); }catch(err){}
       return; }
     const dd = e.target.closest('[data-pqd]'); if(dd){ pqDia = dd.dataset.pqd; pqHora = ''; $('pqAgenda').innerHTML = pqAgendaHTML(); return; }
     const hh = e.target.closest('[data-pqh]'); if(hh){ pqHora = hh.dataset.pqh; $('pqAgenda').innerHTML = pqAgendaHTML(); return; }
@@ -6911,6 +6972,19 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       }catch(err){ msg.textContent = 'No se pudo conectar. Probá de nuevo.'; b.disabled = false; }
       return; }
     if(k === 'mapa') return pqMedir();
+    if(k === 'opciones'){
+      if(!pqFotos.length) return; b.disabled = true; $('pqMsg').innerHTML = '<span class="tvwait"><i></i>Mirando tu patio y pensando 3 opciones distintas, cada una con su presupuesto…</span>';
+      try{ const images = pqFotos.map(f => ({type: 'image/jpeg', data: f.split(',')[1]}));
+        const r = await fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({parque: 1, modo: 'opciones', slug: window.VITRINA_SLUG || (window.VITRINA_ME || {}).slug || '', images, m2: pqM2 || 0, quiere: ($('pqQuiere') || {}).value || ''})});
+        const j = await r.json().catch(() => ({}));
+        if(r.status === 429 && j.cupo){ b.disabled = false; $('pqGo').click(); return; }
+        if(!r.ok || !j.opciones || !j.opciones.length){ $('pqMsg').textContent = j.error || 'No pude armar las opciones. Probá de nuevo.'; b.disabled = false; return; }
+        pqOps = j; pqRes = null; if(!pqM2) pqM2 = j.m2 || 0; const q = ($('pqQuiere') || {}).value || ''; openParque(); $('pqQuiere').value = q;
+        $('pqMsg').textContent = '✅ ¡Listo! Mirá las 3 opciones y elegí la que más te guste.';
+        try{ hSpeak(`Te armé 3 opciones para tu patio: ${j.opciones.map((o, i) => (i + 1) + ', ' + o.titulo).join('; ')}. Cada una tiene su presupuesto. Si querés, te muestro cómo quedaría.`); }catch(err){}
+        const c = document.querySelector('#pqView [data-pqop="0"]'); if(c) c.scrollIntoView({block: 'start', behavior: 'smooth'});
+      }catch(err){ $('pqMsg').textContent = 'No se pudo conectar. Probá de nuevo.'; b.disabled = false; }
+      return; }
     if(k === 'guardar'){
       const nom = ($('pqGNom') || {}).value || '', tel = ($('pqGTel') || {}).value || '';
       if(!nom.trim() || tel.replace(/\D/g, '').length < 8){ $('pqGNom').focus(); return; }
@@ -6942,9 +7016,10 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
           $('pqMsg').innerHTML = `<span>${esc(j.error)}</span><span style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><input id="pqGNom" maxlength="60" placeholder="Tu nombre" style="flex:1;min-width:120px"><input id="pqGTel" maxlength="30" inputmode="tel" placeholder="Tu WhatsApp" style="flex:1;min-width:120px"><button class="btn primary" type="button" data-pq="guardar">📩 Guardar mi pedido</button></span>`;
           b.disabled = false; return; }
         if(!r.ok){ $('pqMsg').textContent = j.error || 'No se pudo armar el presupuesto. Probá de nuevo.'; b.disabled = false; return; }
-        pqRes = j; if(!pqM2) pqM2 = j.m2 || 0; await pqCargarOcupados(); const q = $('pqQuiere').value; openParque(); $('pqQuiere').value = q;
+        pqRes = j; pqPaso = 'agregar'; if(!pqM2) pqM2 = j.m2 || 0; await pqCargarOcupados(); const q = $('pqQuiere').value; openParque(); $('pqQuiere').value = q;
         $('pqMsg').textContent = '✅ ¡Listo! Mirá tu presupuesto abajo.';
-        try{ hSpeak && hSpeak(`¡Listo! Tu parque tiene unos ${pqM2} metros cuadrados y el pasto está a unos ${j.pasto_cm} centímetros. Te armé el presupuesto: ${pqMoney(pqTotal())} aproximado.`); }catch(err){}
+        const nx = document.querySelector('#pqView [data-pqn]'); if(nx) nx.closest('.pqbox').scrollIntoView({block: 'start', behavior: 'smooth'});
+        try{ const nm = pqCliNom(); hSpeak(`¡Listo${nm ? ', ' + nm : ''}! Tu parque tiene unos ${pqM2} metros cuadrados y el pasto está a unos ${j.pasto_cm} centímetros. El presupuesto da ${pqMoney(pqTotal())} aproximado. ¿Querés agregarle algo?`); }catch(err){}
       }catch(err){ $('pqMsg').textContent = 'No se pudo conectar. Revisá internet y probá de nuevo.'; b.disabled = false; }
       return; }
     if(k === 'enviar'){
@@ -6990,11 +7065,28 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     };
     window.v360App = appSheet;
     // bienvenida al entrar (QR, link o Facebook): la vendedora saluda, ofrece bajar la app con el logo y sigue con qué necesita
-    const charla = () => { try{ const ids = hList(); hOpen(ids.length ? ids[0] : (isParques() ? 'tomas' : 'sofi'));
+    // la charla de la vendedora: saluda, pregunta el nombre y arranca por lo más común (en parquería: el corte común)
+    const KCN = 'v360-cli-nombre-' + sl;
+    const charlaSigue = nom => {
       if(isParques()){
-        $('hChips').innerHTML = [['✂️ Corte de pasto', 'presupuesto corte de pasto'], ['🌳 Poda de plantas o árboles', 'presupuesto poda'], ['🪴 Plantas y rediseño', 'quiero rediseñar mi parque'], ['📅 Ya soy cliente', 'ya soy cliente']].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${q}">${t}</button>`).join('');
-        hSpeak(`¿Qué necesitás para tu parque? ¿Cortar el pasto, podar alguna planta, o agregar plantas y darle una nueva cara? Si ya sos cliente, reservá tu turno de siempre.`);
-      } }catch(e){} };
+        $('hChips').innerHTML = [['✂️ Sí, un corte común', 'corte comun'], ['💡 Quiero otra cosa, recomendame', 'qué me recomendás para mi patio'], ['🌳 Poda de plantas o árboles', 'presupuesto poda'], ['📅 Ya soy cliente', 'ya soy cliente']].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${q}">${t}</button>`).join('');
+        hSpeak(`${nom ? nom + ', ¿cómo estás?' : '¡Genial!'} ¿Querés un corte común? Pasame una foto de tu parque y te digo ya el presupuesto. Si querés otra cosa, como podar, agregar plantas o piedras, también te ayudo.`);
+      } else {
+        $('hChips').innerHTML = [['🏬 Ver vitrinas', 'vitrinas'], ['🔥 Ofertas', 'ofertas']].map(([t, q]) => `<button class="matbtn" type="button" data-hq="${q}">${t}</button>`).join('');
+        hSpeak(`${nom ? nom + ', ¿cómo estás?' : '¡Genial!'} Decime qué andás buscando y te lo muestro.`);
+      }
+    };
+    const charla = () => { try{ const ids = hList(); hOpen(ids.length ? ids[0] : (isParques() ? 'tomas' : 'sofi'));
+      let nom = ''; try{ nom = localStorage.getItem(KCN) || ''; }catch(e){}
+      if(nom) return charlaSigue(nom);
+      const quien = ids.length ? (ids[0] === 'duena' ? ownName() : HELPERS[ids[0]].name) : (isParques() ? 'Tomás' : 'Sofi');
+      $('hChips').innerHTML = `<span style="display:flex;gap:6px;flex-wrap:wrap;width:100%"><input id="hNom" maxlength="30" placeholder="Tu nombre" autocomplete="given-name" style="flex:1;min-width:120px;border:1px solid var(--line);border-radius:999px;padding:8px 12px;font:inherit;background:var(--bg);color:inherit"><button class="matbtn" type="button" data-hnom="1">Listo</button><button class="matbtn" type="button" data-hnom="0">Prefiero no decirlo</button></span>`;
+      hSpeak(`¡Hola! ¿Cómo estás? Soy ${quien}, de ${storeName()}. ¿Cómo te llamás?`);
+      const go = conNom => { const v = conNom ? String(($('hNom') || {}).value || '').replace(/^(me llamo|soy|mi nombre es)\s+/i, '').trim().split(/\s+/)[0] || '' : '';
+        const n2 = v ? v.charAt(0).toUpperCase() + v.slice(1) : ''; if(n2){ try{ localStorage.setItem(KCN, n2); }catch(e){} } charlaSigue(n2); };
+      $('hChips').querySelectorAll('[data-hnom]').forEach(x => x.onclick = () => go(x.dataset.hnom === '1'));
+      const inp = $('hNom'); if(inp){ inp.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); go(true); } }); setTimeout(() => inp.focus(), 300); }
+    }catch(e){} };
     const bienvenida = () => {
       if(document.getElementById('appOv')) return;
       let ids = []; try{ ids = hList(); }catch(e){}
@@ -9582,6 +9674,9 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   function hAnswer(q){
     const n = norm(q).trim();
     if(/\b(hablar|hablo|comunicar|comunicame|contactar|pasame|atender|atienda|conectar)\b.*\b(duen[oa]|persona|alguien|humano|encargad[oa]|real|vos|ella|el|responsable)\b/.test(n) || /\b(una persona|un humano|persona real|la duena|el dueno|la encargada|el encargado)\b/.test(n) || (ownOn() && n.length < 40 && norm(ownName()).length > 2 && /\b(hablar|hablo|comunicar|pasame|contactar)\b/.test(n) && n.includes(norm(ownName())))) return hHandoff('');
+    if(isParques() && /^corte comun$|corte comun|un corte|cortar el pasto|solo el pasto/.test(n) && !/presupuest/.test(n)){ hShow([]); openParque(); try{ $('pqQuiere').value = 'Corte común de pasto'; const nm = localStorage.getItem('v360-cli-nombre-' + (window.VITRINA_SLUG || '')); if(nm && $('pqNom')) $('pqNom').value = nm; }catch(e){}
+      return hSpeak('¡Perfecto! Tocá “Sacar o elegir fotos” y mandame una o dos fotos de tu parque, que se vea todo el pasto. Después tocá “Armar mi presupuesto” y te lo paso al toque.'); }
+    if(isParques() && /(recomend|que le pongo|que me sugeris|sugerencia|ideas para|opciones|que puedo hacer)/.test(n)){ hShow([]); openParque(); return hSpeak('¡Dale! Sacale una o dos fotos a tu patio y tocá “¿Qué me recomendás?”. Te armo 3 opciones distintas, cada una con su presupuesto, y si querés te muestro cómo quedaría.'); }
     if(isParques() && /(ya soy cliente|corte de siempre|lo de siempre|cliente fijo)/.test(n)){ hShow([]); openParque(); setTimeout(() => { const f = document.querySelector('#pqView [data-pq="fijo"]'); if(f) f.click(); }, 50); return; }
     if(isParques() && /(presupuest|cotiz|cuanto (me )?(sale|cobr|cuesta)|jardin|parque|patio|pasto|cesped|terreno|metros|poda|podar|arbol|cerco|ligustro|maleza|yuyo|disen)/.test(n)){ hShow([]); openParque(); return hSpeak('¡Dale! Sacale una o dos fotos a tu parque, que se vea todo. Yo miro cuántos metros tiene, cómo está el pasto y las plantas, y te armo el presupuesto. Si querés, también te muestro cómo podría quedar.'); }
     if(hAskCaja && !hPending && /^(si|sii+|sip|dale|ok|okey|bueno|claro|de una|llevame|vamos|listo|a la caja|caja|por favor)\b/.test(n)){ hAskCaja = false; return hToCaja(); }
