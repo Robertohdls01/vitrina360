@@ -148,6 +148,33 @@ module.exports = async (req, res) => {
     }
 
     // ---- Fila pública de una tienda (número y nombre de pila) ----
+    // ---- App de cada tienda en el celular del cliente: ícono con el logo del negocio ----
+    if (req.method === 'GET' && (q.icono || q.manifest)) {
+      const slug = String(q.icono || q.manifest);
+      if (!/^[a-z0-9-]{3,40}$/.test(slug)) return res.status(400).end();
+      const rows = await db('GET', '/rest/v1/tiendas?slug=eq.' + slug + '&select=nombre,data,activa');
+      const t = rows && rows[0]; if (!t) return res.status(404).end();
+      const d = t.data || {}, st = (d.stores || [])[d.active || 0] || {}, br = st.brand || {};
+      const nom = String(br.name || t.nombre || 'Mi tienda').slice(0, 40);
+      const verde = br.preset === 'parques' || br.preset === 'casero';
+      const c1 = verde ? '#2e7d32' : '#6d28d9', c2 = verde ? '#66bb6a' : '#a855f7';
+      if (q.manifest) {
+        res.setHeader('Content-Type', 'application/manifest+json'); res.setHeader('Cache-Control', 'public, max-age=600');
+        return res.status(200).send(JSON.stringify({ name: nom, short_name: nom.slice(0, 14), id: '/t/' + slug, start_url: '/t/' + slug + '?app=1', scope: '/t/' + slug, display: 'standalone', orientation: 'portrait',
+          background_color: c1, theme_color: c1, lang: 'es', icons: [{ src: '/api/pedidos?icono=' + slug, sizes: '512x512', type: 'image/svg+xml', purpose: 'any' }, { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' }] }));
+      }
+      // el logo va adentro del ícono (un ícono no puede traer imágenes de otro lado)
+      let logo = '';
+      const L = String(br.logo || '');
+      if (/^data:image\/(png|jpeg|webp|svg\+xml);base64,/.test(L) && L.length < 600000) logo = L;
+      else if (/^https:\/\//.test(L)) { try { const r = await fetch(L); const ty = (r.headers.get('content-type') || '').split(';')[0];
+        if (r.ok && /^image\/(png|jpeg|webp)$/.test(ty)) { const buf = Buffer.from(await r.arrayBuffer()); if (buf.length < 450000) logo = 'data:' + ty + ';base64,' + buf.toString('base64'); } } catch (e) {} }
+      const ini = nom.split(/\s+/).filter(w => w.length > 2 || /\d/.test(w)).slice(0, 2).map(w => w[0]).join('').toUpperCase().replace(/[<>&"']/g, '') || '⚡';
+      const centro = logo ? `<rect x="56" y="56" width="400" height="400" rx="80" fill="#fff"/><image href="${logo}" x="76" y="76" width="360" height="360" preserveAspectRatio="xMidYMid meet"/>`
+        : `<circle cx="256" cy="246" r="170" fill="#fff" opacity=".96"/><text x="256" y="${ini.length > 1 ? 300 : 310}" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="${ini.length > 1 ? 150 : 180}" fill="${c1}">${ini}</text>`;
+      res.setHeader('Content-Type', 'image/svg+xml'); res.setHeader('Cache-Control', 'public, max-age=3600');
+      return res.status(200).send(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><rect width="512" height="512" rx="110" fill="url(#g)"/>${centro}</svg>`);
+    }
     // turnos ya reservados de una tienda (sin datos de nadie: solo día y hora)
     if (req.method === 'GET' && q.ocupados) {
       const slug = String(q.ocupados);

@@ -416,7 +416,7 @@
     bar.querySelector('[data-qr]').onclick = async () => {
       const loadQR = () => window.qrcode ? Promise.resolve() : new Promise((ok, ko) => { const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'; sc.onload = ok; sc.onerror = ko; document.head.appendChild(sc); });
       try{ await loadQR(); }catch(e){ alert(T('No se pudo armar el QR. Revisá tu conexión e intentá de nuevo.', 'Could not create the QR. Check your connection and try again.', 'Não foi possível criar o QR.')); return; }
-      const q = window.qrcode(0, 'M'); q.addData(link); q.make();
+      const q = window.qrcode(0, 'M'); q.addData(link + (link.includes('?') ? '&' : '?') + 'app=1'); q.make();
       const name = (document.getElementById('brandName') || {}).textContent || '';
       let ov = document.getElementById('qrOv'); if(ov) ov.remove();
       ov = document.createElement('div'); ov.id = 'qrOv';
@@ -431,7 +431,7 @@
 @media print{body>*:not(#qrOv){display:none!important}#qrOv{position:static;background:none;padding:0}#qrOv .qrc{box-shadow:none;max-width:none;margin:30px auto}#qrOv .qrb{display:none}#qrOv .qrq svg{max-width:380px}#qrOv .qrc h2{font-size:30px}#qrOv .qrc p{font-size:20px}}</style>
 <div class="qrc"><h2>${esc(name)}</h2><p>🛍 ${T('Escaneá y comprá online', 'Scan and shop online', 'Escaneie e compre online')}</p>
 <div class="qrq">${q.createSvgTag({cellSize: 6, margin: 2, scalable: true})}</div>
-<div class="qru">${esc(location.host + '/t/' + slug)}</div><div class="qrby">⚡ ShopFlash</div>
+<div class="qru">${esc(location.host + '/t/' + slug)}</div><p style="font-size:13px;color:#2e7d32;margin:6px 0 0">📲 ${T('Tus clientes escanean y se instalan tu tienda como app, con tu logo.', 'Customers scan and install your store as an app, with your logo.', 'Seus clientes escaneiam e instalam sua loja como app, com seu logo.')}</p><div class="qrby">⚡ ShopFlash</div>
 <div class="qrl"><b>🔗 ${T('Tu link para vender', 'Your store link', 'Seu link para vender')}</b><span>${esc(link)}</span>
 <div class="qrb"><button type="button" class="pri" data-qrc>📋 ${T('Copiar link', 'Copy link', 'Copiar link')}</button><a class="wa" data-qrw target="_blank" rel="noopener">💬 WhatsApp</a><button type="button" data-qrs hidden>📤 ${T('Compartir', 'Share', 'Compartilhar')}</button></div></div>
 <div class="qrb"><button type="button" class="pri" data-qrp>🖨 ${T('Imprimir', 'Print', 'Imprimir')}</button><button type="button" data-qrd>⬇ ${T('Guardar imagen', 'Save image', 'Salvar imagem')}</button><button type="button" data-qrx>✕ ${T('Cerrar', 'Close', 'Fechar')}</button></div></div>`;
@@ -849,6 +849,10 @@ body:not(.cartbig) .cartsheet .actions{gap:6px}
 .carttotal{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;font-size:18px;padding-top:6px}
 .carttotal .v{font:500 22px var(--mono);color:var(--accent)}
 .paybox[hidden]{display:none!important}
+#appOv{position:fixed;left:10px;right:10px;bottom:12px;z-index:130;display:flex;justify-content:center}
+#appOv .appc{width:min(460px,100%);display:flex;gap:12px;align-items:flex-start;background:var(--surface,#fff);color:var(--ink,#111);border:1px solid var(--line,#ddd);border-radius:18px;padding:14px;box-shadow:0 18px 40px -12px rgba(0,0,0,.45)}
+#appOv img{border-radius:14px;flex:none}#appOv .appc>div{display:grid;gap:4px}#appOv span{font-size:14px;color:var(--muted,#555)}#appOv .appi{margin:4px 0 0;font-size:14px}
+#appOv .appb{display:flex;gap:8px;margin-top:6px}#appOv button{border:1px solid var(--line,#ddd);background:var(--bg,#fff);color:inherit;border-radius:999px;padding:8px 14px;font:600 14px var(--body,system-ui);cursor:pointer}#appOv button.pri{background:#2e7d32;color:#fff;border-color:#2e7d32}
 #pqView{position:fixed;inset:0;z-index:125;background:rgba(12,10,20,.72);display:grid;place-items:center;padding:14px}
 #pqView[hidden]{display:none}
 #pqView .tv{width:min(520px,100%);max-height:calc(100dvh - 28px);overflow:auto;background:var(--surface);color:var(--ink);border-radius:20px;padding:18px;display:grid;gap:12px;box-shadow:0 30px 70px -20px rgba(0,0,0,.5)}
@@ -6826,6 +6830,35 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     for(const f of fs){ const u = URL.createObjectURL(f); const d = await tryShrink(u); URL.revokeObjectURL(u); if(d && /^data:/.test(d)) pqFotos.push(d); }
     pqFotosRender(); e.target.value = '';
   });
+  // ---- La tienda como app en el celular del cliente: ícono con el logo del negocio (escanea el QR y la instala) ----
+  if(PUBLIC && window.VITRINA_SLUG){
+    const sl = window.VITRINA_SLUG, KN = 'v360-app-no-' + sl;
+    { const l = document.createElement('link'); l.rel = 'manifest'; l.href = '/api/pedidos?manifest=' + encodeURIComponent(sl); document.head.appendChild(l); }
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+    let BIP = null; addEventListener('beforeinstallprompt', e => { e.preventDefault(); BIP = e; });
+    const STAND = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+    let vis = 0; try{ vis = (+localStorage.getItem('v360-visitas-' + sl) || 0) + 1; localStorage.setItem('v360-visitas-' + sl, vis); }catch(e){}
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const appSheet = () => {
+      if(document.getElementById('appOv')) return;
+      const nom = storeName(), ov = document.createElement('div'); ov.id = 'appOv';
+      ov.innerHTML = `<div class="appc"><img src="/api/pedidos?icono=${encodeURIComponent(sl)}" alt="" width="64" height="64"><div><b>📲 Tené ${esc(nom)} en tu celular</b><span>${esc(isParques() ? 'Para pedir presupuesto y reservar tu turno más rápido la próxima vez.' : 'Para pedir más rápido la próxima vez, con un toque.')}</span>
+        <p class="appi" hidden></p><div class="appb"><button type="button" class="pri" data-app="si">Instalar</button><button type="button" data-app="no">Ahora no</button></div></div></div>`;
+      document.body.appendChild(ov);
+      ov.onclick = async e => { const b = e.target.closest('[data-app]'); if(!b) return;
+        if(b.dataset.app === 'no'){ try{ localStorage.setItem(KN, Date.now()); }catch(err){} ov.remove(); return; }
+        if(BIP){ BIP.prompt(); try{ await BIP.userChoice; }catch(err){} BIP = null; ov.remove(); return; }
+        const i = ov.querySelector('.appi'); i.hidden = false;
+        i.innerHTML = ios ? 'En iPhone: tocá <b>Compartir</b> ⬆️ abajo y después <b>“Agregar a inicio”</b> ➕.' : 'Tocá el menú del navegador <b>⋮</b> y después <b>“Instalar app”</b> o <b>“Agregar a la pantalla principal”</b>.'; };
+    };
+    window.v360App = appSheet;
+    setTimeout(() => {
+      try{ const L0 = String(brand.logo || ''); if(/^https:\/\//.test(L0) && !/\.svg/i.test(L0)){ const a = document.createElement('link'); a.rel = 'apple-touch-icon'; a.href = L0; document.head.appendChild(a); }
+        const m = document.querySelector('meta[name="apple-mobile-web-app-title"]'); if(m) m.content = storeName().slice(0, 30); }catch(e){}
+      let no = 0; try{ no = +localStorage.getItem(KN) || 0; }catch(e){}
+      if(!STAND && (new URLSearchParams(location.search).has('app') || vis >= 2) && Date.now() - no > 7 * 864e5) appSheet();
+    }, 7000);
+  }
   // botón fijo en las tiendas de parquería
   setInterval(() => { let b = document.getElementById('pqFab'); const on = isParques() && (PUBLIC || document.body.classList.contains('clientmode'));
     if(on && !b){ b = document.createElement('button'); b.id = 'pqFab'; b.type = 'button'; b.className = 'pqfab'; b.textContent = '🌿 Presupuesto de mi parque'; b.onclick = openParque; document.body.appendChild(b); }
