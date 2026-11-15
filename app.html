@@ -7909,7 +7909,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const slugNow = () => window.VITRINA_SLUG || (window.VITRINA_ME && window.VITRINA_ME.slug) || '';
     let data = null;
     const ov = html => { let o = document.getElementById('revOv'); if(o) o.remove(); o = document.createElement('div'); o.id = 'revOv'; o.className = 'revov'; o.innerHTML = `<div class="rvb" role="dialog" aria-modal="true">${html}</div>`; o.onclick = e => { if(e.target === o) o.remove(); }; document.body.appendChild(o); return o; };
-    const qrOk = () => !brand.revOff && (brand.revQr || (brand.preset === 'informal' && !brand.revQrNo));
+    const qrOk = () => !brand.revOff && !brand.revQrNo;   // opinar con el QR del cartelito: viene activado en todas las tiendas
     const ggBtn = () => gLink() ? `<a class="gg" href="${esc(gLink())}" target="_blank" rel="noopener">⭐ ${esc(L('Dejá tu reseña en Google', 'Review us on Google', 'Avalie no Google'))}</a>` : '';
     const paintChip = () => {
       if(brand.revOff){ chip.hidden = true; return; }
@@ -7985,8 +7985,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(!PUBLIC){
       const gi = $('b-greview'), tg = $('revTog'), adm = $('revAdmin'), tq = $('revQrTog');
       const mark = () => { tg.setAttribute('aria-pressed', String(!brand.revOff)); gi.value = brand.googleReview || ''; tq.setAttribute('aria-pressed', String(qrOk())); };
-      tq.onclick = () => { if(qrOk()){ brand.revQr = false; if(brand.preset === 'informal') brand.revQrNo = true; } else { brand.revQr = true; delete brand.revQrNo; } save(); mark(); };
-      $('revCartel').onclick = () => { if(!qrOk()){ brand.revQr = true; save(); mark(); } window.v360Cartel(false); }; $('revCartelChico').onclick = () => { if(!qrOk()){ brand.revQr = true; save(); mark(); } window.v360Cartel(10); }; $('revCartel8').onclick = () => { if(!qrOk()){ brand.revQr = true; save(); mark(); } window.v360Cartel(8); };
+      tq.onclick = () => { if(qrOk()) brand.revQrNo = true; else delete brand.revQrNo; save(); mark(); };
+      $('revCartel').onclick = () => { if(!qrOk()){ delete brand.revQrNo; save(); mark(); } window.v360Cartel(false); }; $('revCartelChico').onclick = () => { if(!qrOk()){ delete brand.revQrNo; save(); mark(); } window.v360Cartel(10); }; $('revCartel8').onclick = () => { if(!qrOk()){ delete brand.revQrNo; save(); mark(); } window.v360Cartel(8); };
       const hb = $('hoyBox'), hoyMark = () => { hb.hidden = brand.preset !== 'informal'; const h = brand.hoy; $('hoyTx').value = h && Date.now() - h.t < 864e5 ? h.tx || '' : ''; $('hoyMsg').textContent = h && Date.now() - h.t < 864e5 ? '✅ Tus clientes ven: “' + (h.tx || 'Hoy estoy acá') + '”' + (h.lat ? ' con el mapa' : '') : ''; };
       $('hoyTx').addEventListener('change', e => { const v = e.target.value.trim(); brand.hoy = Object.assign({}, brand.hoy || {}, {tx: v.slice(0, 120), t: Date.now()}); if(!v && !(brand.hoy || {}).lat) delete brand.hoy; save(); hoyMark(); });
       $('hoyOff').onclick = () => { delete brand.hoy; save(); hoyMark(); $('hoyMsg').textContent = 'Listo: hoy no aparece ningún lugar.'; };

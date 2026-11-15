@@ -160,7 +160,7 @@ module.exports = async (req, res) => {
       const t = rows && rows[0];
       if (!t || t.activa === false) return res.status(404).json({ error: 'Esta tienda no está disponible.' });
       const d = t.data || {}, br = ((d.stores || [])[d.active || 0] || {}).brand || {};
-      if (!(br.revQr || (br.preset === 'informal' && !br.revQrNo)) || br.revOff) return res.status(403).json({ error: 'Este negocio no recibe opiniones por QR.' });
+      if (br.revQrNo || br.revOff) return res.status(403).json({ error: 'Este negocio no recibe opiniones por QR.' });
       // freno a las opiniones falsas: una por celular/conexión cada 7 días y como mucho 40 por día en cada puesto
       const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'x';
       const hip = crypto.createHash('sha256').update(slug + '|' + ip + '|' + String(req.headers['user-agent'] || '')).digest('hex').slice(0, 16);
