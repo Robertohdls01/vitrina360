@@ -31,6 +31,10 @@
     {
       "source": "/parques",
       "destination": "/parques.html"
+    },
+    {
+      "source": "/provideo",
+      "destination": "/provideo.html"
     }
   ],
   "functions": {
