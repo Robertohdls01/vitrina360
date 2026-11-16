@@ -7262,6 +7262,9 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     pqFotosRender(); e.target.value = '';
     if((ofi() || OFI_BASE).id !== 'parques'){ clearTimeout(window.__pqQT); window.__pqQT = setTimeout(pqPreguntar, 1200); }
   });
+  // si el cliente cuenta algo que no se ve en la foto (ej: "está tapado por dentro"), la IA vuelve a preguntar con eso en cuenta
+  document.addEventListener('change', e => { if(e.target.id !== 'pqQuiere' || (ofi() || OFI_BASE).id === 'parques' || !pqFotos.length) return;
+    const v = e.target.value.trim(); if(v.length < 8 || v === window.__pqQLast) return; window.__pqQLast = v; clearTimeout(window.__pqQT); window.__pqQT = setTimeout(pqPreguntar, 300); });
   // ---- La tienda como app en el celular del cliente: ícono con el logo del negocio (escanea el QR y la instala) ----
   if(PUBLIC && window.VITRINA_SLUG){
     const sl = window.VITRINA_SLUG, KN = 'v360-app-no-' + sl;

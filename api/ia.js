@@ -357,7 +357,7 @@ async function parqueIA(res, KEY, b, req) {
   if (b.modo === 'preguntas' && OF) {
     const quiere0 = String(b.quiere || '').slice(0, 300);
     const pr = `Sos ${OF.rol}. Un cliente te manda ${ims.length > 1 ? ims.length + ' fotos' : 'una foto'} de ${OF.foto}.${quiere0 ? ' Cuenta: "' + quiere0 + '".' : ''}
-NO des precios ni presupuesto: el precio lo pone el profesional. Tu tarea es mirar la foto y hacerle al cliente las preguntas que el profesional le haría para poder presupuestar bien (por ejemplo: si quiere cambiar todo o arreglar solo esa parte, medidas, materiales, acceso, si sigue perdiendo, etc.). Preguntas cortas, sobre lo que se ve en la foto, cada una con 2 a 4 respuestas cortas para tocar.
+NO des precios ni presupuesto: el precio lo pone el profesional. Tu tarea es mirar la foto y hacerle al cliente las preguntas que el profesional le haría para poder presupuestar bien (por ejemplo: si quiere cambiar todo o arreglar solo esa parte, medidas, materiales, acceso, si sigue perdiendo, etc.). Preguntas cortas sobre lo que se ve en la foto Y sobre lo que cuenta el cliente: si el problema no se ve en la foto (por ejemplo un caño tapado por dentro, una falla eléctrica, un ruido), preguntá lo que hace falta saber (tamaño o diámetro del caño, cuántos metros, desde cuándo pasa, si ya probó algo, dónde está). Cada pregunta con 2 a 4 respuestas cortas para tocar.
 Fijate en:
 ${OF.guia}
 Respondé en español rioplatense (con "vos") y SOLO con JSON válido:
