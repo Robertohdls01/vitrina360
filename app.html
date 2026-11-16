@@ -6854,19 +6854,19 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       saludo: '¿Qué necesitás? Pasame una foto del equipo o del ambiente y te digo más o menos cuánto sale: instalación, service o reparación.',
       chips: [['❄️ Instalar un aire', 'presupuesto instalar aire'], ['🧼 Service o limpieza', 'presupuesto service de aire'], ['🔧 No enfría', 'presupuesto el aire no enfria']],
       kw: /aire|split|enfria|frigor|calefaccion/},
-    volquete: {em: '🚛', t: 'Presupuesto de volquete', pro: 'la empresa', visita: false, ej: 'Ej: escombros de un baño, lo necesito el lunes', fab: '🚛 Pedí tu volquete',
+    volquete: {directo: true, em: '🚛', t: 'Presupuesto de volquete', pro: 'la empresa', visita: false, ej: 'Ej: escombros de un baño, lo necesito el lunes', fab: '🚛 Pedí tu volquete',
       foto: 'Sacale 1 a 3 fotos a lo que hay que llevarse (escombros, tierra, ramas, muebles) y al lugar donde iría el contenedor (vereda o entrada).', wait: 'La IA está calculando cuánto hay para llevar…', lema: 'Volquetes · Contenedores · Retiro de escombros',
       add: [['💪 Sumar carga con personal', 'que lo carguen ellos'], ['📆 Más días', 'dejarlo más días']],
       saludo: '¿Qué tenés para tirar? Pasame una foto de los escombros o de lo que hay que llevarse y te digo cuántos volquetes necesitás y cuánto sale.',
       chips: [['🧱 Escombros de obra', 'presupuesto volquete escombros'], ['🌿 Ramas y poda', 'presupuesto volquete ramas'], ['🛋 Muebles y cosas viejas', 'presupuesto volquete muebles']],
       kw: /volquete|contenedor|escombro|retiro|tirar|basura/},
-    tecnico: {em: '📱', t: 'Presupuesto de reparación', pro: 'el técnico', opc: '💡 ¿Qué me conviene?', ej: 'Ej: Samsung A32, se cayó y se rompió la pantalla', fab: '📱 Presupuesto de reparación',
+    tecnico: {directo: true, em: '📱', t: 'Presupuesto de reparación', pro: 'el técnico', opc: '💡 ¿Qué me conviene?', ej: 'Ej: Samsung A32, se cayó y se rompió la pantalla', fab: '📱 Presupuesto de reparación',
       foto: 'Sacale 1 a 3 fotos al equipo (celular, notebook, PC, tele): la falla de cerca y una de lejos. Si se ve la marca o el modelo, mejor. Contá abajo qué le pasa.', wait: 'La IA está mirando tu equipo: qué modelo es y qué falla…', lema: 'Celulares · Computadoras · TV · Electrónica',
       add: [['🔋 Sumar cambio de batería', 'cambiar también la batería'], ['🛡 Sumar vidrio templado y funda', 'agregar vidrio templado y funda']],
       saludo: '¿Qué equipo hay que arreglar? Pasame una foto y contame qué le pasa, y te digo más o menos cuánto sale: celulares, computadoras, teles y electrónica.',
       chips: [['📱 Pantalla rota', 'presupuesto pantalla rota'], ['🔋 No carga o dura poco', 'presupuesto no carga'], ['💻 Computadora lenta o no prende', 'presupuesto computadora'], ['📺 Tele o electrónica', 'presupuesto tele']],
       kw: /celular|telefono|pantalla|modulo|bateria|carga|notebook|compu|computadora|pc|tele|televisor|tablet|consola|mojo|no prende|lento|virus/},
-    afilador: {em: '🔪', t: 'Presupuesto de afilado', pro: 'el afilador', visita: false, ej: 'Ej: 5 cuchillos y 2 tijeras, paso por tu casa el sábado', fab: '🔪 Presupuesto de afilado',
+    afilador: {directo: true, em: '🔪', t: 'Presupuesto de afilado', pro: 'el afilador', visita: false, ej: 'Ej: 5 cuchillos y 2 tijeras, paso por tu casa el sábado', fab: '🔪 Presupuesto de afilado',
       foto: 'Sacale una foto a todo lo que querés afilar, juntito sobre la mesa: cuchillos, tijeras, alicates, herramientas.', wait: 'La IA está contando tus cuchillos y tijeras…', lema: 'Cuchillos · Tijeras · Herramientas',
       add: [['✂️ Sumar tijeras o alicates', 'afilar también tijeras o alicates'], ['🪓 Sumar herramientas de jardín', 'afilar también herramientas de jardín']],
       saludo: '¿Qué querés afilar? Pasame una foto de los cuchillos, tijeras o herramientas y te digo ya cuánto sale. Paso por tu casa o me los traés.',
@@ -6973,11 +6973,13 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     volquete: [['¿Qué vas a tirar?', ['Escombro', 'Restos de poda', 'Muebles y trastos', 'Mezcla']], ['¿Por cuántos días?', ['1 a 3', 'Una semana', 'Más']]],
     afilador: [['¿Qué hay que afilar?', ['Cuchillos', 'Tijeras', 'Herramientas', 'Cortadora de pasto']], ['¿Cuántos más o menos?', ['1 a 5', '6 a 15', 'Más de 15']]]
   };
+  // oficios con precios estándar (pantalla de celular, afilado, volquete): la IA da el precio con los precios que cargó, como el parquero
+  const pqIA = () => { const O = ofi() || OFI_BASE; return O.id === 'parques' || !!O.directo; };
   let pqAIQs = null, pqAIVeo = '', pqAISeg = '', pqAIBusy = false;
   const ofiQs = () => { const O = ofi() || OFI_BASE; return (pqAIQs && pqAIQs.length ? pqAIQs : (OFI_Q[O.id] || [])).concat(OFI_Q_GEN); };
   const pqQsHTML = () => { const O = ofi() || OFI_BASE; return `${pqAIBusy ? '<p class="note" style="margin:0">🤖 Estoy mirando tus fotos para preguntarte lo justo…</p>' : ''}${pqAIVeo ? `<p style="margin:0">🤖 <b>Veo:</b> ${esc(pqAIVeo)}</p>` : ''}${pqAISeg ? `<p style="margin:0;color:#b91c1c">⚠️ ${esc(pqAISeg)}</p>` : ''}<b>📋 ${pqAIQs && pqAIQs.length ? 'Unas preguntas sobre tus fotos' : 'Unas preguntas rápidas'} (así ${esc(O.pro)} no te tiene que preguntar)</b>${ofiQs().map(([p, ops], i) => `<div style="display:grid;gap:4px"><span class="note" style="color:var(--ink)">${esc(p)}</span><div class="pqchips">${ops.map(o => `<button class="btn" type="button" data-pqqa="${i}">${esc(o)}</button>`).join('')}</div></div>`).join('')}`; };
   async function pqPreguntar(){
-    const O = ofi() || OFI_BASE; if(!pqFotos.length || O.id === 'parques' || pqAIBusy) return;
+    const O = ofi() || OFI_BASE; if(!pqFotos.length || pqIA() || pqAIBusy) return;
     pqAIBusy = true; const box = $('pqQs'); if(box) box.innerHTML = pqQsHTML();
     try{ const r = await fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({parque: 1, modo: 'preguntas', slug: window.VITRINA_SLUG || (window.VITRINA_ME || {}).slug || '', images: pqFotos.map(f => ({type: 'image/jpeg', data: f.split(',')[1]})), quiere: ($('pqQuiere') || {}).value || ''})});
       const j = await r.json().catch(() => ({}));
@@ -6992,12 +6994,12 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     let ov = document.getElementById('pqView');
     if(!ov){ ov = document.createElement('div'); ov.id = 'pqView'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); document.body.appendChild(ov); }
     let ult = null; try{ ult = JSON.parse(localStorage.getItem('pq-ultimo-' + (window.VITRINA_SLUG || '')) || 'null'); }catch(e){}
-    const O = ofi() || OFI_BASE, pq = O.id === 'parques';
+    const O = ofi() || OFI_BASE, pq = O.id === 'parques', ia = pqIA();
     ov.innerHTML = `<div class="tv"><h2>${O.em || '📷'} ${esc(O.t)}</h2>
       ${O.urg && !pqRes ? `<div class="pqbox" style="background:color-mix(in srgb,#ef4444 9%,var(--surface))"><b>${esc(O.urg)}</b><span class="note">${esc(O.urgTip)}</span>${waNumber() ? `<a class="btn wa" style="justify-self:start" href="${esc(waHref('🚨 URGENTE: ' + O.urg.replace(/^🚨\s*/, '') + '. ¿Podés venir lo antes posible?'))}" target="_blank" rel="noopener">💬 Avisar ya por WhatsApp</a>` : ''}</div>` : ''}
       ${pqRes || !pq ? '' : `<div class="pqbox" style="background:color-mix(in srgb,#0ea5e9 7%,var(--surface))"><b>📅 ¿Ya sos cliente?</b><span class="note">${ult ? `Reservá tu corte de siempre (${esc(ult.trabajos.map(x => x.titulo).join(', ').slice(0, 90))}) sin sacar fotos.` : 'Si el parquero ya conoce tu parque, reservá tu turno directo, sin fotos.'}</span><button class="btn primary" type="button" data-pq="fijo" style="justify-self:start">📅 Reservar mi corte de siempre</button></div>`}
-      ${pq ? '' : `<div class="pqbox" style="background:color-mix(in srgb,#0ea5e9 8%,var(--surface))"><b>🤖 Yo recopilo toda la información</b><span class="note">Tus fotos, lo que me contás y tus respuestas. Se lo paso todo junto ${esc(O.pro.replace(/^el /, 'al ').replace(/^la /, 'a la '))} para que te arme tu presupuesto o se comunique con vos.</span></div>`}
-      <p style="margin:0">${esc(pq ? O.foto : O.foto.replace(/1 a 3 fotos/g, 'hasta 4 fotos').replace(/ Contá abajo qué pasa\.?/, ''))}</p>
+      ${ia ? '' : `<div class="pqbox" style="background:color-mix(in srgb,#0ea5e9 8%,var(--surface))"><b>🤖 Yo recopilo toda la información</b><span class="note">Tus fotos, lo que me contás y tus respuestas. Se lo paso todo junto ${esc(O.pro.replace(/^el /, 'al ').replace(/^la /, 'a la '))} para que te arme tu presupuesto o se comunique con vos.</span></div>`}
+      <p style="margin:0">${esc(ia ? O.foto : O.foto.replace(/1 a 3 fotos/g, 'hasta 4 fotos').replace(/ Contá abajo qué pasa\.?/, ''))}</p>
       <div class="pqfotos" id="pqFotos"></div>
       <label class="btn primary" style="justify-self:start">📷 ${pqFotos.length ? 'Agregar otra foto' : 'Sacar o elegir fotos'}<input type="file" accept="image/*" multiple class="vh" id="pqFile"></label>
       <div class="pqbox" ${O.m2 ? '' : 'hidden'}><b>📐 ${esc(O.m2t)} <span class="note">(opcional, si lo sabés)</span></b>
@@ -7005,8 +7007,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         <div id="pqMapBox" hidden><div class="row" style="gap:6px;margin:6px 0"><input id="pqDir" placeholder="Tu dirección (calle y número, ciudad)" style="flex:1"><button class="btn" type="button" data-pq="buscar">Buscar</button></div>
           <div id="pqMapa" style="height:280px;border-radius:12px"></div><p class="note" style="margin:4px 0" id="pqMapTx">Tocá las esquinas de tu parque en el mapa. Se calcula solo.</p>
           <div class="row" style="gap:6px"><button class="btn" type="button" data-pq="deshacer">↩ Deshacer</button><button class="btn" type="button" data-pq="borrar">🗑 Borrar</button></div></div></div>
-      ${pq ? `<label class="note" style="display:grid;gap:4px">¿Qué querés hacer? (opcional)<input id="pqQuiere" maxlength="200" placeholder="${esc(O.ej)}"></label>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" data-pq="analizar" id="pqGo" ${pqFotos.length ? '' : 'disabled'}>🤖 Armar mi presupuesto con IA</button><button class="btn" type="button" data-pq="opciones" id="pqOpt" ${pqFotos.length ? '' : 'disabled'}>💡 ¿Qué me recomendás? Ver 3 opciones</button></div>` : `${(window.SpeechRecognition || window.webkitSpeechRecognition) ? `<div class="pqbox" style="background:color-mix(in srgb,#7c3aed 7%,var(--surface))"><b>🎤 Contame qué pasa, hablando</b><span class="note">Es lo más fácil: tocá el botón y contame todo (qué pasa, dónde, medidas). Yo lo anoto.</span><button class="btn primary" type="button" data-pq="hablar" id="pqMicB" style="justify-self:start;font-size:17px;padding:12px 20px">🎤 Tocá y hablá</button><span class="note" id="pqMicTx"></span></div>` : ''}
+      ${ia ? `<label class="note" style="display:grid;gap:4px">¿Qué querés hacer? ${pq ? '(opcional)' : '(ej: cambiar la pantalla)'}<input id="pqQuiere" maxlength="200" placeholder="${esc(O.ej)}"></label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" data-pq="analizar" id="pqGo" ${pqFotos.length ? '' : 'disabled'}>🤖 Armar mi presupuesto con IA</button><button class="btn" type="button" data-pq="opciones" id="pqOpt" ${pqFotos.length ? '' : 'disabled'}>${pq ? '💡 ¿Qué me recomendás? Ver 3 opciones' : esc(O.opc)}</button></div>` : `${(window.SpeechRecognition || window.webkitSpeechRecognition) ? `<div class="pqbox" style="background:color-mix(in srgb,#7c3aed 7%,var(--surface))"><b>🎤 Contame qué pasa, hablando</b><span class="note">Es lo más fácil: tocá el botón y contame todo (qué pasa, dónde, medidas). Yo lo anoto.</span><button class="btn primary" type="button" data-pq="hablar" id="pqMicB" style="justify-self:start;font-size:17px;padding:12px 20px">🎤 Tocá y hablá</button><span class="note" id="pqMicTx"></span></div>` : ''}
       <label class="note" style="display:grid;gap:4px"><b style="color:var(--ink)">✍️ ${(window.SpeechRecognition || window.webkitSpeechRecognition) ? 'O escribilo acá' : 'Contá todo lo que querés hacer'}</b>Qué está roto o qué querés cambiar, y cómo lo querés (${esc(O.ej.replace(/^Ej: /, 'ej: '))}).<textarea id="pqQuiere" maxlength="800" rows="4" placeholder="${esc(O.ej)}"></textarea></label>
       <div class="pqbox" id="pqQs">${pqQsHTML()}</div>
       <div class="pqbox"><b>📅 ¿Qué día y horario te queda bien para que venga ${esc(O.pro)}? <span class="note">(opcional)</span></b><span class="note">Estos son los días y horarios libres de su agenda. Él te confirma cuando te pasa el presupuesto.</span><div id="pqAgenda">${pqAgendaHTML()}</div></div>
@@ -7029,7 +7031,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       <p class="note" style="margin:0">🔒 Tus fotos no se guardan: se usan solo para armar el presupuesto. Es una estimación: el precio final lo confirma ${esc(O.pro)}.</p>
       <button class="btn" type="button" data-pq="cerrar">Cerrar</button></div>`;
     ov.hidden = false; pqFotosRender(); pqTotal();
-    if(!pq && !pqRes && !window.__pqOcupOk){ window.__pqOcupOk = true; pqCargarOcupados().then(() => { const ag = $('pqAgenda'); if(ag) ag.innerHTML = pqAgendaHTML(); }).catch(() => {}); }
+    if(!ia && !pqRes && !window.__pqOcupOk){ window.__pqOcupOk = true; pqCargarOcupados().then(() => { const ag = $('pqAgenda'); if(ag) ag.innerHTML = pqAgendaHTML(); }).catch(() => {}); }
   }
   function pqFotosRender(){ const b = $('pqFotos'); if(!b) return; b.innerHTML = pqFotos.map((f, i) => `<span><img src="${f}" alt="Foto ${i + 1}"><button type="button" data-pqx="${i}" aria-label="Sacar foto">✕</button></span>`).join(''); const g = $('pqGo'); if(g) g.disabled = !pqFotos.length; const o = $('pqOpt'); if(o) o.disabled = !pqFotos.length; }
   async function pqMedir(){
@@ -7278,13 +7280,13 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(e.target.id === 'pqL' || e.target.id === 'pqA'){ const l = +$('pqL').value || 0, a = +$('pqA').value || 0; if(l && a){ pqM2 = Math.round(l * a); $('pqM2').value = pqM2; pqTotal(); } }
   });
   document.addEventListener('change', async e => {
-    if(e.target.id !== 'pqFile') return; const fs = [...(e.target.files || [])].slice(0, ((ofi() || OFI_BASE).id === 'parques' ? 3 : 4) - pqFotos.length);
+    if(e.target.id !== 'pqFile') return; const fs = [...(e.target.files || [])].slice(0, (pqIA() ? 3 : 4) - pqFotos.length);
     for(const f of fs){ const u = URL.createObjectURL(f); const d = await tryShrink(u); URL.revokeObjectURL(u); if(d && /^data:/.test(d)) pqFotos.push(d); }
     pqFotosRender(); e.target.value = '';
-    if((ofi() || OFI_BASE).id !== 'parques'){ clearTimeout(window.__pqQT); window.__pqQT = setTimeout(pqPreguntar, 1200); }
+    if(!pqIA()){ clearTimeout(window.__pqQT); window.__pqQT = setTimeout(pqPreguntar, 1200); }
   });
   // si el cliente cuenta algo que no se ve en la foto (ej: "está tapado por dentro"), la IA vuelve a preguntar con eso en cuenta
-  document.addEventListener('change', e => { if(e.target.id !== 'pqQuiere' || (ofi() || OFI_BASE).id === 'parques' || !pqFotos.length) return;
+  document.addEventListener('change', e => { if(e.target.id !== 'pqQuiere' || pqIA() || !pqFotos.length) return;
     const v = e.target.value.trim(); if(v.length < 8 || v === window.__pqQLast) return; window.__pqQLast = v; clearTimeout(window.__pqQT); window.__pqQT = setTimeout(pqPreguntar, 300); });
   // ---- La tienda como app en el celular del cliente: ícono con el logo del negocio (escanea el QR y la instala) ----
   if(PUBLIC && window.VITRINA_SLUG){
