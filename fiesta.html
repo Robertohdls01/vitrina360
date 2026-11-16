@@ -77,12 +77,28 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .prox{background:var(--bg);border-radius:14px;padding:10px 12px;margin:8px 0;font-size:16px}
 .toast{position:fixed;left:12px;right:12px;top:12px;z-index:20;background:var(--ac);color:#fff;border-radius:18px;padding:16px 18px;font:700 20px/1.35 var(--sans);box-shadow:0 12px 30px rgba(0,0,0,.3);display:none}
 .toast.on{display:block;animation:baja .35s ease}.toast small{display:block;font:500 14px var(--sans);opacity:.9;margin-top:6px}
+#fl{position:fixed;right:10px;bottom:12px;z-index:15;display:none;flex-direction:column;align-items:flex-end;gap:8px;max-width:calc(100vw - 20px)}
+#fl.on{display:flex}
+#flav{width:74px;height:96px;cursor:pointer;filter:drop-shadow(0 6px 10px rgba(0,0,0,.25));animation:flvive 2s ease-in-out infinite}
+#flav svg{width:100%;height:100%}#fl.habla #flav{animation:flhabla .25s ease-in-out infinite alternate}
+@keyframes flvive{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-8px) rotate(-4deg)}60%{transform:translateY(0) rotate(3deg)}80%{transform:translateY(-4px)}}
+@keyframes flhabla{from{transform:translateY(0) scale(1)}to{transform:translateY(-4px) scale(1.04)}}
+.flwave{transform-origin:10px 70px;animation:flw 1.2s ease-in-out infinite alternate}@keyframes flw{from{transform:rotate(-20deg)}to{transform:rotate(25deg)}}
+#flb{display:none;background:#fff;color:#1f2937;border-radius:20px 20px 6px 20px;padding:14px;width:min(340px,calc(100vw - 20px));box-shadow:0 14px 34px rgba(0,0,0,.25);font:600 18px/1.35 var(--sans)}
+#flb.on{display:block;animation:baja .3s ease}
+#flb .tx{margin-bottom:10px}#flb .ops{display:flex;flex-wrap:wrap;gap:8px}
+#flb .op{border:0;border-radius:999px;padding:11px 14px;font:700 16px var(--sans);background:var(--ac);color:#fff;cursor:pointer}
+#flb .op.alt{background:#f3f4f6;color:#1f2937}
+#flb .esc{display:flex;gap:6px;margin-top:10px}#flb .esc input{flex:1;font:16px var(--sans);padding:10px;border-radius:12px;border:1.5px solid #e5e7eb;min-width:0}
+#flb .esc button{border:0;border-radius:12px;background:#f3f4f6;font-size:20px;width:46px;cursor:pointer}
+#flb .cerrar{float:right;border:0;background:none;font-size:20px;color:#9ca3af;cursor:pointer;margin:-6px -4px 0 6px}
 @keyframes baja{from{transform:translateY(-120%)}to{transform:none}}
 </style>
 </head>
 <body>
 <div class="wrap" id="app"><div class="carga">Abriendo tu invitación… 💌</div></div>
 <div class="toast" id="toast"></div>
+<div id="fl"><div id="flb"></div><div id="flav" aria-label="Flashy, tu asistente"><svg viewBox="0 0 80 110" aria-hidden="true" class="flsvg"><ellipse cx="40" cy="106" rx="20" ry="4" fill="rgba(0,0,0,.18)"/><defs><radialGradient id="flhg" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fde68a"/><stop offset=".6" stop-color="#facc15"/><stop offset="1" stop-color="#eab308"/></radialGradient></defs><path d="M42 4 31 24h10l-5 13 15-20H40l7-13z" fill="#16a34a" stroke="#14532d" stroke-width="2" stroke-linejoin="round"/><circle cx="40" cy="64" r="32" fill="url(#flhg)" stroke="#ca8a04" stroke-width="2.5"/><g class="heyes"><ellipse cx="29" cy="59" rx="5.5" ry="7.5" fill="#1f2937"/><ellipse cx="51" cy="59" rx="5.5" ry="7.5" fill="#1f2937"/><circle cx="31" cy="56" r="2.2" fill="#fff"/><circle cx="53" cy="56" r="2.2" fill="#fff"/></g><circle cx="20" cy="72" r="5" fill="#fb7185" opacity=".55"/><circle cx="60" cy="72" r="5" fill="#fb7185" opacity=".55"/><g class="hmouth" style="transform-origin:40px 76px"><path d="M30 74q10 11 20 0" fill="#7f1d1d" stroke="#1f2937" stroke-width="2.4" stroke-linecap="round"/><path d="M34 78q6 3.5 12 0" fill="#fb7185"/></g><path d="M10 70q-8-6-4-16" stroke="#ca8a04" stroke-width="4" fill="none" stroke-linecap="round" class="flwave"/></svg></div></div>
 <div class="modal" id="modal"><div class="in" id="modalIn"></div></div>
 <script>
 const $ = s => document.querySelector(s);
@@ -200,7 +216,7 @@ function momentos() { // cada momento del cronograma con su hora real (los de de
   const base = Date.parse(F.fecha + 'T00:00:00-03:00'), h0 = minDe(F.hora || '21:00') - 120, at = (F.atraso || 0) * 60e3;
   return F.crono.map(x => { let m = minDe(x.h); if (m < h0) m += 1440; const ts = base + m * 60e3 + at; return {h: x.h, nombre: x.t, a: x.a, ts, aviso: ts - (x.m || 0) * 60e3}; }).sort((a, b) => a.ts - b.ts);
 }
-const hhmm = t => new Date(t).toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires'});
+const hhmm = t => new Date(t).toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Argentina/Buenos_Aires'});
 const EST = p => p.estado === 'entregado' ? '✅ Entregado' : p.estado === 'cancelado' ? '❌ Cancelado' : p.estado === 'camino' ? `🚶 Ya va ${p.moza ? esc(p.moza) : 'la moza'} a tu mesa` : p.moza ? `👩 ${esc(p.moza)} te lo va a llevar` : '📝 Recibido, ya te lo preparan';
 function pVivo() {
   const el = $('#vivo'); if (!el) return;
@@ -239,6 +255,7 @@ let tq = null;
 function toast(t, sub, fuerte) {
   const el = $('#toast'); el.innerHTML = esc(t) + (sub ? `<small>${esc(sub)}</small>` : ''); el.classList.add('on'); clearTimeout(tq); tq = setTimeout(() => el.classList.remove('on'), fuerte ? 12000 : 6000);
   el.onclick = () => el.classList.remove('on');
+  if (FL && !document.hidden) flHablar(t);
   if (navigator.vibrate) navigator.vibrate(fuerte ? [300, 150, 300, 150, 300] : [120, 80, 120]);
   try { const c = new (window.AudioContext || window.webkitAudioContext)(), o = c.createOscillator(), g = c.createGain(); o.frequency.value = 880; g.gain.value = .08; o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + .25); } catch (e) {}
   if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
@@ -253,10 +270,82 @@ async function vivoTick() {
     (j.avisos || []).forEach(a => { if (!vistos['a' + a.id] && Date.now() - Date.parse(a.t) < 45 * 60e3) { marcarVisto('a' + a.id); toast('📢 ' + a.txt, nomFiesta(F), true); } else marcarVisto('a' + a.id); });
     (j.pedidos || []).forEach(p => { const k = p.estado + '|' + p.moza; if (estadoAnt[p.id] && estadoAnt[p.id] !== k && p.estado === 'camino') toast(`🚶 Ya va ${p.moza || 'la moza'} a tu mesa`, p.items.map(x => x.n).join(', ')); estadoAnt[p.id] = k; });
   } catch (e) {}
-  momentos().forEach(m => { const k = 'c' + m.h + m.nombre; if (!vistos[k] && Date.now() >= m.aviso && Date.now() - m.aviso < 30 * 60e3) { marcarVisto(k); if (m.a) toast(m.a, nomFiesta(F), true); } else if (!vistos[k] && Date.now() - m.aviso >= 30 * 60e3) marcarVisto(k); });
+  momentos().forEach((m, i, M) => { const k = 'c' + m.h + m.nombre; if (!vistos[k] && Date.now() >= m.aviso && Date.now() - m.aviso < 30 * 60e3) { marcarVisto(k); if (m.a) { toast(m.a, nomFiesta(F), true); const sig = M[i + 1]; if (FL) flDecir(m.a + (sig ? ` Después, a las ${hhmm(sig.ts)}: ${sig.nombre.charAt(0).toLowerCase() + sig.nombre.slice(1)}.` : ''), [{t: '🥤 Pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: '👍 Dale', alt: true, f: () => $('#flb').classList.remove('on')}]); } } else if (!vistos[k] && Date.now() - m.aviso >= 30 * 60e3) marcarVisto(k); });
   const ae = document.activeElement; if (!(ae && (ae.id === 'pnota'))) pVivo();
 }
-function arrancarVivo() { clearInterval(vivoTimer); if (F && F.vivo && F.hoy && INV && !PREV) { vivoTick(); vivoTimer = setInterval(vivoTick, 10000); } }
+// ===== Flashy, el asistente del invitado =====
+let FL = false, flVoz = false, flPend = null;
+const norm = t => sinT(String(t).toLowerCase()).replace(/[^a-z0-9ñ ]/g, ' ').replace(/\s+/g, ' ').trim();
+function sinT(t) { return t.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+const NUMS = {un: 1, una: 1, uno: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, par: 2};
+const ALIAS = [['coca zero', 'coca-cola zero'], ['coca light', 'coca-cola zero'], ['cocas', 'coca-cola'], ['coca', 'coca-cola'], ['birra', 'cerveza'], ['champa', 'champagne'], ['fernet', 'fernet con coca'], ['vino', 'vino tinto'], ['agua mineral', 'agua sin gas'], ['soda', 'agua con gas'], ['jugo', 'jugo de naranja'], ['limpi', 'que limpien la mesa'], ['servilleta', 'servilletas']];
+function entender(texto) { // "dos cocas y un agua" -> [{n:'Coca-Cola', c:2}, {n:'Agua sin gas', c:1}]
+  const carta = (F.carta || []).filter(x => !(x.alc && INV.menor)), out = {};
+  norm(texto).split(/ y | mas | con hielo|,| tambien /).map(x => x.trim()).filter(Boolean).forEach(tr => {
+    let c = 1; const w = tr.split(' '); if (/^\d+$/.test(w[0])) { c = +w[0]; w.shift(); } else if (NUMS[w[0]]) { c = NUMS[w[0]]; w.shift(); }
+    let t = w.join(' '); if (!t) return;
+    let best = null, bs = 0;
+    carta.forEach(x => { const n = norm(x.n); let sc = 0; if (n === t) sc = 10; else if (n.includes(t) || t.includes(n)) sc = 6;
+      t.split(' ').forEach(p => { const ps = p.replace(/s$/, ''); if (ps.length > 2 && n.split(' ').some(q => q.replace(/s$/, '') === ps)) sc += 2; });
+      ALIAS.forEach(([a, b]) => { if ((' ' + t + ' ').includes(' ' + a) && n === b) sc += 5; });
+      if (sc > bs) { bs = sc; best = x; } });
+    if (best && bs >= 2) out[best.n] = (out[best.n] || 0) + Math.max(1, Math.min(10, c));
+  });
+  return Object.entries(out).map(([n, c]) => ({n, c}));
+}
+function flVozDe() { const vs = speechSynthesis.getVoices(); return vs.find(v => /es[-_]AR/i.test(v.lang)) || vs.find(v => /^es/i.test(v.lang) && /google|natural/i.test(v.name)) || vs.find(v => /^es/i.test(v.lang)); }
+function flHablar(t) {
+  if (!flVoz || document.hidden || !('speechSynthesis' in window)) return;
+  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(String(t).replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu, '').slice(0, 200)); u.lang = 'es-AR'; const v = flVozDe(); if (v) u.voice = v; u.rate = 1.12; u.pitch = 1.25;
+    u.onstart = () => $('#fl').classList.add('habla'); u.onend = u.onerror = () => $('#fl').classList.remove('habla'); speechSynthesis.speak(u); } catch (e) {}
+}
+function flDecir(texto, ops, conEscribir) {
+  if (!FL) return; const b = $('#flb');
+  b.innerHTML = `<button class="cerrar" aria-label="Cerrar">✕</button><div class="tx">${esc(texto)}</div><div class="ops">${(ops || []).map((o, i) => `<button class="op ${o.alt ? 'alt' : ''}" data-flo="${i}">${esc(o.t)}</button>`).join('')}</div>${conEscribir ? `<div class="esc"><input id="flin" placeholder="Ej: dos cocas y un agua"><button id="flmic" aria-label="Hablar">🎤</button><button id="flok" aria-label="Enviar">➤</button></div>` : ''}`;
+  b.classList.add('on'); flHablar(texto);
+  b.querySelector('.cerrar').onclick = () => b.classList.remove('on');
+  b.querySelectorAll('[data-flo]').forEach(x => x.onclick = () => { flVoz = true; const o = ops[+x.dataset.flo]; o.f && o.f(); });
+  const inp = $('#flin'); if (inp) { const ir = () => { const t = inp.value.trim(); if (t) flEntendi(t); }; $('#flok').onclick = ir; inp.onkeydown = e => { if (e.key === 'Enter') ir(); }; $('#flmic').onclick = flEscuchar; }
+}
+function flEscuchar() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SR) return flDecir('Tu celular no me deja escucharte. Escribime lo que querés 🙂', [], true);
+  try { const r = new SR(); r.lang = 'es-AR'; r.interimResults = false; r.onresult = e => flEntendi(e.results[0][0].transcript); r.onerror = () => flDecir('No te escuché bien, hay mucha música 🎶. Escribímelo o tocá una opción.', flOpsPedir(), true); $('#flmic').textContent = '👂'; r.start(); } catch (e) {}
+}
+function flOpsPedir() {
+  const carta = (F.carta || []).filter(x => !(x.alc && INV.menor)).slice(0, 6);
+  return carta.map(x => ({t: x.n, f: () => flConfirmar([{n: x.n, c: 1}])})).concat([{t: 'Ver todo', alt: true, f: () => { $('#flb').classList.remove('on'); const v = $('#vivo'); if (v) v.scrollIntoView({behavior: 'smooth'}); }}]);
+}
+function flEntendi(t) { const it = entender(t); if (!it.length) return flDecir('Mmm, no lo encontré en la carta 🤔. Tocá una opción o probá con otras palabras.', flOpsPedir(), true); flConfirmar(it); }
+const listaTx = it => it.map(x => x.c + ' ' + x.n).join(', ').replace(/, ([^,]*)$/, ' y $1');
+function flConfirmar(it) { flPend = it; flDecir(`¿Te pido ${listaTx(it)}?`, [{t: '✅ Sí, pedir', f: flPedir}, {t: '✏️ Cambiar', alt: true, f: () => flDecir('Decime qué querés 🙂', flOpsPedir(), true)}]); }
+async function flPedir() {
+  if (!flPend) return; const it = flPend; flPend = null;
+  try { const r = await fetch('/api/fiesta?accion=pedir', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, items: it, mesa: MESA})}); const j = await r.json();
+    if (!r.ok) throw new Error(j.error || 'No se pudo'); marcaInter(); await vivoTick(); flDecir('¡Listo! 🛎 Ya se lo paso a la moza. Te aviso cuando va en camino.', [{t: '👍 Gracias', alt: true, f: () => $('#flb').classList.remove('on')}]);
+  } catch (e) { flDecir('😕 ' + e.message, [{t: 'Ok', alt: true, f: () => $('#flb').classList.remove('on')}]); }
+}
+function flQueViene() { const M = momentos(), p = M.find(x => x.ts > Date.now()); flDecir(p ? `A las ${hhmm(p.ts)} es ${p.nombre.charAt(0).toLowerCase() + p.nombre.slice(1)} ✨` : 'Ya pasaron todos los momentos del cronograma. ¡A disfrutar! 💃', [{t: '🥤 Pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: 'Listo', alt: true, f: () => $('#flb').classList.remove('on')}]); }
+const LSI = () => 'fiestaInter:' + CODE;
+const marcaInter = () => { try { localStorage.setItem(LSI(), String(Date.now())); } catch (e) {} };
+function flMenu() { const nom = INV.nombre.split(' ')[0], mesa = INV.mesa || MESA;
+  flDecir(`¡Hola ${nom}! ${mesa ? 'Estás en la mesa ' + mesa + '. ' : ''}¿Querés que te traigan algo para tomar?`, [{t: '🥤 Sí, pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: '⏰ ¿Qué viene?', alt: true, f: flQueViene}, {t: 'Ahora no', alt: true, f: () => { marcaInter(); $('#flb').classList.remove('on'); }}]); }
+function flPasoDeVez() { // cada tanto, sin molestar: "¿te falta algo en la mesa?"
+  if (!FL || $('#flb').classList.contains('on') || document.hidden) return;
+  let ult = 0; try { ult = +localStorage.getItem(LSI()) || 0; } catch (e) {}
+  if (Date.now() - ult < 30 * 60e3) return; marcaInter();
+  const extras = (F.carta || []).filter(x => /pan|hielo|servillet|agua/i.test(x.n)).slice(0, 4);
+  const frases = ['¿Te falta algo en la mesa? 🙂', '¿Te traigo algo más para tomar? 🥤', '¿Necesitás más pan, hielo o servilletas?'];
+  flDecir(frases[Math.floor(Math.random() * frases.length)], extras.map(x => ({t: x.n, f: () => flConfirmar([{n: x.n, c: 1}])})).concat([{t: '🥤 Otra cosa', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: 'No, gracias', alt: true, f: () => $('#flb').classList.remove('on')}]));
+}
+function flashy() {
+  if (FL || !F || !F.vivo || !F.hoy || !INV || PREV) return; FL = true; $('#fl').classList.add('on');
+  $('#flav').onclick = () => { flVoz = true; $('#flb').classList.contains('on') ? $('#flb').classList.remove('on') : flMenu(); };
+  let ult = 0; try { ult = +localStorage.getItem(LSI()) || 0; } catch (e) {}
+  if (!ult) { setTimeout(flMenu, 1200); marcaInter(); }
+  setInterval(flPasoDeVez, 60e3);
+  if ('speechSynthesis' in window) speechSynthesis.getVoices();
+}
+function arrancarVivo() { flashy(); clearInterval(vivoTimer); if (F && F.vivo && F.hoy && INV && !PREV) { vivoTick(); vivoTimer = setInterval(vivoTick, 10000); } }
 const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const instalada = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone;
 function guardar() {
