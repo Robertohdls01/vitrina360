@@ -6939,11 +6939,19 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   let pqOps = null, pqPaso = '';
   const pqCliNom = () => { try{ return localStorage.getItem('v360-cli-nombre-' + (window.VITRINA_SLUG || '')) || ''; }catch(e){ return ''; } };
   const pqSlotTxt = (ymd, h) => { const d = new Date(ymd + 'T12:00'); return `${DAYS_LONG[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1} a las ${h} h`; };
+  // el cliente pide sumar algo con sus palabras ("agregale unas flores", "limpieza del terreno"): la IA recalcula con eso
+  function pqAgregar(t){
+    t = String(t || '').trim().replace(/^(agregale|agregá|agrega|sumale|sumá|suma|quiero|tambien|también|y)\s+/i, ''); if(!t) return;
+    const qi = $('pqQuiere'), val = ((qi && qi.value) ? qi.value + ' + ' : '') + t;
+    try{ hSpeak(`¡Dale! Le sumo ${t} y te recalculo el presupuesto. Dame un segundito.`); }catch(e){}
+    pqPaso = ''; pqRes = null; openParque(); $('pqQuiere').value = val; const g = $('pqGo'); if(g) g.click();
+  }
   function pqNextHTML(r){
     if(!r || r.fijo || !pqPaso) return '';
     const quien = (() => { try{ const ids = hList(); return ids.length ? (ids[0] === 'duena' ? ownName() : HELPERS[ids[0]].name) : (isParques() ? 'Tomás' : 'Sofi'); }catch(e){ return 'Tomás'; } })(), nom = pqCliNom(), O = ofi() || OFI_BASE;
     if(pqPaso === 'agregar') return `<div class="pqbox" style="background:color-mix(in srgb,#f59e0b 8%,var(--surface))"><b>🙋 ${esc(quien)}</b><p>¡Listo${nom ? ', ' + esc(nom) : ''}! Tu presupuesto da <b id="pqNextTot"></b>. ¿Querés agregarle algo?</p>
-      <div class="pqchips"><button class="btn primary" type="button" data-pqn="no">👍 No, así está bien</button>${(O.add || []).map((a, i) => `<button class="btn" type="button" data-pqn="a${i}">${esc(a[0])}</button>`).join('')}</div></div>`;
+      <div class="pqchips"><button class="btn primary" type="button" data-pqn="no">👍 No, así está bien</button>${(O.add || []).map((a, i) => `<button class="btn" type="button" data-pqn="a${i}">${esc(a[0])}</button>`).join('')}</div>
+      <div class="row" style="gap:6px;flex-wrap:wrap"><input id="pqAddTx" maxlength="120" placeholder="O escribí qué sumar (ej: unas flores, limpiar el terreno)" style="flex:1;min-width:180px"><button class="btn" type="button" data-pq="sumar">➕ Sumar</button></div></div>`;
     if(pqPaso === 'turno'){ const ds = pqDias(), q = []; ds.forEach(x => x.hs.forEach(h => { if(q.length < 4) q.push([x.ymd, h]); }));
       return `<div class="pqbox" style="background:color-mix(in srgb,#f59e0b 8%,var(--surface))"><b>🙋 ${esc(quien)}</b><p>${q.length ? `¡Perfecto! El primer turno libre es el <b>${esc(pqSlotTxt(q[0][0], q[0][1]))}</b>. ¿Te queda bien? Si no, elegí otro:` : `Ahora no tengo turnos libres en los próximos días: mandale el presupuesto a ${esc(O.pro)} por WhatsApp y te contesta.`}</p>
         <div class="pqchips">${q.map(([y, h], i) => `<button class="btn${i === 0 ? ' primary' : ''}" type="button" data-pqq="${y}|${h}">${i === 0 ? '✅ ' : ''}${esc(pqSlotTxt(y, h))}</button>`).join('')}</div><span class="note">Más días y horarios, abajo en “Reservá tu turno”.</span></div>`; }
@@ -7157,6 +7165,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       r.onend = () => { b.disabled = false; };
       try{ r.start(); }catch(err){ b.disabled = false; $('pqMicTx').textContent = 'El micrófono no está disponible acá. Escribilo arriba.'; }
       return; }
+    if(k === 'sumar'){ const t = ($('pqAddTx') || {}).value || ''; if(t.trim().length > 2) pqAgregar(t); return; }
     if(k === 'mandar'){
 
       const msg = $('pqMsg'), O = ofi() || OFI_BASE, nom = $('pqMNom').value.trim(), tel = $('pqMTel').value.trim(), quiere = $('pqQuiere').value.trim();
@@ -10086,6 +10095,9 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   function hAnswer(q){
     const n = norm(q).trim();
     if(hGuia(q, n)) return;
+    { const pv = $('pqView'); if(pv && !pv.hidden && pqPaso === 'agregar'){
+        if(/^(no|nada|asi esta bien|esta bien|listo|ya esta|nada mas)\b/.test(n)){ const bn = pv.querySelector('[data-pqn="no"]'); if(bn){ bn.click(); return; } }
+        if(!/(opcion|recomend|turno|horario)/.test(n)){ pqAgregar(q); return; } } }
     { const pv = $('pqView'); if(pv && !pv.hidden){
         if(/(mas opcion|otras opcion|opciones|recomend|que me (aconsej|suger)|ideas)/.test(n)){ const bo = $('pqOpt'); if(bo && !bo.disabled){ bo.click(); return hSpeak('¡Dale! Te armo 3 opciones con distintos precios. Esperá un toque.'); } return hSpeak('Primero subí una foto, así te armo las opciones.'); }
         if(/(presupuesto|cuanto (sale|cuesta|me sale)|armalo|calcul)/.test(n)){ const bg = $('pqGo'); if(bg && !bg.disabled){ bg.click(); return hSpeak('¡Dale! Ya te armo el presupuesto.'); } }
