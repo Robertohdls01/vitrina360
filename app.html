@@ -6982,7 +6982,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       ${r.plan && r.plan.length ? `<div class="pqbox"><b>🪴 Tu parque rediseñado${r.estiloLbl ? ' · ' + esc(r.estiloLbl) : ''}</b><p>${esc(r.resumen || '')}</p><span class="note">Las plantas ya están sumadas abajo, con el precio de ${[...new Set(r.plan.map(x => x.vivero).filter(Boolean))].map(esc).join(', ') || 'los viveros'}. El parquero se encarga de comprarlas y plantarlas.</span></div>` : ''}
       <div class="pqbox"><b>🧾 ${r.fijo ? 'Tu trabajo de siempre' : 'Tu presupuesto' + (r.plan && r.plan.length ? ' completo (plantas + trabajo)' : '')}</b><span class="note">${r.fijo ? 'Es lo mismo que la última vez. Si querés algo distinto, contáselo al parquero por WhatsApp.' : (O.m2 ? 'Destildá lo que no quieras. Si sabés los metros exactos, cambialos y se recalcula.' : 'Destildá lo que no quieras.')}</span>
       <ul class="pqtr">${r.trabajos.map((x, i) => `<li><label><input type="checkbox" checked data-pqt="${i}"> <span><b>${esc(x.titulo)}</b>${x.plan ? (x.motivo ? ` · <span class="note">${esc(x.motivo)}</span>` : '') + (x.link ? ` · <a href="${esc(x.link)}" target="_blank" rel="noopener">🛒 ver en el vivero</a>` : '') : (x.porM2 ? ' · por m²' : x.cantidad > 1 ? ' · ×' + x.cantidad : '') + (x.ajuste ? ` · <span class="pqaj">${x.ajuste > 0 ? '+' : ''}${x.ajuste}% ${esc(x.motivo)}</span>` : '')}</span></label><b data-pqs="${i}"></b></li>`).join('')}</ul>
-      <p id="pqTot" class="pqtot"></p>${est ? `<p class="note" style="margin:0">Algunos precios son estimados: ${esc(O.pro)} te confirma el valor final.</p>` : ''}${!pq && r.visita && !r.fijo ? `<p class="note" style="margin:0">🔎 Es un presupuesto orientativo por foto: ${esc(O.pro)} lo confirma cuando lo ve.</p>` : ''}${r.consejo ? `<p class="note" style="margin:0">💡 ${esc(r.consejo)}</p>` : ''}</div>`;
+      <p id="pqTot" class="pqtot"></p><p style="margin:0;font-weight:700">✋ Es un precio estimado: ${esc(O.pro)} revisa tu pedido y te confirma el valor final antes de ir.</p>${!pq && r.visita && !r.fijo ? `<p class="note" style="margin:0">🔎 Es un presupuesto orientativo por foto: ${esc(O.pro)} lo confirma cuando lo ve.</p>` : ''}${r.consejo ? `<p class="note" style="margin:0">💡 ${esc(r.consejo)}</p>` : ''}</div>`;
   }
   // preguntas que el profesional siempre le haría al cliente: así le llega todo junto y no tiene que preguntar
   const OFI_Q_GEN = [['¿Para cuándo lo necesitás?', ['Urgente', 'Esta semana', 'Este mes', 'Sin apuro']], ['¿Los materiales?', ['Que los ponga el profesional', 'Los pongo yo', 'No sé']]];
@@ -7237,8 +7237,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         if(pqPago === 'ahora'){ msg.textContent = 'Te llevo a Mercado Pago…';
           const m = await fetch('/api/mpcobro?accion=pagar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ref: j.ref, k: j.k})}).then(x => x.json()).catch(() => ({}));
           if(m && m.url){ location.href = m.url; return; } msg.textContent = `Tu turno quedó reservado, pero no se pudo abrir el pago: pagale ${(ofi() || OFI_BASE).pro.replace(/^el /, 'al ').replace(/^la /, 'a la ')} después del trabajo.`; }
-        else msg.innerHTML = `✅ <b>¡Turno reservado!</b> ${esc(cuando)}. ${esc(((ofi() || OFI_BASE).pro).replace(/^./, c => c.toUpperCase()))} te confirma por WhatsApp. Pagás cuando termine el trabajo.`;
-        try{ hSpeak(`¡Listo, ${nom.split(' ')[0]}! Tu turno quedó para el ${cuando}.`); }catch(err){}
+        else msg.innerHTML = `✅ <b>¡Turno pedido!</b> ${esc(cuando)}. ${esc(((ofi() || OFI_BASE).pro).replace(/^./, c => c.toUpperCase()))} revisa tu pedido y <b>te confirma el precio final por WhatsApp</b>. Pagás cuando termine el trabajo.`;
+        try{ hSpeak(`¡Listo, ${nom.split(' ')[0]}! Le pasé tu pedido para el ${cuando}. ${(ofi() || OFI_BASE).pro.replace(/^./, c => c.toUpperCase())} lo revisa y te confirma el precio final por WhatsApp.`); }catch(err){}
         b.textContent = '✓ Reservado';
       }catch(err){ msg.textContent = 'No se pudo conectar. Probá de nuevo.'; b.disabled = false; }
       return; }
@@ -7861,6 +7861,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
           ${c.lugar ? `<div>🏠 ${esc(c.lugar)}</div>` : ''}
           ${c.tel ? `<div>📞 ${esc(c.tel)}</div>` : ''}
           ${p.pago ? `<div>💳 ${esc(p.pago)}${p.paga_ahora ? (p.pagado ? ' · <strong style="color:#1a8d4f">💰 Pago confirmado</strong>' : ' · <strong style="color:#9a5b00">revisá que te haya llegado</strong>') : ''}</div>` : ''}
+          ${c.cita && abierto && String(c.tel || '').replace(/\D/g, '').length >= 8 ? `<div class="row" style="gap:6px;align-items:center;flex-wrap:wrap;background:#fff7e6;border-radius:10px;padding:6px 8px"><span style="font-weight:800">✋ Precio final:</span><input data-oprecio="${esc(p.ref)}" inputmode="numeric" placeholder="${esc(String(p.total || '').replace(/[^0-9]/g, ''))}" style="width:110px"><button class="btn primary" type="button" data-o="precio" data-ref="${esc(p.ref)}" style="padding:5px 12px;font-size:13px">💬 Confirmarle por WhatsApp</button><span class="note" style="margin:0">La IA estimó ${esc(p.total || '')}. Revisá las fotos y poné el precio real.</span></div>` : ''}
           ${ordWa(p) ? `<div><a class="btn wa" href="${esc(ordWa(p))}" target="_blank" rel="noopener" style="padding:5px 12px;font-size:13px">💬 ${p.estado === 'salio' ? 'Avisarle que va en camino' : p.estado === 'listo' ? 'Avisarle que está listo' : p.estado === 'entregado' ? 'Agradecerle' : 'Avisarle que lo recibiste'}</a></div>` : ''}
           ${p.regalo ? `<div>🎁 Para regalo${p.regalo.para ? ' (' + esc(p.regalo.para) + ')' : ''}: bolsa especial y moño${p.regalo.mensaje ? ` · Tarjeta: “${esc(p.regalo.mensaje)}”` : ''}</div>` : ''}
           ${abierto ? `<div class="oacts">
@@ -7889,6 +7890,11 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       const b = e.target.closest('[data-o]'); if(!b) return;
       if(b.dataset.o === 'close') return closeO();
       if(b.dataset.o === 'mapa'){ closeO(); toolsMap(b.dataset.addr, true); return; }
+      if(b.dataset.o === 'precio'){ const p = ordList.find(x => x.ref === b.dataset.ref); if(!p) return; const c = p.comprador || {};
+        const inp = document.querySelector(`[data-oprecio="${CSS.escape(p.ref)}"]`), v = String((inp && inp.value) || '').replace(/[^0-9]/g, '') || String(p.total || '').replace(/[^0-9]/g, '');
+        let n = String(c.tel || '').replace(/\D/g, ''); if(!/^(54|1|55|52|56|57|58|51|59|34|39|49|33|44)/.test(n) || n.length <= 10) n = '549' + n.replace(/^0/, '').replace(/^(\d{2,4})15/, '$1');
+        const txt = `¡Hola${c.nombre ? ' ' + c.nombre.split(' ')[0] : ''}! Soy de ${storeName()}. Revisé tu pedido y las fotos: el precio final del trabajo es *$${Number(v).toLocaleString('es-AR')}*.${c.turno ? ' Te espero el ' + c.turno + '.' : ''} ¿Te confirmo el turno?`;
+        window.open(`https://wa.me/${n}?text=${encodeURIComponent(txt)}`, '_blank'); return; }
       const ref = b.dataset.ref, estado = b.dataset.o; if(!ref) return;
       const sel = $('ordersSheet').querySelector(`[data-orider="${CSS.escape(ref)}"]`);
       b.disabled = true;
