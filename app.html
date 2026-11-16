@@ -734,7 +734,7 @@ textarea{min-height:110px;resize:vertical}
 .row{display:flex;gap:8px;flex-wrap:wrap}
 .note{font-size:13px;color:var(--muted)}
 .ai{margin:0;font-size:13.5px;color:var(--ink);background:var(--bg);border:1px solid var(--accent);border-radius:10px;padding:8px 12px}
-.btn:disabled{opacity:.6;cursor:progress}
+.btn:disabled{opacity:.78;cursor:progress}
 .banner{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
 .modal{position:fixed;inset:0;z-index:50;background:var(--scrim);display:grid;place-items:center;
   padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
@@ -7490,7 +7490,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     {id:'#eaf6ec', name:'Verde suave'}, {id:'#fff6d8', name:'Amarillo suave'}, {id:'#efe6fb', name:'Lila'},
     {id:'#1b2330', name:'Azul noche'}, {id:'#2a1a2e', name:'Ciruela'}, {id:'#0d0d0d', name:'Negro'}
   ];
-  const PAGE_KEYS = ['--bg','--surface','--ink','--muted','--line','--accent','--accent-ink','color-scheme','--page-photo'];
+  const PAGE_KEYS = ['--bg','--surface','--ink','--muted','--line','--accent','--accent-ink','color-scheme','--page-photo','--grad'];
   // con fondo de página claro u oscuro elegido a mano, el espejo de las vitrinas acompaña
   const MIRROR_SET = {
     light: {'--mirror-a':'#dfe6ea','--mirror-b':'#b9c4cb','--mirror-c':'#e8eef1','--mirror-edge':'rgba(255,255,255,.7)','--mirror-depth':'rgba(70,90,100,.25)',
@@ -7522,7 +7522,9 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     }
     else { // "Automático": cada oficio viene con su color suave (parquero verde, plomero celeste…), nunca negro
       const OC = {parques: ['#eef8ee', '#2e7d32'], plomero: ['#eaf4fc', '#0277bd'], electricista: ['#fff8e6', '#b45309'], gasista: ['#fff3e6', '#e65100'], pintor: ['#eef0fa', '#3949ab'], albanil: ['#f5efec', '#8d6e63'], durlock: ['#eef2f4', '#546e7a'], techista: ['#fcefeb', '#bf360c'], solar: ['#fffbe6', '#c77700'], aire: ['#e8f8fa', '#00838f'], volquete: ['#f2f8ea', '#558b2f'], tecnico: ['#f1ecf9', '#5e35b1'], afilador: ['#eef1f3', '#37474f'], mecanico: ['#fdeeee', '#c62828'], informal: ['#fff7e8', '#ef6c00'], oficio: ['#eef5f3', '#0f766e']}[brand.preset];
-      if(OC){ r.setProperty('--bg', OC[0]); r.setProperty('--surface', mix(OC[0], '#ffffff', 0.75)); r.setProperty('--line', mix(OC[0], '#000000', 0.12)); r.setProperty('--accent', OC[1]); r.setProperty('--accent-ink', '#ffffff'); }
+      if(OC){ r.setProperty('--bg', OC[0]); r.setProperty('--surface', mix(OC[0], '#ffffff', 0.75)); r.setProperty('--line', mix(OC[0], '#000000', 0.12)); r.setProperty('--accent', OC[1]); r.setProperty('--accent-ink', '#ffffff');
+        // letras bien oscuras y botones del color del oficio (sin mezclar con rosa, que quedaba marrón)
+        r.setProperty('--ink', '#111827'); r.setProperty('--muted', '#374151'); r.setProperty('--grad', `linear-gradient(135deg,${OC[1]},${mix(OC[1], '#000000', 0.22)})`); }
     }
     const isPreset = PAGE_PRESETS.some(x => x.id === c);
     $('pageBgBar').innerHTML = `<button class="btn" type="button" data-pagebg="" aria-pressed="${!HEXOK(c)}" style="padding:6px 12px">Automático</button>` +
