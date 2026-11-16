@@ -1746,6 +1746,8 @@ body.clientmode .decoshop{display:none}
 .hav{position:relative;border:0;background:none;padding:0;width:62px;cursor:pointer;display:grid;justify-items:center}
 .hav svg{width:62px;height:auto;animation:hlive 2.6s ease-in-out infinite;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2))}
 .hav + .hav svg{animation-delay:-1.3s}
+.hav svg.flashyh{animation-duration:1.8s}.hav.talking svg.flashyh{animation:htalkbob .22s ease-in-out infinite alternate}
+.flwave{transform-origin:10px 70px;animation:flw 1.2s ease-in-out infinite alternate}@keyframes flw{from{transform:rotate(-20deg)}to{transform:rotate(25deg)}}
 /* quieto no tiene gracia: respira, se balancea y cada tanto da un saltito y saluda */
 @keyframes hlive{0%,100%{transform:translateY(0) rotate(0)}15%{transform:translateY(-3px) rotate(-4deg)}30%{transform:translateY(0) rotate(3deg)}45%{transform:translateY(-2px) rotate(0)}70%{transform:translateY(-9px) rotate(-6deg) scale(1.05)}78%{transform:translateY(0) rotate(5deg)}86%{transform:translateY(-3px) rotate(-2deg)}}
 .hav.on svg{filter:drop-shadow(0 0 6px var(--accent)) drop-shadow(0 4px 6px rgba(0,0,0,.2))}
@@ -4004,7 +4006,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
     if(!products.find(x => x.id === id)) return;
     lastFocus = document.activeElement;
     modalId = id; photoIdx = 0; delArmed = false; modalMode = mode || 'photos'; spinIdx = 0;
-    try{ if(PUBLIC && $('hSay') && !$('hSay').closest('[hidden]')){ const p0 = products.find(x => x.id === id); $('hSay').textContent = `👆 Tocaste ${p0.name}${curPrice(p0) ? ' · ' + curPrice(p0) : ''}. ¿Te lo agrego al carrito?`; } }catch(e){}
+    try{ if(PUBLIC && $('hSay') && !$('hSay').closest('[hidden]')){ const p0 = products.find(x => x.id === id); hReact(`👆 ¡Esa está buenísima! ${p0.name}${curPrice(p0) ? ', ' + curPrice(p0) : ''}. ¿Te la agrego?`); } }catch(e){}
     if(selectedId !== id) select(id, true);
     renderModal();
     $('modal').hidden = false;
@@ -7266,8 +7268,10 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(k === 'borrar'){ pqPts = []; pqDraw(); return; }
     if(k === 'analizar'){
       if(!pqFotos.length) return; b.disabled = true; $('pqMsg').innerHTML = `<span class="tvwait"><i></i>${esc((ofi() || OFI_BASE).wait)}</span>`;
+      const chat = ['¡Qué buena foto! Dame un segundito que la miro…', 'Estoy midiendo todo…', 'Ya casi, estoy sacando la cuenta…', 'Un toque más y te lo paso…']; let ci = 0; hReact(chat[0]); const chatT = setInterval(() => { ci++; if(ci < chat.length) hReact(chat[ci]); }, 3500); setTimeout(() => clearInterval(chatT), 16000);
       try{ const images = pqFotos.map(f => ({type: 'image/jpeg', data: f.split(',')[1]}));
         const r = await fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({parque: 1, slug: window.VITRINA_SLUG || (window.VITRINA_ME || {}).slug || '', images, m2: pqM2 || 0, quiere: $('pqQuiere').value || ''})});
+        clearInterval(chatT);
         const j = await r.json().catch(() => ({}));
         if(r.status === 429 && j.cupo){
           $('pqMsg').innerHTML = `<span>${esc(j.error)}</span><span style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><input id="pqGNom" maxlength="60" placeholder="Tu nombre" style="flex:1;min-width:120px"><input id="pqGTel" maxlength="30" inputmode="tel" placeholder="Tu WhatsApp" style="flex:1;min-width:120px"><button class="btn primary" type="button" data-pq="guardar">📩 Guardar mi pedido</button></span>`;
@@ -7406,6 +7410,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const stk = stockOf(id);
     if(stk != null && (cart[id] || 0) + 1 > stk){ try{ cSpeak(stk <= 0 ? L('Uy, ese producto no tiene stock por ahora.', 'Sorry, that product is out of stock.', 'Ops, esse produto está sem estoque.') : L(`Tenemos ${stk} de ese producto y ya están en tu pedido.`, `We only have ${stk} of that product and they're already in your order.`, `Temos ${stk} desse produto e já estão no seu pedido.`)); }catch(e){} return false; }
     cart[id] = (cart[id] || 0) + 1; saveCart(); updateFab();
+    try{ const its = cartItems(), n = its.reduce((s, x) => s + x.q, 0), tt = cartTotal(its); hReact(`¡Listo, agregado! Ya ${n === 1 ? 'tenés 1 cosa' : 'van ' + n + ' cosas'}${tt.t ? ', ' + fmt(tt.t) : ''}. ¿Algo más?`); }catch(e){}
     if(meOn()){ try{ renderMe(); const pp = products.find(x => x.id === String(id).split('|')[0]); if(pp) setTimeout(() => meGo(pp.cat), $('modal').hidden ? 0 : 400); }catch(e){} }
     const fab = meOn() && $('hMe').querySelector('.chango') ? $('hMe').querySelector('.chango') : $('cartFab');
     const bump = () => { fab.classList.remove('bump'); void fab.offsetWidth; fab.classList.add('bump'); };
@@ -9471,8 +9476,11 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     lucia: {name: 'Lucía', pitch: 1.26, hair: '#e3b35a', skin: '#f6d5b8', female: true, style: 'bun'},
     martin: {name: 'Martín', pitch: 0.9, hair: '#1a1a1a', skin: '#8d5b3e', female: false, style: 'curly'},
     vale: {name: 'Vale', pitch: 1.1, hair: '#a1332b', skin: '#c98e6a', female: true, style: 'long'},
-    joaco: {name: 'Joaco', pitch: 0.76, hair: '#6b4a2b', skin: '#f0c49b', female: false, style: 'short'}
+    joaco: {name: 'Joaco', pitch: 0.76, hair: '#6b4a2b', skin: '#f0c49b', female: false, style: 'short'},
+    flashy: {name: 'Flashy', pitch: 1.3, female: false, style: 'flashy'}
   };
+  // reacciones cortas (Flashy siempre; los demás también, pero sin hablar tanto)
+  const hReact = t => { try{ if(!PUBLIC || !hList().length) return; const fl = hList()[0] === 'flashy'; if(fl) hSpeak(t); else $('hSay').textContent = t; }catch(e){} };
   const HIDS = Object.keys(HELPERS);
   // ---- La dueña (o el dueño) en la tienda: su foto como muñequito, saluda al entrar y atiende como los vendedores ----
   const ownOn = () => !!(brand.owner && brand.owner.photo);
@@ -9490,6 +9498,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   const hList = () => { syncOwner(); const h = brand.helpers; const own = ownOn() ? ['duena'] : []; if(Array.isArray(h)) return own.concat(h.filter(id => HELPERS[id] && id !== 'duena')); return own.concat(h === 'ambos' ? ['sofi', 'tomas'] : HELPERS[h] ? [h] : []); };
   const HCOLORS = ['', '#e63946', '#ff8c00', '#2a9d8f', '#1d4ed8', '#7c3aed', '#111827', '#db2777', '#ff2fd6', '#39ff14', '#00e5ff', '#ff6a00', '#f5ff00'];
   function helperSVG(h, shirt){
+    if(h.style === 'flashy') return `<svg viewBox="0 0 80 110" aria-hidden="true" class="flashyh"><ellipse cx="40" cy="106" rx="20" ry="4" fill="rgba(0,0,0,.18)"/><defs><radialGradient id="flhg" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fde68a"/><stop offset=".6" stop-color="#facc15"/><stop offset="1" stop-color="#eab308"/></radialGradient></defs><path d="M42 4 31 24h10l-5 13 15-20H40l7-13z" fill="#16a34a" stroke="#14532d" stroke-width="2" stroke-linejoin="round"/><circle cx="40" cy="64" r="32" fill="url(#flhg)" stroke="#ca8a04" stroke-width="2.5"/><g class="heyes"><ellipse cx="29" cy="59" rx="5.5" ry="7.5" fill="#1f2937"/><ellipse cx="51" cy="59" rx="5.5" ry="7.5" fill="#1f2937"/><circle cx="31" cy="56" r="2.2" fill="#fff"/><circle cx="53" cy="56" r="2.2" fill="#fff"/></g><circle cx="20" cy="72" r="5" fill="#fb7185" opacity=".55"/><circle cx="60" cy="72" r="5" fill="#fb7185" opacity=".55"/><g class="hmouth" style="transform-origin:40px 76px"><path d="M30 74q10 11 20 0" fill="#7f1d1d" stroke="#1f2937" stroke-width="2.4" stroke-linecap="round"/><path d="M34 78q6 3.5 12 0" fill="#fb7185"/></g><path d="M10 70q-8-6-4-16" stroke="#ca8a04" stroke-width="4" fill="none" stroke-linecap="round" class="flwave"/></svg>`;
     const tag = esc((brand.name || 'Mi tienda').slice(0, 14));
     const st = h.style;
     const hair = st === 'helmet' ? `${h.female ? `<path d="M55 34c7 5 8 15 4 24-1-8-4-12-7-16z" fill="${h.hair}"/>` : ''}<path d="M19 40c0-16 9-27 21-27s21 11 21 27v-6H19z" fill="${shirt}"/><path d="M19 34c0-15 9-24 21-24s21 9 21 24c-6-3-13-5-21-5s-15 2-21 5z" fill="${shirt}"/><rect x="25" y="28" width="30" height="6" rx="3" fill="#bfe3ff" opacity=".9"/><path d="M30 14q10-5 20 0" stroke="#fff" stroke-width="2" fill="none" opacity=".6"/>`
