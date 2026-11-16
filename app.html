@@ -6987,7 +6987,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     pqAIBusy = false; const b2 = $('pqQs'); if(b2) b2.innerHTML = pqQsHTML();
   }
   document.addEventListener('click', e => { const c = e.target.closest('[data-pqqa]'); if(!c) return; const on = !c.classList.contains('primary');
-    c.parentElement.querySelectorAll('[data-pqqa]').forEach(x => x.classList.remove('primary')); if(on) c.classList.add('primary'); });
+    c.parentElement.querySelectorAll('[data-pqqa]').forEach(x => x.classList.remove('primary')); if(on){ c.classList.add('primary'); try{ hSpeak('Anotado: ' + c.textContent + '.'); }catch(err){} } });
   function openParque(){
     let ov = document.getElementById('pqView');
     if(!ov){ ov = document.createElement('div'); ov.id = 'pqView'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); document.body.appendChild(ov); }
@@ -7007,6 +7007,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
           <div class="row" style="gap:6px"><button class="btn" type="button" data-pq="deshacer">↩ Deshacer</button><button class="btn" type="button" data-pq="borrar">🗑 Borrar</button></div></div></div>
       ${pq ? `<label class="note" style="display:grid;gap:4px">¿Qué querés hacer? (opcional)<input id="pqQuiere" maxlength="200" placeholder="${esc(O.ej)}"></label>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" data-pq="analizar" id="pqGo" ${pqFotos.length ? '' : 'disabled'}>🤖 Armar mi presupuesto con IA</button><button class="btn" type="button" data-pq="opciones" id="pqOpt" ${pqFotos.length ? '' : 'disabled'}>💡 ¿Qué me recomendás? Ver 3 opciones</button></div>` : `<label class="note" style="display:grid;gap:4px"><b style="color:var(--ink)">✍️ Contá todo lo que querés hacer</b>Con detalle: qué está roto o qué querés cambiar, cómo lo querés (${esc(O.ej.replace(/^Ej: /, 'ej: '))}).<textarea id="pqQuiere" maxlength="800" rows="4" placeholder="${esc(O.ej)}"></textarea></label>
+      ${(window.SpeechRecognition || window.webkitSpeechRecognition) ? `<div class="row" style="gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" type="button" data-pq="hablar" id="pqMicB">🎤 Contármelo hablando</button><span class="note" id="pqMicTx"></span></div>` : ''}
       <div class="pqbox" id="pqQs">${pqQsHTML()}</div>
       <div class="row" style="gap:6px;flex-wrap:wrap"><input id="pqMNom" maxlength="60" placeholder="Tu nombre" style="flex:1;min-width:130px" value="${esc(pqCliNom() || '')}"><input id="pqMTel" maxlength="30" inputmode="tel" placeholder="Tu WhatsApp" style="flex:1;min-width:130px"></div>
       <button class="btn primary" type="button" data-pq="mandar" style="justify-self:start">📨 Mandarle todo a ${esc(O.pro)}</button>
@@ -7118,6 +7119,20 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const pp = e.target.closest('[data-pqp]'); if(pp){ pqPago = pp.dataset.pqp; ov.querySelectorAll('[data-pqp]').forEach(x => x.classList.toggle('primary', x === pp)); return; }
     const b = e.target.closest('[data-pq]'); if(!b) return; const k = b.dataset.pq;
     if(k === 'cerrar'){ ov.hidden = true; return; }
+    if(k === 'hablar'){
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition; if(!SR) return;
+      try{ speechSynthesis.cancel(); }catch(err){}
+      const r = new SR(); r.lang = VLANG(); r.interimResults = false; r.maxAlternatives = 1; r.continuous = false;
+      b.disabled = true; $('pqMicTx').textContent = '🎙 Te escucho… contame qué pasa (ej: “el caño de la cocina está tapado, tiene como 3 metros”).';
+      r.onresult = ev => { const t = String(ev.results[0][0].transcript || '').trim(); if(!t) return;
+        const q = $('pqQuiere'); q.value = (q.value.trim() ? q.value.trim() + '. ' : '') + t.replace(/^./, c => c.toUpperCase());
+        $('pqMicTx').innerHTML = '✅ <b>Anotado:</b> “' + esc(t) + '”. Si querés agregar algo más, tocá de nuevo el micrófono.';
+        try{ hSpeak('¡Listo, anotado! ' + t.replace(/^./, c => c.toUpperCase()) + '. ¿Algo más? Si no, respondé las preguntas de abajo.'); }catch(err){}
+        q.dispatchEvent(new Event('change', {bubbles: true})); };
+      r.onerror = ev => { $('pqMicTx').textContent = ev && /not-allowed|service-not-allowed|audio-capture/.test(ev.error) ? 'No tengo permiso para usar el micrófono. Permitilo en el navegador (el candadito de arriba) o escribilo.' : 'No te escuché bien. Probá de nuevo, cerca del celular, o escribilo.'; };
+      r.onend = () => { b.disabled = false; };
+      try{ r.start(); }catch(err){ b.disabled = false; $('pqMicTx').textContent = 'El micrófono no está disponible acá. Escribilo arriba.'; }
+      return; }
     if(k === 'mandar'){
 
       const msg = $('pqMsg'), O = ofi() || OFI_BASE, nom = $('pqMNom').value.trim(), tel = $('pqMTel').value.trim(), quiere = $('pqQuiere').value.trim();
