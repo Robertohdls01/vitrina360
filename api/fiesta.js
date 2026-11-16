@@ -262,7 +262,7 @@ module.exports = async (req, res) => {
 
     const e = esDemo ? demoData() : await leer(code);
     if (!e) return res.status(404).json({ error: 'No encontramos esta fiesta. Revisá el link.' });
-    if (!esDemo && !e.pagado && ['ver', 'buscar', 'responder'].includes(acc)) return res.status(402).json({ error: 'Esta invitación todavía no está activa. La familia la está terminando de preparar.' });
+    if (!esDemo && !e.pagado && ['ver', 'buscar', 'responder', 'firmar', 'firmas'].includes(acc)) return res.status(402).json({ error: 'Esta invitación todavía no está activa. La familia la está terminando de preparar.' });
 
     if (req.method === 'GET' && acc === 'ver') {
       const out = { ok: true, fiesta: publica(e) };
@@ -291,6 +291,25 @@ module.exports = async (req, res) => {
         menu: MENUS.includes(b.menu) ? b.menu : '', nota: largo(b.nota, 300), t: new Date().toISOString() };
       if (!esDemo) await rest('POST', 'fiesta_resp?on_conflict=code,gid', fila, 'resolution=merge-duplicates,return=minimal');
       return res.status(200).json({ ok: true, demo: esDemo, resp: fila, mesa: e.mostrarMesa ? g.mesa : '' });
+    }
+
+    // ===== Cuadro de firmas: cada invitado firma la foto de la cumpleañera =====
+    if (req.method === 'POST' && acc === 'firmar') {
+      const b = cuerpo(req);
+      const g = (e.invitados || []).find(x => x.tok === String(b.i || ''));
+      if (!g) return res.status(404).json({ error: 'No encontramos tu invitación. Pedile el link a la familia.' });
+      const img = String(b.img || '');
+      if (!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(img) || img.length > 250000) return res.status(400).json({ error: 'La firma no se pudo guardar. Probá de nuevo.' });
+      const fila = { code, gid: g.id, nombre: g.nombre, img, msg: largo(b.msg, 120), t: new Date().toISOString() };
+      if (!esDemo) await rest('POST', 'fiesta_firmas?on_conflict=code,gid', fila, 'resolution=merge-duplicates,return=minimal');
+      return res.status(200).json({ ok: true, demo: esDemo, firma: { nombre: fila.nombre, img, msg: fila.msg, t: fila.t, yo: true } });
+    }
+    if (req.method === 'GET' && acc === 'firmas') {
+      const g = q.i && (e.invitados || []).find(x => x.tok === String(q.i));
+      const ok = g || (q.p && e.pk && String(q.p) === e.pk) || (q.k && hash(String(q.k)) === e.clave);
+      if (!ok) return res.status(403).json({ error: 'No tenés permiso para ver el cuadro.' });
+      const L = esDemo ? [] : ((await rest('GET', 'fiesta_firmas?code=eq.' + code + '&select=gid,nombre,img,msg,t&order=t.asc').catch(() => [])) || []);
+      return res.status(200).json({ ok: true, foto: e.foto || '', nombre: e.nombre || '', firmas: L.map(x => ({ nombre: x.nombre, img: x.img, msg: x.msg, t: x.t, yo: !!(g && x.gid === g.id) })) });
     }
 
     // ===== Fiesta en vivo =====

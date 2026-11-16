@@ -102,6 +102,19 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 #flprop.on{display:block}@keyframes flprop{50%{transform:rotate(-14deg) translateY(-4px)}}
 #flav{position:relative}
 @keyframes baja{from{transform:translateY(-120%)}to{transform:none}}
+.fmini{width:96px;height:96px;border-radius:50%;object-fit:cover;display:block;margin:4px auto 8px;border:4px solid var(--card);box-shadow:0 0 0 2px var(--ac)}
+.fini{display:grid;place-items:center;background:linear-gradient(135deg,var(--ac),#f7d9a8);color:#fff;font:400 54px var(--script)}
+.capa{position:fixed;inset:0;z-index:25;background:var(--bg);overflow:auto;display:none;padding:14px 14px 30px}
+.capa.on{display:block}
+.capa .top{display:flex;gap:12px;align-items:flex-start}
+.capa .fgr{width:58%;max-width:300px;aspect-ratio:1;border-radius:22px;object-fit:cover;border:5px solid var(--card);box-shadow:0 0 0 3px var(--ac),0 12px 28px rgba(0,0,0,.18)}
+.capa .fgr.fini{font-size:110px}
+.capa h2{font:400 40px/1.05 var(--script);margin:6px 0 4px;color:var(--ink)}
+#lienzo{width:100%;height:240px;background:#fff;border:2px dashed var(--ac);border-radius:18px;touch-action:none;display:block;margin-top:12px}
+.colores{display:flex;gap:10px;align-items:center;margin:10px 0}.colores button{width:34px;height:34px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px var(--line);cursor:pointer}.colores button.on{box-shadow:0 0 0 3px var(--ink)}
+.firmas{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:14px}
+.firmas div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:6px;text-align:center;color:#1f2937;font-size:13px}.firmas img{width:100%;height:80px;object-fit:contain}.firmas div.yo{box-shadow:0 0 0 2px var(--ac)}
+.cuadroF{text-align:center}.cuadroF .fgr{width:70%;max-width:340px;margin:8px auto 0;display:block}
 </style>
 </head>
 <body>
@@ -109,6 +122,7 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 <div class="toast" id="toast"></div>
 <div id="esc"></div>
 <div id="fl"><div id="flb"></div><div style="position:relative"><div id="flav" aria-label="Flashy, tu asistente"></div><span id="flprop"></span></div></div>
+<div class="capa" id="capa"></div>
 <div class="modal" id="modal"><div class="in" id="modalIn"></div></div>
 <script src="/fiesta-i18n.js"></script>
 <script>
@@ -176,11 +190,12 @@ function render() {
   } else if (f.salon || f.direccion) h += `<div style="text-align:center"><a class="btn alt" href="${mapa(f)}" target="_blank" rel="noopener">${t('📍 Cómo llegar')}</a> ${f.fecha ? `<a class="btn alt" href="${agenda(f)}" target="_blank" rel="noopener">${t('🗓 Agendar')}</a>` : ''}</div>`;
   if (F.vivo && !PREV) h += `<div class="card vivo" id="vivo"></div>`;
   h += `<div class="card rsvp" id="rsvp"></div>`;
+  h += `<div class="card" id="firmasCard"></div>`;
   h += `<div class="card" id="guardar"></div>`;
   h += `<div class="pie">${t('Invitación y fiesta organizadas con')} <b>ShopFiesta</b><br>Pro Video JSRHG · <a href="https://wa.me/5492235814437?text=${encodeURIComponent('Hola, vi la invitación de ShopFiesta y quiero una para mi fiesta')}" target="_blank" rel="noopener">${t('¿Querés una para tu fiesta?')}</a></div>`;
   $('#app').innerHTML = h;
   if (F.vivo && F.hoy && !PREV) { const v = $('#vivo'), hero = $('.hero'); if (v && hero) hero.after(v); }
-  rsvp(); guardar(); cuenta(); pVivo();
+  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas();
 }
 function cuenta() {
   clearInterval(timer); const d = cuando(F); if (!d || !$('#cuenta')) return;
@@ -234,6 +249,72 @@ async function responder(va) {
     INV.resp = j.resp; delete $('#rsvp').dataset.cambiar; rsvp(); guardar();
     if (va) setTimeout(() => $('#guardar').scrollIntoView({behavior: 'smooth', block: 'center'}), 400);
   } catch (e) { if (msg) msg.innerHTML = `<p class="err">${esc(e.message)}</p>`; if (b) b.disabled = false; }
+}
+// ===== Cuadro de firmas: el invitado firma la foto de la cumpleañera =====
+const fotoHTML = (cl) => F.foto ? `<img class="${cl}" src="${esc(F.foto)}" alt="">` : `<div class="${cl} fini">${esc((F.nombre || '♥').charAt(0))}</div>`;
+let FIRMAS = null;
+function tarjFirmas() {
+  const el = $('#firmasCard'); if (!el) return;
+  if (!INV && !PREV) { el.style.display = 'none'; return; } el.style.display = '';
+  const n = esc(F.nombre || t('la familia'));
+  el.innerHTML = `<h3>${t('Cuadro de firmas')}</h3>${fotoHTML('fmini')}<p>${t('Firmá la foto de {n} con el dedo y dejale un mensajito 💖', {n})}</p><button class="btn big2" id="bFirmar">${t('✍️ Firmar la foto de {n}', {n})}</button><br><button class="btn alt" id="bCuadro">${t('🖼 Ver el cuadro de firmas')}</button>`;
+  $('#bFirmar').onclick = () => PREV ? null : abrirFirma(); $('#bCuadro').onclick = () => PREV ? null : verCuadro();
+}
+function cerrarCapa() { $('#capa').classList.remove('on'); $('#capa').innerHTML = ''; document.body.style.overflow = ''; }
+function abrirFirma() {
+  const c = $('#capa'), n = esc(F.nombre || '');
+  c.innerHTML = `<div style="max-width:560px;margin:0 auto"><div class="top">${fotoHTML('fgr')}<div><h2>${n}</h2><p style="color:var(--soft);margin:0">${t('Firmá acá abajo con el dedo ✍️')}</p></div></div>
+    <canvas id="lienzo"></canvas>
+    <div class="colores">${['#1f2937', '#b8860b', '#db2777', '#2563eb', '#16a34a'].map((k, i) => `<button type="button" data-col="${k}" class="${i ? '' : 'on'}" style="background:${k}" aria-label="color"></button>`).join('')}<button type="button" class="btn alt" id="fBorrar" style="width:auto;height:auto;border-radius:999px;margin:0 0 0 auto;box-shadow:inset 0 0 0 2px var(--line)">${t('Borrar')}</button></div>
+    <input id="fMsg" maxlength="120" placeholder="${t('Un mensajito (opcional)')}" style="width:100%;font:17px var(--sans);padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)">
+    <button class="btn big2" id="fOk" style="margin-top:12px">${t('✍️ Firmar')}</button><br><button class="btn no" id="fNo">${t('Cancelar')}</button><div id="fErr"></div></div>`;
+  c.classList.add('on'); document.body.style.overflow = 'hidden';
+  const cv = $('#lienzo'), r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = r.width * dpr; cv.height = r.height * dpr;
+  const x = cv.getContext('2d'); x.scale(dpr, dpr); x.lineCap = 'round'; x.lineJoin = 'round'; x.lineWidth = 3.2; x.strokeStyle = '#1f2937';
+  let dib = false, hay = false, last = null;
+  const pos = e => { const b = cv.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
+  cv.onpointerdown = e => { dib = true; $('#fErr').innerHTML = ''; last = pos(e); cv.setPointerCapture(e.pointerId); x.beginPath(); x.arc(last[0], last[1], 1.4, 0, 7); x.fillStyle = x.strokeStyle; x.fill(); hay = true; };
+  cv.onpointermove = e => { if (!dib) return; const p = pos(e); x.beginPath(); x.moveTo(last[0], last[1]); x.lineTo(p[0], p[1]); x.stroke(); last = p; hay = true; };
+  cv.onpointerup = cv.onpointercancel = () => { dib = false; };
+  c.querySelectorAll('[data-col]').forEach(b => b.onclick = () => { x.strokeStyle = b.dataset.col; c.querySelectorAll('[data-col]').forEach(y => y.classList.toggle('on', y === b)); });
+  $('#fBorrar').onclick = () => { x.clearRect(0, 0, cv.width, cv.height); hay = false; };
+  $('#fNo').onclick = cerrarCapa;
+  $('#fOk').onclick = async () => {
+    if (!hay) { $('#fErr').innerHTML = `<p class="err">${t('Primero firmá con el dedo en el recuadro blanco.')}</p>`; return; }
+    const b = $('#fOk'); b.disabled = true;
+    // achicamos la firma para que pese poco
+    const o = document.createElement('canvas'); o.width = 480; o.height = Math.round(480 * cv.height / cv.width); o.getContext('2d').drawImage(cv, 0, 0, o.width, o.height);
+    try { const r = await fetch('/api/fiesta?accion=firmar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, img: o.toDataURL('image/png'), msg: $('#fMsg').value})}); const j = await r.json();
+      if (!r.ok) throw new Error(j.error || t('No se pudo guardar'));
+      if (FIRMAS) FIRMAS = FIRMAS.filter(f => !f.yo).concat([j.firma]); else FIRMAS = j.demo ? [j.firma] : null;
+      if (navigator.vibrate) navigator.vibrate(60); if (FL) flDecir(t('¡Gracias por firmar! 💖 Tu firma ya está en el cuadro de {n}.', {n: F.nombre || ''}), [{t: t('👍 Gracias'), alt: true, f: () => $('#flb').classList.remove('on')}]);
+      verCuadro(true);
+    } catch (e) { $('#fErr').innerHTML = `<p class="err">${esc(e.message)}</p>`; b.disabled = false; }
+  };
+}
+async function verCuadro(recien, auth) {
+  const c = $('#capa'); c.innerHTML = `<div class="carga">…</div>`; c.classList.add('on'); document.body.style.overflow = 'hidden';
+  try { if (!FIRMAS || !recien) { const r = await fetch('/api/fiesta?accion=firmas&f=' + CODE + (auth || ('&i=' + encodeURIComponent(TOK)))); const j = await r.json(); if (!r.ok) throw new Error(j.error || t('No se pudo abrir'));
+      const mia = (FIRMAS || []).find(f => f.yo); FIRMAS = j.firmas; if (mia && !FIRMAS.some(f => f.yo)) FIRMAS.push(mia); }
+  } catch (e) { c.innerHTML = `<div class="carga">😕 ${esc(e.message)}</div><div style="text-align:center"><button class="btn" onclick="cerrarCapa()">${t('Cerrar')}</button></div>`; return; }
+  const n = esc(F.nombre || '');
+  c.innerHTML = `<div style="max-width:760px;margin:0 auto" class="cuadroF">${recien ? `<div class="ok" style="margin-bottom:10px"><b>${t('¡Gracias por firmar! 💖 Tu firma ya está en el cuadro de {n}.', {n})}</b></div>` : ''}${fotoHTML('fgr')}<h2>${n}</h2>
+    <p style="color:var(--soft)">${t('{c} firmas', {c: FIRMAS.length})}</p>
+    <div class="firmas">${FIRMAS.map(f => `<div class="${f.yo ? 'yo' : ''}"><img src="${esc(f.img)}" alt=""><b>${esc(f.nombre)}</b>${f.msg ? `<br><span>${esc(f.msg)}</span>` : ''}</div>`).join('') || `<p style="grid-column:1/-1;color:var(--soft)">${t('Todavía no firmó nadie. ¡Sé el primero! ✍️')}</p>`}</div>
+    <button class="btn" id="cDesc" style="margin-top:14px">${t('⬇️ Descargar el cuadro')}</button> ${INV ? `<button class="btn alt" id="cFirmar">${t('✍️ Firmar')}</button>` : ''} <button class="btn no" id="cCerrar">${t('Cerrar')}</button></div>`;
+  $('#cCerrar').onclick = cerrarCapa; const cf = $('#cFirmar'); if (cf) cf.onclick = abrirFirma; $('#cDesc').onclick = descargarCuadro;
+}
+const cargaImg = src => new Promise((ok, mal) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => ok(i); i.onerror = mal; i.src = src; });
+async function descargarCuadro() {
+  const W = 1500, cols = 5, lado = W / cols, filas = Math.ceil(FIRMAS.length / cols), H = 900 + Math.max(1, filas) * (lado * .62 + 40) + 80;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const x = cv.getContext('2d'); const ac = getComputedStyle(document.documentElement).getPropertyValue('--ac').trim() || '#c9a227';
+  x.fillStyle = '#fffaf2'; x.fillRect(0, 0, W, H); x.strokeStyle = ac; x.lineWidth = 14; x.strokeRect(24, 24, W - 48, H - 48);
+  try { if (F.foto) { const im = await cargaImg(F.foto); x.save(); x.beginPath(); x.arc(W / 2, 380, 300, 0, 7); x.clip(); const s = Math.max(600 / im.width, 600 / im.height); x.drawImage(im, W / 2 - im.width * s / 2, 380 - im.height * s / 2, im.width * s, im.height * s); x.restore(); x.beginPath(); x.arc(W / 2, 380, 300, 0, 7); x.lineWidth = 10; x.stroke(); } } catch (e) {}
+  x.fillStyle = '#2e2414'; x.textAlign = 'center'; x.font = '90px "Great Vibes", cursive'; x.fillText(F.nombre || '', W / 2, 800);
+  for (let k = 0; k < FIRMAS.length; k++) { const f = FIRMAS[k], cx = (k % cols) * lado, cy = 880 + Math.floor(k / cols) * (lado * .62 + 40);
+    try { const im = await cargaImg(f.img); x.drawImage(im, cx + 10, cy, lado - 20, (lado - 20) * im.height / im.width); } catch (e) {}
+    x.font = '600 24px Figtree, sans-serif'; x.fillStyle = '#6b5b45'; x.fillText(f.nombre, cx + lado / 2, cy + lado * .62 + 20); }
+  try { const a = document.createElement('a'); a.download = 'cuadro-de-firmas-' + (F.nombre || 'fiesta') + '.png'; a.href = cv.toDataURL('image/png'); a.click(); } catch (e) { alert(t('No se pudo descargar la imagen.')); }
 }
 // ===== Fiesta en vivo =====
 const minDe = h => { const [a, b] = String(h).split(':').map(Number); return a * 60 + b; };
@@ -400,7 +481,7 @@ const LSI = () => 'fiestaInter:' + CODE;
 const marcaInter = () => { try { localStorage.setItem(LSI(), String(Date.now())); } catch (e) {} };
 function flMenu() { const nom = INV.nombre.split(' ')[0], mesa = INV.mesa || MESA;
   const reg = (F.lugares || []).find(x => /regal/i.test(x.n));
-  flDecir(`${t('¡Hola {n}! ', {n: nom})}${mesa ? t('Estás en la mesa {m}. ', {m: mesa}) : ''}${reg && reg.d && !yaSaludo() ? t('Si traés regalo, la mesa de regalos está {d} 🎁. ', {d: reg.d}) : ''}${t('¿Querés que te traigan algo para tomar?')}`, [{t: t('🥤 Sí, pedir algo'), f: () => flDecir(t('¿Qué te traemos?'), flOpsPedir(), true)}, {t: t('⏰ ¿Qué viene?'), alt: true, f: flQueViene}, {t: t('📋 Todo el programa'), alt: true, f: () => { $('#flb').classList.remove('on'); progAbierto = true; pVivo(); const d = document.querySelector('.prog'); if (d) d.scrollIntoView({behavior: 'smooth', block: 'center'}); }}].concat((F.lugares || []).length ? [{t: t('📍 ¿Dónde está…?'), alt: true, f: flLugares}] : []).concat(F.estaciona ? [{t: t('🚗 Estacionamiento'), alt: true, f: flEstaciona}] : []).concat([{t: t('Ahora no'), alt: true, f: () => { marcaInter(); $('#flb').classList.remove('on'); }}]), true); try { localStorage.setItem('fiestaSaludo:' + CODE, '1'); } catch (e) {} }
+  flDecir(`${t('¡Hola {n}! ', {n: nom})}${mesa ? t('Estás en la mesa {m}. ', {m: mesa}) : ''}${reg && reg.d && !yaSaludo() ? t('Si traés regalo, la mesa de regalos está {d} 🎁. ', {d: reg.d}) : ''}${t('¿Querés que te traigan algo para tomar?')}`, [{t: t('🥤 Sí, pedir algo'), f: () => flDecir(t('¿Qué te traemos?'), flOpsPedir(), true)}, {t: t('⏰ ¿Qué viene?'), alt: true, f: flQueViene}, {t: t('📋 Todo el programa'), alt: true, f: () => { $('#flb').classList.remove('on'); progAbierto = true; pVivo(); const d = document.querySelector('.prog'); if (d) d.scrollIntoView({behavior: 'smooth', block: 'center'}); }}].concat((F.lugares || []).length ? [{t: t('📍 ¿Dónde está…?'), alt: true, f: flLugares}] : []).concat(F.estaciona ? [{t: t('🚗 Estacionamiento'), alt: true, f: flEstaciona}] : []).concat([{t: t('✍️ Firmar la foto'), alt: true, f: () => { $('#flb').classList.remove('on'); abrirFirma(); }}]).concat([{t: t('Ahora no'), alt: true, f: () => { marcaInter(); $('#flb').classList.remove('on'); }}]), true); try { localStorage.setItem('fiestaSaludo:' + CODE, '1'); } catch (e) {} }
 const yaSaludo = () => { try { return !!localStorage.getItem('fiestaSaludo:' + CODE); } catch (e) { return false; } };
 function flPasoDeVez() { // cada tanto, sin molestar: "¿te falta algo en la mesa?"
   if (!FL || $('#flb').classList.contains('on') || document.hidden) return;
@@ -446,6 +527,7 @@ async function cargar() {
     const r = await fetch('/api/fiesta?accion=ver&f=' + encodeURIComponent(CODE) + (TOK ? '&i=' + encodeURIComponent(TOK) : ''));
     const j = await r.json(); if (!r.ok) throw new Error(j.error || t('No encontramos esta fiesta.'));
     F = j.fiesta; INV = j.inv || null; render(); arrancarVivo();
+    if (P.get('firmas') === '1') verCuadro(false, P.get('k') ? '&k=' + encodeURIComponent(P.get('k')) : P.get('p') ? '&p=' + encodeURIComponent(P.get('p')) : null);
   } catch (e) { $('#app').innerHTML = `<div class="carga">😕 ${esc(e.message)}</div>`; }
 }
 if (PREV) {
