@@ -2725,7 +2725,10 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
     <div class="shoptitle">
       <span class="mnum" id="catNum"></span>
       <h2 id="catTitle"></h2>
+      <span class="note" id="catSector" hidden style="font-weight:700"></span>
       <button class="linkbtn" type="button" id="renameBtn">Cambiar nombre</button>
+      <button class="linkbtn" type="button" id="sectorBtn" title="Dónde está esta vitrina dentro de tu local: la vendedora se lo dice al cliente">📍 Sector en el local</button>
+      <button class="linkbtn" type="button" id="guiaCartel" title="Cartel con QR para la puerta: el cliente pregunta si hay un producto y en qué sector está">🖨 Cartel QR para la puerta</button>
       <button class="linkbtn" type="button" id="hideCat">Ocultar esta vitrina</button>
       <span class="fixtools" id="fixTools"><button class="linkbtn" type="button" id="fixAI">✦ Enderezar fotos</button><button class="linkbtn" type="button" id="rotAll">↻ Girar todas</button><button class="linkbtn" type="button" id="proAll">✨ Foto profesional a todas</button><button class="linkbtn" type="button" id="lightAll">☀ Más luz a todas</button><span class="note" id="fixMsg" role="status"></span></span>
       <button class="linkbtn" type="button" id="delCat" hidden style="color:var(--danger)">Borrar esta vitrina</button>
@@ -3095,7 +3098,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
   const n = parseFloat(t); return isNaN(n) ? Infinity : n; };
 
   const samples = () => SAMPLES.map((s,i) => ({...s, id:'s'+i, sample:true, added:i}));
-  const catClean = c => ({id: c.id, name: c.name, hidden: !!c.hidden, still: !!c.still, ...(c.bg ? {bg: c.bg} : {}), ...(Number.isInteger(c.zoom) ? {zoom: c.zoom} : {}), ...(c.size ? {size: c.size} : {}), ...(c.glow ? {glow: true} : {}), ...(c.deco ? {deco: c.deco} : {}), ...(c.flyer ? {flyer: true} : {})});
+  const catClean = c => ({id: c.id, name: c.name, hidden: !!c.hidden, still: !!c.still, ...(c.bg ? {bg: c.bg} : {}), ...(Number.isInteger(c.zoom) ? {zoom: c.zoom} : {}), ...(c.size ? {size: c.size} : {}), ...(c.glow ? {glow: true} : {}), ...(c.deco ? {deco: c.deco} : {}), ...(c.flyer ? {flyer: true} : {}), ...(c.sector ? {sector: String(c.sector).slice(0, 60)} : {})});
   function applyData(d){
     cats = Array.isArray(d.cats) && d.cats.length ? d.cats.slice(0, MAX_CATS).map(catClean) : DEFAULT_CATS.map(c => ({...c}));
     const fallback = (cats.find(c => c.id === 'varios') || cats[cats.length - 1]).id;
@@ -3578,6 +3581,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
     const c = catOf(id);
     $('catNum').textContent = 'VITRINA ' + two(catIndex(id) + 1);
     $('catTitle').textContent = c.name;
+    { const sx = $('catSector'); if(sx){ sx.hidden = !c.sector; sx.textContent = c.sector ? '📍 ' + c.sector : ''; } }
     $('renameForm').hidden = true; $('renameBtn').hidden = false; $('catTitle').hidden = false;
     if(!editingId) fillCatSelect(id);
     renderStrip();
@@ -4579,6 +4583,10 @@ Respondé SOLO con JSON: {"letras": [ ... ]} con ${n} letra${n === 1 ? '' : 's'}
   };
   const endRename = () => { $('renameForm').hidden = true; $('renameBtn').hidden = false; $('catTitle').hidden = false; };
   $('renameCancel').onclick = endRename;
+  $('sectorBtn').onclick = () => { const c = catOf(currentCat); if(!c) return;
+    const v = prompt('¿Dónde está esta vitrina dentro de tu local? (ej: "Sector B, al fondo a la derecha" o "Pasillo 3"). La vendedora se lo dice al cliente. Dejalo vacío para sacarlo.', c.sector || '');
+    if(v === null) return; c.sector = v.trim().slice(0, 60); if(!c.sector) delete c.sector; const sx = $('catSector'); sx.hidden = !c.sector; sx.textContent = c.sector ? '📍 ' + c.sector : ''; save(); };
+  $('guiaCartel').onclick = () => window.v360CartelGuia && window.v360CartelGuia();
   $('renameForm').addEventListener('submit', e => {
     e.preventDefault();
     const v = $('cat-name').value.trim();
@@ -6173,6 +6181,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   // Formas de entrega. "r": monedas (países) donde aparece esa opción; sin "r", en todos lados.
   const SHIP_OPTS = [
     {id:'retiro', name:'Retiro en el local', ph:'Dirección y horario. Ej: Av. Colón 1234, de 10 a 19 h'},
+    {id:'enlocal', name:'Estoy en el local: pago en la caja', ph:'Ej: mostrá tu número en la caja y pagás ahí'},
     {id:'moto', name:'Envío a domicilio (cadete)', ph:'Costo o zona. Ej: $2.500 dentro de la ciudad'},
     {id:'apps', name:'Delivery por app (PedidosYa, Rappi, Uber, DoorDash…)', ph:'Ej: lo pedimos por app, el costo lo paga el cliente'},
     {id:'domicilio', name:'Envío a domicilio (empresa de envíos)', ph:'Costo o zona. Ej: gratis en compras grandes'},
@@ -6218,7 +6227,7 @@ Respondé SOLO con JSON: {"products": [ ... ]}` + aiLang(), {images: blob, signa
   const noShip = () => allDigital() || allService();
   // servicios a domicilio: si el comercio lo ofrece y el cliente lo elige, se pide la dirección
   const svcHome = () => allService() && !!brand.svcHome && buyer.lugar === 'casa';
-  const needAddr = () => (!noShip() && !!shipSel && shipSel !== 'retiro') || svcHome();
+  const needAddr = () => (!noShip() && !!shipSel && shipSel !== 'retiro' && shipSel !== 'enlocal') || svcHome();
   // Repartidores: lista con nombre y chico/chica (antes era un texto con nombres separados por coma).
   const riderListOf = () => Array.isArray(brand.riderList) ? brand.riderList : String(brand.riders || '').split(',').map(x => x.trim()).filter(Boolean).map(n => ({name: n, f: false}));
   const VEH = {moto: '🛵', auto: '🚗', bici: '🚲'};
@@ -7635,6 +7644,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         </div>` : ''}
         <div class="actions">
           ${cartAtt()}
+          ${shipSel === 'enlocal' ? `<button class="btn primary" type="button" data-c="enlocal" style="font-size:17px">🧾 Listo, voy a la caja</button>` : ''}
           ${mpOn ? `<button class="btn primary mpgo" type="button" data-c="mppay" ${payPick.mode === 'mp' ? '' : 'hidden'}>💳 ${esc(L('Pagar con Mercado Pago', 'Pay with Mercado Pago', 'Pagar com Mercado Pago'))} · ${fmt(t + fee.n)}</button>` : ''}
           ${wa ? `<a class="btn wa" href="${wa}" target="_blank" rel="noopener" data-c="sent" ${mpOn && payPick.mode === 'mp' ? 'hidden' : ''}>Enviar pedido por WhatsApp</a>` : (!PUBLIC && !clientMode ? `<button class="btn primary" type="button" data-c="setwa">Cargá tu WhatsApp para recibir pedidos</button>` : `<span class="note">Este comercio todavía no cargó su WhatsApp. Copiá el pedido y mandáselo.</span>`)}
           <button class="btn" type="button" data-c="copy">Copiar pedido</button>
@@ -7810,7 +7820,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         const c = p.comprador || {}, moto = p.envio_id === 'moto', abierto = p.estado === 'preparando';
         return `<div class="ordcard st-${esc(p.estado)}">
           <div class="oh"><strong>${p.turno ? `<span class="otk">#${p.turno}</span>` : ''}${esc(c.nombre || 'Cliente')} · ${hora(p.creado)}${abierto && ordQueue().indexOf(p) >= 0 ? `<span class="opos">${ordQueue().indexOf(p) + 1}º en la fila</span>` : ''}</strong><span class="ost">${ORD_ST[p.estado] || esc(p.estado)}${p.estado === 'salio' && p.repartidor ? ' con ' + esc(p.repartidor) : ''}</span></div>
-          <ul>${(p.items || []).map(it => `<li>${it.d ? '📥 ' : ''}${it.q} x ${esc(it.n)}${it.p ? ' — ' + esc(it.p) : ''}</li>`).join('')}</ul>
+          ${p.envio_id === 'enlocal' ? `<div style="background:#ecfdf5;border-radius:10px;padding:6px 10px;font-weight:800">🧾 Paga en la caja · Ticket <span style="font-size:20px">#${esc(String(p.turno || ''))}</span> · Revisá que lo que trae sea lo de la lista</div>` : ''}
+          <ul>${(p.items || []).map(it => { const pr = p.envio_id === 'enlocal' && it.pid ? products.find(x => x.id === it.pid) : null; return `<li>${pr && pr.img ? `<img src="${esc(pr.img)}" alt="" style="width:42px;height:42px;object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:6px">` : ''}${it.d ? '📥 ' : ''}${it.q} x ${esc(it.n)}${it.p ? ' — ' + esc(it.p) : ''}</li>`; }).join('')}</ul>
           <div><strong>Total:</strong> ${esc(p.total || '')}${p.envio ? ` · <strong>Entrega:</strong> ${esc(p.envio)}` : ''}</div>
           ${c.dir ? `<div>📍 ${esc(c.dir)}${c.ref ? ' — ' + esc(c.ref) : ''}<button class="btn ordmap" type="button" data-o="mapa" data-addr="${esc(c.dir)}">🗺 Ver en el mapa</button></div>` : ''}
           ${c.turno ? `<div>📅 Turno deseado: ${esc(c.turno)}</div>` : ''}
@@ -7951,7 +7962,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
   function goSetWa(){ if($('brandPanel').hidden) $('brandBtn').click(); setTimeout(() => { const i = $('b-wa'); const sec = i && i.closest('details'); if(sec) sec.open = true; if(i){ i.scrollIntoView({block: 'center', behavior: 'smooth'}); i.focus({preventScroll: true}); } }, 80); }
   $('waSet').onclick = goSetWa;
   $('cartFab').onclick = openCart;
-  $('cartModal').addEventListener('click', e => {
+  $('cartModal').addEventListener('click', async e => {
     if(e.target === $('cartModal')){ closeCart(); return; }
     const b = e.target.closest('[data-c]'); if(!b) return;
     const c = b.dataset.c, id = b.dataset.id;
@@ -7962,6 +7973,18 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     else if(c === 'clear'){
       if(b.dataset.armed){ cart = {}; saveCart(); updateFab(); renderCart(); }
       else { b.dataset.armed = '1'; b.textContent = '¿Seguro? Tocá de nuevo'; }
+    }
+    else if(c === 'enlocal'){
+      const o = SHIP_OPTS.find(x => x.id === 'enlocal'), items = cartItems(), tt = cartTotal(items);
+      if(!PUBLIC || !window.VITRINA_SLUG){ $('cartMsg').textContent = 'Así lo ve tu cliente: le sale su número para mostrar en la caja y a vos te llega la lista en Pedidos.'; return; }
+      b.disabled = true; $('cartMsg').textContent = 'Preparando tu ticket…';
+      const r = await sendOrder(o);
+      if(!r || !r.ref){ b.disabled = false; $('cartMsg').textContent = 'No se pudo. Revisá internet y probá de nuevo.'; return; }
+      const lista = items.map(it => `<li>${it.q} × ${esc(it.name)}${it.price ? ' — ' + esc(it.price) : ''}</li>`).join('');
+      cart = {}; saveCart(); updateFab(); closeCart();
+      let tk = document.getElementById('ticketLocal'); if(!tk){ tk = document.createElement('div'); tk.id = 'ticketLocal'; tk.style.cssText = 'position:fixed;inset:0;z-index:160;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:14px'; document.body.appendChild(tk); }
+      tk.innerHTML = `<div style="width:min(420px,100%);max-height:calc(100dvh - 28px);overflow:auto;background:#fff;color:#1f2937;border-radius:22px;padding:20px;text-align:center;display:grid;gap:8px;font:16px system-ui,sans-serif"><b style="font-size:18px">🧾 Mostrá esto en la caja</b><div style="font-size:64px;font-weight:900;line-height:1;color:#0f766e">#${esc(String(r.turno || '—'))}</div><span style="color:#555">${esc(storeName())}</span><ul style="text-align:left;margin:4px 0;padding-left:20px">${lista}</ul><b>Total: ${esc(fmt(tt.t))}${tt.unpriced ? ' + a consultar' : ''}</b><span style="color:#555;font-size:14px">El cajero ve tu lista y te cobra ahí. ¡Gracias por tu compra!</span><button class="btn primary" type="button" onclick="this.closest('#ticketLocal').remove()">Listo</button></div>`;
+      try{ if(typeof cajeraOn === 'function' && cajeraOn()) cSpeak(`¡Listo! Tu número es el ${r.turno}. Mostralo en la caja y te cobran ahí.`); }catch(err){}
     }
     else if(c === 'mppay'){
       if(shipMissing()) return;
@@ -8076,6 +8099,16 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       };
     };
     // cartel de reseñas: A4 o cartelito cuadrado de 10x10 u 8x8 cm para el mostrador
+    window.v360CartelGuia = async () => {
+        const sl = (window.VITRINA_ME && window.VITRINA_ME.slug) || window.VITRINA_SLUG || ''; if(!sl){ alert('Primero guardá tu tienda.'); return; }
+        const w = open('', '_blank'); if(!w){ alert('Permití las ventanas emergentes para imprimir el cartel.'); return; }
+        try{ if(!window.qrcode) await new Promise((ok, ko) => { const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'; sc.onload = ok; sc.onerror = ko; document.head.appendChild(sc); }); }catch(e){ w.close(); alert('No se pudo armar el QR. Revisá internet.'); return; }
+        const q = window.qrcode(0, 'M'); q.addData(location.origin + '/t/' + sl); q.make();
+        w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Cartel QR · ${esc(storeName())}</title><style>@page{size:A4;margin:12mm}body{margin:0;font-family:system-ui,Arial,sans-serif;color:#1f2937}
+.c{max-width:170mm;margin:0 auto;border:3px solid #0f766e;border-radius:24px;padding:12mm;text-align:center;background:#f0fdfa}h1{font-size:34px;margin:0 0 6px}h2{font-size:30px;margin:0 0 6px}.q svg{width:100mm;height:100mm}p{font-size:20px;margin:6px 0}.l{font-size:15px;color:#555}.by{font-size:12px;color:#888;margin-top:10px}</style></head><body><div class="c"><h1>${esc(storeName())}</h1><h2>🔎 ¿Buscás algo?</h2><p><b>Escaneá y preguntá:</b> te digo si lo tenemos, cuánto sale y en qué sector está.</p>
+<div class="q">${q.createSvgTag({cellSize: 6, margin: 2, scalable: true})}</div><p>📲 Hablale o escribile a la vendedora virtual.</p><p class="l">Looking for something? Scan and ask · Procurando algo? Escaneie e pergunte</p><div class="by">Pro Video JSRHG · ShopFlash</div></div><script>setTimeout(()=>print(),500)<\/script></body></html>`);
+        w.document.close();
+    };
     window.v360Cartel = async (chico, sl, w0) => {
         sl = sl || (window.VITRINA_ME && window.VITRINA_ME.slug) || ''; if(!sl){ alert('Primero guardá tu tienda.'); return; }
         try{ if(!window.qrcode) await new Promise((ok, ko) => { const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'; sc.onload = ok; sc.onerror = ko; document.head.appendChild(sc); }); }catch(e){ alert('No se pudo armar el QR. Revisá tu conexión.'); return; }
@@ -9970,7 +10003,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(full.length){
       const f = full.slice(0, 6); hLast = f.length === 1 ? f[0] : null; hShow(f, f.length === 1); hWalk(f[0].cat); if(f.length === 1) hYesNo(f[0]);
       if(card) $('hRes').insertAdjacentHTML('beforeend', `<button class="linkbtn" type="button" data-hask="${esc(ask)}" style="justify-self:start">¿Otra duda? ${me ? 'Preguntame por WhatsApp' : who ? 'Preguntale a ' + esc(who) : 'Preguntale al negocio'}</button>`);
-      return hSpeak(f.length === 1 ? `¡Sí, tenemos! ${f[0].name}${curPrice(f[0]) ? ', a ' + curPrice(f[0]) : ''}. ¿Lo agrego a tu pedido?` : `¡Sí! Tenemos ${f.length} opciones. Tocá la que quieras ver en grande.`), true;
+      return hSpeak(f.length === 1 ? `¡Sí, tenemos! ${f[0].name}${curPrice(f[0]) ? ', a ' + curPrice(f[0]) : ''}.${hSec(f[0].cat, f[0].name)} ¿Lo agrego a tu pedido?` : `¡Sí! Tenemos ${f.length} opciones.${hSec(f[0].cat)} Tocá la que quieras ver en grande.`), true;
     }
     if(near.length){
       const f = near.slice(0, 4); hLast = f.length === 1 ? f[0] : null; hShow(f, false); hWalk(f[0].cat);
@@ -9993,8 +10026,26 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       : who ? `Eso lo sabe mejor ${who}, ${ownRole()}. Te comunico directo con ${brand.owner.male ? 'él' : 'ella'} por WhatsApp: tocá el botón y le llega tu consulta.`
       : 'Eso te lo responden mejor en el negocio. Tocá el botón y te comunico directo por WhatsApp, con tu consulta ya escrita.');
   }
+  // ---- Guía dentro del local, por sectores (sin GPS): el cliente dice dónde está y la vendedora lo va orientando ----
+  let hGo = null;   // {cat, name, sector}
+  const secKey = s => { const m = String(s || '').match(/(?:pasillo|sector|g[oó]ndola|zona|isla)\s*([0-9]+|[a-z])\b/i) || String(s || '').match(/\b([0-9]+)\b/); if(!m) return null; const v = m[1]; return /^\d+$/.test(v) ? +v : v.toLowerCase().charCodeAt(0) - 96; };
+  function hSec(id, nm){ const c0 = catOf(id); if(!c0 || !c0.sector) return ''; const first = !hGo; hGo = {cat: id, name: nm || '', sector: c0.sector}; return ` Está${nm ? '' : 'n'} en ${c0.sector}.${first ? ' Mientras caminás, decime en qué sector estás y te voy guiando.' : ''}`; }
+  function hGuia(q, n){
+    if(!hGo) return false;
+    if(/^(si,? )?(lo encontre|la encontre|los encontre|las encontre|ya lo tengo|ya la tengo|listo,? (lo|la) tengo)\b/.test(n)){ const g = hGo; hGo = null; hSpeak(`¡Genial! ¿Querés que te agregue ${g.name ? g.name.toLowerCase() : 'algo'} a tu pedido, o buscás otra cosa?`); return true; }
+    const m = n.match(/(?:estoy|ando|llegue|me encuentro)\s+(?:en|por|a|al)\s+(?:el |la |los |las |l )?(?:sector |pasillo |zona |parte )?(?:de |del |de la )?(.+)/); if(!m) return false;
+    const w = m[1].trim(), cats0 = visCats();
+    const here = cats0.find(c => c.sector && (norm(c.sector).includes(w) || w.includes(norm(c.sector)))) || cats0.find(c => norm(c.name).includes(w) || w.split(/\s+/).some(t => t.length > 3 && norm(c.name).includes(stem(t))));
+    const kHere = here ? secKey(here.sector) : secKey(w), kGo = secKey(hGo.sector);
+    if(here && here.id === hGo.cat){ hSpeak(`¡Llegaste! Estás en ${hGo.sector}. Fijate en los estantes: ${hGo.name ? 'ahí está ' + hGo.name : 'ahí está lo que buscás'}. ¿Lo encontraste?`); return true; }
+    if(kHere != null && kGo != null){ const d = kGo - kHere;
+      if(d === 0){ hSpeak(`¡Estás justo ahí! Buscá en ${hGo.sector}. ¿Lo encontraste?`); return true; }
+      hSpeak(`Vas bien. ${Math.abs(d) === 1 ? `Es el sector de al lado: ${hGo.sector}.` : `Seguí ${Math.abs(d)} sectores más, hasta ${hGo.sector}.`} Mirá los carteles de arriba. Cuando llegues, avisame.`); return true; }
+    hSpeak(`Dale. Lo que buscás está en ${hGo.sector}. Seguí mirando los carteles de arriba hasta encontrar “${hGo.sector}”, y decime dónde estás si te perdés.`); return true;
+  }
   function hAnswer(q){
     const n = norm(q).trim();
+    if(hGuia(q, n)) return;
     if(/\b(hablar|hablo|comunicar|comunicame|contactar|pasame|atender|atienda|conectar)\b.*\b(duen[oa]|persona|alguien|humano|encargad[oa]|real|vos|ella|el|responsable)\b/.test(n) || /\b(una persona|un humano|persona real|la duena|el dueno|la encargada|el encargado)\b/.test(n) || (ownOn() && n.length < 40 && norm(ownName()).length > 2 && /\b(hablar|hablo|comunicar|pasame|contactar)\b/.test(n) && n.includes(norm(ownName())))) return hHandoff('');
     if(esParquero() && /^corte comun$|corte comun|un corte|cortar el pasto|solo el pasto/.test(n) && !/presupuest/.test(n)){ hShow([]); openParque(); try{ $('pqQuiere').value = 'Corte común de pasto'; const nm = localStorage.getItem('v360-cli-nombre-' + (window.VITRINA_SLUG || '')); if(nm && $('pqNom')) $('pqNom').value = nm; }catch(e){}
       return hSpeak('¡Perfecto! Tocá “Sacar o elegir fotos” y mandame una o dos fotos de tu parque, que se vea todo el pasto. Después tocá “Armar mi presupuesto” y te lo paso al toque.'); }
@@ -10029,12 +10080,13 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(!cat) cat = vc.find(c => n.includes(norm(c.name)) || norm(c.name).split(/\s+/).some(w => w.length > 3 && qt.some(t => t.length > 3 && (w.startsWith(t) || t.startsWith(stem(w))))));
     const found = hFindBest(q);
     const namedHit = found.length && found.some(p => p.cat !== (cat && cat.id) && qt.some(t => norm(p.name).includes(t)));
+    const secOf = hSec;
     if(cat && (num || !namedHit)){
       const inCat = new Set(found.filter(p => p.cat === cat.id).map(p => p.id));
       const items = products.filter(p => p.cat === cat.id).sort((a, b) => (inCat.has(b.id) ? 1 : 0) - (inCat.has(a.id) ? 1 : 0) || (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
       hLast = null; hShow(items.slice(0, 6), false); hWalk(cat.id);
       const fp = items.find(p => p.featured);
-      return hSpeak(M('cat_has', {cat: trCat(cat.name), n: items.length, feat: fp ? M('cat_feat', {p: fp.name + (fp.promo ? ', ' + fp.promo : '')}) : ''}));
+      return hSpeak(M('cat_has', {cat: trCat(cat.name), n: items.length, feat: fp ? M('cat_feat', {p: fp.name + (fp.promo ? ', ' + fp.promo : '')}) : ''}) + secOf(cat.id));
     }
     if(found.length){
       hLast = found.length === 1 ? found[0] : null; hShow(found, found.length === 1); hWalk(found[0].cat);
@@ -10045,7 +10097,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
         hYesNo(p);
         if(am.unit || am.qty > 1){ const u = unitOf(p); return hSpeak(`Acá tenés ${p.name}. ¿Te agrego ${am.qty > 1 ? am.qty + ' × ' : ''}${u ? u.n : ''}${curPrice(p) ? ', a ' + curPrice(p) + (am.qty > 1 ? ' cada uno' : '') : ''}?`); }
       }
-      return hSpeak(found.length === 1 ? `Acá tenés ${p.name}${p.promo ? ', ' + p.promo : ''}${curPrice(p) ? ', a ' + curPrice(p) : ''}. ¿Lo agrego a tu pedido?` : `Encontré ${found.length} opciones. La primera es ${p.name}${curPrice(p) ? ', a ' + curPrice(p) : ''}. Tocá la que quieras ver en grande.`);
+      return hSpeak(found.length === 1 ? `Acá tenés ${p.name}${p.promo ? ', ' + p.promo : ''}${curPrice(p) ? ', a ' + curPrice(p) : ''}.${secOf(p.cat, p.name)} ¿Lo agrego a tu pedido?` : `Encontré ${found.length} opciones. La primera es ${p.name}${curPrice(p) ? ', a ' + curPrice(p) : ''}. Tocá la que quieras ver en grande.`);
     }
     if(waNumber() && n.split(' ').length > 2) return hHandoff(q);
     hShow([]); hSpeak(M('unknown', {wa: String(brand.wa || '').trim() ? M('write_us', {wa: brand.wa}) : ''}));
