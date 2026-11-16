@@ -246,7 +246,7 @@ async function pedir() {
   const msg = $('#pmsg'); if (!items.length) { msg.innerHTML = '<p class="err">Elegí algo con el botón +</p>'; return; }
   const b = $('#pedir'); b.disabled = true;
   try { const r = await fetch('/api/fiesta?accion=pedir', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, items, nota: ($('#pnota') || {}).value || '', mesa: MESA})}); const j = await r.json();
-    if (!r.ok) throw new Error(j.error || 'No se pudo pedir'); CANT = {}; if (navigator.vibrate) navigator.vibrate(60); await vivoTick(); toast('🛎 ¡Pedido enviado!', 'Te avisamos cuando va en camino.');
+    if (!r.ok) throw new Error(j.error || 'No se pudo pedir'); CANT = {}; if (navigator.vibrate) navigator.vibrate(60); await vivoTick(); toast('🛎 ¡Pedido enviado!', j.moza ? `Se lo pasamos a ${j.moza}. Te avisamos cuando va en camino.` : 'Te avisamos cuando va en camino.'); if (FL) flHablar(`Listo, ya se lo paso a ${j.moza || 'la moza'}`);
   } catch (e) { msg.innerHTML = `<p class="err">${esc(e.message)}</p>`; b.disabled = false; }
 }
 let vistos = {}; try { vistos = JSON.parse(localStorage.getItem('fiestaVistos:' + CODE) || '{}'); } catch (e) {}
@@ -268,7 +268,7 @@ async function vivoTick() {
   if (!F || !F.vivo || !F.hoy || !INV) return;
   try { const r = await fetch('/api/fiesta?accion=vivo&f=' + CODE + '&i=' + encodeURIComponent(TOK)); const j = await r.json(); if (!r.ok || !j.vivo) return; VIVO = j; F.atraso = j.atraso || 0;
     (j.avisos || []).forEach(a => { if (!vistos['a' + a.id] && Date.now() - Date.parse(a.t) < 45 * 60e3) { marcarVisto('a' + a.id); toast('📢 ' + a.txt, nomFiesta(F), true); } else marcarVisto('a' + a.id); });
-    (j.pedidos || []).forEach(p => { const k = p.estado + '|' + p.moza; if (estadoAnt[p.id] && estadoAnt[p.id] !== k && p.estado === 'camino') toast(`🚶 Ya va ${p.moza || 'la moza'} a tu mesa`, p.items.map(x => x.n).join(', ')); estadoAnt[p.id] = k; });
+    (j.pedidos || []).forEach(p => { const k = p.estado + '|' + p.moza; if (estadoAnt[p.id] && estadoAnt[p.id] !== k && p.estado === 'camino') toast(p.moza ? `🚶 ${p.moza} te trae tu pedido` : '🚶 Tu pedido va en camino', p.items.map(x => x.n).join(', ')); estadoAnt[p.id] = k; });
   } catch (e) {}
   momentos().forEach((m, i, M) => { const k = 'c' + m.h + m.nombre; if (!vistos[k] && Date.now() >= m.aviso && Date.now() - m.aviso < 30 * 60e3) { marcarVisto(k); if (m.a) { toast(m.a, nomFiesta(F), true); const sig = M[i + 1]; if (FL) flDecir(m.a + (sig ? ` Después, a las ${hhmm(sig.ts)}: ${sig.nombre.charAt(0).toLowerCase() + sig.nombre.slice(1)}.` : ''), [{t: '🥤 Pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: '👍 Dale', alt: true, f: () => $('#flb').classList.remove('on')}]); } } else if (!vistos[k] && Date.now() - m.aviso >= 30 * 60e3) marcarVisto(k); });
   const ae = document.activeElement; if (!(ae && (ae.id === 'pnota'))) pVivo();
@@ -321,7 +321,7 @@ function flConfirmar(it) { flPend = it; flDecir(`¿Te pido ${listaTx(it)}?`, [{t
 async function flPedir() {
   if (!flPend) return; const it = flPend; flPend = null;
   try { const r = await fetch('/api/fiesta?accion=pedir', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, items: it, mesa: MESA})}); const j = await r.json();
-    if (!r.ok) throw new Error(j.error || 'No se pudo'); marcaInter(); await vivoTick(); flDecir('¡Listo! 🛎 Ya se lo paso a la moza. Te aviso cuando va en camino.', [{t: '👍 Gracias', alt: true, f: () => $('#flb').classList.remove('on')}]);
+    if (!r.ok) throw new Error(j.error || 'No se pudo'); marcaInter(); await vivoTick(); flDecir(`¡Listo! 🛎 Ya se lo paso a ${j.moza || 'la moza'}. Te aviso cuando va en camino.`, [{t: '👍 Gracias', alt: true, f: () => $('#flb').classList.remove('on')}]);
   } catch (e) { flDecir('😕 ' + e.message, [{t: 'Ok', alt: true, f: () => $('#flb').classList.remove('on')}]); }
 }
 function flQueViene() { const M = momentos(), p = M.find(x => x.ts > Date.now()); flDecir(p ? `A las ${hhmm(p.ts)} es ${p.nombre.charAt(0).toLowerCase() + p.nombre.slice(1)} ✨` : 'Ya pasaron todos los momentos del cronograma. ¡A disfrutar! 💃', [{t: '🥤 Pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: 'Listo', alt: true, f: () => $('#flb').classList.remove('on')}]); }

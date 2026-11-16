@@ -111,7 +111,8 @@ function limpiar(d, prev) {
     // fiesta en vivo: lo que se puede pedir a la mesa, el cronograma de la noche y cómo trabaja el personal
     carta: (Array.isArray(d.carta) ? d.carta : []).slice(0, 80).map(x => ({ n: corto(x && x.n, 40), alc: !!(x && x.alc) })).filter(x => x.n),
     crono: (Array.isArray(d.crono) ? d.crono : []).slice(0, 30).map(x => ({ h: /^\d{2}:\d{2}$/.test(String(x && x.h)) ? x.h : '', t: corto(x && x.t, 60), a: corto(x && x.a, 140), m: [0, 5, 10, 15, 30, 60].includes(+(x && x.m)) ? +x.m : 10 })).filter(x => x.h && x.t),
-    modoP: d.modoP === 'mozas' ? 'mozas' : 'encargada'
+    modoP: d.modoP === 'mozas' ? 'mozas' : 'encargada',
+    zonas: (d.zonas && typeof d.zonas === 'object' ? Object.entries(d.zonas) : []).slice(0, 40).reduce((o, [k, v]) => { k = corto(k, 30); v = corto(v, 60).replace(/[^\d,\- a-zA-Z]/g, ''); if (k && v) o[k] = v; return o; }, {})
   };
   if (typeof d.foto === 'string' && (d.foto === '' || /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(d.foto))) {
     if (d.foto.length > 900000) throw Object.assign(new Error('La foto es muy pesada. Probá con otra.'), { st: 400 });
@@ -137,6 +138,15 @@ function publica(e) {
   return o;
 }
 const enDia = e => { if (!e || !e.fecha) return false; const t = Date.parse(e.fecha + 'T' + (e.hora || '21:00') + ':00-03:00'), n = Date.now(); return n > t - 8 * 3600e3 && n < t + 14 * 3600e3; };
+// Qué moza atiende cada mesa: lo que cargó la familia ("1-5, 8") o, si no, se reparten solas.
+function mozaDeMesa(e, mesa) {
+  const M = e.mozas || []; if (!M.length || !mesa) return '';
+  const n = parseInt(mesa, 10), z = e.zonas || {};
+  for (const moza of M) { const r = String(z[moza] || ''); if (!r) continue;
+    for (const parte of r.split(',')) { const [a, b] = parte.split('-').map(x => x.trim()); if (String(a).toLowerCase() === String(mesa).toLowerCase()) return moza; if (n && +a && n >= +a && n <= (+b || +a)) return moza; } }
+  const libres = M.filter(m => !z[m]); if (!libres.length) return '';
+  return libres[((n || 1) - 1 + libres.length * 100) % libres.length];
+}
 const vivoOk = e => !!(e && (e.demo || (e.pagado && ['completa', 'recuerdos'].includes(e.paquete))));
 const azarK = () => azar(10, 'abcdefghijkmnpqrstuvwxyz23456789');
 async function pedidosDe(code, extra) {
@@ -302,9 +312,10 @@ module.exports = async (req, res) => {
         .filter(x => carta[x.n] && !(carta[x.n].alc && g && g.menor));
       if (!items.length) return res.status(400).json({ error: 'Elegí algo de la lista.' });
       if (g) { const ult = await pedidosDe(code, '&gid=eq.' + g.id + '&estado=in.(nuevo,camino)'); if (ult.length >= 4) return res.status(429).json({ error: 'Ya tenés pedidos en camino. Esperá que te lleguen 🙂' }); }
-      const fila = { code, gid: g ? g.id : 'prueba', nombre: g ? g.nombre : 'Pedido de prueba', mesa: corto(g ? (g.mesa || b.mesa) : (b.mesa || 'Prueba'), 12), items, nota: largo(b.nota, 140), estado: 'nuevo', prueba: !g };
+      const mesaP = corto(g ? (g.mesa || b.mesa) : (b.mesa || 'Prueba'), 12);
+      const fila = { code, gid: g ? g.id : 'prueba', nombre: g ? g.nombre : 'Pedido de prueba', mesa: mesaP, items, nota: largo(b.nota, 140), estado: 'nuevo', moza: g ? mozaDeMesa(e, mesaP) : '', prueba: !g };
       const r = await rest('POST', 'fiesta_pedidos', fila, 'return=representation');
-      return res.status(200).json({ ok: true, id: r && r[0] && r[0].id });
+      return res.status(200).json({ ok: true, id: r && r[0] && r[0].id, moza: fila.moza });
     }
     // El personal (encargada o mozas): todos los pedidos de la noche
     if (req.method === 'GET' && acc === 'personal') {
