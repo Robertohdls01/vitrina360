@@ -252,10 +252,10 @@ async function pedir() {
 let vistos = {}; try { vistos = JSON.parse(localStorage.getItem('fiestaVistos:' + CODE) || '{}'); } catch (e) {}
 const marcarVisto = k => { vistos[k] = 1; try { localStorage.setItem('fiestaVistos:' + CODE, JSON.stringify(vistos)); } catch (e) {} };
 let tq = null;
-function toast(t, sub, fuerte) {
+function toast(t, sub, fuerte, sinVoz) {
   const el = $('#toast'); el.innerHTML = esc(t) + (sub ? `<small>${esc(sub)}</small>` : ''); el.classList.add('on'); clearTimeout(tq); tq = setTimeout(() => el.classList.remove('on'), fuerte ? 12000 : 6000);
   el.onclick = () => el.classList.remove('on');
-  if (FL && !document.hidden) flHablar(t);
+  if (FL && !document.hidden && !sinVoz) flHablar(t);
   if (navigator.vibrate) navigator.vibrate(fuerte ? [300, 150, 300, 150, 300] : [120, 80, 120]);
   try { const c = new (window.AudioContext || window.webkitAudioContext)(), o = c.createOscillator(), g = c.createGain(); o.frequency.value = 880; g.gain.value = .08; o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + .25); } catch (e) {}
   if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
@@ -270,7 +270,7 @@ async function vivoTick() {
     (j.avisos || []).forEach(a => { if (!vistos['a' + a.id] && Date.now() - Date.parse(a.t) < 45 * 60e3) { marcarVisto('a' + a.id); toast('📢 ' + a.txt, nomFiesta(F), true); } else marcarVisto('a' + a.id); });
     (j.pedidos || []).forEach(p => { const k = p.estado + '|' + p.moza, ant = estadoAnt[p.id];
       if (ant && ant !== k) { const que = listaPed(p);
-        if (p.estado === 'camino') { const t = p.moza ? `🚶 ${p.moza} te trae ${que}` : `🚶 Ya va en camino ${que}`; toast(t, nomFiesta(F)); if (FL) flDecir(t + ' 😊', [{t: '👍 Gracias', alt: true, f: () => $('#flb').classList.remove('on')}]); }
+        if (p.estado === 'camino') { const t = p.moza ? `🚶 ${p.moza} te trae ${que}` : `🚶 Ya va en camino ${que}`; toast(t, nomFiesta(F), false, true); if (FL) flDecir(t + ' 😊', [{t: '👍 Gracias', alt: true, f: () => $('#flb').classList.remove('on')}]); }
         else if (p.estado === 'entregado') { if (FL) flDecir(`¡Que lo disfrutes! 🥂 ¿Necesitás algo más?`, [{t: '🥤 Pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: 'No, gracias', alt: true, f: () => $('#flb').classList.remove('on')}]); }
         else if (p.estado === 'nuevo' && p.moza && !ant.endsWith('|' + p.moza)) toast(`👩 ${p.moza} va a llevarte ${que}`, nomFiesta(F)); }
       estadoAnt[p.id] = k; });
@@ -343,6 +343,9 @@ function flPasoDeVez() { // cada tanto, sin molestar: "¿te falta algo en la mes
   const frases = ['¿Te falta algo en la mesa? 🙂', '¿Te traigo algo más para tomar? 🥤', '¿Necesitás más pan, hielo o servilletas?'];
   flDecir(frases[Math.floor(Math.random() * frases.length)], extras.map(x => ({t: x.n, f: () => flConfirmar([{n: x.n, c: 1}])})).concat([{t: '🥤 Otra cosa', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: 'No, gracias', alt: true, f: () => $('#flb').classList.remove('on')}]));
 }
+// El celular solo deja hablar después de un toque: con el primer toque en cualquier parte, Flashy queda habilitado para hablar.
+function flDesbloquear() { if (flVoz) return; flVoz = true; try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch (e) {} }
+['pointerdown', 'touchstart', 'keydown'].forEach(ev => document.addEventListener(ev, flDesbloquear, {passive: true}));
 function flashy() {
   if (FL || !F || !F.vivo || !F.hoy || !INV || PREV) return; FL = true; $('#fl').classList.add('on');
   $('#flav').onclick = () => { flVoz = true; $('#flb').classList.contains('on') ? $('#flb').classList.remove('on') : flMenu(); };
