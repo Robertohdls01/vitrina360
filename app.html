@@ -7214,8 +7214,11 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(k === 'reservar'){
       const msg = $('pqResMsg'), nom = $('pqNom').value.trim(), tel = $('pqTel').value.trim(), dir = $('pqDir2').value.trim();
       if(!pqHora){ msg.textContent = 'Elegí el día y el horario.'; return; }
-      if(!nom || tel.replace(/\D/g, '').length < 8){ msg.textContent = `Poné tu nombre y tu WhatsApp, así ${(ofi() || OFI_BASE).pro} te confirma.`; return; }
-      if(!dir){ msg.textContent = 'Poné la dirección del trabajo.'; return; }
+      // si falta algo: lo dice en voz alta, marca el casillero en rojo y lleva el cursor ahí (antes solo salía un textito chico)
+      const falta = (id, t) => { msg.textContent = '👉 ' + t; const el = $(id); if(el){ el.style.outline = '3px solid #dc2626'; el.addEventListener('input', () => { el.style.outline = ''; }, {once: true}); el.scrollIntoView({block: 'center', behavior: 'smooth'}); setTimeout(() => el.focus(), 300); } try{ hSpeak(t); }catch(err){} };
+      if(!nom) return falta('pqNom', 'Me falta tu nombre. Escribilo acá abajo, así te reservo el turno.');
+      if(tel.replace(/\D/g, '').length < 8) return falta('pqTel', `Me falta tu WhatsApp, así ${(ofi() || OFI_BASE).pro} te confirma.`);
+      if(!dir) return falta('pqDir2', 'Me falta la dirección del trabajo.');
       if(!window.VITRINA_SLUG){ msg.textContent = 'Así se ve la reserva: tus clientes la hacen desde el link de tu tienda.'; return; }
       const sel = [...ov.querySelectorAll('[data-pqt]')].filter(c => c.checked).map(c => pqRes.trabajos[+c.dataset.pqt]); if(!sel.length){ msg.textContent = 'Tildá al menos un trabajo.'; return; }
       const tot = pqTotal(), d = new Date(pqDia + 'T12:00'), cuando = `${DAYS_LONG[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1} a las ${pqHora} h`;
