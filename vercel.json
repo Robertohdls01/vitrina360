@@ -1,6 +1,18 @@
 {
   "rewrites": [
     {
+      "source": "/fiesta/:code",
+      "destination": "/fiesta.html"
+    },
+    {
+      "source": "/fiesta-panel",
+      "destination": "/fiesta-panel.html"
+    },
+    {
+      "source": "/fiestas",
+      "destination": "/fiesta-panel.html"
+    },
+    {
       "source": "/galeria/:code",
       "destination": "/galeria.html"
     },

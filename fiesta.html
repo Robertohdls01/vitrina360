@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tenés una invitación 💌</title>
+<meta name="description" content="Abrí tu invitación, confirmá si vas y guardá la fiesta en tu celular.">
+<meta property="og:title" content="💌 Tenés una invitación">
+<meta property="og:description" content="Abrí tu invitación, confirmá si vas y guardá la fiesta en tu celular.">
+<meta property="og:image" content="https://vitrina360app.com.ar/og-fiesta.png">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#fbf7f0">
+<link rel="apple-touch-icon" href="/icons/fiesta-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&family=Figtree:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--ac:#c9a227;--bg:#fbf7f0;--card:#fffdf8;--ink:#2e2414;--soft:#6b5b45;--line:#eadfcb;--script:'Great Vibes',cursive;--serif:'Cormorant Garamond',Georgia,serif;--sans:'Figtree',system-ui,sans-serif}
+*{box-sizing:border-box}html,body{margin:0}
+body{font:17px/1.5 var(--sans);background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased}
+body.t-flores{--bg:#fbf1f3;--card:#fffafb;--ink:#3f2630;--soft:#7a5562;--line:#f1d9df}
+body.t-brillos{--bg:#1d1b2f;--card:#26243c;--ink:#f7f0e2;--soft:#cfc6b3;--line:#3a3756}
+body.t-moderna{--bg:#f5f5f2;--card:#fff;--ink:#1f2937;--soft:#4b5563;--line:#e5e7eb;--script:'Figtree',system-ui,sans-serif}
+body.t-mariposas{--bg:#f3effa;--card:#fdfbff;--ink:#33284d;--soft:#64587f;--line:#e2daf2}
+body.t-luna{--bg:#1c2440;--card:#252f52;--ink:#eef1fa;--soft:#c3cae0;--line:#37426b}
+.wrap{max-width:560px;margin:0 auto;padding:18px 16px 40px;position:relative}
+.deco{position:absolute;left:0;right:0;top:0;height:220px;pointer-events:none;overflow:hidden;opacity:.9}
+.deco svg{width:100%;height:100%}
+.hero{text-align:center;padding:38px 8px 10px;position:relative}
+.foto{width:210px;height:210px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 18px;border:6px solid var(--card);box-shadow:0 0 0 3px var(--ac),0 14px 34px rgba(0,0,0,.18)}
+.tit{font:700 15px/1 var(--sans);letter-spacing:.32em;text-transform:uppercase;color:var(--ac)}
+.nom{font:400 76px/1.05 var(--script);margin:10px 0 6px;color:var(--ink);word-break:break-word}
+body.t-moderna .nom{font-weight:800;font-size:54px;letter-spacing:-.02em}
+.frase{font:italic 500 21px/1.4 var(--serif);color:var(--soft);max-width:420px;margin:8px auto 0}
+.sep{width:120px;height:2px;margin:22px auto;background:linear-gradient(90deg,transparent,var(--ac),transparent)}
+.cuenta{display:flex;justify-content:center;gap:10px;margin:6px 0 4px}
+.cuenta div{background:var(--card);border:1px solid var(--line);border-radius:14px;min-width:68px;padding:10px 6px;text-align:center}
+.cuenta b{display:block;font:800 28px/1 var(--sans);color:var(--ink)}.cuenta small{font-size:12px;color:var(--soft);text-transform:uppercase;letter-spacing:.08em}
+.falta{text-align:center;color:var(--soft);font-size:15px;margin-top:6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px 18px;margin:16px 0;box-shadow:0 6px 22px rgba(0,0,0,.05);text-align:center}
+.card h3{font:700 13px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--ac);margin:0 0 10px}
+.card .big{font:700 24px/1.25 var(--serif);margin:0}
+body.t-moderna .card .big{font-family:var(--sans);font-weight:800;font-size:21px}
+.card p{margin:6px 0;color:var(--soft)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:999px;padding:13px 22px;font:700 16px var(--sans);cursor:pointer;text-decoration:none;background:var(--ac);color:#fff;margin:6px 4px 0;min-height:48px}
+.btn.alt{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 2px var(--line)}
+.btn.no{background:#f3f4f6;color:#374151}
+body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
+.btn:disabled{opacity:.6}
+.big2{font-size:19px;padding:16px 28px;width:100%;max-width:340px}
+.rsvp label{display:block;text-align:left;font-weight:600;margin:14px 0 6px;color:var(--ink)}
+.rsvp select,.rsvp textarea,.rsvp input{width:100%;font:17px var(--sans);padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.rsvp textarea{min-height:76px;resize:vertical}
+.hola{font:700 22px/1.3 var(--sans);margin:0 0 4px}
+.ok{background:rgba(34,197,94,.12);border-radius:14px;padding:14px;margin-top:10px;color:var(--ink)}
+.mesa{display:inline-block;margin-top:8px;background:var(--ac);color:#fff;font:800 22px var(--sans);padding:8px 18px;border-radius:12px}
+.res button{display:block;width:100%;text-align:left;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:8px;font:600 17px var(--sans);color:var(--ink);cursor:pointer}
+.copiar{font:600 15px var(--sans)}
+.pie{text-align:center;font-size:13px;color:var(--soft);margin-top:26px;line-height:1.6}
+.pie a{color:var(--soft)}
+.banner{background:#fff4d6;color:#5b4410;border-radius:14px;padding:12px 14px;font-size:15px;text-align:center;margin-bottom:6px}
+.banner a{color:#5b4410;font-weight:700}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:9;padding:12px}
+.modal.on{display:flex}
+.modal .in{background:#fff;color:#1f2937;border-radius:22px;max-width:440px;width:100%;padding:22px 20px;font-size:17px}
+.modal .in ol{padding-left:22px;margin:10px 0}.modal .in li{margin:8px 0}
+.err{color:#b91c1c;font-weight:600;margin-top:8px}
+.carga{text-align:center;padding:90px 20px;color:#6b5b45}
+.linkmode .hero{padding-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="carga">Abriendo tu invitación… 💌</div></div>
+<div class="modal" id="modal"><div class="in" id="modalIn"></div></div>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const P = new URLSearchParams(location.search);
+const CODE = (location.pathname.split('/')[2] || P.get('f') || '').toUpperCase();
+const PREV = P.get('prev') === '1';
+const LS = 'fiesta:' + CODE;
+let F = null, INV = null, TOK = '', deferred = null, timer = null;
+try { TOK = P.get('i') || localStorage.getItem(LS) || ''; if (P.get('i')) localStorage.setItem(LS, P.get('i')); } catch (e) { TOK = P.get('i') || ''; }
+
+const DECO = {
+  elegante: c => `<svg viewBox="0 0 560 220" preserveAspectRatio="xMidYMin slice"><g fill="none" stroke="${c}" stroke-width="1.4" opacity=".7"><path d="M0 60 Q140 10 280 60 T560 60"/><path d="M0 80 Q140 30 280 80 T560 80" opacity=".5"/></g><g fill="${c}" opacity=".55"><circle cx="280" cy="60" r="4"/><circle cx="140" cy="36" r="2.5"/><circle cx="420" cy="36" r="2.5"/></g></svg>`,
+  flores: c => `<svg viewBox="0 0 560 220" preserveAspectRatio="xMidYMin slice">${[[30,40,1],[90,18,.7],[500,30,1],[440,14,.7],[530,110,.6],[20,130,.6]].map(([x,y,s]) => `<g transform="translate(${x} ${y}) scale(${s})">${[0,72,144,216,288].map(a => `<ellipse cx="0" cy="-16" rx="10" ry="17" fill="#f6c6d0" transform="rotate(${a})" opacity=".85"/>`).join('')}<circle r="7" fill="${c}"/></g>`).join('')}<g fill="#b9d8b2" opacity=".8"><ellipse cx="70" cy="70" rx="7" ry="16" transform="rotate(40 70 70)"/><ellipse cx="480" cy="72" rx="7" ry="16" transform="rotate(-40 480 72)"/></g></svg>`,
+  brillos: c => `<svg viewBox="0 0 560 220" preserveAspectRatio="xMidYMin slice">${Array.from({length:26}, (_, i) => { const x = (i * 97) % 560, y = (i * 53) % 210, r = 1 + (i % 3); return `<path d="M${x} ${y - r * 3}L${x + r} ${y}L${x} ${y + r * 3}L${x - r} ${y}Z" fill="${i % 4 ? '#f3dfa6' : c}" opacity="${.35 + (i % 5) / 8}"/>`; }).join('')}</svg>`,
+  moderna: c => `<svg viewBox="0 0 560 220" preserveAspectRatio="xMidYMin slice"><rect x="230" y="18" width="100" height="6" rx="3" fill="${c}"/></svg>`,
+  mariposas: c => `<svg viewBox="0 0 560 220" preserveAspectRatio="xMidYMin slice">${[[60,50,1,-15],[500,40,.8,20],[460,140,.55,-10],[110,150,.5,15]].map(([x,y,s,r]) => `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})" opacity=".8"><path d="M0 0C-30-34-46-6-28 8C-46 22-24 40 0 8C24 40 46 22 28 8C46-6 30-34 0 0Z" fill="#cbb8ef"/><rect x="-2" y="-14" width="4" height="28" rx="2" fill="${c}"/></g>`).join('')}</svg>`,
+  luna: c => `<svg viewBox="0 0 560 220" preserveAspectRatio="xMidYMin slice"><circle cx="470" cy="60" r="34" fill="#f5e9c4"/><circle cx="486" cy="50" r="32" fill="var(--bg)"/>${Array.from({length:22}, (_, i) => `<circle cx="${(i * 89) % 560}" cy="${10 + (i * 41) % 190}" r="${1 + i % 2}" fill="#f5e9c4" opacity="${.4 + (i % 4) / 6}"/>`).join('')}<circle cx="80" cy="40" r="3" fill="${c}"/></svg>`
+};
+const fechaLarga = f => { if (!f.fecha) return ''; const d = new Date(f.fecha + 'T12:00:00-03:00'); const s = d.toLocaleDateString('es-AR', {weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Argentina/Buenos_Aires'}); return s.charAt(0).toUpperCase() + s.slice(1); };
+const cuando = f => f.fecha ? new Date(f.fecha + 'T' + (f.hora || '21:00') + ':00-03:00') : null;
+const nomFiesta = f => (f.tipo === '15' ? 'Los 15 de ' : f.tipo === 'casamiento' ? 'El casamiento de ' : 'La fiesta de ') + (f.nombre || '');
+const mapa = f => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent([f.salon, f.direccion].filter(Boolean).join(', '));
+const agenda = f => { const d = cuando(f); if (!d) return ''; const fm = x => new Date(x.getTime() - 3 * 3600e3).toISOString().replace(/[-:]/g, '').slice(0, 15); const fin = new Date(d.getTime() + 6 * 3600e3);
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(nomFiesta(f)) + '&dates=' + fm(d) + '/' + fm(fin) + '&ctz=America/Argentina/Buenos_Aires&location=' + encodeURIComponent([f.salon, f.direccion].filter(Boolean).join(', ')) + '&details=' + encodeURIComponent('Tu invitación: ' + location.origin + '/fiesta/' + CODE); };
+
+function render() {
+  const f = F, m = f.modo || 'especial', t = f.plantilla || 'elegante';
+  document.body.className = 't-' + t + (m === 'link' ? ' linkmode' : '');
+  document.documentElement.style.setProperty('--ac', f.color || '#c9a227');
+  document.title = nomFiesta(f);
+  const mt = document.querySelector('meta[name=theme-color]'); if (mt) mt.content = getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#fbf7f0';
+  let h = '';
+  if (f.demo && !PREV) h += `<div class="banner">👀 Invitación de muestra: así la reciben tus invitados. <a href="/fiesta-panel">Armá la tuya →</a></div>`;
+  if (m !== 'link') h += `<div class="deco">${(DECO[t] || DECO.elegante)(f.color || '#c9a227')}</div>`;
+  h += `<div class="hero">`;
+  if (m === 'especial' && f.foto) h += `<img class="foto" src="${esc(f.foto)}" alt="">`;
+  h += `<div class="tit">${esc(f.titulo || '')}</div><div class="nom">${esc(f.nombre || 'Tu nombre')}</div>`;
+  if (m !== 'link' && f.frase) h += `<p class="frase">${esc(f.frase)}</p>`;
+  if (m === 'link') h += `<p class="frase">${esc(fechaLarga(f))}${f.hora ? ' · ' + esc(f.hora) + ' h' : ''}${f.salon ? '<br>' + esc(f.salon) : ''}</p>`;
+  h += `</div>`;
+  if (m !== 'link' && cuando(f)) h += `<div class="sep"></div><div class="cuenta" id="cuenta"></div><div class="falta" id="falta"></div>`;
+  if (m !== 'link') {
+    if (f.fecha) h += `<div class="card"><h3>Cuándo</h3><p class="big">${esc(fechaLarga(f))}</p>${f.hora ? `<p>a las ${esc(f.hora)} h</p>` : ''}<a class="btn alt" href="${agenda(f)}" target="_blank" rel="noopener">🗓 Agendar</a></div>`;
+    if (f.salon || f.direccion) h += `<div class="card"><h3>Dónde</h3><p class="big">${esc(f.salon || '')}</p>${f.direccion ? `<p>${esc(f.direccion)}</p>` : ''}<a class="btn alt" href="${mapa(f)}" target="_blank" rel="noopener">📍 Cómo llegar</a></div>`;
+    if (f.vestimenta) h += `<div class="card"><h3>Vestimenta</h3><p class="big">${esc(f.vestimenta)}</p></div>`;
+    if (f.regalo) h += `<div class="card"><h3>Regalo</h3><p>${esc(f.regalo)}</p><button class="btn alt copiar" data-copiar="${esc(f.regalo)}">📋 Copiar</button></div>`;
+  } else if (f.salon || f.direccion) h += `<div style="text-align:center"><a class="btn alt" href="${mapa(f)}" target="_blank" rel="noopener">📍 Cómo llegar</a> ${f.fecha ? `<a class="btn alt" href="${agenda(f)}" target="_blank" rel="noopener">🗓 Agendar</a>` : ''}</div>`;
+  h += `<div class="card rsvp" id="rsvp"></div>`;
+  h += `<div class="card" id="guardar"></div>`;
+  h += `<div class="pie">Invitación y fiesta organizadas con <b>ShopFiesta</b><br>Pro Video JSRHG · <a href="https://wa.me/5492235814437?text=${encodeURIComponent('Hola, vi la invitación de ShopFiesta y quiero una para mi fiesta')}" target="_blank" rel="noopener">¿Querés una para tu fiesta?</a></div>`;
+  $('#app').innerHTML = h;
+  rsvp(); guardar(); cuenta();
+}
+function cuenta() {
+  clearInterval(timer); const d = cuando(F); if (!d || !$('#cuenta')) return;
+  const tick = () => { let s = Math.max(0, Math.floor((d - Date.now()) / 1000)); const D = Math.floor(s / 86400); s %= 86400; const H = Math.floor(s / 3600); s %= 3600; const M = Math.floor(s / 60), S = s % 60;
+    $('#cuenta').innerHTML = [[D, 'días'], [H, 'horas'], [M, 'min'], [S, 'seg']].map(([v, l]) => `<div><b>${v}</b><small>${l}</small></div>`).join('');
+    $('#falta').textContent = d - Date.now() > 0 ? 'para ' + nomFiesta(F).replace(/^L/, 'l').replace(/^E/, 'e') : '¡Hoy es la fiesta! 🎉'; };
+  tick(); timer = setInterval(tick, 1000);
+}
+function rsvp() {
+  const el = $('#rsvp'); if (!el) return;
+  if (PREV) { el.innerHTML = `<h3>Confirmación</h3><p class="hola">¡Hola Roberto! 💌</p><p>¿Venís a ${esc(nomFiesta(F).charAt(0).toLowerCase() + nomFiesta(F).slice(1))}?</p><button class="btn big2">✅ ¡Sí, voy!</button><br><button class="btn no">No puedo ir</button>`; return; }
+  if (!INV) {
+    el.innerHTML = `<h3>Confirmá tu asistencia</h3><p>Escribí tu nombre y apellido para encontrarte en la lista.</p><input id="busca" placeholder="Ej: Roberto Hernández" autocomplete="name"><div class="res" id="res"></div>`;
+    let tm = null; $('#busca').addEventListener('input', e => { clearTimeout(tm); tm = setTimeout(() => buscar(e.target.value), 350); });
+    return;
+  }
+  const r = INV.resp, nom = INV.nombre.split(' ')[0];
+  if (r && !el.dataset.cambiar) {
+    el.innerHTML = r.va
+      ? `<h3>Confirmación</h3><div class="ok"><p class="hola">¡Listo ${esc(nom)}, te esperamos! 🎉</p><p>Confirmaste ${r.cuantos > 1 ? r.cuantos + ' personas' : 'tu lugar'}${r.menu ? ' · menú ' + esc(r.menu) : ''}.</p>${INV.mesa ? `<div class="mesa">Mesa ${esc(INV.mesa)}</div>` : ''}</div><button class="btn alt" id="cambiar">Cambiar mi respuesta</button>`
+      : `<h3>Confirmación</h3><div class="ok" style="background:rgba(0,0,0,.05)"><p class="hola">Gracias por avisar, ${esc(nom)} 💛</p><p>Le contamos a la familia que no podés ir.</p></div><button class="btn alt" id="cambiar">Cambiar mi respuesta</button>`;
+    $('#cambiar').onclick = () => { el.dataset.cambiar = '1'; rsvp(); };
+    return;
+  }
+  const cupo = INV.cupo || 0;
+  el.innerHTML = `<h3>Confirmación</h3><p class="hola">¡Hola ${esc(nom)}! 💌</p><p>¿Venís a ${esc(nomFiesta(F).charAt(0).toLowerCase() + nomFiesta(F).slice(1))}?</p>
+    <button class="btn big2" id="si">✅ ¡Sí, voy!</button><br><button class="btn no" id="nov">No puedo ir</button>
+    <div id="mas" style="display:none">
+      ${cupo ? `<label>¿Cuántos van, contándote a vos?</label><select id="cuantos">${Array.from({length: cupo + 1}, (_, i) => `<option value="${i + 1}">${i + 1}${i ? ' personas' : ' (solo yo)'}</option>`).join('')}</select>` : ''}
+      ${F.pedirMenu ? `<label>¿Necesitás un menú especial?</label><select id="menu"><option value="">No, el menú común</option><option>vegetariano</option><option>vegano</option><option>sin TACC</option><option>infantil</option><option value="otro">otro (lo aclaro abajo)</option></select>` : ''}
+      <label>Un mensaje para ${esc(F.nombre || 'la familia')} (si querés)</label><textarea id="nota" maxlength="300"></textarea>
+      <button class="btn big2" id="enviar">Confirmar 🎉</button></div><div id="msg"></div>`;
+  $('#si').onclick = () => { $('#mas').style.display = 'block'; $('#si').style.display = 'none'; $('#nov').style.display = 'none'; };
+  $('#nov').onclick = () => responder(false);
+  $('#enviar').onclick = () => responder(true);
+}
+async function buscar(v) {
+  const res = $('#res'); if (!res) return; if (String(v).trim().length < 3) { res.innerHTML = ''; return; }
+  try { const r = await fetch('/api/fiesta?accion=buscar&f=' + CODE + '&q=' + encodeURIComponent(v)); const j = await r.json();
+    res.innerHTML = (j.items || []).length ? j.items.map(x => `<button data-tok="${esc(x.tok)}">👤 ${esc(x.nombre)}</button>`).join('') : '<p style="color:var(--soft)">No te encontramos todavía. Probá con tu apellido o pedile el link a la familia.</p>';
+    res.querySelectorAll('[data-tok]').forEach(b => b.onclick = () => { TOK = b.dataset.tok; try { localStorage.setItem(LS, TOK); } catch (e) {} history.replaceState(null, '', location.pathname + '?i=' + TOK); cargar(); });
+  } catch (e) { res.innerHTML = '<p class="err">No pudimos buscar. Revisá internet.</p>'; }
+}
+async function responder(va) {
+  const msg = $('#msg'); const b = $('#enviar') || $('#nov'); if (b) b.disabled = true;
+  try {
+    const r = await fetch('/api/fiesta?accion=responder', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, va, cuantos: ($('#cuantos') || {}).value || 1, menu: ($('#menu') || {}).value || '', nota: ($('#nota') || {}).value || ''})});
+    const j = await r.json(); if (!r.ok) throw new Error(j.error || 'No se pudo guardar');
+    INV.resp = j.resp; delete $('#rsvp').dataset.cambiar; rsvp(); guardar();
+    if (va) setTimeout(() => $('#guardar').scrollIntoView({behavior: 'smooth', block: 'center'}), 400);
+  } catch (e) { if (msg) msg.innerHTML = `<p class="err">${esc(e.message)}</p>`; if (b) b.disabled = false; }
+}
+const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const instalada = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+function guardar() {
+  const el = $('#guardar'); if (!el) return;
+  if (instalada()) { el.innerHTML = `<h3>Tu fiesta</h3><p>✅ Ya tenés la fiesta guardada en tu celular. Abrila desde acá el día de la fiesta.</p>`; return; }
+  el.innerHTML = `<h3>Guardala en tu celular</h3><p>Así la tenés a mano el día de la fiesta, con un ícono propio en tu pantalla.</p><button class="btn big2" id="inst">📲 Guardar la fiesta en mi celular</button>`;
+  $('#inst').onclick = instalar;
+}
+async function instalar() {
+  if (PREV) return;
+  if (deferred) { deferred.prompt(); try { await deferred.userChoice; } catch (e) {} deferred = null; return; }
+  const ios = esIOS();
+  $('#modalIn').innerHTML = `<h3 style="margin:0 0 6px">📲 Guardar la fiesta</h3>${ios
+    ? `<ol><li>Tocá el botón <b>Compartir</b> <span style="font-size:20px">⬆️</span> (abajo en Safari).</li><li>Elegí <b>“Agregar a inicio”</b>.</li><li>Tocá <b>Agregar</b>. ¡Listo! Te queda el ícono de la fiesta.</li></ol>`
+    : `<ol><li>Tocá el menú <b>⋮</b> arriba a la derecha.</li><li>Elegí <b>“Agregar a la pantalla principal”</b> o <b>“Instalar”</b>.</li><li>Confirmá. ¡Listo! Te queda el ícono de la fiesta.</li></ol>`}<button class="btn big2" id="cerrar">Entendido</button>`;
+  $('#modal').classList.add('on'); $('#cerrar').onclick = () => $('#modal').classList.remove('on');
+}
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; });
+document.addEventListener('click', e => { const b = e.target.closest('[data-copiar]'); if (!b) return; navigator.clipboard && navigator.clipboard.writeText(b.dataset.copiar).then(() => { b.textContent = '✅ Copiado'; setTimeout(() => b.textContent = '📋 Copiar', 1800); }); });
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') e.currentTarget.classList.remove('on'); });
+
+async function cargar() {
+  try {
+    const r = await fetch('/api/fiesta?accion=ver&f=' + encodeURIComponent(CODE) + (TOK ? '&i=' + encodeURIComponent(TOK) : ''));
+    const j = await r.json(); if (!r.ok) throw new Error(j.error || 'No encontramos esta fiesta.');
+    F = j.fiesta; INV = j.inv || null; render();
+  } catch (e) { $('#app').innerHTML = `<div class="carga">😕 ${esc(e.message)}</div>`; }
+}
+if (PREV) {
+  addEventListener('message', e => { if (e.origin !== location.origin || !e.data || e.data.tipo !== 'fiesta-prev') return; F = e.data.fiesta; render(); });
+  parent.postMessage({tipo: 'fiesta-prev-listo'}, location.origin);
+} else if (!CODE) { $('#app').innerHTML = '<div class="carga">Falta el link de la fiesta.</div>'; }
+else {
+  const l = document.createElement('link'); l.rel = 'manifest'; l.href = '/api/fiesta?manifest=' + encodeURIComponent(CODE); document.head.appendChild(l);
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  cargar();
+}
+</script>
+</body>
+</html>
