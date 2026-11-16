@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/galeria/:code",
+      "destination": "/galeria.html"
+    },
+    {
       "source": "/t/:slug",
       "destination": "/app.html"
     },

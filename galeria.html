@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guía de la galería · ShopFlash</title>
+<meta name="description" content="¿Qué buscás? Te digo en qué local está, ordenado por las mejores reseñas.">
+<link rel="icon" href="/pv-logo-180.jpg">
+<style>
+:root{--ink:#1f2937;--soft:#6b7280;--ac:#0f766e;--bg:#f3faf8;--card:#fff}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+.wrap{max-width:760px;margin:0 auto;padding:18px 14px 60px}
+h1{font-size:26px;margin:6px 0 2px}.sub{color:var(--soft);margin:0 0 14px}
+.box{background:var(--card);border-radius:18px;padding:14px;box-shadow:0 4px 18px rgba(0,0,0,.06);display:grid;gap:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+input{flex:1;min-width:200px;font-size:17px;padding:12px 14px;border:2px solid #cfe7e1;border-radius:14px}
+button,.btn{font:inherit;font-weight:800;border:0;border-radius:999px;padding:11px 18px;cursor:pointer;background:#e7f4f1;color:var(--ink);text-decoration:none;display:inline-block}
+.pri{background:var(--ac);color:#fff}
+.say{background:#ecfdf5;border-radius:14px;padding:10px 12px;font-size:16px}
+.res{display:grid;gap:10px;margin-top:12px}
+.loc{background:var(--card);border-radius:16px;padding:12px;display:grid;gap:6px;box-shadow:0 2px 10px rgba(0,0,0,.05);border-left:6px solid #cfe7e1}
+.loc.top{border-left-color:#f59e0b}
+.loc h3{margin:0;font-size:18px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pos{background:#fde68a;border-radius:999px;padding:2px 10px;font-size:13px}
+.stars{color:#b45309;font-weight:800}
+.where{font-weight:800;color:var(--ac)}
+.prod{color:var(--soft);font-size:14px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chips button{padding:7px 12px;font-size:14px}
+.by{text-align:center;color:#9ca3af;font-size:12px;margin-top:24px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="tit">🏢 Guía de la galería</h1>
+  <p class="sub">¿Qué buscás? Te digo en qué local está, primero el que tiene mejores reseñas.</p>
+  <div class="box">
+    <form class="row" id="f"><input id="q" placeholder="Ej: medias, zapatillas, buzo talle XL" autocomplete="off"><button class="pri" type="submit">🔎 Buscar</button><button type="button" id="mic" hidden>🎤 Decilo</button></form>
+    <div class="say" id="say">Cargando los locales…</div>
+    <div class="chips" id="chips"></div>
+  </div>
+  <div class="res" id="res"></div>
+  <p class="by"><button type="button" id="cartel" style="font-size:13px;padding:7px 14px">🖨 Imprimir cartel QR para la entrada</button><br><br>ShopFlash · Pro Video JSRHG</p>
+</div>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+  const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const stem = w => w.length > 4 ? w.replace(/(es|s)$/, '') : w;
+  const code = (location.pathname.split('/galeria/')[1] || new URLSearchParams(location.search).get('g') || '').replace(/\/.*/, '').toLowerCase();
+  const nombreGal = new URLSearchParams(location.search).get('n') || code.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  $('tit').textContent = '🏢 ' + (nombreGal || 'Guía de la galería');
+  document.title = (nombreGal ? nombreGal + ' · ' : '') + 'Guía de la galería';
+  let all = [], estrellas = {}, ultima = [], idx = 0;
+  const hablar = t => { $('say').textContent = t; try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = 'es-AR'; speechSynthesis.speak(u); }catch(e){} };
+  const link = t => '/t/' + encodeURIComponent(t.slug) + (t.tienda ? '?tienda=' + t.tienda : '');
+  async function rating(t){ const k = t.slug; if(estrellas[k]) return estrellas[k];
+    try{ const r = await fetch('/api/pedidos?resenas=' + encodeURIComponent(k)); const j = await r.json(); estrellas[k] = {prom: +j.prom || 0, n: +j.n || 0}; }catch(e){ estrellas[k] = {prom: 0, n: 0}; }
+    return estrellas[k]; }
+  const starTxt = s => s && s.n ? `⭐ ${s.prom.toFixed(1)} (${s.n} reseña${s.n === 1 ? '' : 's'})` : 'Sin reseñas todavía';
+  function card(t, i, hits){ const s = estrellas[t.slug];
+    return `<div class="loc ${i === 0 ? 'top' : ''}"><h3>${hits ? `<span class="pos">${i + 1}º</span>` : ''}${t.logo ? `<img src="${esc(t.logo)}" alt="" style="width:34px;height:34px;border-radius:50%;object-fit:cover">` : ''}${esc(t.nombre)}</h3>
+      <div><span class="where">📍 ${esc(t.local || 'Preguntá en la entrada')}</span> · <span class="stars">${starTxt(s)}</span></div>
+      ${hits && hits.length ? `<div class="prod">${hits.slice(0, 4).map(p => esc(p.n) + (p.p ? ' — ' + esc(p.p) : '')).join(' · ')}${hits.length > 4 ? ` · y ${hits.length - 4} más` : ''}</div>` : `<div class="prod">${esc(t.rubro)}</div>`}
+      <div class="row"><a class="btn pri" href="${link(t)}">Ver el local y sus productos</a></div></div>`; }
+  async function buscar(q){
+    const ws = norm(q).split(/[^a-z0-9]+/).filter(w => w.length > 2 && !['que','los','las','del','una','uno','para','con','hay','tenes','donde','venden','vende','busco','quiero','talle'].includes(w)).map(stem);
+    if(!ws.length){ mostrarTodos(); return; }
+    const m = all.map(t => { const hits = t.productos.filter(p => { const tx = norm(p.n + ' ' + p.c); return ws.some(w => tx.includes(w)); });
+      const nameHit = ws.some(w => norm(t.nombre + ' ' + t.rubro).includes(w)); return {t, hits, score: hits.length + (nameHit ? 3 : 0)}; }).filter(x => x.score > 0);
+    if(!m.length){ $('res').innerHTML = ''; hablar(`No encontré "${q}" en los locales de la galería. Probá con otra palabra, o preguntá en la entrada.`); return; }
+    $('say').textContent = 'Buscando las reseñas…';
+    await Promise.all(m.map(x => rating(x.t)));
+    m.sort((a, b) => { const sa = estrellas[a.t.slug], sb = estrellas[b.t.slug]; return (sb.prom - sa.prom) || (sb.n - sa.n) || (b.score - a.score); });
+    ultima = m; idx = 0;
+    $('res').innerHTML = m.map((x, i) => card(x.t, i, x.hits.length ? x.hits : null)).join('');
+    const f = m[0].t, s = estrellas[f.slug];
+    hablar(m.length === 1 ? `Lo encontré en ${f.nombre}, ${f.local || 'adentro de la galería'}.${s.n ? ' Tiene ' + s.prom.toFixed(1) + ' estrellas.' : ''}`
+      : `Hay ${m.length} locales con eso. El mejor puntuado es ${f.nombre}, ${f.local || 'adentro de la galería'}${s.n ? ', con ' + s.prom.toFixed(1) + ' estrellas' : ''}. Abajo tenés los otros, en orden.`);
+  }
+  function mostrarTodos(){
+    $('res').innerHTML = all.slice().sort((a, b) => norm(a.local).localeCompare(norm(b.local), 'es', {numeric: true})).map((t, i) => card(t, i, null)).join('');
+    $('say').textContent = all.length ? `Hay ${all.length} locales en la guía. Escribí o decí qué buscás y te digo dónde está.` : 'Todavía no hay locales cargados en esta galería.';
+  }
+  $('f').addEventListener('submit', e => { e.preventDefault(); buscar($('q').value); });
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(SR){ $('mic').hidden = false; $('mic').onclick = () => { const r = new SR(); r.lang = 'es-AR'; r.interimResults = false; $('say').textContent = '🎙 Te escucho…';
+    r.onresult = ev => { const t = ev.results[0][0].transcript; $('q').value = t; buscar(t); }; r.onerror = () => { $('say').textContent = 'No te escuché bien. Probá de nuevo o escribilo.'; }; try{ r.start(); }catch(e){} }; }
+  $('cartel').onclick = async () => { const w = open('', '_blank'); if(!w) return alert('Permití las ventanas emergentes para imprimir.');
+    try{ if(!window.qrcode) await new Promise((ok, ko) => { const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'; sc.onload = ok; sc.onerror = ko; document.head.appendChild(sc); }); }catch(e){ w.close(); return alert('No se pudo armar el QR. Revisá internet.'); }
+    const q = window.qrcode(0, 'M'); q.addData(location.origin + '/galeria/' + code); q.make();
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Cartel · ${esc(nombreGal)}</title><style>@page{size:A4;margin:12mm}body{margin:0;font-family:system-ui,Arial,sans-serif;color:#1f2937}.c{max-width:170mm;margin:0 auto;border:3px solid #0f766e;border-radius:24px;padding:12mm;text-align:center;background:#f0fdfa}h1{font-size:34px;margin:0 0 6px}h2{font-size:30px;margin:0 0 6px}.q svg{width:100mm;height:100mm}p{font-size:20px;margin:6px 0}.l{font-size:15px;color:#555}.by{font-size:12px;color:#888;margin-top:10px}</style></head><body><div class="c"><h1>${esc(nombreGal)}</h1><h2>🔎 ¿Qué estás buscando?</h2><p><b>Escaneá y preguntá:</b> te digo en qué local está, primero el de mejores reseñas.</p><div class="q">${q.createSvgTag({cellSize: 6, margin: 2, scalable: true})}</div><p class="l">Looking for something? Scan and ask · Procurando algo? Escaneie e pergunte</p><div class="by">ShopFlash · Pro Video JSRHG</div></div><script>setTimeout(()=>print(),500)<\/script></body></html>`); w.document.close(); };
+  if(!code){ $('say').textContent = 'Falta el código de la galería en el link.'; return; }
+  fetch('/api/shopping?galeria=' + encodeURIComponent(code)).then(r => r.json()).then(j => { all = j.tiendas || [];
+    const rub = [...new Set(all.map(t => t.rubro))].slice(0, 10); $('chips').innerHTML = rub.map(r => `<button type="button" data-r="${esc(r)}">${esc(r)}</button>`).join('');
+    $('chips').onclick = e => { const b = e.target.closest('[data-r]'); if(b){ $('q').value = b.dataset.r; buscar(b.dataset.r); } };
+    const q0 = new URLSearchParams(location.search).get('q'); if(q0){ $('q').value = q0; buscar(q0); } else mostrarTodos(); })
+    .catch(() => { $('say').textContent = 'No se pudo cargar la guía. Probá de nuevo en un ratito.'; });
+})();
+</script>
+</body>
+</html>
