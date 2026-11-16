@@ -298,7 +298,11 @@ async function vivoTick() {
         else if (p.estado === 'nuevo' && p.moza && !ant.endsWith('|' + p.moza)) toast(`👩 ${p.moza} va a llevarte ${que}`, nomFiesta(F)); }
       estadoAnt[p.id] = k; });
   } catch (e) {}
-  momentos().forEach((m, i, M) => { const k = 'c' + m.h + m.nombre; if (!vistos[k] && Date.now() >= m.aviso && Date.now() - m.aviso < 30 * 60e3) { marcarVisto(k); if (m.a) { escena(m.nombre + ' ' + m.a); const tx = conNombre(m.a); toast(tx, nomFiesta(F), true, true); const sig = M[i + 1]; if (FL) flDecir(tx + (sig ? ` Después, a las ${hhmm(sig.ts)}: ${sig.nombre.charAt(0).toLowerCase() + sig.nombre.slice(1)}.` : ''), [{t: '🥤 Pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: '👍 Dale', alt: true, f: () => $('#flb').classList.remove('on')}]); } } else if (!vistos[k] && Date.now() - m.aviso >= 30 * 60e3) marcarVisto(k); });
+  // aviso previo: 30 minutos antes de cada momento (si el aviso principal es más cerca), para que se vaya preparando
+  momentos().forEach(m => { if (!m.a || (m.ts - m.aviso) >= 25 * 60e3 || /recepci|fin de fiesta/i.test(m.nombre)) return; const k = 'p' + m.h + m.nombre, pre = m.ts - 30 * 60e3;
+    if (!vistos[k] && Date.now() >= pre && Date.now() < m.aviso) { marcarVisto(k); const tx = conNombre(`⏰ En media hora llega el momento: ${m.nombre}. ¡Andá preparándote!`); toast(tx, nomFiesta(F), false, true); if (FL) flDecir(tx, [{t: '📋 Ver el programa', alt: true, f: () => { $('#flb').classList.remove('on'); progAbierto = true; pVivo(); }}, {t: '👍 Dale', alt: true, f: () => $('#flb').classList.remove('on')}]); }
+    else if (!vistos[k] && Date.now() >= m.aviso) marcarVisto(k); });
+  momentos().forEach((m, i, M) => { const k = 'c' + m.h + m.nombre; if (!vistos[k] && Date.now() >= m.aviso && Date.now() - m.aviso < 30 * 60e3) { marcarVisto(k); if (m.a) { escena(m.nombre + ' ' + m.a); const tx = conNombre(m.a); toast(tx, nomFiesta(F), true, true); const sig = M[i + 1]; if (FL) flDecir(tx + (sig ? ` Después, a las ${hhmm(sig.ts)}: ${sig.nombre}${/[.!?]$/.test(sig.nombre) ? '' : '.'}` : ''), [{t: '🥤 Pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: '👍 Dale', alt: true, f: () => $('#flb').classList.remove('on')}]); } } else if (!vistos[k] && Date.now() - m.aviso >= 30 * 60e3) marcarVisto(k); });
   const ae = document.activeElement; if (!(ae && (ae.id === 'pnota'))) pVivo();
 }
 // ===== Escenas de cada momento (brindis, torta, mesa dulce, vals…) =====
