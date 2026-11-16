@@ -179,8 +179,8 @@ const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.
 const instalada = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone;
 function guardar() {
   const el = $('#guardar'); if (!el) return;
-  if (instalada()) { el.innerHTML = `<h3>Tu fiesta</h3><p>✅ Ya tenés la fiesta guardada en tu celular. Abrila desde acá el día de la fiesta.</p>`; return; }
-  el.innerHTML = `<h3>Guardala en tu celular</h3><p>Así la tenés a mano el día de la fiesta, con un ícono propio en tu pantalla.</p><button class="btn big2" id="inst">📲 Guardar la fiesta en mi celular</button>`;
+  if (instalada()) { el.innerHTML = `<h3>Tu fiesta</h3><p>✅ Ya tenés la fiesta guardada en tu celular.</p><p>🔔 El día de la fiesta abrila desde el ícono, <b>activá los avisos</b> y dejá el celular con sonido o vibración: te vamos a avisar de la comida, el vals y la torta.</p>`; return; }
+  el.innerHTML = `<h3>Guardala en tu celular</h3><p><b>Importante:</b> guardala para no perderte nada. Desde acá te vamos a avisar cuándo sale la comida, cuándo es el vals y la torta, aunque estés afuera.</p><button class="btn big2" id="inst">📲 Guardar la fiesta en mi celular</button><p style="font-size:15px;margin-top:12px">🔔 El día de la fiesta: abrila, <b>activá los avisos</b> y dejá el celular con sonido o vibración.</p>`;
   $('#inst').onclick = instalar;
 }
 async function instalar() {
