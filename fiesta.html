@@ -255,13 +255,14 @@ function pVivo() {
     ${mesa ? `<div class="mesaG"><div class="mesa">Mesa ${esc(mesa)}</div></div>` : ''}
     ${prox ? `<div class="prox">⏰ <b>${hhmm(prox.ts)}</b> · ${prox.ts > ahora ? 'Se viene: ' : 'Ahora: '}<b>${esc(prox.nombre)}</b></div>` : ''}
     ${M.length ? `<details class="prog" ${progAbierto ? 'open' : ''}><summary>📋 El programa de la noche${F.atraso ? ' (corrido ' + F.atraso + ' min)' : ''}</summary>${M.map(x => { const ya = x.ts < ahora - 5 * 60e3, es = prox && x === prox; return `<div class="it ${ya ? 'ya' : ''} ${es ? 'ahora' : ''}"><b>${hhmm(x.ts)}</b><span>${ya ? '✅ ' : es ? '👉 ' : ''}${esc(x.nombre)}</span></div>`; }).join('')}</details>` : ''}
-    ${carta.length ? `<p style="font-weight:700;margin:12px 0 4px">¿Qué te traemos? 🛎</p>${carta.map((x, i) => `<div class="item"><span>${esc(x.n)}</span><span class="qty"><button data-q="${i}" data-d="-1" aria-label="menos">−</button><b id="q${i}">${CANT[x.n] || 0}</b><button data-q="${i}" data-d="1" aria-label="más">+</button></span></div>`).join('')}
+    ${carta.length ? `<p style="font-weight:700;margin:12px 0 4px">¿Qué te traemos? 🛎</p><button class="btn alt" id="aFlashy" style="width:100%;margin:2px 0 8px">🎤 Pedíselo a Flashy (hablando o escribiendo)</button>${carta.map((x, i) => `<div class="item"><span>${esc(x.n)}</span><span class="qty"><button data-q="${i}" data-d="-1" aria-label="menos">−</button><b id="q${i}">${CANT[x.n] || 0}</b><button data-q="${i}" data-d="1" aria-label="más">+</button></span></div>`).join('')}
       <input id="pnota" maxlength="140" placeholder="¿Algo más? (opcional)" style="width:100%;margin-top:10px;font:16px var(--sans);padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)">
       <button class="btn big2" id="pedir" style="margin-top:10px">🛎 Pedir a mi mesa</button><div id="pmsg"></div>` : ''}
     ${peds.length ? `<p style="font-weight:700;margin:14px 0 2px">Tus pedidos</p>${peds.map(p => `<div class="ped"><div class="est">${EST(p)}</div><div>${p.items.map(x => (x.c > 1 ? x.c + ' × ' : '') + esc(x.n)).join(', ')} · <span style="color:var(--soft)">${hhmm(Date.parse(p.t))}</span></div></div>`).join('')}` : ''}
     ${'Notification' in window && Notification.permission === 'default' ? '<button class="btn alt" id="permiso" style="margin-top:12px">🔔 Activar avisos de la fiesta</button>' : ''}`;
   el.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { const x = carta[+b.dataset.q]; CANT[x.n] = Math.max(0, Math.min(10, (CANT[x.n] || 0) + +b.dataset.d)); $('#q' + b.dataset.q).textContent = CANT[x.n]; });
   const pb = $('#pedir'); if (pb) pb.onclick = pedir;
+  const af = $('#aFlashy'); if (af) af.onclick = () => { flVoz = true; flDecir('¿Qué te traemos? Decímelo con el 🎤 o escribilo 🙂', flOpsPedir(), true); };
   const pm = $('#permiso'); if (pm) pm.onclick = async () => { try { await Notification.requestPermission(); } catch (e) {} pVivo(); };
 }
 async function pedir() {
@@ -269,7 +270,10 @@ async function pedir() {
   const msg = $('#pmsg'); if (!items.length) { msg.innerHTML = '<p class="err">Elegí algo con el botón +</p>'; return; }
   const b = $('#pedir'); b.disabled = true;
   try { const r = await fetch('/api/fiesta?accion=pedir', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, items, nota: ($('#pnota') || {}).value || '', mesa: MESA})}); const j = await r.json();
-    if (!r.ok) throw new Error(j.error || 'No se pudo pedir'); CANT = {}; if (navigator.vibrate) navigator.vibrate(60); await vivoTick(); toast('🛎 ¡Pedido enviado!', j.moza ? `Se lo pasamos a ${j.moza}, que atiende tu mesa.` : 'Enseguida te avisamos quién te lo trae.'); if (FL) flHablar(j.moza ? `Listo, ya se lo paso a ${j.moza}` : 'Listo, ya se lo paso a la encargada. Enseguida te aviso quién te lo trae');
+    if (!r.ok) throw new Error(j.error || 'No se pudo pedir'); CANT = {}; if (navigator.vibrate) navigator.vibrate(60); marcaInter(); await vivoTick();
+    const que = items.length === 1 ? 'tu ' + (items[0].c > 1 ? items[0].c + ' ' : '') + items[0].n : 'tu pedido';
+    const msgP = j.moza ? `¡Listo! 🛎 Ya se lo paso a ${j.moza}, que atiende tu mesa. Te aviso cuando va en camino.` : `¡Listo! 🛎 Ya se lo paso a la encargada. Enseguida te aviso quién te trae ${que}.`;
+    if (FL) flDecir(msgP, [{t: '👍 Gracias', alt: true, f: () => $('#flb').classList.remove('on')}]); else toast('🛎 ¡Pedido enviado!', msgP);
   } catch (e) { msg.innerHTML = `<p class="err">${esc(e.message)}</p>`; b.disabled = false; }
 }
 let vistos = {}; try { vistos = JSON.parse(localStorage.getItem('fiestaVistos:' + CODE) || '{}'); } catch (e) {}
@@ -380,7 +384,7 @@ const LSI = () => 'fiestaInter:' + CODE;
 const marcaInter = () => { try { localStorage.setItem(LSI(), String(Date.now())); } catch (e) {} };
 function flMenu() { const nom = INV.nombre.split(' ')[0], mesa = INV.mesa || MESA;
   const reg = (F.lugares || []).find(x => /regal/i.test(x.n));
-  flDecir(`¡Hola ${nom}! ${mesa ? 'Estás en la mesa ' + mesa + '. ' : ''}${reg && !yaSaludo() ? 'Si traés regalo, la mesa de regalos está ' + reg.d + ' 🎁. ' : ''}¿Querés que te traigan algo para tomar?`, [{t: '🥤 Sí, pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: '⏰ ¿Qué viene?', alt: true, f: flQueViene}, {t: '📋 Todo el programa', alt: true, f: () => { $('#flb').classList.remove('on'); progAbierto = true; pVivo(); const d = document.querySelector('.prog'); if (d) d.scrollIntoView({behavior: 'smooth', block: 'center'}); }}].concat((F.lugares || []).length ? [{t: '📍 ¿Dónde está…?', alt: true, f: flLugares}] : []).concat([{t: 'Ahora no', alt: true, f: () => { marcaInter(); $('#flb').classList.remove('on'); }}])); try { localStorage.setItem('fiestaSaludo:' + CODE, '1'); } catch (e) {} }
+  flDecir(`¡Hola ${nom}! ${mesa ? 'Estás en la mesa ' + mesa + '. ' : ''}${reg && !yaSaludo() ? 'Si traés regalo, la mesa de regalos está ' + reg.d + ' 🎁. ' : ''}¿Querés que te traigan algo para tomar?`, [{t: '🥤 Sí, pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: '⏰ ¿Qué viene?', alt: true, f: flQueViene}, {t: '📋 Todo el programa', alt: true, f: () => { $('#flb').classList.remove('on'); progAbierto = true; pVivo(); const d = document.querySelector('.prog'); if (d) d.scrollIntoView({behavior: 'smooth', block: 'center'}); }}].concat((F.lugares || []).length ? [{t: '📍 ¿Dónde está…?', alt: true, f: flLugares}] : []).concat([{t: 'Ahora no', alt: true, f: () => { marcaInter(); $('#flb').classList.remove('on'); }}]), true); try { localStorage.setItem('fiestaSaludo:' + CODE, '1'); } catch (e) {} }
 const yaSaludo = () => { try { return !!localStorage.getItem('fiestaSaludo:' + CODE); } catch (e) { return false; } };
 function flPasoDeVez() { // cada tanto, sin molestar: "¿te falta algo en la mesa?"
   if (!FL || $('#flb').classList.contains('on') || document.hidden) return;
