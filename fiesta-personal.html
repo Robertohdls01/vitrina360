@@ -71,7 +71,7 @@ function tarjeta(p) {
   }
   if (p.estado === 'camino') b = `<button class="btn ok" data-ent="${p.id}">✅ Entregado</button>` + (!esMozas && mz.length > 1 ? `<details style="width:100%"><summary style="font-size:14px;color:var(--soft)">Cambiar quién lo lleva</summary>${mz.filter(m => m !== p.moza).map(m => `<button class="chip" data-moza="${esc(m)}" data-id="${p.id}">${esc(m)}</button>`).join(' ')}</details>` : '');
   return `<div class="p ${p.estado}"><span class="hace ${tarde(p) ? 'tarde' : ''}">${hace(p.t)}${tarde(p) ? ' ⚠️' : ''}</span><div class="mesa">Mesa ${esc(p.mesa || '?')}</div><div class="quien">${esc(p.nombre)}${p.prueba ? ' · 🧪 prueba' : ''}${p.moza ? ' · lleva ' + esc(p.moza) : ''}</div>
-    <div class="its">${p.items.map(x => (x.c > 1 ? x.c + ' × ' : '') + esc(x.n)).join('<br>')}</div>${p.nota ? `<div class="nota">📝 ${esc(p.nota)}</div>` : ''}
+    <div class="its">${p.items.map(x => (x.c > 1 ? x.c + ' × ' : '') + esc(x.n) + (x.p ? ` <span style="font-size:15px;font-weight:600;color:var(--soft)">· para ${esc(x.p === 'vos' ? 'él/ella' : x.p.replace(/^tu /, 'su '))}</span>` : '')).join('<br>')}</div>${p.nota ? `<div class="nota">📝 ${esc(p.nota)}</div>` : ''}
     <div class="btns">${b}${p.estado !== 'entregado' ? `<button class="btn alt sm" data-can="${p.id}">Cancelar</button>` : ''}</div></div>`;
 }
 function pintar() {

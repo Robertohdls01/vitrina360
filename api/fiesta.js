@@ -309,7 +309,7 @@ module.exports = async (req, res) => {
       const g = (e.invitados || []).find(x => x.tok === String(b.i || ''));
       if (!g && !prueba) return res.status(403).json({ error: 'Primero decinos quién sos, así te lo llevamos a tu mesa.' });
       const carta = {}; (e.carta || []).forEach(x => { carta[x.n] = x; });
-      const items = (Array.isArray(b.items) ? b.items : []).slice(0, 20).map(x => ({ n: String(x && x.n || ''), c: Math.max(1, Math.min(10, parseInt(x && x.c, 10) || 1)) }))
+      const items = (Array.isArray(b.items) ? b.items : []).slice(0, 20).map(x => Object.assign({ n: String(x && x.n || ''), c: Math.max(1, Math.min(10, parseInt(x && x.c, 10) || 1)) }, x && x.p ? { p: corto(x.p, 30) } : {}))
         .filter(x => carta[x.n] && !(carta[x.n].alc && g && g.menor));
       if (!items.length) return res.status(400).json({ error: 'Elegí algo de la lista.' });
       if (g) { const ult = await pedidosDe(code, '&gid=eq.' + g.id + '&estado=in.(nuevo,camino)'); if (ult.length >= 4) return res.status(429).json({ error: 'Ya tenés pedidos en camino. Esperá que te lleguen 🙂' }); }
