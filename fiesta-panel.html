@@ -76,6 +76,7 @@ code{background:#f3f1ea;padding:2px 6px;border-radius:6px;word-break:break-all}
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const P = new URLSearchParams(location.search);
+let PAQS = null, EXTRA = 15000, YA_AVISO_PAGO = false;
 let CODE = (P.get('f') || '').toUpperCase(), K = P.get('k') || '', D = null, RESP = [], tab = 'inv', sucio = false, DEMO = false, tituloTocado = false;
 const TITULOS = {'15': 'Mis 15', casamiento: 'Nos casamos', cumple: 'Mi cumple', bautismo: 'Mi bautismo', egresados: 'Fiesta de egresados', otro: 'Te invito'};
 const PLANT = [['elegante', 'Elegante', '#fbf7f0'], ['flores', 'Flores', '#fbf1f3'], ['brillos', 'Brillos', '#1d1b2f'], ['moderna', 'Moderna', '#f5f5f2'], ['mariposas', 'Mariposas', '#f3effa'], ['luna', 'Luna y estrellas', '#1c2440']];
@@ -112,14 +113,52 @@ async function cargar() {
   try {
     const r = await fetch('/api/fiesta?accion=panel&f=' + encodeURIComponent(CODE) + '&k=' + encodeURIComponent(K)); const j = await r.json();
     if (!r.ok) throw new Error(j.error || 'No se pudo abrir');
-    D = Object.assign(nuevo(), j.fiesta); RESP = j.resp || []; DEMO = !!j.demo; tituloTocado = true; guardarMis(); pintar();
+    D = Object.assign(nuevo(), j.fiesta); RESP = j.resp || []; DEMO = !!j.demo; PAQS = j.paquetes || null; EXTRA = j.extra150 || EXTRA; tituloTocado = true; guardarMis(); pintar(); vueltaPago();
   } catch (e) { $('#raiz').innerHTML = `<div class="hero"><h1>😕 ${esc(e.message)}</h1><p><a href="/fiesta-panel">Volver</a></p></div>`; }
+}
+const pesos = n => '$' + Number(n || 0).toLocaleString('es-AR');
+const sesionDueno = () => { try { return (JSON.parse(localStorage.getItem('v360-sesion') || 'null') || {}).access_token || ''; } catch (e) { return ''; } };
+let paqElegido = 'invitacion';
+function activarHTML() {
+  if (DEMO || !CODE || D.pagado) return '';
+  const L = PAQS ? Object.entries(PAQS) : [['invitacion', {nombre: 'Invitación', precio: 25000, disponible: true, incluye: ''}]];
+  const n = (D.invitados || []).length;
+  return `<div class="sec" style="background:#fffaf0;border:2px solid #ecd9a8;border-radius:16px;padding:16px"><h3>🔓 Activá tu invitación para mandarla</h3>
+    <p class="muted">Ya podés armarla y verla gratis. Para mandarla a tus invitados y recibir las confirmaciones, activala con un pago único.</p>
+    <div class="opts">${L.map(([k, p]) => { const extra = p.vivo && n > 150 ? EXTRA : 0; return `<button class="opt ${paqElegido === k && p.disponible ? 'on' : ''}" data-paq="${k}" ${p.disponible ? '' : 'disabled style="opacity:.6"'}><b>${esc(p.nombre)}</b><span style="font-size:20px;font-weight:800">${pesos(p.precio + extra)}</span><br><small>${esc(p.incluye || '')}${extra ? ' · incluye ' + pesos(extra) + ' por más de 150 invitados' : ''}${p.disponible ? '' : '<br><b>Próximamente</b>'}</small></button>`; }).join('')}</div>
+    <button class="btn" id="pagar" style="margin-top:12px;font-size:17px">💳 Pagar con Mercado Pago</button>
+    ${sesionDueno() ? '<button class="btn alt sm" id="regalar" style="margin-left:8px">🎁 Activar gratis (dueño)</button>' : ''}
+    <p class="muted" id="pagoMsg" style="margin-bottom:0">Pagás con tarjeta, débito, dinero en cuenta o efectivo. Pago único, sin suscripción.</p></div>`;
+}
+function enganchePago() {
+  $$('[data-paq]').forEach(b => b.onclick = () => { if (b.disabled) return; paqElegido = b.dataset.paq; $$('[data-paq]').forEach(x => x.classList.toggle('on', x === b)); });
+  const pb = $('#pagar'); if (pb) pb.onclick = async () => {
+    if (sucio) { await guardar(); if (sucio) return; }
+    pb.disabled = true; $('#pagoMsg').textContent = 'Abriendo Mercado Pago…';
+    try { const r = await fetch('/api/fiesta?accion=pagar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, k: K, paquete: paqElegido})}); const j = await r.json();
+      if (j.pagado) return cargar(); if (!r.ok || !j.url) throw new Error(j.error || 'No se pudo abrir el pago'); location.href = j.url;
+    } catch (e) { $('#pagoMsg').textContent = '⚠️ ' + e.message; pb.disabled = false; } };
+  const rb = $('#regalar'); if (rb) rb.onclick = async () => {
+    if (!confirm('¿Activar esta fiesta gratis (paquete ' + paqElegido + ')?')) return;
+    const r = await fetch('/api/fiesta?accion=regalar', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + sesionDueno()}, body: JSON.stringify({f: CODE, paquete: paqElegido})}); const j = await r.json();
+    if (!r.ok) return alert(j.error || 'No se pudo'); cargar(); };
+}
+function vueltaPago() {
+  const pg = P.get('pago'); if (!pg || YA_AVISO_PAGO) return; YA_AVISO_PAGO = true;
+  history.replaceState(null, '', '/fiesta-panel?f=' + CODE + '&k=' + K);
+  const ok = D.pagado;
+  $('#modalIn').innerHTML = ok ? `<h3 style="margin-top:0">🎉 ¡Listo, tu invitación está activa!</h3><p>Ya podés mandarla a tus invitados desde la pestaña <b>Invitados</b>, con el botón de WhatsApp de cada uno.</p><button class="btn" id="cerrar">Ir a mis invitados</button>`
+    : pg === 'error' ? `<h3 style="margin-top:0">El pago no se completó</h3><p>No se cobró nada. Podés intentar de nuevo cuando quieras.</p><button class="btn" id="cerrar">Entendido</button>`
+    : `<h3 style="margin-top:0">⏳ Estamos confirmando tu pago</h3><p>Mercado Pago puede tardar unos minutos. Cuando se acredite, tu invitación se activa sola.</p><button class="btn alt" id="revisar">🔄 Revisar ahora</button> <button class="btn" id="cerrar">Entendido</button>`;
+  $('#modal').classList.add('on');
+  $('#cerrar').onclick = () => { $('#modal').classList.remove('on'); if (ok) { tab = 'gente'; pintar(); } };
+  const rv = $('#revisar'); if (rv) rv.onclick = () => { $('#modal').classList.remove('on'); YA_AVISO_PAGO = false; P.set('pago', 'pendiente'); cargar(); };
 }
 function pintar() {
   $('#hdr').textContent = D.nombre ? (D.tipo === '15' ? 'Los 15 de ' : 'Fiesta de ') + D.nombre : 'Nueva fiesta';
   const pend = (D.invitados || []).length;
   $('#raiz').innerHTML = `<div class="tabs"><button data-tab="inv">1. La invitación</button><button data-tab="gente">2. Invitados (${pend})</button><button data-tab="conf">3. Confirmaciones</button></div><main id="main"></main>
-    <div class="barra">${DEMO ? '<span class="estado">👀 Esto es una muestra. <a href="/fiesta-panel">Armá la tuya</a></span>' : `<span class="estado" id="estado">${CODE ? '' : 'Todavía no guardaste'}</span><button class="btn alt" id="verPrev">👀 Ver cómo queda</button><button class="btn" id="guardar">💾 Guardar</button>`}</div>`;
+    <div class="barra">${DEMO ? '<span class="estado">👀 Esto es una muestra. <a href="/fiesta-panel">Armá la tuya</a></span>' : `<span class="estado" id="estado">${!CODE ? 'Todavía no guardaste' : D.pagado ? '✅ Invitación activa' : '🔒 Sin activar'}</span><button class="btn alt" id="verPrev">👀 Ver cómo queda</button><button class="btn" id="guardar">💾 Guardar</button>`}</div>`;
   $$('.tabs button').forEach(b => { b.classList.toggle('on', b.dataset.tab === tab); b.onclick = () => { tab = b.dataset.tab; pintar(); }; });
   if (!DEMO) { $('#guardar').onclick = guardar; $('#verPrev').onclick = () => { if (tab !== 'inv') { tab = 'inv'; pintar(); } const c = $('.prevcol'); c.classList.toggle('on'); c.scrollIntoView({behavior: 'smooth'}); }; }
   if (tab === 'inv') pInv(); else if (tab === 'gente') pGente(); else pConf();
@@ -130,7 +169,7 @@ addEventListener('message', e => { if (e.origin === location.origin && e.data &&
 
 function pInv() {
   const campo = (id, lbl, ph, tipo) => `<label for="c_${id}">${lbl}</label><input id="c_${id}" data-k="${id}" type="${tipo || 'text'}" value="${esc(D[id])}" placeholder="${esc(ph || '')}">`;
-  $('#main').innerHTML = `<div class="grid"><div class="box">
+  $('#main').innerHTML = `<div class="grid"><div class="box">${activarHTML()}
     <div class="sec"><h3>¿Qué tipo de invitación querés?</h3><div class="opts">
       ${[['especial', '💌 Especial', 'Con foto y diseño completo'], ['comun', '✉️ Común', 'Diseño lindo, sin foto'], ['link', '🔗 Solo el link', 'Para confirmar y guardar la fiesta en el celular']].map(([v, t, s]) => `<button class="opt ${D.modo === v ? 'on' : ''}" data-modo="${v}"><b>${t}</b><small>${s}</small></button>`).join('')}</div></div>
     <div class="sec"><h3>La fiesta</h3><div class="row"><div><label>Tipo de fiesta</label><select data-k="tipo">${[['15', '15 años'], ['casamiento', 'Casamiento'], ['cumple', 'Cumpleaños'], ['bautismo', 'Bautismo'], ['egresados', 'Egresados'], ['otro', 'Otra']].map(([v, t]) => `<option value="${v}" ${D.tipo === v ? 'selected' : ''}>${t}</option>`).join('')}</select></div><div>${campo('titulo', 'Título', 'Mis 15')}</div></div>
@@ -164,7 +203,7 @@ function pInv() {
   const fi = $('#foto'); if (fi) fi.onchange = async () => { const f = fi.files[0]; if (!f) return; try { D.foto = await achicar(f); cambio(); pInv(); } catch (e) { alert('No pudimos leer esa foto. Probá con otra.'); } };
   const sf = $('#sinFoto'); if (sf) sf.onclick = () => { D.foto = ''; cambio(); pInv(); };
   if (DEMO) $$('#main input,#main select,#main textarea,#main button').forEach(x => x.disabled = true);
-  setTimeout(prev, 300);
+  enganchePago(); setTimeout(prev, 300);
 }
 function achicar(file) {
   return new Promise((ok, ko) => { const img = new Image(); img.onload = () => { const max = 1000, s = Math.min(1, max / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
@@ -188,7 +227,7 @@ function parsear(txt) {
 }
 function pGente() {
   const env = enviados(), L = D.invitados || [];
-  $('#main').innerHTML = `<div class="box">
+  $('#main').innerHTML = `<div class="box">${activarHTML()}
     <div class="sec"><h3>Agregar invitados</h3><p class="muted">Pegá la lista: un invitado por línea. Si querés, sumá la mesa y el teléfono separados por coma. Ej: <code>Roberto Hernández, mesa 2, 2235551234</code>. Para acompañantes: <code>+1</code>. Para menores: <code>menor</code>.</p>
       <textarea id="pegar" placeholder="Roberto Hernández, mesa 2, 2235551234&#10;Marta Gómez, mesa 2&#10;Sofía Pérez, mesa 7, menor"></textarea>
       <button class="btn" id="agregar" style="margin-top:8px">➕ Agregar a la lista</button></div>
@@ -198,9 +237,9 @@ function pGente() {
         <td><select data-i="${i}" data-c="cupo">${[0, 1, 2, 3, 4, 5].map(n => `<option ${+g.cupo === n ? 'selected' : ''}>${n}</option>`).join('')}</select></td>
         <td><input type="checkbox" data-i="${i}" data-c="menor" ${g.menor ? 'checked' : ''} style="width:20px;height:20px"></td>
         <td><input data-i="${i}" data-c="tel" value="${esc(g.tel)}" style="width:130px" inputmode="tel"></td>
-        <td>${g.tok ? `<a class="btn wa sm" data-env="${esc(g.id)}" href="${waLink(g.tel, msgDe(g))}" target="_blank" rel="noopener">${env[g.id] ? '✓ Reenviar' : '📲 WhatsApp'}</a> <button class="btn alt sm" data-copy="${esc(linkDe(g))}">🔗</button>` : '<span class="muted">Guardá primero</span>'}</td>
+        <td>${g.tok && !D.pagado ? '<span class="muted">🔒 Activá para mandar</span>' : g.tok ? `<a class="btn wa sm" data-env="${esc(g.id)}" href="${waLink(g.tel, msgDe(g))}" target="_blank" rel="noopener">${env[g.id] ? '✓ Reenviar' : '📲 WhatsApp'}</a> <button class="btn alt sm" data-copy="${esc(linkDe(g))}">🔗</button>` : '<span class="muted">Guardá primero</span>'}</td>
         <td><button class="btn alt sm" data-del="${i}" aria-label="Borrar">🗑</button></td></tr>`).join('')}</tbody></table></div></div>` : ''}
-    ${CODE ? `<div class="sec"><h3>Recordatorio para todos (el día de la fiesta)</h3><p class="muted">Mandalo al grupo de WhatsApp de la fiesta o como lista de difusión. El que no tiene su link, busca su nombre.</p>
+    ${CODE && D.pagado ? `<div class="sec"><h3>Recordatorio para todos (el día de la fiesta)</h3><p class="muted">Mandalo al grupo de WhatsApp de la fiesta o como lista de difusión. El que no tiene su link, busca su nombre.</p>
       <textarea readonly style="min-height:120px">${esc(msgGrupo())}</textarea>
       <button class="btn alt" data-copy="${esc(msgGrupo())}">📋 Copiar mensaje</button> <a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(msgGrupo())}" target="_blank" rel="noopener">📲 Mandar por WhatsApp</a></div>` : ''}
   </div>`;
@@ -208,6 +247,7 @@ function pGente() {
   $$('[data-c]').forEach(el => el.addEventListener('change', () => { const g = D.invitados[+el.dataset.i], c = el.dataset.c; g[c] = el.type === 'checkbox' ? el.checked : c === 'cupo' ? +el.value : el.value; cambio(); }));
   $$('[data-del]').forEach(b => b.onclick = () => { const g = D.invitados[+b.dataset.del]; if (!confirm('¿Borrar a ' + g.nombre + ' de la lista?')) return; D.invitados.splice(+b.dataset.del, 1); cambio(); pintar(); });
   $$('[data-env]').forEach(a => a.addEventListener('click', () => { marcarEnv(a.dataset.env); setTimeout(() => { a.textContent = '✓ Reenviar'; }, 300); }));
+  enganchePago();
   if (DEMO) $$('#main input,#main select,#main textarea,#agregar,[data-del]').forEach(x => x.disabled = true);
 }
 async function pConf() {

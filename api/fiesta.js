@@ -10,7 +10,7 @@
 //   POST ?accion=responder {f,i,va,cuantos,menu,nota} (invitados)   → confirma o avisa que no va
 //   GET  ?manifest=CODIGO  /  ?icono=CODIGO                         → para guardar la fiesta como app en el celular
 const crypto = require('crypto');
-const { cuerpo, stHeaders } = require('./_comun');
+const { cuerpo, stHeaders, usuario } = require('./_comun');
 
 const SURL = () => String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const ST = () => SURL() + '/storage/v1';
@@ -26,6 +26,30 @@ const PLANTILLAS = ['elegante', 'flores', 'brillos', 'moderna', 'mariposas', 'lu
 const MODOS = ['especial', 'comun', 'link'];
 const TIPOS = ['15', 'casamiento', 'cumple', 'bautismo', 'egresados', 'otro'];
 const MENUS = ['', 'vegetariano', 'vegano', 'sin TACC', 'infantil', 'otro'];
+const ADMINS = () => String(process.env.ADMIN_EMAILS || process.env.IA_SIN_LIMITE || '').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
+const EN_VIVO = () => process.env.FIESTA_EN_VIVO === '1'; // los paquetes con la fiesta en vivo se venden cuando esté lista
+// Paquetes para la familia (precios cambiables desde Vercel). "extra" = recargo por más de 150 invitados (solo en los de fiesta en vivo).
+const PAQ = () => ({
+  invitacion: { nombre: 'Invitación', precio: Number(process.env.PRECIO_FIESTA_INV || 25000), disponible: true, incluye: 'Invitación virtual, confirmaciones, links por WhatsApp e ícono en el celular' },
+  completa: { nombre: 'Fiesta completa', precio: Number(process.env.PRECIO_FIESTA_COMPLETA || 60000), disponible: EN_VIVO(), vivo: true, incluye: 'Invitación + recepción, mesas, pedidos a las mozas, avisos de comida y vals, panel en vivo' },
+  recuerdos: { nombre: 'Fiesta completa + recuerdos', precio: Number(process.env.PRECIO_FIESTA_RECUERDOS || 80000), disponible: EN_VIVO(), vivo: true, incluye: 'Todo lo anterior + álbum de fotos, cuadro de firmas y resumen de la noche' }
+});
+const EXTRA150 = () => Number(process.env.PRECIO_FIESTA_EXTRA150 || 15000);
+const montoDe = (paq, e) => { const P = PAQ()[paq]; if (!P) return 0; return P.precio + (P.vivo && (e.invitados || []).length > 150 ? EXTRA150() : 0); };
+async function mpGet(path) {
+  const tok = String(process.env.MP_ACCESS_TOKEN || '').trim(); if (!tok) return null;
+  const r = await fetch('https://api.mercadopago.com' + path, { headers: { Authorization: 'Bearer ' + tok } });
+  return r.ok ? r.json().catch(() => null) : null;
+}
+const marcarPago = (e, paq, pid, monto, manual) => { e.pagado = true; e.paquete = paq; e.pagos = (e.pagos || []).concat([{ paquete: paq, id: pid || '', monto: monto || 0, t: new Date().toISOString(), manual: !!manual }]); };
+// Revisa en Mercado Pago si la fiesta tiene un pago aprobado que todavía no se marcó (por si el aviso no llegó).
+async function revisarPago(e) {
+  if (!e.pagoRef) return false;
+  const j = await mpGet('/v1/payments/search?external_reference=' + encodeURIComponent(e.pagoRef) + '&sort=date_created&criteria=desc&limit=5');
+  const ok = j && Array.isArray(j.results) && j.results.find(x => x.status === 'approved');
+  if (!ok || (e.pagos || []).some(p => p.id === String(ok.id))) return false;
+  marcarPago(e, e.pagoRef.split('/')[2], String(ok.id), ok.transaction_amount); delete e.pagoRef; return true;
+}
 
 let listo = false;
 async function bucket() {
@@ -134,6 +158,19 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, code, clave, panel: '/fiesta-panel?f=' + code + '&k=' + clave, link: '/fiesta/' + code });
     }
 
+    if (acc === 'aviso') { // Mercado Pago avisa un pago
+      const b = cuerpo(req);
+      const tipo = b.type || b.topic || q.type || q.topic || '', pid = String((b.data && b.data.id) || q['data.id'] || q.id || '').replace(/\D/g, '');
+      if (!/payment/.test(tipo) || !pid) return res.status(200).json({ ok: true });
+      const pay = await mpGet('/v1/payments/' + pid);
+      const ref = String(pay && pay.external_reference || ''), pr = ref.split('/');
+      if (!pay || pay.status !== 'approved' || pr[0] !== 'fiesta' || !okCode(pr[1]) || !PAQ()[pr[2]]) return res.status(200).json({ ok: true });
+      const e = await leer(pr[1]);
+      if (e && !(e.pagos || []).some(p => p.id === pid)) { marcarPago(e, pr[2], pid, pay.transaction_amount); delete e.pagoRef; await guardarObj(pr[1], e); }
+      return res.status(200).json({ ok: true });
+    }
+    if (req.method === 'GET' && acc === 'precios') return res.status(200).json({ paquetes: PAQ(), extra150: EXTRA150() });
+
     const code = String(q.f || cuerpo(req).f || '').toUpperCase();
     if (!okCode(code)) return res.status(400).json({ error: 'Fiesta inválida.' });
     const esDemo = code === DEMO;
@@ -143,25 +180,58 @@ module.exports = async (req, res) => {
       if (esDemo) return res.status(403).json({ error: 'La fiesta de muestra no se puede cambiar. Creá la tuya.' });
       const e = await leer(code); if (!e) return res.status(404).json({ error: 'No existe esa fiesta.' });
       if (hash(String(b.k || '')) !== e.clave) return res.status(403).json({ error: 'La clave del panel no es correcta.' });
-      const n = Object.assign(limpiar(b.datos, e), { code, clave: e.clave, creado: e.creado, cambiado: new Date().toISOString() });
+      const n = Object.assign(limpiar(b.datos, e), { code, clave: e.clave, creado: e.creado, cambiado: new Date().toISOString(), pagado: e.pagado, paquete: e.paquete, pagos: e.pagos, pagoRef: e.pagoRef });
       await guardarObj(code, n);
       return res.status(200).json({ ok: true, invitados: n.invitados });
     }
 
     if (req.method === 'GET' && acc === 'panel') {
       if (esDemo) {
-        const d = demoData(); return res.status(200).json({ ok: true, demo: true, fiesta: d,
+        const d = Object.assign(demoData(), { pagado: true, paquete: 'invitacion' }); return res.status(200).json({ ok: true, demo: true, paquetes: PAQ(), extra150: EXTRA150(), fiesta: d,
           resp: [{ gid: 'g1', va: true, cuantos: 2, menu: '', nota: '¡Ahí estaremos!', t: new Date().toISOString() }, { gid: 'g3', va: true, cuantos: 1, menu: 'sin TACC', nota: '', t: new Date().toISOString() }, { gid: 'g4', va: false, cuantos: 0, menu: '', nota: 'Estoy de viaje, ¡felicidades!', t: new Date().toISOString() }] });
       }
       const e = await leer(code); if (!e) return res.status(404).json({ error: 'No existe esa fiesta.' });
       if (hash(String(q.k || '')) !== e.clave) return res.status(403).json({ error: 'La clave del panel no es correcta.' });
-      const f = Object.assign({}, e); delete f.clave;
+      if (!e.pagado && e.pagoRef && await revisarPago(e)) await guardarObj(code, e);
+      const f = Object.assign({}, e); delete f.clave; delete f.pagoRef;
       res.setHeader('Cache-Control', 'no-store');
-      return res.status(200).json({ ok: true, fiesta: f, resp: await respuestas(code) });
+      return res.status(200).json({ ok: true, fiesta: f, resp: await respuestas(code), paquetes: PAQ(), extra150: EXTRA150() });
+    }
+
+    if (req.method === 'POST' && (acc === 'pagar' || acc === 'regalar')) {
+      const b = cuerpo(req), paq = String(b.paquete || 'invitacion'), P = PAQ()[paq];
+      if (esDemo) return res.status(403).json({ error: 'Esto es una muestra. Creá tu fiesta para activarla.' });
+      const e = await leer(code); if (!e) return res.status(404).json({ error: 'No existe esa fiesta.' });
+      if (acc === 'regalar') { // el dueño de Pro Video activa gratis (fiestas de prueba)
+        const u = await usuario(req);
+        if (!u || !ADMINS().includes(String(u.email).toLowerCase())) return res.status(403).json({ error: 'Solo el dueño de Pro Video puede activar gratis.' });
+        if (!P) return res.status(400).json({ error: 'Paquete inválido.' });
+        marcarPago(e, paq, '', 0, true); await guardarObj(code, e); return res.status(200).json({ ok: true, pagado: true });
+      }
+      if (hash(String(b.k || '')) !== e.clave) return res.status(403).json({ error: 'La clave del panel no es correcta.' });
+      if (!P || !P.disponible) return res.status(400).json({ error: 'Ese paquete todavía no está disponible.' });
+      if (e.pagado && (e.paquete === paq || (e.paquete === 'recuerdos'))) return res.status(200).json({ pagado: true });
+      const tok = String(process.env.MP_ACCESS_TOKEN || '').trim();
+      if (!tok) return res.status(503).json({ error: 'El cobro todavía no está configurado.' });
+      const ya = e.pagado ? montoDe(e.paquete, e) : 0, monto = Math.max(0, montoDe(paq, e) - ya); // si ya pagó un paquete, paga la diferencia
+      if (monto <= 0) return res.status(200).json({ pagado: true });
+      const host = 'https://' + (req.headers['x-forwarded-host'] || req.headers.host || 'vitrina360app.com.ar');
+      const back = host + '/fiesta-panel?f=' + code + '&k=' + encodeURIComponent(String(b.k || ''));
+      const ref = 'fiesta/' + code + '/' + paq + '/' + Date.now().toString(36);
+      const r = await fetch('https://api.mercadopago.com/checkout/preferences', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok }, body: JSON.stringify({
+        items: [{ id: 'fiesta-' + paq, title: ('ShopFiesta · ' + P.nombre + (e.nombre ? ' · ' + e.nombre : '')).slice(0, 60), quantity: 1, unit_price: monto, currency_id: 'ARS' }],
+        external_reference: ref, notification_url: host + '/api/fiesta?accion=aviso',
+        back_urls: { success: back + '&pago=ok', pending: back + '&pago=pendiente', failure: back + '&pago=error' }, auto_return: 'approved', statement_descriptor: 'SHOPFIESTA'
+      }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.init_point) { console.error('fiesta pagar', r.status, JSON.stringify(j).slice(0, 300)); return res.status(502).json({ error: 'Mercado Pago no respondió. Probá de nuevo en un rato.' }); }
+      e.pagoRef = ref; await guardarObj(code, e);
+      return res.status(200).json({ url: j.init_point });
     }
 
     const e = esDemo ? demoData() : await leer(code);
     if (!e) return res.status(404).json({ error: 'No encontramos esta fiesta. Revisá el link.' });
+    if (!esDemo && !e.pagado && ['ver', 'buscar', 'responder'].includes(acc)) return res.status(402).json({ error: 'Esta invitación todavía no está activa. La familia la está terminando de preparar.' });
 
     if (req.method === 'GET' && acc === 'ver') {
       const out = { ok: true, fiesta: publica(e) };
