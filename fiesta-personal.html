@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Personal · ShopEventos</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/icons/fiesta-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--ac:#b08a2e;--bg:#f6f4ef;--card:#fff;--ink:#1f2937;--soft:#4b5563;--line:#e3ded2;--ok:#15803d;--warn:#b45309}
+*{box-sizing:border-box}body{margin:0;font:17px/1.45 'Figtree',system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:#fffdf8;border-bottom:1px solid var(--line);padding:10px 14px;position:sticky;top:0;z-index:5}
+header b{font-size:18px}header small{display:block;color:var(--soft)}
+.tabs{display:flex;gap:6px;padding:10px 12px 0;flex-wrap:wrap}
+.tabs button{flex:1;min-width:30%;border:0;background:#ebe6da;font:800 16px 'Figtree',sans-serif;padding:12px 8px;border-radius:12px;cursor:pointer;color:var(--ink)}
+.tabs button.on{background:var(--ac);color:#fff}
+main{padding:10px 12px 140px;max-width:900px;margin:0 auto}
+.p{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0;box-shadow:0 4px 14px rgba(0,0,0,.04)}
+.p.nuevo{border-left:8px solid #f59e0b}.p.camino{border-left:8px solid #3b82f6}.p.entregado{border-left:8px solid #16a34a;opacity:.75}
+.mesa{font-size:30px;font-weight:800;line-height:1}.quien{color:var(--soft);font-size:15px}
+.its{font-size:20px;font-weight:600;margin:8px 0}.nota{background:#fff7e0;border-radius:8px;padding:6px 8px;font-size:15px}
+.hace{float:right;font-size:14px;color:var(--soft)}.tarde{color:#b91c1c;font-weight:800}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.btn{border:0;border-radius:12px;padding:12px 14px;font:800 16px 'Figtree',sans-serif;cursor:pointer;background:var(--ac);color:#fff}
+.btn.alt{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 2px var(--line)}.btn.ok{background:#16a34a}.btn.azul{background:#2563eb}.btn.sm{padding:8px 10px;font-size:14px}
+.chip{border:2px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font:700 15px 'Figtree',sans-serif;cursor:pointer;color:var(--ink)}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.vacio{text-align:center;color:var(--soft);padding:40px 10px}
+.barra{position:fixed;left:0;right:0;bottom:0;background:#fffdf8;border-top:1px solid var(--line);padding:10px 12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;z-index:6}
+.herr{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0}
+.herr input{width:100%;font:16px 'Figtree',sans-serif;padding:11px;border-radius:10px;border:1.5px solid var(--line)}
+.err{color:#b91c1c;font-weight:700}.okt{color:var(--ok);font-weight:800}
+.quien-soy{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:16px}.quien-soy .chip{font-size:20px;padding:14px 22px}
+.crono div{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:15px}
+.pie{text-align:center;color:var(--soft);font-size:12px;margin-top:20px}
+</style>
+</head>
+<body>
+<header><b id="tit">🎉 Personal de la fiesta</b><small id="sub">Cargando…</small></header>
+<div class="tabs" id="tabs"></div>
+<main id="main"></main>
+<div class="barra" id="barra"></div>
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const P = new URLSearchParams(location.search), CODE = (P.get('f') || '').toUpperCase(), PK = P.get('p') || '';
+let F = null, PED = [], tab = 'nuevo', yo = '', conocidos = null, timer = null, herr = false;
+try { yo = localStorage.getItem('fiestaYo:' + CODE) || ''; } catch (e) {}
+const hace = t => { const m = Math.floor((Date.now() - Date.parse(t)) / 60000); return m < 1 ? 'recién' : 'hace ' + m + ' min'; };
+const tarde = p => p.estado !== 'entregado' && Date.now() - Date.parse(p.t) > 10 * 60000;
+async function api(acc, body) { const r = await fetch('/api/fiesta?accion=' + acc, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(Object.assign({f: CODE, p: PK}, body))}); const j = await r.json(); if (!r.ok) throw new Error(j.error || 'No se pudo'); return j; }
+function sonar() { if (navigator.vibrate) navigator.vibrate([250, 120, 250]); try { const c = new (window.AudioContext || window.webkitAudioContext)(); [0, .22].forEach(d => { const o = c.createOscillator(), g = c.createGain(); o.frequency.value = 988; g.gain.value = .12; o.connect(g); g.connect(c.destination); o.start(c.currentTime + d); o.stop(c.currentTime + d + .16); }); } catch (e) {} }
+async function cargar() {
+  try { const r = await fetch('/api/fiesta?accion=personal&f=' + encodeURIComponent(CODE) + '&p=' + encodeURIComponent(PK)); const j = await r.json(); if (!r.ok) throw new Error(j.error || 'No se pudo abrir');
+    F = j.fiesta; PED = (j.pedidos || []).filter(p => p.estado !== 'cancelado');
+    const nuevos = PED.filter(p => p.estado === 'nuevo').map(p => p.id);
+    if (conocidos && nuevos.some(id => !conocidos.has(id))) { sonar(); document.title = '🔔 Pedido nuevo'; setTimeout(() => document.title = 'Personal · ShopEventos', 4000); }
+    conocidos = new Set(PED.map(p => p.id));
+    $('#tit').textContent = '🎉 ' + (F.tipo === '15' ? 'Los 15 de ' : 'La fiesta de ') + F.nombre;
+    $('#sub').textContent = (F.modoP === 'mozas' ? 'Modo mozas' : 'Modo encargada') + (F.catering ? ' · ' + F.catering : '') + ' · ' + PED.filter(p => p.estado === 'nuevo').length + ' pedidos para atender';
+    pintar();
+  } catch (e) { $('#main').innerHTML = `<div class="vacio">😕 ${esc(e.message)}</div>`; $('#sub').textContent = ''; }
+}
+function tarjeta(p) {
+  const mz = F.mozas || [], esMozas = F.modoP === 'mozas';
+  let b = '';
+  if (p.estado === 'nuevo') {
+    if (esMozas) b = `<button class="btn azul" data-llevo="${p.id}">🚶 Lo llevo yo</button>`;
+    else b = (mz.length ? mz.map(m => `<button class="chip ${p.moza === m ? 'on' : ''}" data-moza="${esc(m)}" data-id="${p.id}">${esc(m)}</button>`).join('') : '') + `<button class="btn azul" data-cam="${p.id}">🚶 En camino</button>`;
+  }
+  if (p.estado === 'camino') b = `<button class="btn ok" data-ent="${p.id}">✅ Entregado</button>`;
+  return `<div class="p ${p.estado}"><span class="hace ${tarde(p) ? 'tarde' : ''}">${hace(p.t)}${tarde(p) ? ' ⚠️' : ''}</span><div class="mesa">Mesa ${esc(p.mesa || '?')}</div><div class="quien">${esc(p.nombre)}${p.prueba ? ' · 🧪 prueba' : ''}${p.moza ? ' · lleva ' + esc(p.moza) : ''}</div>
+    <div class="its">${p.items.map(x => (x.c > 1 ? x.c + ' × ' : '') + esc(x.n)).join('<br>')}</div>${p.nota ? `<div class="nota">📝 ${esc(p.nota)}</div>` : ''}
+    <div class="btns">${b}${p.estado !== 'entregado' ? `<button class="btn alt sm" data-can="${p.id}">Cancelar</button>` : ''}</div></div>`;
+}
+function pintar() {
+  if (!F) return;
+  const esMozas = F.modoP === 'mozas';
+  if (esMozas && !yo && (F.mozas || []).length) {
+    $('#tabs').innerHTML = ''; $('#barra').innerHTML = '';
+    $('#main').innerHTML = `<div class="vacio"><h2>¿Quién sos?</h2><p>Tocá tu nombre para ver los pedidos.</p><div class="quien-soy">${F.mozas.map(m => `<button class="chip" data-yo="${esc(m)}">${esc(m)}</button>`).join('')}</div></div>`;
+    $$('[data-yo]').forEach(b => b.onclick = () => { yo = b.dataset.yo; try { localStorage.setItem('fiestaYo:' + CODE, yo); } catch (e) {} pintar(); });
+    return;
+  }
+  const L = {nuevo: PED.filter(p => p.estado === 'nuevo'), camino: PED.filter(p => p.estado === 'camino' && (!esMozas || !yo || p.moza === yo)), entregado: PED.filter(p => p.estado === 'entregado')};
+  L.nuevo.sort((a, b) => Date.parse(a.t) - Date.parse(b.t)); L.camino.sort((a, b) => Date.parse(a.t) - Date.parse(b.t));
+  $('#tabs').innerHTML = [['nuevo', '🔔 Para atender', L.nuevo.length], ['camino', esMozas ? '🚶 Los míos' : '🚶 En camino', L.camino.length], ['entregado', '✅ Entregados', L.entregado.length], ['herr', '⚙️ Herramientas', '']].map(([k, t, n]) => `<button data-tab="${k}" class="${tab === k ? 'on' : ''}">${t}${n !== '' ? ' (' + n + ')' : ''}</button>`).join('');
+  $$('[data-tab]').forEach(b => b.onclick = () => { tab = b.dataset.tab; pintar(); });
+  $('#barra').innerHTML = esMozas && yo ? `<span style="align-self:center">Sos <b>${esc(yo)}</b></span><button class="btn alt sm" id="cambiarYo">Cambiar</button>` : '';
+  const cy = $('#cambiarYo'); if (cy) cy.onclick = () => { yo = ''; try { localStorage.removeItem('fiestaYo:' + CODE); } catch (e) {} pintar(); };
+  if (tab === 'herr') return herramientas();
+  const lista = L[tab] || [];
+  $('#main').innerHTML = lista.length ? lista.map(tarjeta).join('') : `<div class="vacio">${tab === 'nuevo' ? '🙌 No hay pedidos para atender.<br>Cuando llegue uno, suena y vibra.' : 'Nada por acá.'}</div>`;
+  $$('[data-moza]').forEach(b => b.onclick = () => cambiar(b.dataset.id, {moza: b.dataset.moza}));
+  $$('[data-cam]').forEach(b => b.onclick = () => { const p = PED.find(x => String(x.id) === b.dataset.cam); if ((F.mozas || []).length && !p.moza) return alert('Primero tocá el nombre de la moza que lo lleva.'); cambiar(b.dataset.cam, {estado: 'camino'}); });
+  $$('[data-llevo]').forEach(b => b.onclick = () => cambiar(b.dataset.llevo, {estado: 'camino', moza: yo}));
+  $$('[data-ent]').forEach(b => b.onclick = () => cambiar(b.dataset.ent, {estado: 'entregado'}));
+  $$('[data-can]').forEach(b => b.onclick = () => { if (confirm('¿Cancelar este pedido?')) cambiar(b.dataset.can, {estado: 'cancelado'}); });
+}
+async function cambiar(id, c) { const p = PED.find(x => String(x.id) === String(id)); if (p) Object.assign(p, c); pintar(); try { await api('estado', Object.assign({id}, c)); } catch (e) { alert(e.message); } cargar(); }
+function herramientas() {
+  const base = F.fecha ? Date.parse(F.fecha + 'T00:00:00-03:00') : 0;
+  $('#main').innerHTML = `<div class="herr"><h3 style="margin-top:0">🧪 Prueba antes de abrir</h3><p>Hacé un pedido de prueba: tiene que aparecer en "Para atender" y sonar. Después marcalo como entregado.</p>
+      <button class="btn" id="prueba">🧪 Hacer pedido de prueba</button> <button class="btn ok" id="listo">✅ Todo funciona: avisar a la familia</button><p id="hmsg">${F.listo ? '<span class="okt">✅ Ya le avisaste a la familia que todo funciona.</span>' : ''}</p></div>
+    <div class="herr"><h3 style="margin-top:0">📢 Aviso a todos los invitados</h3><input id="aviso" maxlength="160" placeholder="Ej: 🍽 Ya sale el plato principal, vuelvan a sus mesas"><div class="btns"><button class="btn" id="mandar">📢 Mandar aviso</button></div></div>
+    <div class="herr"><h3 style="margin-top:0">⏰ Cronograma ${F.atraso ? '(atrasado ' + F.atraso + ' min)' : ''}</h3><div class="crono">${(F.crono || []).map(x => `<div><span>${esc(x.h)}</span><b>${esc(x.t)}</b></div>`).join('') || '<p>La familia todavía no cargó el cronograma.</p>'}</div>
+      <div class="btns"><button class="btn alt sm" data-atr="15">Atrasar 15 min</button><button class="btn alt sm" data-atr="30">Atrasar 30 min</button><button class="btn alt sm" data-atr="-15">Adelantar 15 min</button></div></div>
+    <div class="pie">ShopEventos · Pro Video JSRHG</div>`;
+  $('#prueba').onclick = async () => { const it = (F.carta || [])[0]; if (!it) return alert('La familia todavía no cargó la carta.'); try { await api('pedir', {mesa: 'Prueba', items: [{n: it.n, c: 1}]}); tab = 'nuevo'; cargar(); } catch (e) { $('#hmsg').innerHTML = `<span class="err">${esc(e.message)}</span>`; } };
+  $('#listo').onclick = async () => { try { await api('listo', {}); F.listo = new Date().toISOString(); $('#hmsg').innerHTML = '<span class="okt">✅ Listo, la familia ya lo ve en su panel.</span>'; } catch (e) { $('#hmsg').innerHTML = `<span class="err">${esc(e.message)}</span>`; } };
+  $('#mandar').onclick = async () => { const t = $('#aviso').value.trim(); if (!t) return; try { await api('avisar', {txt: t}); $('#aviso').value = ''; alert('✅ Aviso enviado a todos los invitados'); } catch (e) { alert(e.message); } };
+  $$('[data-atr]').forEach(b => b.onclick = async () => { try { const j = await api('atrasar', {min: +b.dataset.atr}); F.atraso = j.atraso; herramientas(); } catch (e) { alert(e.message); } });
+}
+// que la pantalla no se apague mientras está abierta
+async function despierta() { try { if ('wakeLock' in navigator) await navigator.wakeLock.request('screen'); } catch (e) {} }
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { despierta(); cargar(); } });
+if (!CODE || !PK) $('#main').innerHTML = '<div class="vacio">Falta el link del personal. Pedíselo a la familia.</div>';
+else { cargar(); timer = setInterval(() => { if (tab !== 'herr') cargar(); }, 5000); despierta(); }
+</script>
+</body>
+</html>

@@ -66,10 +66,23 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .err{color:#b91c1c;font-weight:600;margin-top:8px}
 .carga{text-align:center;padding:90px 20px;color:#6b5b45}
 .linkmode .hero{padding-top:18px}
+.vivo{text-align:left}.vivo h3{text-align:center}
+.mesaG{text-align:center;margin:4px 0 10px}.mesaG .mesa{font-size:30px;padding:10px 26px}
+.item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:18px}
+.item:last-child{border-bottom:0}.qty{display:flex;align-items:center;gap:8px}
+.qty button{width:42px;height:42px;border-radius:50%;border:2px solid var(--line);background:var(--bg);color:var(--ink);font:800 22px var(--sans);cursor:pointer}
+.qty b{min-width:22px;text-align:center;font-size:20px}
+.ped{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:8px;font-size:16px}
+.ped .est{font-weight:800;font-size:17px}
+.prox{background:var(--bg);border-radius:14px;padding:10px 12px;margin:8px 0;font-size:16px}
+.toast{position:fixed;left:12px;right:12px;top:12px;z-index:20;background:var(--ac);color:#fff;border-radius:18px;padding:16px 18px;font:700 20px/1.35 var(--sans);box-shadow:0 12px 30px rgba(0,0,0,.3);display:none}
+.toast.on{display:block;animation:baja .35s ease}.toast small{display:block;font:500 14px var(--sans);opacity:.9;margin-top:6px}
+@keyframes baja{from{transform:translateY(-120%)}to{transform:none}}
 </style>
 </head>
 <body>
 <div class="wrap" id="app"><div class="carga">Abriendo tu invitación… 💌</div></div>
+<div class="toast" id="toast"></div>
 <div class="modal" id="modal"><div class="in" id="modalIn"></div></div>
 <script>
 const $ = s => document.querySelector(s);
@@ -77,8 +90,10 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp
 const P = new URLSearchParams(location.search);
 const CODE = (location.pathname.split('/')[2] || P.get('f') || '').toUpperCase();
 const PREV = P.get('prev') === '1';
+let MESA = P.get('mesa') || ''; try { if (MESA) localStorage.setItem('fiestaMesa:' + (location.pathname.split('/')[2] || ''), MESA); else MESA = localStorage.getItem('fiestaMesa:' + (location.pathname.split('/')[2] || '')) || ''; } catch (e) {}
+const ENTRADA = P.get('e') === '1';
 const LS = 'fiesta:' + CODE;
-let F = null, INV = null, TOK = '', deferred = null, timer = null;
+let F = null, INV = null, TOK = '', deferred = null, timer = null, VIVO = null, CANT = {}, vivoTimer = null;
 try { TOK = P.get('i') || localStorage.getItem(LS) || ''; if (P.get('i')) localStorage.setItem(LS, P.get('i')); } catch (e) { TOK = P.get('i') || ''; }
 
 const DECO = {
@@ -118,11 +133,13 @@ function render() {
     if (f.vestimenta) h += `<div class="card"><h3>Vestimenta</h3><p class="big">${esc(f.vestimenta)}</p></div>`;
     if (f.regalo) h += `<div class="card"><h3>Regalo</h3><p>${esc(f.regalo)}</p><button class="btn alt copiar" data-copiar="${esc(f.regalo)}">📋 Copiar</button></div>`;
   } else if (f.salon || f.direccion) h += `<div style="text-align:center"><a class="btn alt" href="${mapa(f)}" target="_blank" rel="noopener">📍 Cómo llegar</a> ${f.fecha ? `<a class="btn alt" href="${agenda(f)}" target="_blank" rel="noopener">🗓 Agendar</a>` : ''}</div>`;
+  if (F.vivo && !PREV) h += `<div class="card vivo" id="vivo"></div>`;
   h += `<div class="card rsvp" id="rsvp"></div>`;
   h += `<div class="card" id="guardar"></div>`;
   h += `<div class="pie">Invitación y fiesta organizadas con <b>ShopFiesta</b><br>Pro Video JSRHG · <a href="https://wa.me/5492235814437?text=${encodeURIComponent('Hola, vi la invitación de ShopFiesta y quiero una para mi fiesta')}" target="_blank" rel="noopener">¿Querés una para tu fiesta?</a></div>`;
   $('#app').innerHTML = h;
-  rsvp(); guardar(); cuenta();
+  if (F.vivo && F.hoy && !PREV) { const v = $('#vivo'), hero = $('.hero'); if (v && hero) hero.after(v); }
+  rsvp(); guardar(); cuenta(); pVivo();
 }
 function cuenta() {
   clearInterval(timer); const d = cuando(F); if (!d || !$('#cuenta')) return;
@@ -135,7 +152,8 @@ function rsvp() {
   const el = $('#rsvp'); if (!el) return;
   if (PREV) { el.innerHTML = `<h3>Confirmación</h3><p class="hola">¡Hola Roberto! 💌</p><p>¿Venís a ${esc(nomFiesta(F).charAt(0).toLowerCase() + nomFiesta(F).slice(1))}?</p><button class="btn big2">✅ ¡Sí, voy!</button><br><button class="btn no">No puedo ir</button>`; return; }
   if (!INV) {
-    el.innerHTML = `<h3>Confirmá tu asistencia</h3><p>Escribí tu nombre y apellido para encontrarte en la lista.</p><input id="busca" placeholder="Ej: Roberto Hernández" autocomplete="name"><div class="res" id="res"></div>`;
+    el.innerHTML = F.vivo && F.hoy ? `<h3>¡Bienvenido a la fiesta! 🎉</h3><p class="hola">¿Cómo te llamás?</p><p>Escribí tu nombre y apellido para encontrarte en la lista.</p>` : `<h3>Confirmá tu asistencia</h3><p>Escribí tu nombre y apellido para encontrarte en la lista.</p><input id="busca" placeholder="Ej: Roberto Hernández" autocomplete="name"><div class="res" id="res"></div>`;
+    if (F.vivo && F.hoy) setTimeout(() => { const b = $('#busca'); if (b) b.scrollIntoView({block: 'center'}); }, 300);
     let tm = null; $('#busca').addEventListener('input', e => { clearTimeout(tm); tm = setTimeout(() => buscar(e.target.value), 350); });
     return;
   }
@@ -175,6 +193,70 @@ async function responder(va) {
     if (va) setTimeout(() => $('#guardar').scrollIntoView({behavior: 'smooth', block: 'center'}), 400);
   } catch (e) { if (msg) msg.innerHTML = `<p class="err">${esc(e.message)}</p>`; if (b) b.disabled = false; }
 }
+// ===== Fiesta en vivo =====
+const minDe = h => { const [a, b] = String(h).split(':').map(Number); return a * 60 + b; };
+function momentos() { // cada momento del cronograma con su hora real (los de después de medianoche son del día siguiente)
+  if (!F.fecha || !F.crono) return [];
+  const base = Date.parse(F.fecha + 'T00:00:00-03:00'), h0 = minDe(F.hora || '21:00') - 120, at = (F.atraso || 0) * 60e3;
+  return F.crono.map(x => { let m = minDe(x.h); if (m < h0) m += 1440; const ts = base + m * 60e3 + at; return {h: x.h, nombre: x.t, a: x.a, ts, aviso: ts - (x.m || 0) * 60e3}; }).sort((a, b) => a.ts - b.ts);
+}
+const hhmm = t => new Date(t).toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires'});
+const EST = p => p.estado === 'entregado' ? '✅ Entregado' : p.estado === 'cancelado' ? '❌ Cancelado' : p.estado === 'camino' ? `🚶 Ya va ${p.moza ? esc(p.moza) : 'la moza'} a tu mesa` : p.moza ? `👩 ${esc(p.moza)} te lo va a llevar` : '📝 Recibido, ya te lo preparan';
+function pVivo() {
+  const el = $('#vivo'); if (!el) return;
+  if (!INV) { el.style.display = 'none'; return; } el.style.display = '';
+  const nom = INV.nombre.split(' ')[0], mesa = INV.mesa || MESA;
+  if (!F.hoy) {
+    el.innerHTML = `<h3>El día de la fiesta</h3><p>Desde acá vas a poder <b>pedir a tu mesa</b> sin buscar a la moza, y te vamos a avisar de la comida, el vals y la torta.</p>${(F.crono || []).length ? '<p><b>Lo que viene esa noche:</b></p>' + F.crono.map(x => `<div class="item" style="font-size:16px"><span>${esc(x.h)} · ${esc(x.t)}</span></div>`).join('') : ''}`;
+    return;
+  }
+  const carta = (F.carta || []).filter(x => !(x.alc && INV.menor)), M = momentos(), ahora = Date.now();
+  const prox = M.find(x => x.ts > ahora - 5 * 60e3);
+  const peds = (VIVO && VIVO.pedidos) || [];
+  el.innerHTML = `<h3>Tu fiesta</h3><p class="hola" style="text-align:center">¡Hola ${esc(nom)}! 🎉</p>
+    ${mesa ? `<div class="mesaG"><div class="mesa">Mesa ${esc(mesa)}</div></div>` : ''}
+    ${prox ? `<div class="prox">⏰ <b>${hhmm(prox.ts)}</b> · ${prox.ts > ahora ? 'Se viene: ' : 'Ahora: '}<b>${esc(prox.nombre)}</b></div>` : ''}
+    ${carta.length ? `<p style="font-weight:700;margin:12px 0 4px">¿Qué te traemos? 🛎</p>${carta.map((x, i) => `<div class="item"><span>${esc(x.n)}</span><span class="qty"><button data-q="${i}" data-d="-1" aria-label="menos">−</button><b id="q${i}">${CANT[x.n] || 0}</b><button data-q="${i}" data-d="1" aria-label="más">+</button></span></div>`).join('')}
+      <input id="pnota" maxlength="140" placeholder="¿Algo más? (opcional)" style="width:100%;margin-top:10px;font:16px var(--sans);padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)">
+      <button class="btn big2" id="pedir" style="margin-top:10px">🛎 Pedir a mi mesa</button><div id="pmsg"></div>` : ''}
+    ${peds.length ? `<p style="font-weight:700;margin:14px 0 2px">Tus pedidos</p>${peds.map(p => `<div class="ped"><div class="est">${EST(p)}</div><div>${p.items.map(x => (x.c > 1 ? x.c + ' × ' : '') + esc(x.n)).join(', ')} · <span style="color:var(--soft)">${hhmm(Date.parse(p.t))}</span></div></div>`).join('')}` : ''}
+    ${'Notification' in window && Notification.permission === 'default' ? '<button class="btn alt" id="permiso" style="margin-top:12px">🔔 Activar avisos de la fiesta</button>' : ''}`;
+  el.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { const x = carta[+b.dataset.q]; CANT[x.n] = Math.max(0, Math.min(10, (CANT[x.n] || 0) + +b.dataset.d)); $('#q' + b.dataset.q).textContent = CANT[x.n]; });
+  const pb = $('#pedir'); if (pb) pb.onclick = pedir;
+  const pm = $('#permiso'); if (pm) pm.onclick = async () => { try { await Notification.requestPermission(); } catch (e) {} pVivo(); };
+}
+async function pedir() {
+  const items = Object.entries(CANT).filter(([n, c]) => c > 0).map(([n, c]) => ({n, c}));
+  const msg = $('#pmsg'); if (!items.length) { msg.innerHTML = '<p class="err">Elegí algo con el botón +</p>'; return; }
+  const b = $('#pedir'); b.disabled = true;
+  try { const r = await fetch('/api/fiesta?accion=pedir', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, items, nota: ($('#pnota') || {}).value || '', mesa: MESA})}); const j = await r.json();
+    if (!r.ok) throw new Error(j.error || 'No se pudo pedir'); CANT = {}; if (navigator.vibrate) navigator.vibrate(60); await vivoTick(); toast('🛎 ¡Pedido enviado!', 'Te avisamos cuando va en camino.');
+  } catch (e) { msg.innerHTML = `<p class="err">${esc(e.message)}</p>`; b.disabled = false; }
+}
+let vistos = {}; try { vistos = JSON.parse(localStorage.getItem('fiestaVistos:' + CODE) || '{}'); } catch (e) {}
+const marcarVisto = k => { vistos[k] = 1; try { localStorage.setItem('fiestaVistos:' + CODE, JSON.stringify(vistos)); } catch (e) {} };
+let tq = null;
+function toast(t, sub, fuerte) {
+  const el = $('#toast'); el.innerHTML = esc(t) + (sub ? `<small>${esc(sub)}</small>` : ''); el.classList.add('on'); clearTimeout(tq); tq = setTimeout(() => el.classList.remove('on'), fuerte ? 12000 : 6000);
+  el.onclick = () => el.classList.remove('on');
+  if (navigator.vibrate) navigator.vibrate(fuerte ? [300, 150, 300, 150, 300] : [120, 80, 120]);
+  try { const c = new (window.AudioContext || window.webkitAudioContext)(), o = c.createOscillator(), g = c.createGain(); o.frequency.value = 880; g.gain.value = .08; o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + .25); } catch (e) {}
+  if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
+    const opt = {body: sub || '', icon: '/icons/fiesta-192.png', badge: '/icons/fiesta-192.png', vibrate: [200, 100, 200], tag: 'fiesta-' + CODE};
+    if (navigator.serviceWorker && navigator.serviceWorker.ready) navigator.serviceWorker.ready.then(r => r.showNotification(t, opt)).catch(() => { try { new Notification(t, opt); } catch (e) {} }); else try { new Notification(t, opt); } catch (e) {}
+  }
+}
+let estadoAnt = {};
+async function vivoTick() {
+  if (!F || !F.vivo || !F.hoy || !INV) return;
+  try { const r = await fetch('/api/fiesta?accion=vivo&f=' + CODE + '&i=' + encodeURIComponent(TOK)); const j = await r.json(); if (!r.ok || !j.vivo) return; VIVO = j; F.atraso = j.atraso || 0;
+    (j.avisos || []).forEach(a => { if (!vistos['a' + a.id] && Date.now() - Date.parse(a.t) < 45 * 60e3) { marcarVisto('a' + a.id); toast('📢 ' + a.txt, nomFiesta(F), true); } else marcarVisto('a' + a.id); });
+    (j.pedidos || []).forEach(p => { const k = p.estado + '|' + p.moza; if (estadoAnt[p.id] && estadoAnt[p.id] !== k && p.estado === 'camino') toast(`🚶 Ya va ${p.moza || 'la moza'} a tu mesa`, p.items.map(x => x.n).join(', ')); estadoAnt[p.id] = k; });
+  } catch (e) {}
+  momentos().forEach(m => { const k = 'c' + m.h + m.nombre; if (!vistos[k] && Date.now() >= m.aviso && Date.now() - m.aviso < 30 * 60e3) { marcarVisto(k); if (m.a) toast(m.a, nomFiesta(F), true); } else if (!vistos[k] && Date.now() - m.aviso >= 30 * 60e3) marcarVisto(k); });
+  const ae = document.activeElement; if (!(ae && (ae.id === 'pnota'))) pVivo();
+}
+function arrancarVivo() { clearInterval(vivoTimer); if (F && F.vivo && F.hoy && INV && !PREV) { vivoTick(); vivoTimer = setInterval(vivoTick, 10000); } }
 const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const instalada = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone;
 function guardar() {
@@ -200,7 +282,7 @@ async function cargar() {
   try {
     const r = await fetch('/api/fiesta?accion=ver&f=' + encodeURIComponent(CODE) + (TOK ? '&i=' + encodeURIComponent(TOK) : ''));
     const j = await r.json(); if (!r.ok) throw new Error(j.error || 'No encontramos esta fiesta.');
-    F = j.fiesta; INV = j.inv || null; render();
+    F = j.fiesta; INV = j.inv || null; render(); arrancarVivo();
   } catch (e) { $('#app').innerHTML = `<div class="carga">😕 ${esc(e.message)}</div>`; }
 }
 if (PREV) {

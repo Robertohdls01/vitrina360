@@ -76,12 +76,12 @@ code{background:#f3f1ea;padding:2px 6px;border-radius:6px;word-break:break-all}
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const P = new URLSearchParams(location.search);
-let PAQS = null, EXTRA = 25000, YA_AVISO_PAGO = false;
+let PAQS = null, EXTRA = 25000, YA_AVISO_PAGO = false, VIVO = false, PEDN = 0;
 let CODE = (P.get('f') || '').toUpperCase(), K = P.get('k') || '', D = null, RESP = [], tab = 'inv', sucio = false, DEMO = false, tituloTocado = false;
 const TITULOS = {'15': 'Mis 15', casamiento: 'Nos casamos', cumple: 'Mi cumple', bautismo: 'Mi bautismo', egresados: 'Fiesta de egresados', otro: 'Te invito'};
 const PLANT = [['elegante', 'Elegante', '#fbf7f0'], ['flores', 'Flores', '#fbf1f3'], ['brillos', 'Brillos', '#1d1b2f'], ['moderna', 'Moderna', '#f5f5f2'], ['mariposas', 'Mariposas', '#f3effa'], ['luna', 'Luna y estrellas', '#1c2440']];
 const COLORES = ['#c9a227', '#d98ca0', '#9b87c9', '#6fa8c9', '#7fa88a', '#9aa3ad', '#a85a6a', '#d4a373'];
-const nuevo = () => ({tipo: '15', modo: 'especial', plantilla: 'elegante', color: '#c9a227', titulo: 'Mis 15', nombre: '', frase: 'Hay momentos que no se olvidan. Quiero compartir este con vos.', fecha: '', hora: '21:30', salon: '', direccion: '', vestimenta: '', regalo: '', mostrarMesa: false, pedirMenu: true, organiza: '', catering: '', cateringTel: '', mozas: [], foto: '', invitados: []});
+const nuevo = () => ({tipo: '15', modo: 'especial', plantilla: 'elegante', color: '#c9a227', titulo: 'Mis 15', nombre: '', frase: 'Hay momentos que no se olvidan. Quiero compartir este con vos.', fecha: '', hora: '21:30', salon: '', direccion: '', vestimenta: '', regalo: '', mostrarMesa: false, pedirMenu: true, organiza: '', catering: '', cateringTel: '', mozas: [], foto: '', invitados: [], carta: [], crono: [], modoP: 'encargada'});
 const mis = () => { try { return JSON.parse(localStorage.getItem('misFiestas') || '[]'); } catch (e) { return []; } };
 const guardarMis = () => { if (!CODE || !K || DEMO) return; const l = mis().filter(x => x.code !== CODE); l.unshift({code: CODE, k: K, nombre: D.nombre || ''}); try { localStorage.setItem('misFiestas', JSON.stringify(l.slice(0, 10))); } catch (e) {} };
 const enviados = () => { try { return JSON.parse(localStorage.getItem('fiestaEnv:' + CODE) || '{}'); } catch (e) { return {}; } };
@@ -113,19 +113,19 @@ async function cargar() {
   try {
     const r = await fetch('/api/fiesta?accion=panel&f=' + encodeURIComponent(CODE) + '&k=' + encodeURIComponent(K)); const j = await r.json();
     if (!r.ok) throw new Error(j.error || 'No se pudo abrir');
-    D = Object.assign(nuevo(), j.fiesta); RESP = j.resp || []; DEMO = !!j.demo; PAQS = j.paquetes || null; EXTRA = j.extra150 || EXTRA; tituloTocado = true; guardarMis(); pintar(); vueltaPago();
+    D = Object.assign(nuevo(), j.fiesta); RESP = j.resp || []; DEMO = !!j.demo; PAQS = j.paquetes || null; EXTRA = j.extra150 || EXTRA; VIVO = !!j.vivo; PEDN = j.pedidos || 0; tituloTocado = true; guardarMis(); pintar(); vueltaPago();
   } catch (e) { $('#raiz').innerHTML = `<div class="hero"><h1>😕 ${esc(e.message)}</h1><p><a href="/fiesta-panel">Volver</a></p></div>`; }
 }
 const pesos = n => '$' + Number(n || 0).toLocaleString('es-AR');
 const sesionDueno = () => { try { return (JSON.parse(localStorage.getItem('v360-sesion') || 'null') || {}).access_token || ''; } catch (e) { return ''; } };
 let paqElegido = 'invitacion';
-function activarHTML() {
-  if (DEMO || !CODE || D.pagado) return '';
+function activarHTML(subir) {
+  if (DEMO || !CODE || (D.pagado && !subir)) return '';
   const L = PAQS ? Object.entries(PAQS) : [['invitacion', {nombre: 'Invitación', precio: 35000, disponible: true, incluye: ''}]];
   const n = (D.invitados || []).length;
-  return `<div class="sec" style="background:#fffaf0;border:2px solid #ecd9a8;border-radius:16px;padding:16px"><h3>🔓 Activá tu invitación para mandarla</h3>
+  return `<div class="sec" style="background:#fffaf0;border:2px solid #ecd9a8;border-radius:16px;padding:16px"><h3>${subir ? '🎉 Pasate a la fiesta completa' : '🔓 Activá tu invitación para mandarla'}</h3>
     <p class="muted">Ya podés armarla y verla gratis. Para mandarla a tus invitados y recibir las confirmaciones, activala con un pago único.</p>
-    <div class="opts">${L.map(([k, p]) => { const extra = p.vivo && n > 150 ? EXTRA : 0; return `<button class="opt ${paqElegido === k && p.disponible ? 'on' : ''}" data-paq="${k}" ${p.disponible ? '' : 'disabled style="opacity:.6"'}><b>${esc(p.nombre)}</b><span style="font-size:20px;font-weight:800">${pesos(p.precio + extra)}</span><br><small>${esc(p.incluye || '')}${extra ? ' · incluye ' + pesos(extra) + ' por más de 150 invitados' : ''}${p.disponible ? '' : '<br><b>Próximamente</b>'}</small></button>`; }).join('')}</div>
+    <div class="opts">${L.map(([k, p]) => { const extra = p.vivo && n > 150 ? EXTRA : 0; return `<button class="opt ${paqElegido === k && p.disponible ? 'on' : ''}" data-paq="${k}" ${p.disponible || sesionDueno() ? '' : 'disabled style="opacity:.6"'}><b>${esc(p.nombre)}</b><span style="font-size:20px;font-weight:800">${pesos(p.precio + extra)}</span><br><small>${esc(p.incluye || '')}${extra ? ' · incluye ' + pesos(extra) + ' por más de 150 invitados' : ''}${p.disponible ? '' : '<br><b>Próximamente</b>'}</small></button>`; }).join('')}</div>
     <button class="btn" id="pagar" style="margin-top:12px;font-size:17px">💳 Pagar con Mercado Pago</button>
     ${sesionDueno() ? '<button class="btn alt sm" id="regalar" style="margin-left:8px">🎁 Activar gratis (dueño)</button>' : ''}
     <p class="muted" id="pagoMsg" style="margin-bottom:0">Pagás con tarjeta, débito, dinero en cuenta o efectivo. Pago único, sin suscripción.</p></div>`;
@@ -154,14 +154,70 @@ function vueltaPago() {
   $('#cerrar').onclick = () => { $('#modal').classList.remove('on'); if (ok) { tab = 'gente'; pintar(); } };
   const rv = $('#revisar'); if (rv) rv.onclick = () => { $('#modal').classList.remove('on'); YA_AVISO_PAGO = false; P.set('pago', 'pendiente'); cargar(); };
 }
+const CARTA_BASE = () => ['Coca-Cola', 'Coca-Cola Zero', 'Sprite', 'Agua sin gas', 'Agua con gas', 'Jugo de naranja', 'Trago sin alcohol', 'Fernet con coca*', 'Cerveza*', 'Vino tinto*', 'Vino blanco*', 'Champagne*', 'Hielo', 'Pan', 'Servilletas', 'Que limpien la mesa'].map(n => ({n: n.replace('*', ''), alc: n.endsWith('*')}));
+const CRONO_BASE = h0 => { const [H, M] = String(h0 || '21:30').split(':').map(Number), at = m => { const t = (H * 60 + M + m) % 1440; return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
+  return [[0, 'Recepción', 'Bienvenidos 🎉 Buscá tu mesa y pedí lo que quieras desde acá.', 0], [45, D.tipo === '15' ? 'Entrada de la quinceañera' : 'Entrada de los protagonistas', '✨ En 15 minutos es la entrada. ¡Vení al salón!', 15], [60, 'Entrada (comida)', '🍽 Ya sale la entrada. Volvé a tu mesa.', 5], [120, 'Plato principal', '🍽 En 10 minutos sale el plato principal. Volvé a tu mesa.', 10], [180, 'Vals', '💃 En 15 minutos empieza el vals. ¡No te lo pierdas!', 15], [240, 'Ceremonia de velas', '🕯 En 15 minutos es la ceremonia de velas.', 15], [270, 'Torta y mesa dulce', '🎂 ¡Abrió la mesa dulce! Vení a buscar tu porción.', 0], [420, 'Fin de fiesta y souvenirs', '🎁 Antes de irte, retirá tu souvenir. ¡Gracias por venir!', 0]].map(([d, t, a, m]) => ({h: at(d), t, a, m})); };
+const linkPersonal = () => location.origin + '/fiesta-personal?f=' + CODE + '&p=' + (D.pk || '');
+async function accionVivo(acc, body) { const r = await fetch('/api/fiesta?accion=' + acc, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(Object.assign({f: CODE, k: K}, body))}); const j = await r.json(); if (!r.ok) throw new Error(j.error || 'No se pudo'); return j; }
+function mesasDe() { const s = new Set((D.invitados || []).map(g => String(g.mesa || '').trim()).filter(Boolean)); return [...s].sort((a, b) => (parseInt(a) || 999) - (parseInt(b) || 999) || a.localeCompare(b)); }
+function imprimir(nMesas) {
+  const mesas = mesasDe(); const L = mesas.length ? mesas : Array.from({length: nMesas || 10}, (_, i) => String(i + 1));
+  const base = location.origin + '/fiesta/' + CODE, nom = (D.tipo === '15' ? 'Los 15 de ' : 'La fiesta de ') + (D.nombre || '');
+  const w = window.open('', '_blank'); if (!w) return alert('Permití las ventanas emergentes para imprimir.');
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>QR de ${esc(nom)}</title><style>@page{size:A4;margin:10mm}body{font-family:Georgia,serif;margin:0;color:#2e2414}.ent{height:265mm;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;page-break-after:always;border:3px solid ${D.color};border-radius:18px}.ent h1{font-size:44pt;margin:0}.ent h2{font-size:20pt;font-weight:400;margin:6mm 0}.ent .q svg{width:110mm;height:110mm}.ent p{font:15pt Arial,sans-serif;margin:3mm 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8mm}.mesa{border:2px solid ${D.color};border-radius:12px;padding:6mm;text-align:center;page-break-inside:avoid;height:118mm;display:flex;flex-direction:column;align-items:center;justify-content:center}.mesa b{font-size:30pt}.mesa .q svg{width:58mm;height:58mm}.mesa small{font:11pt Arial,sans-serif}.pie{font:9pt Arial,sans-serif;color:#777;margin-top:2mm}</style></head><body><p style="font:12pt Arial;text-align:center">Cargando los QR…</p></body></html>`);
+  const s = w.document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
+  s.onload = () => { const qr = t => { const q = w.qrcode(0, 'M'); q.addData(t); q.make(); return q.createSvgTag({cellSize: 4, margin: 1, scalable: true}); };
+    w.document.body.innerHTML = `<div class="ent"><h2>Bienvenidos a</h2><h1>${esc(nom)}</h1><div class="q">${qr(base + '?e=1')}</div><p><b>📱 Escaneá el QR y decí tu nombre</b></p><p>Te mostramos tu mesa, podés pedir desde tu lugar<br>y te avisamos de la comida, el vals y la torta.</p><div class="pie">ShopEventos · Pro Video JSRHG</div></div><div class="grid">${L.map(m => `<div class="mesa"><small>${esc(nom)}</small><b>Mesa ${esc(m)}</b><div class="q">${qr(base + '?mesa=' + encodeURIComponent(m))}</div><small>📱 Escaneá y pedí desde tu mesa</small><div class="pie">ShopEventos · Pro Video JSRHG</div></div>`).join('')}</div>`;
+    setTimeout(() => w.print(), 600); };
+  w.document.head.appendChild(s);
+}
+function pFiesta() {
+  if (!CODE) { $('#main').innerHTML = '<div class="box"><p>Primero guardá tu fiesta (botón Guardar, abajo).</p></div>'; return; }
+  if (!VIVO) { $('#main').innerHTML = `<div class="box">${activarHTML(true) || ''}<div class="sec"><h3>🎉 La fiesta en vivo</h3><p>Con la <b>fiesta completa</b>, tus invitados piden desde su mesa (los menores no ven alcohol), la encargada o las mozas reciben los pedidos en el celular y a todos les llegan los avisos de la comida, el vals y la torta.</p><p class="muted">Se activa con el paquete Fiesta completa o Fiesta completa + recuerdos.</p></div></div>`; enganchePago(); return; }
+  const C = D.carta || [], R = D.crono || [], mesas = mesasDe();
+  $('#main').innerHTML = `<div class="box">
+    <div class="sec"><h3>🍹 Lo que se puede pedir desde la mesa</h3><p class="muted">Bebidas y extras (la comida sale por turnos para todos). Marcá lo que tiene alcohol: a los menores no les aparece.</p>
+      ${C.length ? `<div class="tabla"><table><thead><tr><th>Producto</th><th>Alcohol</th><th></th></tr></thead><tbody>${C.map((x, i) => `<tr><td><input data-ci="${i}" data-cc="n" value="${esc(x.n)}"></td><td><input type="checkbox" data-ci="${i}" data-cc="alc" ${x.alc ? 'checked' : ''} style="width:20px;height:20px"></td><td><button class="btn alt sm" data-cdel="${i}">🗑</button></td></tr>`).join('')}</tbody></table></div>` : ''}
+      <button class="btn alt sm" id="cAdd">➕ Agregar</button> ${C.length ? '' : '<button class="btn sm" id="cBase">✨ Cargar una carta sugerida</button>'}</div>
+    <div class="sec"><h3>⏰ El cronograma de la noche</h3><p class="muted">A cada invitado le llega el aviso unos minutos antes de cada momento.</p>
+      ${R.length ? `<div class="tabla"><table><thead><tr><th>Hora</th><th>Momento</th><th>Aviso para los invitados</th><th>Avisar</th><th></th></tr></thead><tbody>${R.map((x, i) => `<tr><td><input type="time" data-ri="${i}" data-rc="h" value="${esc(x.h)}" style="width:110px"></td><td><input data-ri="${i}" data-rc="t" value="${esc(x.t)}"></td><td><input data-ri="${i}" data-rc="a" value="${esc(x.a)}"></td><td><select data-ri="${i}" data-rc="m">${[0, 5, 10, 15, 30, 60].map(m => `<option value="${m}" ${+x.m === m ? 'selected' : ''}>${m ? m + ' min antes' : 'en el momento'}</option>`).join('')}</select></td><td><button class="btn alt sm" data-rdel="${i}">🗑</button></td></tr>`).join('')}</tbody></table></div>` : ''}
+      <button class="btn alt sm" id="rAdd">➕ Agregar momento</button> ${R.length ? '' : '<button class="btn sm" id="rBase">✨ Cargar el cronograma típico</button>'}</div>
+    <div class="sec"><h3>🧑‍🍳 El personal</h3>
+      <label class="chk"><input type="radio" name="modoP" value="encargada" ${D.modoP !== 'mozas' ? 'checked' : ''}> <b>Modo encargada:</b> todos los pedidos le llegan a la encargada, que se los reparte a las mozas.</label>
+      <label class="chk"><input type="radio" name="modoP" value="mozas" ${D.modoP === 'mozas' ? 'checked' : ''}> <b>Modo mozas:</b> cada moza ve los pedidos en su celular y toma los que lleva.</label>
+      <p class="muted">Mozas cargadas: ${(D.mozas || []).length ? esc(D.mozas.join(', ')) : 'ninguna (cargalas en la pestaña 1)'}.</p>
+      <p><b>Link del personal</b> (no lo compartas con los invitados):<br><code>${esc(linkPersonal())}</code></p>
+      <a class="btn wa" href="${waLink(D.cateringTel, '¡Hola! Te paso el link para la fiesta de ' + D.nombre + ' 🎉\nAbrilo el día de la fiesta: ahí te llegan los pedidos de las mesas.\n👉 ' + linkPersonal() + '\n\nAntes de abrir, tocá "Pedido de prueba" para ver que todo funciona.')}" target="_blank" rel="noopener">📲 Mandárselo a la encargada</a> <button class="btn alt" data-copy="${esc(linkPersonal())}">📋 Copiar link</button> <a class="btn alt" href="${esc(linkPersonal())}" target="_blank" rel="noopener">👀 Ver la pantalla del personal</a>
+      ${D.listo ? `<p class="ok">✅ El personal probó el sistema: ${esc(new Date(D.listo).toLocaleString('es-AR'))}</p>` : ''}</div>
+    <div class="sec"><h3>🖨 QR de la entrada y cartelitos de mesa</h3><p class="muted">Una hoja grande para la entrada y un cartelito por mesa${mesas.length ? ' (' + mesas.length + ' mesas, según tu lista de invitados)' : ''}. Imprimilos, plastificalos y listo.</p>
+      ${mesas.length ? '' : '<label>¿Cuántas mesas?</label><input type="number" id="nMesas" value="10" min="1" max="80" style="width:110px">'}
+      <button class="btn" id="imprimir" style="margin-top:8px">🖨 Imprimir QR y cartelitos</button></div>
+    <div class="sec"><h3>📢 Durante la fiesta</h3>
+      <div class="row"><div><label>Mandar un aviso a todos los invitados</label><input id="aviso" maxlength="160" placeholder="Ej: 🎂 En 5 minutos cortamos la torta"></div><div style="display:flex;align-items:flex-end"><button class="btn" id="mandarAviso">📢 Mandar</button></div></div>
+      <p style="margin-top:12px">¿Se atrasó algo? Corré todo el cronograma: <button class="btn alt sm" data-atr="15">+15 min</button> <button class="btn alt sm" data-atr="30">+30 min</button> <button class="btn alt sm" data-atr="-15">−15 min</button> <span class="muted" id="atrasoTx">${D.atraso ? 'Atraso actual: ' + D.atraso + ' min' : ''}</span></p>
+      <p class="muted" id="vivoMsg">${PEDN ? PEDN + ' pedidos en las últimas horas.' : ''}</p></div>
+  </div>`;
+  const re = () => { cambio(); pFiesta(); };
+  $$('[data-cc]').forEach(el => el.addEventListener('change', () => { D.carta[+el.dataset.ci][el.dataset.cc] = el.type === 'checkbox' ? el.checked : el.value; cambio(); }));
+  $$('[data-cdel]').forEach(b => b.onclick = () => { D.carta.splice(+b.dataset.cdel, 1); re(); });
+  $('#cAdd').onclick = () => { D.carta = (D.carta || []).concat([{n: '', alc: false}]); re(); }; const cb = $('#cBase'); if (cb) cb.onclick = () => { D.carta = CARTA_BASE(); re(); };
+  $$('[data-rc]').forEach(el => el.addEventListener('change', () => { const x = D.crono[+el.dataset.ri]; x[el.dataset.rc] = el.dataset.rc === 'm' ? +el.value : el.value; cambio(); }));
+  $$('[data-rdel]').forEach(b => b.onclick = () => { D.crono.splice(+b.dataset.rdel, 1); re(); });
+  $('#rAdd').onclick = () => { D.crono = (D.crono || []).concat([{h: D.hora || '22:00', t: '', a: '', m: 10}]); re(); }; const rb = $('#rBase'); if (rb) rb.onclick = () => { D.crono = CRONO_BASE(D.hora); re(); };
+  $$('[name=modoP]').forEach(r => r.onchange = () => { D.modoP = r.value; cambio(); });
+  $('#imprimir').onclick = () => imprimir(+(($('#nMesas') || {}).value) || 10);
+  $('#mandarAviso').onclick = async () => { const t = $('#aviso').value.trim(); if (!t) return; try { await accionVivo('avisar', {txt: t}); $('#aviso').value = ''; $('#vivoMsg').innerHTML = '<span class="ok">✅ Aviso enviado a todos</span>'; } catch (e) { $('#vivoMsg').textContent = '⚠️ ' + e.message; } };
+  $$('[data-atr]').forEach(b => b.onclick = async () => { try { const j = await accionVivo('atrasar', {min: +b.dataset.atr}); D.atraso = j.atraso; $('#atrasoTx').textContent = 'Atraso actual: ' + j.atraso + ' min'; } catch (e) { $('#vivoMsg').textContent = '⚠️ ' + e.message; } });
+  if (DEMO) $$('#main input,#main select,#cAdd,#cBase,#rAdd,#rBase,[data-cdel],[data-rdel],#mandarAviso,[data-atr]').forEach(x => x && (x.disabled = true));
+}
 function pintar() {
   $('#hdr').textContent = D.nombre ? (D.tipo === '15' ? 'Los 15 de ' : 'Fiesta de ') + D.nombre : 'Nueva fiesta';
   const pend = (D.invitados || []).length;
-  $('#raiz').innerHTML = `<div class="tabs"><button data-tab="inv">1. La invitación</button><button data-tab="gente">2. Invitados (${pend})</button><button data-tab="conf">3. Confirmaciones</button></div><main id="main"></main>
+  $('#raiz').innerHTML = `<div class="tabs"><button data-tab="inv">1. La invitación</button><button data-tab="gente">2. Invitados (${pend})</button><button data-tab="conf">3. Confirmaciones</button><button data-tab="fiesta">4. La fiesta 🎉</button></div><main id="main"></main>
     <div class="barra">${DEMO ? '<span class="estado">👀 Esto es una muestra. <a href="/fiesta-panel">Armá la tuya</a></span>' : `<span class="estado" id="estado">${!CODE ? 'Todavía no guardaste' : D.pagado ? '✅ Invitación activa' : '🔒 Sin activar'}</span><button class="btn alt" id="verPrev">👀 Ver cómo queda</button><button class="btn" id="guardar">💾 Guardar</button>`}</div>`;
   $$('.tabs button').forEach(b => { b.classList.toggle('on', b.dataset.tab === tab); b.onclick = () => { tab = b.dataset.tab; pintar(); }; });
   if (!DEMO) { $('#guardar').onclick = guardar; $('#verPrev').onclick = () => { if (tab !== 'inv') { tab = 'inv'; pintar(); } const c = $('.prevcol'); c.classList.toggle('on'); c.scrollIntoView({behavior: 'smooth'}); }; }
-  if (tab === 'inv') pInv(); else if (tab === 'gente') pGente(); else pConf();
+  if (tab === 'inv') pInv(); else if (tab === 'gente') pGente(); else if (tab === 'fiesta') pFiesta(); else pConf();
 }
 const cambio = () => { sucio = true; const e = $('#estado'); if (e) e.textContent = 'Hay cambios sin guardar'; prev(); };
 function prev() { const fr = $('#prev'); if (fr && fr.contentWindow) fr.contentWindow.postMessage({tipo: 'fiesta-prev', fiesta: Object.assign({}, D, {code: CODE || 'PREV'})}, location.origin); }

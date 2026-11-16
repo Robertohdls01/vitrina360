@@ -79,7 +79,8 @@ const demoData = () => ({
   titulo: 'Mis 15', nombre: 'Julieta', frase: 'Hay momentos que no se olvidan. Quiero compartir este con vos.',
   fecha: proxSabado(), hora: '21:30', salon: 'Salón de ejemplo', direccion: 'Mar del Plata',
   vestimenta: 'Elegante sport', regalo: 'Lluvia de sobres o alias: JULI.15.FIESTA', mostrarMesa: true, pedirMenu: true,
-  catering: 'Catering de ejemplo', mozas: ['Karina', 'Sofía', 'Lucía'],
+  catering: 'Catering de ejemplo', mozas: ['Karina', 'Sofía', 'Lucía'], modoP: 'encargada', pk: 'demo', paquete: 'recuerdos', pagado: true,
+  carta: CARTA_BASE(), crono: CRONO_BASE('21:30'),
   foto: '', invitados: [
     { id: 'g1', nombre: 'Roberto Hernández', mesa: '2', menor: false, cupo: 1, tok: 'demoroberto' },
     { id: 'g2', nombre: 'Marta Gómez', mesa: '2', menor: false, cupo: 0, tok: 'demomarta' },
@@ -87,6 +88,9 @@ const demoData = () => ({
     { id: 'g4', nombre: 'José Martínez', mesa: '3', menor: false, cupo: 2, tok: 'demojose' }
   ]
 });
+const CARTA_BASE = () => ['Coca-Cola', 'Coca-Cola Zero', 'Sprite', 'Agua sin gas', 'Agua con gas', 'Jugo de naranja', 'Trago sin alcohol', 'Fernet con coca*', 'Cerveza*', 'Vino tinto*', 'Vino blanco*', 'Champagne*', 'Hielo', 'Pan', 'Servilletas', 'Que limpien la mesa'].map(n => ({ n: n.replace('*', ''), alc: n.endsWith('*') }));
+const CRONO_BASE = h0 => { const [H, M] = String(h0 || '21:30').split(':').map(Number), at = mins => { const t = (H * 60 + M + mins) % 1440; return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
+  return [[0, 'Recepción', 'Bienvenidos 🎉 Buscá tu mesa y pedí lo que quieras desde acá.', 0], [45, 'Entrada de la quinceañera', '✨ En 15 minutos entra la quinceañera. ¡Vení al salón!', 15], [60, 'Entrada (comida)', '🍽 Ya sale la entrada. Volvé a tu mesa.', 5], [120, 'Plato principal', '🍽 En 10 minutos sale el plato principal. Volvé a tu mesa.', 10], [180, 'Vals', '💃 En 15 minutos empieza el vals. ¡No te lo pierdas!', 15], [240, 'Ceremonia de velas', '🕯 En 15 minutos es la ceremonia de velas.', 15], [270, 'Torta y mesa dulce', '🎂 ¡Abrió la mesa dulce! Vení a buscar tu porción.', 0], [420, 'Fin de fiesta y souvenirs', '🎁 Antes de irte, retirá tu souvenir. ¡Gracias por venir!', 0]].map(([d, t, a, m]) => ({ h: at(d), t, a, m })); };
 function proxSabado() { const d = new Date(Date.now() - 3 * 3600e3); d.setUTCDate(d.getUTCDate() + ((6 - d.getUTCDay() + 7) % 7 || 7) + 21); return d.toISOString().slice(0, 10); }
 
 // Limpia lo que manda el panel. Conserva los links (tokens) de los invitados que ya existían.
@@ -103,7 +107,11 @@ function limpiar(d, prev) {
     mostrarMesa: !!d.mostrarMesa, pedirMenu: d.pedirMenu !== false, organiza: corto(d.organiza, 60),
     // catering y mozas: se usan el día de la fiesta ("Ya va Karina a tu mesa")
     catering: corto(d.catering, 60), cateringTel: corto(d.cateringTel, 20).replace(/[^\d+]/g, ''),
-    mozas: (Array.isArray(d.mozas) ? d.mozas : []).map(x => corto(x, 30)).filter(Boolean).slice(0, 40)
+    mozas: (Array.isArray(d.mozas) ? d.mozas : []).map(x => corto(x, 30)).filter(Boolean).slice(0, 40),
+    // fiesta en vivo: lo que se puede pedir a la mesa, el cronograma de la noche y cómo trabaja el personal
+    carta: (Array.isArray(d.carta) ? d.carta : []).slice(0, 80).map(x => ({ n: corto(x && x.n, 40), alc: !!(x && x.alc) })).filter(x => x.n),
+    crono: (Array.isArray(d.crono) ? d.crono : []).slice(0, 30).map(x => ({ h: /^\d{2}:\d{2}$/.test(String(x && x.h)) ? x.h : '', t: corto(x && x.t, 60), a: corto(x && x.a, 140), m: [0, 5, 10, 15, 30, 60].includes(+(x && x.m)) ? +x.m : 10 })).filter(x => x.h && x.t),
+    modoP: d.modoP === 'mozas' ? 'mozas' : 'encargada'
   };
   if (typeof d.foto === 'string' && (d.foto === '' || /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(d.foto))) {
     if (d.foto.length > 900000) throw Object.assign(new Error('La foto es muy pesada. Probá con otra.'), { st: 400 });
@@ -124,7 +132,16 @@ function limpiar(d, prev) {
 // Lo que puede ver cualquiera con el link de la fiesta (sin la lista de invitados ni claves).
 function publica(e) {
   const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'mostrarMesa', 'pedirMenu', 'foto', 'organiza'].forEach(k => { o[k] = e[k]; });
-  o.total = (e.invitados || []).length; return o;
+  o.total = (e.invitados || []).length; o.vivo = vivoOk(e); o.hoy = enDia(e) || !!e.demo;
+  if (o.vivo) { o.carta = e.carta || []; o.crono = e.crono || []; o.atraso = e.atraso || 0; o.avisos = (e.avisos || []).slice(-15); }
+  return o;
+}
+const enDia = e => { if (!e || !e.fecha) return false; const t = Date.parse(e.fecha + 'T' + (e.hora || '21:00') + ':00-03:00'), n = Date.now(); return n > t - 8 * 3600e3 && n < t + 14 * 3600e3; };
+const vivoOk = e => !!(e && (e.demo || (e.pagado && ['completa', 'recuerdos'].includes(e.paquete))));
+const azarK = () => azar(10, 'abcdefghijkmnpqrstuvwxyz23456789');
+async function pedidosDe(code, extra) {
+  const desde = new Date(Date.now() - (code === DEMO ? 3 : 36) * 3600e3).toISOString();
+  try { return await rest('GET', 'fiesta_pedidos?code=eq.' + code + '&t=gte.' + encodeURIComponent(desde) + (extra || '') + '&order=t.desc&limit=400&select=id,gid,nombre,mesa,items,nota,estado,moza,prueba,t,tu'); } catch (e) { return []; }
 }
 async function respuestas(code) {
   try { return await rest('GET', 'fiesta_resp?code=eq.' + encodeURIComponent(code) + '&select=gid,va,cuantos,menu,nota,t'); } catch (e) { return []; }
@@ -180,7 +197,7 @@ module.exports = async (req, res) => {
       if (esDemo) return res.status(403).json({ error: 'La fiesta de muestra no se puede cambiar. Creá la tuya.' });
       const e = await leer(code); if (!e) return res.status(404).json({ error: 'No existe esa fiesta.' });
       if (hash(String(b.k || '')) !== e.clave) return res.status(403).json({ error: 'La clave del panel no es correcta.' });
-      const n = Object.assign(limpiar(b.datos, e), { code, clave: e.clave, creado: e.creado, cambiado: new Date().toISOString(), pagado: e.pagado, paquete: e.paquete, pagos: e.pagos, pagoRef: e.pagoRef });
+      const n = Object.assign(limpiar(b.datos, e), { code, clave: e.clave, creado: e.creado, cambiado: new Date().toISOString(), pagado: e.pagado, paquete: e.paquete, pagos: e.pagos, pagoRef: e.pagoRef, pk: e.pk, avisos: e.avisos, atraso: e.atraso, listo: e.listo });
       await guardarObj(code, n);
       return res.status(200).json({ ok: true, invitados: n.invitados });
     }
@@ -192,10 +209,13 @@ module.exports = async (req, res) => {
       }
       const e = await leer(code); if (!e) return res.status(404).json({ error: 'No existe esa fiesta.' });
       if (hash(String(q.k || '')) !== e.clave) return res.status(403).json({ error: 'La clave del panel no es correcta.' });
-      if (!e.pagado && e.pagoRef && await revisarPago(e)) await guardarObj(code, e);
+      let cambio = false;
+      if (!e.pagado && e.pagoRef && await revisarPago(e)) cambio = true;
+      if (!e.pk) { e.pk = azarK(); cambio = true; }
+      if (cambio) await guardarObj(code, e);
       const f = Object.assign({}, e); delete f.clave; delete f.pagoRef;
       res.setHeader('Cache-Control', 'no-store');
-      return res.status(200).json({ ok: true, fiesta: f, resp: await respuestas(code), paquetes: PAQ(), extra150: EXTRA150() });
+      return res.status(200).json({ ok: true, fiesta: f, vivo: vivoOk(e), resp: await respuestas(code), paquetes: PAQ(), extra150: EXTRA150(), pedidos: vivoOk(e) ? (await pedidosDe(code)).length : 0 });
     }
 
     if (req.method === 'POST' && (acc === 'pagar' || acc === 'regalar')) {
@@ -238,7 +258,7 @@ module.exports = async (req, res) => {
       const g = q.i && (e.invitados || []).find(x => x.tok === String(q.i));
       if (g) {
         const r = esDemo ? null : ((await rest('GET', 'fiesta_resp?code=eq.' + code + '&gid=eq.' + encodeURIComponent(g.id) + '&select=va,cuantos,menu,nota').catch(() => [])) || [])[0];
-        out.inv = { nombre: g.nombre, mesa: e.mostrarMesa ? g.mesa : '', cupo: g.cupo || 0, menor: !!g.menor, resp: r || null };
+        out.inv = { nombre: g.nombre, mesa: e.mostrarMesa || (vivoOk(e) && (enDia(e) || e.demo)) ? g.mesa : '', cupo: g.cupo || 0, menor: !!g.menor, resp: r || null };
       }
       res.setHeader('Cache-Control', 'no-store');
       return res.status(200).json(out);
@@ -260,6 +280,57 @@ module.exports = async (req, res) => {
         menu: MENUS.includes(b.menu) ? b.menu : '', nota: largo(b.nota, 300), t: new Date().toISOString() };
       if (!esDemo) await rest('POST', 'fiesta_resp?on_conflict=code,gid', fila, 'resolution=merge-duplicates,return=minimal');
       return res.status(200).json({ ok: true, demo: esDemo, resp: fila, mesa: e.mostrarMesa ? g.mesa : '' });
+    }
+
+    // ===== Fiesta en vivo =====
+    const esPersonal = x => x && e.pk && String(x) === e.pk, esFamilia = x => x && hash(String(x)) === e.clave;
+    // El invitado: sus pedidos y los avisos (la app lo consulta cada pocos segundos)
+    if (req.method === 'GET' && acc === 'vivo') {
+      if (!vivoOk(e)) return res.status(200).json({ ok: true, vivo: false });
+      const g = (e.invitados || []).find(x => x.tok === String(q.i || ''));
+      const L = g ? await pedidosDe(code, '&gid=eq.' + encodeURIComponent(g.id)) : [];
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).json({ ok: true, vivo: true, atraso: e.atraso || 0, avisos: (e.avisos || []).slice(-15), pedidos: L.slice(0, 12).map(x => ({ id: x.id, items: x.items, estado: x.estado, moza: x.moza, t: x.t })) });
+    }
+    if (req.method === 'POST' && acc === 'pedir') {
+      if (!vivoOk(e)) return res.status(403).json({ error: 'Los pedidos todavía no están activos en esta fiesta.' });
+      const b = cuerpo(req), prueba = esPersonal(b.p) || esFamilia(b.k);
+      const g = (e.invitados || []).find(x => x.tok === String(b.i || ''));
+      if (!g && !prueba) return res.status(403).json({ error: 'Primero decinos quién sos, así te lo llevamos a tu mesa.' });
+      const carta = {}; (e.carta || []).forEach(x => { carta[x.n] = x; });
+      const items = (Array.isArray(b.items) ? b.items : []).slice(0, 20).map(x => ({ n: String(x && x.n || ''), c: Math.max(1, Math.min(10, parseInt(x && x.c, 10) || 1)) }))
+        .filter(x => carta[x.n] && !(carta[x.n].alc && g && g.menor));
+      if (!items.length) return res.status(400).json({ error: 'Elegí algo de la lista.' });
+      if (g) { const ult = await pedidosDe(code, '&gid=eq.' + g.id + '&estado=in.(nuevo,camino)'); if (ult.length >= 4) return res.status(429).json({ error: 'Ya tenés pedidos en camino. Esperá que te lleguen 🙂' }); }
+      const fila = { code, gid: g ? g.id : 'prueba', nombre: g ? g.nombre : 'Pedido de prueba', mesa: corto(g ? (g.mesa || b.mesa) : (b.mesa || 'Prueba'), 12), items, nota: largo(b.nota, 140), estado: 'nuevo', prueba: !g };
+      const r = await rest('POST', 'fiesta_pedidos', fila, 'return=representation');
+      return res.status(200).json({ ok: true, id: r && r[0] && r[0].id });
+    }
+    // El personal (encargada o mozas): todos los pedidos de la noche
+    if (req.method === 'GET' && acc === 'personal') {
+      if (!esPersonal(q.p) && !esFamilia(q.k)) return res.status(403).json({ error: 'El link del personal no es correcto. Pedíselo a la familia.' });
+      if (!vivoOk(e)) return res.status(403).json({ error: 'La fiesta en vivo no está activa todavía.' });
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).json({ ok: true, fiesta: { nombre: e.nombre, tipo: e.tipo, fecha: e.fecha, hora: e.hora, mozas: e.mozas || [], modoP: e.modoP || 'encargada', crono: e.crono || [], carta: e.carta || [], atraso: e.atraso || 0, catering: e.catering || '', listo: e.listo || '' }, pedidos: await pedidosDe(code), avisos: (e.avisos || []).slice(-15), llegaron: (await respuestas(code)).filter(x => x.va).length, invitados: (e.invitados || []).length });
+    }
+    if (req.method === 'POST' && ['estado', 'avisar', 'atrasar', 'listo'].includes(acc)) {
+      const b = cuerpo(req);
+      if (!esPersonal(b.p) && !esFamilia(b.k)) return res.status(403).json({ error: 'No tenés permiso.' });
+      if (!vivoOk(e)) return res.status(403).json({ error: 'La fiesta en vivo no está activa todavía.' });
+      if (acc === 'estado') {
+        const id = parseInt(b.id, 10); if (!id) return res.status(400).json({ error: 'Pedido inválido.' });
+        const cambio = { tu: new Date().toISOString() };
+        if (['nuevo', 'camino', 'entregado', 'cancelado'].includes(b.estado)) cambio.estado = b.estado;
+        if (typeof b.moza === 'string') cambio.moza = corto(b.moza, 30);
+        await rest('PATCH', 'fiesta_pedidos?id=eq.' + id + '&code=eq.' + code, cambio, 'return=minimal');
+        return res.status(200).json({ ok: true });
+      }
+      if (esDemo) return res.status(200).json({ ok: true, demo: true });
+      if (acc === 'avisar') { const txt = largo(b.txt, 160); if (!txt) return res.status(400).json({ error: 'Escribí el aviso.' }); e.avisos = (e.avisos || []).concat([{ id: Date.now().toString(36), t: new Date().toISOString(), txt }]).slice(-40); }
+      if (acc === 'atrasar') e.atraso = Math.max(-120, Math.min(240, (e.atraso || 0) + (parseInt(b.min, 10) || 0)));
+      if (acc === 'listo') e.listo = new Date().toISOString();
+      await guardarObj(code, e);
+      return res.status(200).json({ ok: true, atraso: e.atraso || 0 });
     }
 
     return res.status(400).json({ error: 'Acción desconocida.' });

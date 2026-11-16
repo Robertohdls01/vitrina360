@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/fiesta-personal",
+      "destination": "/fiesta-personal.html"
+    },
+    {
       "source": "/fiesta/:code",
       "destination": "/fiesta.html"
     },
