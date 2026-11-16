@@ -343,7 +343,7 @@ function entender(texto) { // "para mí un fernet y para mi señora una coca" ->
     let best = null, bs = 0;
     carta.forEach(x => { const nb = norm(x.n); I18N.todos(x.n).map(norm).forEach(n => { let sc = 0; if (n === t) sc = 10; else if (n.includes(t) || t.includes(n)) sc = 6;
       t.split(' ').forEach(p => { const ps = p.replace(/s$/, ''); if (ps.length > 2 && n.split(' ').some(q => q.replace(/s$/, '') === ps)) sc += 2; });
-      ALIAS.forEach(([a, b]) => { if ((' ' + t + ' ').includes(' ' + a) && nb === b) sc += 5; });
+      ALIAS.forEach(([a, b]) => { if ((' ' + t + ' ').includes(' ' + a) && nb === norm(b)) sc += 5; });
       if (sc > bs) { bs = sc; best = x; } }); });
     if (best && bs >= 2) { if (best.alc && MENORES.test(quien)) { avisoMenor = true; return; } const k = best.n + '|' + quien; out[k] = (out[k] || 0) + Math.max(1, Math.min(10, c)); }
   });
