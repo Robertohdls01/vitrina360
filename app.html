@@ -9728,9 +9728,12 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     const h = HELPERS[hCur] || HELPERS.sofi, u = new SpeechSynthesisUtterance(sayMoney(corto.trim() || clean));
     // las voces "de hombre" del celular suelen ser lentas y robóticas: para todos usamos la voz más fluida
     // (la de Google o la natural del teléfono) y el tono le da el carácter de chico o chica
-    const vs = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith(u.lang.slice(0, 2)));
+    u.lang = VLANG();
+    const lg = u.lang.toLowerCase(), vs0 = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().replace('_', '-').startsWith(lg.slice(0, 2)));
+    // primero las del mismo país (es-AR), después cualquier español
+    const vs = vs0.filter(v => v.lang.toLowerCase().replace('_', '-') === lg).concat(vs0.filter(v => v.lang.toLowerCase().replace('_', '-') !== lg));
     const fluida = vs.find(v => /google/i.test(v.name)) || vs.find(v => /natural|neural|online/i.test(v.name)) || vs.find(v => /paulina|monica|helena|sabina|laura|luciana/i.test(v.name)) || vs[0] || null;
-    u.lang = VLANG(); u.voice = fluida; u.rate = h.female ? 1.14 : 1.2;
+    u.voice = fluida; u.rate = h.female ? 1.14 : 1.2;
     u.pitch = h.style === 'flashy' ? 1.25 : h.female ? h.pitch : Math.max(0.72, Math.min(0.92, h.pitch));
     u.onstart = () => av && av.classList.add('talking'); u.onend = u.onerror = () => { av && av.classList.remove('talking'); duck(false); };
     av && av.classList.add('talking');   // se mueve apenas responde, sin esperar a que arranque la voz
