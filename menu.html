@@ -496,7 +496,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     const SALUDO = (TR && TR.saludo) || (LANG === SRC ? M.saludo : '') || '';
     CHEF = makeAva(avaOpts(M));
     const PROMOS = ALL.filter(i => i.promo);
-    let nombre = '', mute = false, order = {}; const ofrecido = new Set(); const KEYP = 'shopmenu-' + ID + '-' + MESA;
+    let nombre = '', mute = false, order = {}, PARA = {}; const ofrecido = new Set(); const KEYP = 'shopmenu-' + ID + '-' + MESA;
     let presentada = false;
     try{ const s = JSON.parse(localStorage.getItem(KEYP) || 'null'); if(s && Date.now() - (s.t || 0) < 4 * 3600e3){ nombre = s.nombre || ''; order = s.order || {}; presentada = !!s.p; } }catch(e){}
     const keep = () => { try{ localStorage.setItem(KEYP, JSON.stringify({nombre, order, p: presentada, t: Date.now()})); }catch(e){} };
@@ -571,6 +571,22 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     // se busca por el nombre original y por el traducido
     const IT = []; ALL.forEach(i => { IT.push({i, t: toks(i.n).filter(w => !STOP.has(w))}); if(i.dn !== i.n) IT.push({i, t: toks(i.dn.replace(/\(.*?\)/g, '')).filter(w => !STOP.has(w))}); });
     if(EXTRA && M.tr && M.tr.en) M.tr.en.cats.forEach((c, ci) => (c.items || []).forEach((x, ii) => { const i = ALL.find(a => a.ci === ci && a.ii === ii); if(i && x && x.n) IT.push({i, t: toks(x.n.replace(/\(.*?\)/g, '')).filter(w => !STOP.has(w))}); }));
+    // "para mí un café y para mi señora un té" / "un café para mí y un té para mi señora"
+    const QPARA = /\bpara (mi|mis|vos|el|ella|la|los|las|nosotros|nosotras)\b(?: (senora|senor|mujer|esposa|esposo|marido|novia|novio|pareja|hijos|hijas|hijo|hija|nenes|nene|nena|chicos|chicas|amigos|amigas|amigo|amiga|mama|papa|abuela|abuelo|hermanos|hermano|hermana|suegra|suegro|nietos|nieto|nieta|companeros|companero|companera))?/g;
+    const ACC = {senora: 'señora', senor: 'señor', mama: 'mamá', papa: 'papá', companeros: 'compañeros', companero: 'compañero', companera: 'compañera'};
+    const quien = (w, tu) => w === 'vos' ? (tu ? 'vos' : 'él/ella') : w === 'el' ? 'él' : ['ella', 'nosotros', 'nosotras'].includes(w) ? w : ((tu ? 'tu' : 'su') + (/s$/.test(w) ? 's ' : ' ') + (ACC[w] || w));
+    function parsePara(text){
+      const n = norm(text); if(LANG !== 'es' || !/\bpara (mi|mis|vos|el|ella|la|los|las|nosotr)/.test(n)) return null;
+      const parts = []; let last = 0, m; QPARA.lastIndex = 0;
+      while((m = QPARA.exec(n))){ parts.push({tx: n.slice(last, m.index), who: m[2] || (m[1] === 'mi' || m[1] === 'vos' ? 'vos' : m[1] === 'mis' ? 'chicos' : m[1])}); last = QPARA.lastIndex; }
+      if(!parts.length) return null;
+      const antes = !parts[0].tx.replace(/\b(y|e|quiero|queria|dame|traeme|te pido|voy a pedir|pedime)\b/g, '').trim(), segs = [];
+      if(antes) parts.forEach((p, k) => segs.push({tx: k + 1 < parts.length ? parts[k + 1].tx : n.slice(last), who: p.who}));
+      else { parts.forEach(p => segs.push({tx: p.tx, who: p.who})); segs.push({tx: n.slice(last), who: ''}); }
+      const found = []; segs.forEach(sg => parse(sg.tx).found.forEach(f => found.push(Object.assign(f, {who: sg.who}))));
+      return found.length ? {found, amb: []} : null;
+    }
+    const paraNota = () => { const L = {}; Object.entries(PARA).forEach(([n, ws]) => { if(!order[n]) return; ws.forEach(w => { (L[w] = L[w] || []).push((ALL.find(i => i.n === n) || {dn: n}).dn); }); }); const ks = Object.keys(L); return ks.length > 1 || ks.length && ks[0] !== 'vos' ? ks.map(w => 'Para ' + quien(w, false) + ': ' + L[w].join(', ')).join(' · ') : ''; };
     function parse(text){
       const w = toks(text), found = [], amb = [], cands = [];
       IT.forEach(x => { if(!x.t.length) return; for(let s = 0; s < w.length; s++){ if(w[s] !== x.t[0]) continue; let k = 1, end = s; for(let j = s + 1; j < w.length && j <= s + x.t.length + 2 && k < x.t.length; j++) if(w[j] === x.t[k]){ k++; end = j; } cands.push({x, s, end, k, full: k === x.t.length}); } });
@@ -643,17 +659,18 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
       if(has(n, /\b(encargado|dueno|duena|chef|cocinero|gerente|coordinador|queja|reclamo|alergi|allerg|celiac|gluten|vegan|vegetarian|manager|owner|complain|gerente|reclamacao)/)) return encargado();
       if(has(n, /\b(mozo|mesero|camarero|moza|waiter|waitress|garcom|garconete)\b/)) return aviso('mozo');
       if(has(n, /\b(cuenta|pagar|cobrar|pago|bill|check|pay|conta)\b/)) return pagar(ultimo);
-      if(has(n, /\b(recomend|sugeri|que me das|que me conviene|no se que|recommend|suggest|what.?s good|indica|sugest)/)) return recomendar();
+      if(has(n, /\b(recomend|sugeri|que me das|que me conviene|no se que|recommend|suggest|what.?s good|indica|sugest)/)) return recomendar(n);
       if(PROMOS.length && has(n, /\b(hoy|del dia|promo|promocion|oferta|especial|today|special|hoje|promocao)/) && !parse(text).found.length) return promos(true);
       if((REDES.length || M.nov) && has(n, /\b(como llego|como llegar|direccion|donde queda|ubicacion|mapa|maps|youtube|instagram|insta|facebook|face|tiktok|redes|red social|pagina|web|whatsapp|novedades|eventos|delivery|para llevar|encargo)\b/)) return redes();
       if(has(n, /\b(carta|menu|que tienen|que hay|que venden|cardapio)\b/) && !parse(text).found.length) return verCarta();
       if(has(n, /\b(eso es todo|nada mas|listo|confirm|mandalo|manda el pedido|enviar|terminar|ya esta|that s all|thats all|that is all|done|send it|place the order|so isso|e so isso|pronto|pode mandar)\b/)) return verPedido(true);
       const quitar = has(n, /\b(saca|sacame|quita|quitame|borra|borrame|cancela|sin el|sin la|remove|cancel|delete|take off|tira|remova|cancela)\b/);
-      const {found, amb} = parse(text);
+      const {found, amb} = (!quitar && parsePara(text)) || parse(text);
       if(quitar && found.length){ found.forEach(f => { delete order[f.i.n]; }); paintCart(); return talk(T(`Listo, saqué ${found.map(f => f.i.dn).join(' y ')} de tu pedido.`, `Done, I removed ${found.map(f => f.i.dn).join(' and ')} from your order.`, `Pronto, tirei ${found.map(f => f.i.dn).join(' e ')} do seu pedido.`), mainChips()); }
       if(found.length){
-        found.forEach(f => add(f.i.n, f.q));
-        const txt = found.map(f => `${f.q > 1 ? f.q + ' ' : ''}${f.i.dn}`).join(', ');
+        found.forEach(f => { add(f.i.n, f.q); if(f.who){ const w = PARA[f.i.n] = PARA[f.i.n] || []; if(!w.includes(f.who)) w.push(f.who); } });
+        const varios = new Set(found.map(f => f.who || 'vos')).size > 1;
+        const txt = found.map(f => `${f.q > 1 ? f.q + ' ' : ''}${f.i.dn}${f.who && (varios || f.who !== 'vos') ? ' para ' + quien(f.who, true) : ''}`).join(', ').replace(/, ([^,]*)$/, T(' y $1', ' and $1', ' e $1'));
         const pick = a => a[Math.floor(Math.random() * a.length)];
         const wow = pick(T(['¡Excelente elección', '¡Muy buena elección', '¡Riquísimo', '¡Perfecto', '¡Buenísimo'], ['Excellent choice', 'Great choice', 'Delicious', 'Perfect', 'Lovely'], ['Ótima escolha', 'Excelente escolha', 'Delícia', 'Perfeito', 'Maravilha']));
         const ok = T(`${wow}${nombre ? ', ' + nombre : ''}! Con mucho gusto te anoto ${txt}. 📝`, `${wow}${nombre ? ', ' + nombre : ''}! I'll gladly add ${txt}. 📝`, `${wow}${nombre ? ', ' + nombre : ''}! Com prazer, anotei ${txt}. 📝`);
@@ -713,7 +730,28 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     const dishHTML = i => `<div class="dish"><span><b>${esc(i.dn)}${i.promo ? ' ⭐' : ''}</b>${i.dd ? `<small>${esc(i.dd)}</small>` : ''}</span><span class="row" style="flex-wrap:nowrap"><span class="pr">${esc(i.p)}</span><button class="add" type="button" data-add="${esc(i.n)}" aria-label="+ ${esc(i.dn)}">+</button></span></div>`;
     area.addEventListener('click', e => { const b = e.target.closest('[data-add]'); if(!b) return; add(b.dataset.add, 1); b.textContent = '✓'; setTimeout(() => { b.textContent = '+'; }, 900); talk(T(`¡Anotado! ${dn(b.dataset.add)}.`, `Got it! ${dn(b.dataset.add)}.`, `Anotado! ${dn(b.dataset.add)}.`) + ' ' + otherQ(), [doneChip(), ...mainChips()]); });
     function verCarta(){ area.innerHTML = CATS.map(c => `<div class="sec2"><h3>${esc(c.n)}</h3>${c.items.map(dishHTML).join('')}</div>`).join(''); talk(T(`Acá tenés la carta 📖. Tocá ➕ o decime lo que querés, por ejemplo: "${ALL[0] ? ALL[0].dn.toLowerCase() : 'un café'}, por favor".`, `Here's the menu 📖. Tap ➕ or tell me what you'd like, for example: "one ${ALL[0] ? ALL[0].dn.toLowerCase() : 'coffee'}".`, `Aqui está o cardápio 📖. Toque ➕ ou me diga o que quer, por exemplo: "um ${ALL[0] ? ALL[0].dn.toLowerCase() : 'café'}".`), [mainChips()[1], mainChips()[2]]); }
-    function recomendar(){
+    // recomendación según la hora y para quién: "¿qué me recomendás para mis hijos?", "algo para comer", "algo dulce"
+    function recoInteligente(tx){
+      tx = norm(tx || ''); const h = new Date().getHours();
+      const R = {cal: /(cafe|cortado|lagrima|capuch|\bte\b|mate|submarino|chocolat|latte|americano|expreso|espresso)/, dulce: /(medialun|alfajor|torta|budin|croissant|factura|scon|cookie|galleti|muffin|brownie|tarta|postre|helado|panquequ|flan|tiramis|cheesecake|waffle)/,
+        salado: /(tostad|sandw|tostado|chipa|empanad|tarta|wrap|bagel|omelet|huevo)/, plato: /(milanes|pizza|hambur|pasta|ravio|ñoqui|noqui|ensalad|lomo|bife|pollo|pescad|risotto|guiso|minuta|papas|sorrentin|canelon|wok|ojo de bife|matambre|parrill)/,
+        frio: /(jugo|licuado|limonad|gaseos|coca|agua|sprite|fanta|pomelo|smoothie|frappe|batido)/, alc: /(cerveza|vino|fernet|trago|gin|aperol|whisky|champ|vermut|negroni|mojito|daiquiri|caipi|sidra|campari)/,
+        chicos: /(licuado|chocolat|submarino|jugo|milanes|papas|pizza|hambur|helado|torta|panquequ|tostado|alfajor|waffle|brownie|cookie|nugget|pancho)/};
+      const chicos = /(hij|chic|nene|nena|ninos|ninas|pibes|criatur)/.test(tx), quiereCom = /(comer|comida|almuerz|cena|plato|hambre)/.test(tx), quiereTom = /(tomar|bebida|beber|trago|sed)/.test(tx), quiereDul = /(dulce|postre|merienda)/.test(tx);
+      const momento = h >= 6 && h < 11 ? 'desayuno' : h >= 11 && h < 15 ? 'almuerzo' : h >= 15 && h < 19 ? 'merienda' : 'cena';
+      const tipos = quiereDul ? ['dulce'] : quiereTom ? (chicos ? ['frio'] : momento === 'cena' ? ['alc', 'frio'] : ['cal', 'frio']) : quiereCom ? (momento === 'desayuno' || momento === 'merienda' ? ['salado', 'dulce'] : ['plato']) : chicos ? ['chicos'] : momento === 'desayuno' || momento === 'merienda' ? ['cal', 'dulce', 'salado'] : ['plato', 'frio'];
+      const vistos = new Set(), its = [];
+      tipos.forEach(t => { ALL.filter(i => R[t].test(norm(i.n + ' ' + i.dn)) && !(chicos && R.alc.test(norm(i.n + ' ' + i.dn)))).sort((a, b) => (b.promo ? 1 : 0) - (a.promo ? 1 : 0)).slice(0, tipos.length > 1 ? 2 : 3).forEach(i => { if(!vistos.has(i.n) && its.length < 4){ vistos.add(i.n); its.push(i); } }); });
+      if(!its.length) return false;
+      const para = chicos ? T('Para los chicos', 'For the kids', 'Para as crianças') : /(senora|mujer|esposa|novia|pareja)/.test(tx) ? T('Para tu señora', 'For your partner', 'Para sua esposa') : /(marido|esposo|novio)/.test(tx) ? T('Para tu marido', 'For your partner', 'Para seu marido') : T({desayuno: 'Para esta hora de la mañana', almuerzo: 'Para el almuerzo', merienda: 'Para la merienda', cena: 'Para esta noche'}[momento], {desayuno: 'For breakfast', almuerzo: 'For lunch', merienda: 'For an afternoon snack', cena: 'For tonight'}[momento], {desayuno: 'Para o café da manhã', almuerzo: 'Para o almoço', merienda: 'Para o lanche', cena: 'Para esta noite'}[momento]);
+      area.innerHTML = `<div class="sec2"><h3>${T('Te recomiendo', 'I recommend', 'Eu recomendo')}</h3>${its.map(dishHTML).join('')}</div>`;
+      const lista = its.map(i => i.dn).join(', ').replace(/, ([^,]*)$/, T(' y $1', ' and $1', ' e $1'));
+      talk(`${para}${nombre ? ', ' + nombre : ''}, ${T('te recomiendo', 'I recommend', 'eu recomendo')} ${lista}${its.some(i => i.promo) ? ' ⭐' : ''}. ${T('Tocá ➕ en lo que quieras, o decime otra cosa.', 'Tap ➕ on what you like, or tell me something else.', 'Toque ➕ no que quiser, ou me diga outra coisa.')}`,
+        [['📖 ' + T('Ver otras opciones', 'See other options', 'Ver outras opções'), () => recomendarCats()], ...mainChips().slice(0, 1)]);
+      return true;
+    }
+    function recomendar(tx){ if(recoInteligente(tx)) return; recomendarCats(); }
+    function recomendarCats(){
       const cats = CATS.filter(c => c.items.length).slice(0, 8);
       talk(T('¡Dale! ¿Qué tenés ganas de comer o tomar?', 'Sure! What are you in the mood for?', 'Claro! O que você está com vontade de comer ou beber?'), cats.map(c => [c.n, () => {
         talk(T('¿Para cuántas personas es?', 'For how many people?', 'Para quantas pessoas?'), [1, 2, 3, 4].map(n => [n === 4 ? T('4 o más', '4 or more', '4 ou mais') : String(n), () => {
@@ -737,8 +775,8 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
         sh.querySelector('#bSendOrder').onclick = async ev => { ev.target.disabled = true; ev.target.textContent = '…';
           const nota = sh.querySelector('#iNota').value;
           try{ const favNow = Object.entries(order).map(([n, q]) => ({n, q}));
-          const j = await api('/api/menu?accion=pedido', {id: ID, mesa: MESA, nombre, llevar: LLEVAR, cid: CLI.cid, nota: (LANG !== 'es' && nota ? '[' + LANG.toUpperCase() + '] ' : '') + nota, items: Object.entries(order).map(([n, q]) => ({n, q}))});
-            totalUlt += total(); sh.remove(); order = {}; paintCart(); guardaCli({nombre: nombre || CLI.nombre || '', fav: favNow, modo: LLEVAR ? LLEVAR.tipo : 'mesa'}); j._items = favNow; seguir(j); setTimeout(ofrecerApp, 2500);
+          const j = await api('/api/menu?accion=pedido', {id: ID, mesa: MESA, nombre, llevar: LLEVAR, cid: CLI.cid, nota: [paraNota(), (LANG !== 'es' && nota ? '[' + LANG.toUpperCase() + '] ' : '') + nota].filter(Boolean).join(' — '), items: Object.entries(order).map(([n, q]) => ({n, q}))});
+            totalUlt += total(); sh.remove(); order = {}; PARA = {}; paintCart(); guardaCli({nombre: nombre || CLI.nombre || '', fav: favNow, modo: LLEVAR ? LLEVAR.tipo : 'mesa'}); j._items = favNow; seguir(j); setTimeout(ofrecerApp, 2500);
           }catch(e){ ev.target.disabled = false; ev.target.textContent = '✅ ' + T('Enviar a la cocina', 'Send to the kitchen', 'Enviar para a cozinha'); alert(e.message); } };
       };
       paint(); sh.onclick = e => { if(e.target === sh) sh.remove(); }; document.body.appendChild(sh);
