@@ -324,7 +324,7 @@ async function parqueIA(res, KEY, b, req) {
     let f = null; try { const r = await fetch(path, { headers: scHead() }); if (r.ok) f = await r.json(); } catch (e) {}
     f = f && typeof f === 'object' ? f : { total: 0, ip: {} };
     const ip = String((req && req.headers && req.headers['x-forwarded-for']) || '').split(',')[0].trim() || 'x';
-    if (f.total >= Number(process.env.DEMO_IA_DIA || 60) || (f.ip[ip] || 0) >= Number(process.env.DEMO_IA_PERSONA || 4)) return res.status(429).json({ error: 'Esta es una tienda de muestra y ya se probó mucho hoy. ¡Probá mañana, o pedí la tuya!' });
+    if (f.total >= Number(process.env.DEMO_IA_DIA || 80) || (f.ip[ip] || 0) >= Number(process.env.DEMO_IA_PERSONA || 12)) return res.status(429).json({ error: 'Esta es una tienda de muestra y ya se probó mucho hoy. ¡Probá mañana, o pedí la tuya!' });
     f.total++; f.ip[ip] = (f.ip[ip] || 0) + 1;
     try { await fetch(path, { method: 'POST', headers: scHead({ 'Content-Type': 'application/json', 'x-upsert': 'true', 'cache-control': 'no-cache' }), body: JSON.stringify(f) }); } catch (e) {}
   }
