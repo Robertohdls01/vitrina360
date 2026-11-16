@@ -64,6 +64,23 @@ const fmtF = s => { if(!s) return '__/__/____'; const [y, m, dd] = s.split('-');
 const soporte = () => PV_WA ? 'al ' + esc(PV_WA) : 'por el WhatsApp de Pro Video';
 
 function docHTML(doc, d){
+  if(doc === 'galeria') return `<h1>Acuerdo con la galería / shopping</h1><p class="note">Entre <b>Pro Video JSRHG</b> ("Pro Video") y la administración que firma ("la Galería"), para la guía de locales con QR.</p>
+    <h3>1. Datos de la Galería</h3><p><b>Galería / shopping:</b> ${v(d, 'negocio')} · <b>CUIT/DNI:</b> ${v(d, 'cuit')}<br><b>Responsable de la administración:</b> ${v(d, 'responsable')} · <b>WhatsApp:</b> ${v(d, 'wa')}<br><b>Dirección:</b> ${v(d, 'dir')}<br><b>Código de la guía:</b> ${v(d, 'codigo')} · <b>Desde:</b> ${fmtF(d.desde)}</p>
+    <h3>2. Lo que hace Pro Video</h3><ul>
+    <li>Arma y mantiene <b>gratis</b> la <b>guía de la galería</b>: una página donde el cliente pregunta qué busca y le dice en qué local está, con el número de local y las reseñas.</li>
+    <li>Entrega el <b>cartel con el QR</b> para la entrada, impreso y plastificado, y lo reemplaza si se rompe.</li>
+    <li>Ofrece a cada local su tienda ShopFlash. <b>Cada local contrata y paga directamente a Pro Video</b>; la Galería no paga nada.</li>
+    <li>Le paga a la Galería el <b>${v(d, 'porcentaje')} %</b> de lo que pague cada local de la galería, <b>todos los meses, mientras ese local siga pagando</b>.</li>
+    <li>Paga ese porcentaje una vez por mes, el día ${v(d, 'dia')} de cada mes, por ${v(d, 'pagoGal')}, junto con una lista de los locales que pagaron.</li></ul>
+    <h3>3. Lo que hace la Galería</h3><ul>
+    <li>Permite poner el <b>cartel QR en la entrada</b> (y en el estacionamiento si hay), en un lugar visible.</li>
+    <li>Recomienda el servicio a los locales cuando puede. No está obligada a cobrarles ni a hacer trámites.</li>
+    <li>Avisa por WhatsApp si el cartel se rompe o hay que moverlo.</li></ul>
+    <h3>4. Condiciones</h3><ul>
+    <li>Si un local deja de pagar o se da de baja, su porcentaje deja de pagarse desde ese mes.</li>
+    <li>Cualquiera de las dos partes puede terminar el acuerdo cuando quiera, avisando por WhatsApp con <b>30 días</b> de anticipación. Pro Video paga lo que corresponda hasta ese mes y retira el cartel.</li>
+    <li>Terminar este acuerdo no afecta a los locales: cada uno sigue con su tienda mientras la pague.</li>
+    <li>Consultas y soporte: Pro Video ${soporte()}.</li></ul>`;
   const cab = `<p><b>Negocio:</b> ${v(d, 'negocio')} · <b>CUIT/DNI:</b> ${v(d, 'cuit')}<br><b>Responsable:</b> ${v(d, 'responsable')} · <b>WhatsApp:</b> ${v(d, 'wa')}<br><b>Dirección:</b> ${v(d, 'dir')}</p>`;
   if(doc === 'prueba') return `<h1>Constancia de período de prueba gratuita</h1><p class="note">Deja registrado que el negocio está probando un producto de Pro Video sin costo, y qué materiales de prueba se le entregaron.</p>
     <h3>1. Datos del negocio</h3>${cab}
@@ -113,16 +130,18 @@ function pad(cv){
 
 // ---------- Firmar ----------
 function firmar(){
-  let doc = Q.get('doc') === 'prueba' ? 'prueba' : 'acuerdo';
+  let doc = ['prueba', 'galeria'].includes(Q.get('doc')) ? Q.get('doc') : 'acuerdo';
   const hoy = new Date(), ymd = x => x.toISOString().slice(0, 10), en7 = new Date(hoy.getTime() + 7 * 864e5);
   const d = {negocio: Q.get('negocio') || '', responsable: Q.get('responsable') || '', cuit: '', wa: Q.get('wa') || '', dir: '', producto: Q.get('producto') || '', plan: Q.get('plan') || '', precio: Q.get('precio') || '', pago: 'Mercado Pago', desde: ymd(hoy), hasta: ymd(en7), link: Q.get('link') || '', materiales: Q.get('materiales') || ''};
-  const campos = () => doc === 'prueba'
+  const campos = () => doc === 'galeria'
+    ? [['negocio', 'Nombre de la galería o shopping'], ['responsable', 'Responsable de la administración'], ['cuit', 'CUIT o DNI (opcional)'], ['wa', 'WhatsApp'], ['dir', 'Dirección'], ['codigo', 'Código de la guía (ej: galeria-centro)'], ['porcentaje', 'Porcentaje para la galería (solo el número)'], ['dia', 'Día de pago de cada mes (ej: 10)'], ['pagoGal', 'Cómo se le paga', ['Transferencia', 'Mercado Pago', 'Efectivo']], ['desde', 'Desde', 'date']]
+    : doc === 'prueba'
     ? [['negocio', 'Negocio'], ['responsable', 'Nombre del responsable'], ['cuit', 'CUIT o DNI (opcional)'], ['wa', 'WhatsApp'], ['dir', 'Dirección'], ['producto', 'Producto en prueba', PRODUCTOS], ['link', 'Link de la tienda o código del kit'], ['desde', 'Inicio de la prueba', 'date'], ['hasta', 'Fin de la prueba', 'date'], ['materiales', 'Materiales entregados (ej: 10 QR de mesa, 1 cartelito)']]
     : [['negocio', 'Negocio'], ['responsable', 'Nombre del responsable'], ['cuit', 'CUIT o DNI (opcional)'], ['wa', 'WhatsApp'], ['dir', 'Dirección'], ['producto', 'Producto', PRODUCTOS], ['plan', 'Plan (ej: Start, Oficios, ShopMenu)'], ['precio', 'Precio por mes (solo el número)'], ['pago', 'Forma de pago', ['Mercado Pago', 'Transferencia', 'Efectivo']], ['desde', 'Desde', 'date'], ['link', 'Link de la app'], ['materiales', 'Materiales entregados (opcional)']];
   const input = ([k, lb, tp]) => Array.isArray(tp) ? `<label>${lb}<select data-k="${k}">${tp.map(o => `<option${o === d[k] ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select></label>`
     : `<label>${lb}<input data-k="${k}" ${tp === 'date' ? 'type="date"' : ''} value="${esc(d[k])}" ${k === 'precio' ? 'inputmode="numeric"' : k === 'wa' ? 'inputmode="tel"' : ''}></label>`;
   const render = () => {
-    app.innerHTML = `<div class="card noprint"><div class="tabs"><button class="btn ${doc === 'acuerdo' ? 'on' : 'sec'}" data-doc="acuerdo">🤝 Acuerdo de servicio</button><button class="btn ${doc === 'prueba' ? 'on' : 'sec'}" data-doc="prueba">🧪 Constancia de prueba</button></div>
+    app.innerHTML = `<div class="card noprint"><div class="tabs"><button class="btn ${doc === 'acuerdo' ? 'on' : 'sec'}" data-doc="acuerdo">🤝 Acuerdo de servicio</button><button class="btn ${doc === 'prueba' ? 'on' : 'sec'}" data-doc="prueba">🧪 Constancia de prueba</button><button class="btn ${doc === 'galeria' ? 'on' : 'sec'}" data-doc="galeria">🏢 Galería / shopping</button></div>
       <p class="note" style="margin:8px 0 0">Completá los datos, leé el documento y firmá con el dedo. Queda guardada una copia para Pro Video y te podés bajar la tuya en PDF.</p></div>
       <div class="card noprint"><h2>Datos</h2><div class="row">${campos().map(input).join('')}</div></div>
       <div class="card doc" id="doc">${docHTML(doc, d)}</div>
@@ -161,10 +180,10 @@ async function ver(){
   app.innerHTML = '<div class="card"><p class="note">Cargando el documento…</p></div>';
   let r; try{ r = await api(`/api/menu?firma=${encodeURIComponent(Q.get('ver'))}&k=${encodeURIComponent(Q.get('k') || '')}`); }catch(e){ app.innerHTML = `<div class="card"><p class="msg">${esc(e.message)}</p></div>`; return; }
   const f = new Date(r.fecha).toLocaleString('es-AR', {dateStyle: 'long', timeStyle: 'short'});
-  document.title = (r.doc === 'prueba' ? 'Constancia de prueba' : 'Acuerdo de servicio') + ' · ' + (r.datos.negocio || '') + ' · Pro Video';
+  document.title = (r.doc === 'prueba' ? 'Constancia de prueba' : r.doc === 'galeria' ? 'Acuerdo con la galería' : 'Acuerdo de servicio') + ' · ' + (r.datos.negocio || '') + ' · Pro Video';
   app.innerHTML = `<div class="noprint" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px"><button class="btn pri" onclick="print()">📄 Bajar PDF / imprimir</button></div>
     <div class="card doc">${docHTML(r.doc, r.datos)}
-      <div class="firmas"><div>${r.firmaCli ? `<img src="${r.firmaCli}" alt="Firma del cliente">` : '<br><br>'}<b>Por el ${r.doc === 'prueba' ? 'negocio' : 'Cliente'}</b><br>${esc(r.datos.responsable)}</div>
+      <div class="firmas"><div>${r.firmaCli ? `<img src="${r.firmaCli}" alt="Firma del cliente">` : '<br><br>'}<b>Por ${r.doc === 'prueba' ? 'el negocio' : r.doc === 'galeria' ? 'la Galería' : 'el Cliente'}</b><br>${esc(r.datos.responsable)}</div>
         <div>${r.firmaVen ? `<img src="${r.firmaVen}" alt="Firma de Pro Video">` : '<br><br>'}<b>Por Pro Video JSRHG</b><br>${esc(r.vendedor || '')}</div></div>
       <div class="sello">✍️ <b>Firmado digitalmente</b> el ${esc(f)} · Código del documento: <b>${esc(r.id)}</b> · Huella: ${esc(r.huella)}<br>Copia guardada por Pro Video JSRHG. Se puede volver a ver en cualquier momento con este mismo link.</div></div>`;
   if(Q.get('pdf')) setTimeout(() => print(), 700);
@@ -177,7 +196,7 @@ async function admin(){
     $('#en').onclick = () => { A = $('#cl').value; try{ localStorage.setItem('shopmenu-admin', A); }catch(e){} cargar(); }; };
   const cargar = async () => { let j; try{ j = await api('/api/menu?accion=firmas', {admin: A}); }catch(e){ return pedir(e.message); }
     app.innerHTML = `<div class="card"><h1>Firmas de Pro Video</h1><p class="note">${j.items.length} documentos firmados.</p><a class="btn sec" href="/firmar">✍️ Firmar uno nuevo</a>
-      <table class="l" style="margin-top:12px"><tr><th>Fecha</th><th>Documento</th><th>Negocio</th><th>Vendedor</th><th></th></tr>${j.items.map(x => `<tr><td>${new Date(x.fecha).toLocaleDateString('es-AR')}</td><td>${x.doc === 'prueba' ? '🧪 Prueba' : '🤝 Acuerdo'}</td><td><b>${esc(x.negocio)}</b><br><small>${esc(x.responsable)} · ${esc(x.producto)}</small></td><td>${esc(x.vendedor || '')}</td><td><a href="/firmar?ver=${x.id}&k=${x.k}" target="_blank">Ver</a></td></tr>`).join('')}</table></div>`; };
+      <table class="l" style="margin-top:12px"><tr><th>Fecha</th><th>Documento</th><th>Negocio</th><th>Vendedor</th><th></th></tr>${j.items.map(x => `<tr><td>${new Date(x.fecha).toLocaleDateString('es-AR')}</td><td>${x.doc === 'galeria' ? '🏢 Galería' : x.doc === 'prueba' ? '🧪 Prueba' : '🤝 Acuerdo'}</td><td><b>${esc(x.negocio)}</b><br><small>${esc(x.responsable)} · ${esc(x.producto)}</small></td><td>${esc(x.vendedor || '')}</td><td><a href="/firmar?ver=${x.id}&k=${x.k}" target="_blank">Ver</a></td></tr>`).join('')}</table></div>`; };
   if(A) cargar(); else pedir('');
 }
 

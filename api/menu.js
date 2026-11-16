@@ -129,7 +129,7 @@ module.exports = async (req, res) => {
     // ---- Firmas digitales de Pro Video: acuerdo de servicio y constancia de prueba (/firmar) ----
     if (req.method === 'POST' && q.accion === 'firma') {
       const b = cuerpo(req) || {};
-      const doc = ['acuerdo', 'prueba'].includes(b.doc) ? b.doc : '';
+      const doc = ['acuerdo', 'prueba', 'galeria'].includes(b.doc) ? b.doc : '';
       if (!doc) return res.status(400).json({ error: 'Documento inválido.' });
       const okPng = u => typeof u === 'string' && /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(u) && u.length > 800 && u.length < 400000;
       if (!okPng(b.firmaCli)) return res.status(400).json({ error: 'Falta la firma del cliente.' });
