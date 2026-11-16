@@ -1087,13 +1087,13 @@ body:has(.tvmove,.cashmove) header .hcorner{outline:2px dashed var(--accent);out
 .tvtop .tvsl .tvo{font-size:8px;padding:2px 4px;margin:0}
 .tvtop .tvtick{font-size:9px;line-height:15px}
 .tvtop .tvsnd{width:24px;height:24px;font-size:12px;right:4px;bottom:4px}
-.tv{width:min(460px,100%);background:#0b0b0f;border-radius:14px;padding:8px 8px 6px;box-shadow:0 0 0 2px #26262e inset,0 14px 30px -14px rgba(0,0,0,.6),0 0 22px -6px var(--accent);position:relative}
+.tv{width:min(460px,100%);background:#ffffff;border-radius:14px;padding:8px 8px 6px;box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 45%,#fff) inset,0 14px 30px -14px rgba(0,0,0,.6),0 0 22px -6px var(--accent);position:relative}
 .tv::after{content:"";position:absolute;right:12px;bottom:5px;width:5px;height:5px;border-radius:50%;background:#39ff14;box-shadow:0 0 6px #39ff14}
 .tv::after{display:none}
 .tvleg{display:none!important}
-.tv{border-radius:8px;padding:4px;background:#050507;box-shadow:0 0 0 1px #2c2c36 inset,0 0 18px -2px var(--accent),0 10px 24px -14px rgba(0,0,0,.6)}
+.tv{border-radius:8px;padding:4px;background:#ffffff;box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 45%,#fff) inset,0 0 18px -2px var(--accent),0 10px 24px -14px rgba(0,0,0,.6)}
 .tvtop .tv{padding:3px;border-radius:7px}
-.tvleg{width:70px;height:10px;background:linear-gradient(#2a2a32,#111);border-radius:0 0 8px 8px;margin-top:-1px}
+.tvleg{width:70px;height:10px;background:color-mix(in srgb,var(--accent) 45%,#fff);border-radius:0 0 8px 8px;margin-top:-1px}
 .tvscr{position:relative;aspect-ratio:16/9;border-radius:6px;overflow:hidden;background:#fff;cursor:pointer}
 .tvsl{position:absolute;inset:0;display:grid;grid-template-columns:48% 1fr;align-items:center;gap:10px;padding:10px 14px;opacity:0;transition:opacity .6s;background:radial-gradient(circle at 25% 50%,#fff 0,#f1f3f6 70%)}
 .tvsl.on{opacity:1}
@@ -1123,7 +1123,7 @@ body:has(.tvmove,.cashmove) header .hcorner{outline:2px dashed var(--accent);out
 .tvsl .tvn{font:800 clamp(14px,3.6vw,20px)/1.15 var(--body);color:#111;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .tvsl .tvp{font:900 clamp(20px,6vw,32px)/1 var(--body);color:#e63946;margin-top:6px}
 .tvsl .tvo{display:inline-block;background:#e63946;color:#fff;font:900 11px/1 var(--body);letter-spacing:.08em;padding:4px 8px;border-radius:6px;margin-bottom:6px;animation:tvblink 1s steps(2) infinite}
-.tvtick{overflow:hidden;white-space:nowrap;color:#ffd54a;font:700 12px/22px var(--body);text-shadow:0 0 6px rgba(255,213,74,.6)}
+.tvtick{overflow:hidden;white-space:nowrap;color:var(--accent);font:800 12px/22px var(--body)}
 .tvtick span{display:inline-block;padding-left:100%;animation:tvrun 16s linear infinite}
 @keyframes tvzoom{from{transform:scale(.92)}to{transform:scale(1.02)}}
 @keyframes tvblink{50%{opacity:.35}}
@@ -7520,6 +7520,10 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       r.setProperty('--accent-ink', light ? '#ffffff' : '#08130f');
       r.setProperty('color-scheme', light ? 'light' : 'dark');
     }
+    else { // "Automático": cada oficio viene con su color suave (parquero verde, plomero celeste…), nunca negro
+      const OC = {parques: ['#eef8ee', '#2e7d32'], plomero: ['#eaf4fc', '#0277bd'], electricista: ['#fff8e6', '#b45309'], gasista: ['#fff3e6', '#e65100'], pintor: ['#eef0fa', '#3949ab'], albanil: ['#f5efec', '#8d6e63'], durlock: ['#eef2f4', '#546e7a'], techista: ['#fcefeb', '#bf360c'], solar: ['#fffbe6', '#c77700'], aire: ['#e8f8fa', '#00838f'], volquete: ['#f2f8ea', '#558b2f'], tecnico: ['#f1ecf9', '#5e35b1'], afilador: ['#eef1f3', '#37474f'], mecanico: ['#fdeeee', '#c62828'], informal: ['#fff7e8', '#ef6c00'], oficio: ['#eef5f3', '#0f766e']}[brand.preset];
+      if(OC){ r.setProperty('--bg', OC[0]); r.setProperty('--surface', mix(OC[0], '#ffffff', 0.75)); r.setProperty('--line', mix(OC[0], '#000000', 0.12)); r.setProperty('--accent', OC[1]); r.setProperty('--accent-ink', '#ffffff'); }
+    }
     const isPreset = PAGE_PRESETS.some(x => x.id === c);
     $('pageBgBar').innerHTML = `<button class="btn" type="button" data-pagebg="" aria-pressed="${!HEXOK(c)}" style="padding:6px 12px">Automático</button>` +
       PAGE_PRESETS.map(x => `<button class="sw" type="button" data-pagebg="${x.id}" style="--c:${x.id}" aria-pressed="${c===x.id}" aria-label="${x.name}" title="${x.name}"></button>`).join('') +
@@ -8315,6 +8319,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(pr.id === 'general') ['--brass','--shelf','--shelf-edge'].forEach(k => r.removeProperty(k));
     else { r.setProperty('--brass', pr.frame); r.setProperty('--shelf', pr.shelf); r.setProperty('--shelf-edge', pr.edge); }
     applyMaterial(); applyNeon(); seasonFx(); if($('seasonBar')) renderSeasonBar();
+    try{ applyPageBg(); }catch(e){}
   }
   // ---- Tipo de vitrina: madera, metal, vidrio o plástico ----
   const MATS = [
