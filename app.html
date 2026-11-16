@@ -1799,7 +1799,9 @@ body.clientmode .decoshop{display:none}
 @keyframes htouch{0%{transform:scale(1)}30%{transform:scale(1.08);box-shadow:0 0 0 4px var(--accent),0 0 26px 6px var(--accent)}100%{transform:scale(1)}}
 .hav .heyes{animation:hblink 4.5s infinite;transform-origin:40px 39px}
 @keyframes hblink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
-.hav.talking .hmouth{animation:htalk .22s ease-in-out infinite alternate;transform-origin:40px 48px}
+.hav.talking .hmouth{animation:htalk .18s ease-in-out infinite alternate;transform-origin:40px 48px}
+.hav.talking svg{animation:hbob .32s ease-in-out infinite alternate}
+@keyframes hbob{from{transform:translateY(0) rotate(-2deg)}to{transform:translateY(-4px) rotate(2deg)}}
 @keyframes htalk{from{transform:scaleY(.6)}to{transform:scaleY(1.9)}}
 .hpanel{position:relative;width:min(calc(340px * var(--pk, .8)),calc(100vw - 24px));max-height:min(calc(70vh * var(--pk, .8)),560px);overflow:auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;gap:10px;box-shadow:0 18px 40px -16px var(--shadow)}
 .hclose{position:absolute;right:8px;top:8px;border:0;background:var(--bg);color:var(--ink);width:28px;height:28px;border-radius:50%;cursor:pointer}
@@ -4000,6 +4002,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
     if(!products.find(x => x.id === id)) return;
     lastFocus = document.activeElement;
     modalId = id; photoIdx = 0; delArmed = false; modalMode = mode || 'photos'; spinIdx = 0;
+    try{ if(PUBLIC && $('hSay') && !$('hSay').closest('[hidden]')){ const p0 = products.find(x => x.id === id); $('hSay').textContent = `👆 Tocaste ${p0.name}${curPrice(p0) ? ' · ' + curPrice(p0) : ''}. ¿Te lo agrego al carrito?`; } }catch(e){}
     if(selectedId !== id) select(id, true);
     renderModal();
     $('modal').hidden = false;
@@ -9701,12 +9704,16 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     const av = $('hRow').querySelector(`[data-hav="${hCur}"]`) || $('hRow').querySelector('.hav');
     $('hSay').textContent = text;
     if(!window.speechSynthesis) return;
-    const h = HELPERS[hCur] || HELPERS.sofi, u = new SpeechSynthesisUtterance(sayMoney(text.replace(/[\u{1F300}-\u{1FAFF}]/gu, '')));
-    u.lang = VLANG(); u.pitch = h.pitch; u.rate = 1.02;
+    // habla corto y rápido: dice las primeras frases (el resto queda escrito), así no aburre
+    const clean = text.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, ''), frs = clean.match(/[^.!?¿¡]*[.!?]+|[^.!?]+$/g) || [clean];
+    let corto = ''; for(const f of frs){ if(corto && (corto + f).length > 190) break; corto += f; }
+    const h = HELPERS[hCur] || HELPERS.sofi, u = new SpeechSynthesisUtterance(sayMoney(corto.trim() || clean));
+    u.lang = VLANG(); u.pitch = h.pitch; u.rate = 1.14;
     const vs = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith(u.lang.slice(0, 2)));
     const want = h.female ? /female|mujer|paulina|monica|helena|sabina|laura|luciana|google español/i : /male|hombre|jorge|diego|pablo|juan|carlos/i;
     u.voice = vs.find(v => want.test(v.name)) || vs[0] || null;
     u.onstart = () => av && av.classList.add('talking'); u.onend = u.onerror = () => { av && av.classList.remove('talking'); duck(false); };
+    av && av.classList.add('talking');   // se mueve apenas responde, sin esperar a que arranque la voz
     duck(true); speechSynthesis.cancel(); speechSynthesis.speak(u);
   }
   const STOP = new Set('mostrame mostra mostrar muestrame quiero queres ver hay que el la los las lo de del un una unos unas me por favor busco buscar tenes tienen tiene algo dame con para en y o a al mi es son cuanto cuesta sale precio vitrina tienda ahi aca esto eso'.split(' '));
@@ -9889,7 +9896,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     const av = $('cBtn');
     if(!window.speechSynthesis){ then && setTimeout(then, Math.max(2500, text.length * 60)); return; }
     const u = new SpeechSynthesisUtterance(sayMoney(text));
-    u.lang = VLANG(); u.pitch = CAJERA.pitch; u.rate = 1.03;
+    u.lang = VLANG(); u.pitch = CAJERA.pitch; u.rate = 1.12;
     const vs = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith(u.lang.slice(0, 2)));
     // otra voz que la de los vendedores: la última femenina disponible, o la última de la lista
     const fem = vs.filter(v => /female|mujer|paulina|monica|helena|sabina|laura|luciana|marisol|elena/i.test(v.name));
@@ -10056,6 +10063,11 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   function hAnswer(q){
     const n = norm(q).trim();
     if(hGuia(q, n)) return;
+    { const pv = $('pqView'); if(pv && !pv.hidden){
+        if(/(mas opcion|otras opcion|opciones|recomend|que me (aconsej|suger)|ideas)/.test(n)){ const bo = $('pqOpt'); if(bo && !bo.disabled){ bo.click(); return hSpeak('¡Dale! Te armo 3 opciones con distintos precios. Esperá un toque.'); } return hSpeak('Primero subí una foto, así te armo las opciones.'); }
+        if(/(presupuesto|cuanto (sale|cuesta|me sale)|armalo|calcul)/.test(n)){ const bg = $('pqGo'); if(bg && !bg.disabled){ bg.click(); return hSpeak('¡Dale! Ya te armo el presupuesto.'); } }
+        if(/(turno|cuando (pueden|podes|vienen)|dia|horario)/.test(n) && $('pqAgenda')){ $('pqAgenda').scrollIntoView({block: 'center', behavior: 'smooth'}); return hSpeak('Elegí abajo el día y el horario que te quede mejor.'); }
+      } }
     if(/\b(hablar|hablo|comunicar|comunicame|contactar|pasame|atender|atienda|conectar)\b.*\b(duen[oa]|persona|alguien|humano|encargad[oa]|real|vos|ella|el|responsable)\b/.test(n) || /\b(una persona|un humano|persona real|la duena|el dueno|la encargada|el encargado)\b/.test(n) || (ownOn() && n.length < 40 && norm(ownName()).length > 2 && /\b(hablar|hablo|comunicar|pasame|contactar)\b/.test(n) && n.includes(norm(ownName())))) return hHandoff('');
     if(esParquero() && /^corte comun$|corte comun|un corte|cortar el pasto|solo el pasto/.test(n) && !/presupuest/.test(n)){ hShow([]); openParque(); try{ $('pqQuiere').value = 'Corte común de pasto'; const nm = localStorage.getItem('v360-cli-nombre-' + (window.VITRINA_SLUG || '')); if(nm && $('pqNom')) $('pqNom').value = nm; }catch(e){}
       return hSpeak('¡Perfecto! Tocá “Sacar o elegir fotos” y mandame una o dos fotos de tu parque, que se vea todo el pasto. Después tocá “Armar mi presupuesto” y te lo paso al toque.'); }
