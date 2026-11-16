@@ -268,7 +268,12 @@ async function vivoTick() {
   if (!F || !F.vivo || !F.hoy || !INV) return;
   try { const r = await fetch('/api/fiesta?accion=vivo&f=' + CODE + '&i=' + encodeURIComponent(TOK)); const j = await r.json(); if (!r.ok || !j.vivo) return; VIVO = j; F.atraso = j.atraso || 0;
     (j.avisos || []).forEach(a => { if (!vistos['a' + a.id] && Date.now() - Date.parse(a.t) < 45 * 60e3) { marcarVisto('a' + a.id); toast('📢 ' + a.txt, nomFiesta(F), true); } else marcarVisto('a' + a.id); });
-    (j.pedidos || []).forEach(p => { const k = p.estado + '|' + p.moza; if (estadoAnt[p.id] && estadoAnt[p.id] !== k && p.estado === 'camino') toast(p.moza ? `🚶 ${p.moza} te trae tu pedido` : '🚶 Tu pedido va en camino', p.items.map(x => x.n).join(', ')); estadoAnt[p.id] = k; });
+    (j.pedidos || []).forEach(p => { const k = p.estado + '|' + p.moza, ant = estadoAnt[p.id];
+      if (ant && ant !== k) { const que = listaPed(p);
+        if (p.estado === 'camino') { const t = p.moza ? `🚶 ${p.moza} te trae ${que}` : `🚶 Ya va en camino ${que}`; toast(t, nomFiesta(F)); if (FL) flDecir(t + ' 😊', [{t: '👍 Gracias', alt: true, f: () => $('#flb').classList.remove('on')}]); }
+        else if (p.estado === 'entregado') { if (FL) flDecir(`¡Que lo disfrutes! 🥂 ¿Necesitás algo más?`, [{t: '🥤 Pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: 'No, gracias', alt: true, f: () => $('#flb').classList.remove('on')}]); }
+        else if (p.estado === 'nuevo' && p.moza && !ant.endsWith('|' + p.moza)) toast(`👩 ${p.moza} va a llevarte ${que}`, nomFiesta(F)); }
+      estadoAnt[p.id] = k; });
   } catch (e) {}
   momentos().forEach((m, i, M) => { const k = 'c' + m.h + m.nombre; if (!vistos[k] && Date.now() >= m.aviso && Date.now() - m.aviso < 30 * 60e3) { marcarVisto(k); if (m.a) { toast(m.a, nomFiesta(F), true); const sig = M[i + 1]; if (FL) flDecir(m.a + (sig ? ` Después, a las ${hhmm(sig.ts)}: ${sig.nombre.charAt(0).toLowerCase() + sig.nombre.slice(1)}.` : ''), [{t: '🥤 Pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: '👍 Dale', alt: true, f: () => $('#flb').classList.remove('on')}]); } } else if (!vistos[k] && Date.now() - m.aviso >= 30 * 60e3) marcarVisto(k); });
   const ae = document.activeElement; if (!(ae && (ae.id === 'pnota'))) pVivo();
@@ -316,6 +321,7 @@ function flOpsPedir() {
   return carta.map(x => ({t: x.n, f: () => flConfirmar([{n: x.n, c: 1}])})).concat([{t: 'Ver todo', alt: true, f: () => { $('#flb').classList.remove('on'); const v = $('#vivo'); if (v) v.scrollIntoView({behavior: 'smooth'}); }}]);
 }
 function flEntendi(t) { const it = entender(t); if (!it.length) return flDecir('Mmm, no lo encontré en la carta 🤔. Tocá una opción o probá con otras palabras.', flOpsPedir(), true); flConfirmar(it); }
+const listaPed = p => { const it = p.items || []; return it.length === 1 ? 'tu ' + (it[0].c > 1 ? it[0].c + ' ' : '') + it[0].n : 'tu pedido (' + it.map(x => (x.c > 1 ? x.c + ' ' : '') + x.n).join(', ') + ')'; };
 const listaTx = it => it.map(x => x.c + ' ' + x.n).join(', ').replace(/, ([^,]*)$/, ' y $1');
 function flConfirmar(it) { flPend = it; flDecir(`¿Te pido ${listaTx(it)}?`, [{t: '✅ Sí, pedir', f: flPedir}, {t: '✏️ Cambiar', alt: true, f: () => flDecir('Decime qué querés 🙂', flOpsPedir(), true)}]); }
 async function flPedir() {
@@ -345,7 +351,7 @@ function flashy() {
   setInterval(flPasoDeVez, 60e3);
   if ('speechSynthesis' in window) speechSynthesis.getVoices();
 }
-function arrancarVivo() { flashy(); clearInterval(vivoTimer); if (F && F.vivo && F.hoy && INV && !PREV) { vivoTick(); vivoTimer = setInterval(vivoTick, 10000); } }
+function arrancarVivo() { flashy(); clearInterval(vivoTimer); if (F && F.vivo && F.hoy && INV && !PREV) { vivoTick(); vivoTimer = setInterval(vivoTick, 7000); } }
 const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const instalada = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone;
 function guardar() {

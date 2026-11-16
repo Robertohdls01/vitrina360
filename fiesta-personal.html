@@ -67,9 +67,9 @@ function tarjeta(p) {
   let b = '';
   if (p.estado === 'nuevo') {
     if (esMozas) b = `<button class="btn azul" data-llevo="${p.id}">🚶 Lo llevo yo</button>`;
-    else b = (mz.length ? mz.map(m => `<button class="chip ${p.moza === m ? 'on' : ''}" data-moza="${esc(m)}" data-id="${p.id}">${esc(m)}</button>`).join('') : '') + `<button class="btn azul" data-cam="${p.id}">🚶 En camino</button>`;
+    else b = mz.length ? `<div style="width:100%;font-size:14px;color:var(--soft)">¿Quién lo lleva? Tocá su nombre:</div>` + mz.map(m => `<button class="btn azul" data-moza="${esc(m)}" data-id="${p.id}">🚶 ${esc(m)}${p.moza === m ? ' ✓' : ''}</button>`).join('') : `<button class="btn azul" data-cam="${p.id}">🚶 En camino</button>`;
   }
-  if (p.estado === 'camino') b = `<button class="btn ok" data-ent="${p.id}">✅ Entregado</button>`;
+  if (p.estado === 'camino') b = `<button class="btn ok" data-ent="${p.id}">✅ Entregado</button>` + (!esMozas && mz.length > 1 ? `<details style="width:100%"><summary style="font-size:14px;color:var(--soft)">Cambiar quién lo lleva</summary>${mz.filter(m => m !== p.moza).map(m => `<button class="chip" data-moza="${esc(m)}" data-id="${p.id}">${esc(m)}</button>`).join(' ')}</details>` : '');
   return `<div class="p ${p.estado}"><span class="hace ${tarde(p) ? 'tarde' : ''}">${hace(p.t)}${tarde(p) ? ' ⚠️' : ''}</span><div class="mesa">Mesa ${esc(p.mesa || '?')}</div><div class="quien">${esc(p.nombre)}${p.prueba ? ' · 🧪 prueba' : ''}${p.moza ? ' · lleva ' + esc(p.moza) : ''}</div>
     <div class="its">${p.items.map(x => (x.c > 1 ? x.c + ' × ' : '') + esc(x.n)).join('<br>')}</div>${p.nota ? `<div class="nota">📝 ${esc(p.nota)}</div>` : ''}
     <div class="btns">${b}${p.estado !== 'entregado' ? `<button class="btn alt sm" data-can="${p.id}">Cancelar</button>` : ''}</div></div>`;
@@ -92,7 +92,7 @@ function pintar() {
   if (tab === 'herr') return herramientas();
   const lista = L[tab] || [];
   $('#main').innerHTML = lista.length ? lista.map(tarjeta).join('') : `<div class="vacio">${tab === 'nuevo' ? '🙌 No hay pedidos para atender.<br>Cuando llegue uno, suena y vibra.' : 'Nada por acá.'}</div>`;
-  $$('[data-moza]').forEach(b => b.onclick = () => cambiar(b.dataset.id, {moza: b.dataset.moza}));
+  $$('[data-moza]').forEach(b => b.onclick = () => cambiar(b.dataset.id, {moza: b.dataset.moza, estado: 'camino'}));
   $$('[data-cam]').forEach(b => b.onclick = () => { const p = PED.find(x => String(x.id) === b.dataset.cam); if ((F.mozas || []).length && !p.moza) return alert('Primero tocá el nombre de la moza que lo lleva.'); cambiar(b.dataset.cam, {estado: 'camino'}); });
   $$('[data-llevo]').forEach(b => b.onclick = () => cambiar(b.dataset.llevo, {estado: 'camino', moza: yo}));
   $$('[data-ent]').forEach(b => b.onclick = () => cambiar(b.dataset.ent, {estado: 'entregado'}));
