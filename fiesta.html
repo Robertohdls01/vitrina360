@@ -74,6 +74,7 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .qty b{min-width:22px;text-align:center;font-size:20px}
 .ped{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:8px;font-size:16px}
 .ped .est{font-weight:800;font-size:17px}
+.prog{margin:10px 0 4px}.prog summary{font-weight:700;cursor:pointer;padding:6px 0}.prog .it{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:16px}.prog .it b{min-width:50px}.prog .ya{opacity:.5}.prog .ahora{font-weight:800;color:var(--ac)}
 .prox{background:var(--bg);border-radius:14px;padding:10px 12px;margin:8px 0;font-size:16px}
 .toast{position:fixed;left:12px;right:12px;top:12px;z-index:20;background:var(--ac);color:#fff;border-radius:18px;padding:16px 18px;font:700 20px/1.35 var(--sans);box-shadow:0 12px 30px rgba(0,0,0,.3);display:none}
 .toast.on{display:block;animation:baja .35s ease}.toast small{display:block;font:500 14px var(--sans);opacity:.9;margin-top:6px}
@@ -237,6 +238,8 @@ function momentos() { // cada momento del cronograma con su hora real (los de de
 }
 const hhmm = t => new Date(t).toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Argentina/Buenos_Aires'});
 const EST = p => p.estado === 'entregado' ? '✅ Entregado' : p.estado === 'cancelado' ? '❌ Cancelado' : p.estado === 'camino' ? `🚶 Ya va ${p.moza ? esc(p.moza) : 'la moza'} a tu mesa` : p.moza ? `👩 ${esc(p.moza)} te lo va a llevar` : '📝 Recibido: enseguida te avisamos quién te lo trae';
+let progAbierto = false;
+document.addEventListener('toggle', e => { if (e.target.classList && e.target.classList.contains('prog')) progAbierto = e.target.open; }, true);
 function pVivo() {
   const el = $('#vivo'); if (!el) return;
   if (!INV) { el.style.display = 'none'; return; } el.style.display = '';
@@ -251,6 +254,7 @@ function pVivo() {
   el.innerHTML = `<h3>Tu fiesta</h3><p class="hola" style="text-align:center">¡Hola ${esc(nom)}! 🎉</p>
     ${mesa ? `<div class="mesaG"><div class="mesa">Mesa ${esc(mesa)}</div></div>` : ''}
     ${prox ? `<div class="prox">⏰ <b>${hhmm(prox.ts)}</b> · ${prox.ts > ahora ? 'Se viene: ' : 'Ahora: '}<b>${esc(prox.nombre)}</b></div>` : ''}
+    ${M.length ? `<details class="prog" ${progAbierto ? 'open' : ''}><summary>📋 El programa de la noche${F.atraso ? ' (corrido ' + F.atraso + ' min)' : ''}</summary>${M.map(x => { const ya = x.ts < ahora - 5 * 60e3, es = prox && x === prox; return `<div class="it ${ya ? 'ya' : ''} ${es ? 'ahora' : ''}"><b>${hhmm(x.ts)}</b><span>${ya ? '✅ ' : es ? '👉 ' : ''}${esc(x.nombre)}</span></div>`; }).join('')}</details>` : ''}
     ${carta.length ? `<p style="font-weight:700;margin:12px 0 4px">¿Qué te traemos? 🛎</p>${carta.map((x, i) => `<div class="item"><span>${esc(x.n)}</span><span class="qty"><button data-q="${i}" data-d="-1" aria-label="menos">−</button><b id="q${i}">${CANT[x.n] || 0}</b><button data-q="${i}" data-d="1" aria-label="más">+</button></span></div>`).join('')}
       <input id="pnota" maxlength="140" placeholder="¿Algo más? (opcional)" style="width:100%;margin-top:10px;font:16px var(--sans);padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)">
       <button class="btn big2" id="pedir" style="margin-top:10px">🛎 Pedir a mi mesa</button><div id="pmsg"></div>` : ''}
@@ -367,12 +371,12 @@ async function flPedir() {
     if (!r.ok) throw new Error(j.error || 'No se pudo'); marcaInter(); await vivoTick(); flDecir(j.moza ? `¡Listo! 🛎 Ya se lo paso a ${j.moza}, que atiende tu mesa. Te aviso cuando va en camino.` : `¡Listo! 🛎 Ya se lo paso a la encargada. Enseguida te aviso quién te trae ${it.length === 1 ? 'tu ' + it[0].n : 'tu pedido'}.`, [{t: '👍 Gracias', alt: true, f: () => $('#flb').classList.remove('on')}]);
   } catch (e) { flDecir('😕 ' + e.message, [{t: 'Ok', alt: true, f: () => $('#flb').classList.remove('on')}]); }
 }
-function flQueViene() { const M = momentos(), p = M.find(x => x.ts > Date.now()); flDecir(p ? `A las ${hhmm(p.ts)} es ${p.nombre.charAt(0).toLowerCase() + p.nombre.slice(1)} ✨` : 'Ya pasaron todos los momentos del cronograma. ¡A disfrutar! 💃', [{t: '🥤 Pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: 'Listo', alt: true, f: () => $('#flb').classList.remove('on')}]); }
+function flQueViene() { const M = momentos(), sig = M.filter(x => x.ts > Date.now()).slice(0, 3); flDecir(sig.length ? 'Lo que viene: ' + sig.map(x => `${hhmm(x.ts)} ${x.nombre.charAt(0).toLowerCase() + x.nombre.slice(1)}`).join(' · ') + ' ✨' : 'Ya pasaron todos los momentos del cronograma. ¡A disfrutar! 💃', [{t: '🥤 Pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: 'Listo', alt: true, f: () => $('#flb').classList.remove('on')}]); }
 const LSI = () => 'fiestaInter:' + CODE;
 const marcaInter = () => { try { localStorage.setItem(LSI(), String(Date.now())); } catch (e) {} };
 function flMenu() { const nom = INV.nombre.split(' ')[0], mesa = INV.mesa || MESA;
   const reg = (F.lugares || []).find(x => /regal/i.test(x.n));
-  flDecir(`¡Hola ${nom}! ${mesa ? 'Estás en la mesa ' + mesa + '. ' : ''}${reg && !yaSaludo() ? 'Si traés regalo, la mesa de regalos está ' + reg.d + ' 🎁. ' : ''}¿Querés que te traigan algo para tomar?`, [{t: '🥤 Sí, pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: '⏰ ¿Qué viene?', alt: true, f: flQueViene}].concat((F.lugares || []).length ? [{t: '📍 ¿Dónde está…?', alt: true, f: flLugares}] : []).concat([{t: 'Ahora no', alt: true, f: () => { marcaInter(); $('#flb').classList.remove('on'); }}])); try { localStorage.setItem('fiestaSaludo:' + CODE, '1'); } catch (e) {} }
+  flDecir(`¡Hola ${nom}! ${mesa ? 'Estás en la mesa ' + mesa + '. ' : ''}${reg && !yaSaludo() ? 'Si traés regalo, la mesa de regalos está ' + reg.d + ' 🎁. ' : ''}¿Querés que te traigan algo para tomar?`, [{t: '🥤 Sí, pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: '⏰ ¿Qué viene?', alt: true, f: flQueViene}, {t: '📋 Todo el programa', alt: true, f: () => { $('#flb').classList.remove('on'); progAbierto = true; pVivo(); const d = document.querySelector('.prog'); if (d) d.scrollIntoView({behavior: 'smooth', block: 'center'}); }}].concat((F.lugares || []).length ? [{t: '📍 ¿Dónde está…?', alt: true, f: flLugares}] : []).concat([{t: 'Ahora no', alt: true, f: () => { marcaInter(); $('#flb').classList.remove('on'); }}])); try { localStorage.setItem('fiestaSaludo:' + CODE, '1'); } catch (e) {} }
 const yaSaludo = () => { try { return !!localStorage.getItem('fiestaSaludo:' + CODE); } catch (e) { return false; } };
 function flPasoDeVez() { // cada tanto, sin molestar: "¿te falta algo en la mesa?"
   if (!FL || $('#flb').classList.contains('on') || document.hidden) return;
