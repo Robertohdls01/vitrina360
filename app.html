@@ -1744,8 +1744,10 @@ body.clientmode .decoshop{display:none}
 .helpers > *{pointer-events:auto}
 .hrow{display:flex;gap:2px}
 .hav{position:relative;border:0;background:none;padding:0;width:62px;cursor:pointer;display:grid;justify-items:center}
-.hav svg{width:62px;height:auto;animation:hbob 3.2s ease-in-out infinite;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2))}
-.hav + .hav svg{animation-delay:-1.6s}
+.hav svg{width:62px;height:auto;animation:hlive 2.6s ease-in-out infinite;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2))}
+.hav + .hav svg{animation-delay:-1.3s}
+/* quieto no tiene gracia: respira, se balancea y cada tanto da un saltito y saluda */
+@keyframes hlive{0%,100%{transform:translateY(0) rotate(0)}15%{transform:translateY(-3px) rotate(-4deg)}30%{transform:translateY(0) rotate(3deg)}45%{transform:translateY(-2px) rotate(0)}70%{transform:translateY(-9px) rotate(-6deg) scale(1.05)}78%{transform:translateY(0) rotate(5deg)}86%{transform:translateY(-3px) rotate(-2deg)}}
 .hav.on svg{filter:drop-shadow(0 0 6px var(--accent)) drop-shadow(0 4px 6px rgba(0,0,0,.2))}
 .hlive{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:10px}
 .hlive > div{display:grid;gap:6px}
@@ -1800,8 +1802,8 @@ body.clientmode .decoshop{display:none}
 .hav .heyes{animation:hblink 4.5s infinite;transform-origin:40px 39px}
 @keyframes hblink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
 .hav.talking .hmouth{animation:htalk .18s ease-in-out infinite alternate;transform-origin:40px 48px}
-.hav.talking svg{animation:hbob .32s ease-in-out infinite alternate}
-@keyframes hbob{from{transform:translateY(0) rotate(-2deg)}to{transform:translateY(-4px) rotate(2deg)}}
+.hav.talking svg{animation:htalkbob .3s ease-in-out infinite alternate}
+@keyframes htalkbob{from{transform:translateY(0) rotate(-3deg) scale(1)}to{transform:translateY(-6px) rotate(3deg) scale(1.04)}}
 @keyframes htalk{from{transform:scaleY(.6)}to{transform:scaleY(1.9)}}
 .hpanel{position:relative;width:min(calc(340px * var(--pk, .8)),calc(100vw - 24px));max-height:min(calc(70vh * var(--pk, .8)),560px);overflow:auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;gap:10px;box-shadow:0 18px 40px -16px var(--shadow)}
 .hclose{position:absolute;right:8px;top:8px;border:0;background:var(--bg);color:var(--ink);width:28px;height:28px;border-radius:50%;cursor:pointer}
