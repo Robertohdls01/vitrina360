@@ -111,7 +111,7 @@ function limpiar(d, prev) {
     // fiesta en vivo: lo que se puede pedir a la mesa, el cronograma de la noche y cómo trabaja el personal
     carta: (Array.isArray(d.carta) ? d.carta : []).slice(0, 80).map(x => ({ n: corto(x && x.n, 40), alc: !!(x && x.alc) })).filter(x => x.n),
     crono: (Array.isArray(d.crono) ? d.crono : []).slice(0, 30).map(x => ({ h: /^\d{2}:\d{2}$/.test(String(x && x.h)) ? x.h : '', t: corto(x && x.t, 60), a: corto(x && x.a, 140), m: [0, 5, 10, 15, 30, 60].includes(+(x && x.m)) ? +x.m : 10 })).filter(x => x.h && x.t),
-    modoP: d.modoP === 'mozas' ? 'mozas' : 'encargada',
+    modoP: d.modoP === 'mozas' ? 'mozas' : 'encargada', flLook: ['normal', 'traje', 'camisa', 'fiesta', 'claro'].includes(d.flLook) ? d.flLook : 'traje',
     zonas: (d.zonas && typeof d.zonas === 'object' ? Object.entries(d.zonas) : []).slice(0, 40).reduce((o, [k, v]) => { k = corto(k, 30); v = corto(v, 60).replace(/[^\d,\- a-zA-Z]/g, ''); if (k && v) o[k] = v; return o; }, {})
   };
   if (typeof d.foto === 'string' && (d.foto === '' || /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(d.foto))) {
@@ -134,7 +134,7 @@ function limpiar(d, prev) {
 function publica(e) {
   const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'mostrarMesa', 'pedirMenu', 'foto', 'organiza'].forEach(k => { o[k] = e[k]; });
   o.total = (e.invitados || []).length; o.vivo = vivoOk(e); o.hoy = enDia(e) || !!e.demo;
-  if (o.vivo) { o.carta = e.carta || []; o.crono = e.crono || []; o.atraso = e.atraso || 0; o.avisos = (e.avisos || []).slice(-15); }
+  if (o.vivo) { o.flLook = e.flLook || 'traje'; o.carta = e.carta || []; o.crono = e.crono || []; o.atraso = e.atraso || 0; o.avisos = (e.avisos || []).slice(-15); }
   return o;
 }
 const enDia = e => { if (!e || !e.fecha) return false; const t = Date.parse(e.fecha + 'T' + (e.hora || '21:00') + ':00-03:00'), n = Date.now(); return n > t - 8 * 3600e3 && n < t + 14 * 3600e3; };
