@@ -20,7 +20,7 @@ nav{display:flex;justify-content:space-between;align-items:center;padding:16px 0
 .logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
 .logo img{width:48px;height:48px;border-radius:50%;display:block;box-shadow:0 4px 12px rgba(0,0,0,.18)}
 .heroQr{margin:0 auto 18px;display:grid;justify-items:center;gap:6px}.heroQr img{width:230px;height:230px;border-radius:50%;box-shadow:0 10px 30px rgba(20,10,40,.18)}.heroQr figcaption{font-size:14px;font-weight:700;color:var(--muted)}
-.onlyDesk{display:none}@media (min-width:861px){.onlyDesk{display:grid}.heroLogo.onlyPhone{display:none}}
+.onlyDesk{display:none}.onlyDeskTx{display:none}@media (min-width:861px){.onlyDesk{display:grid}.heroLogo.onlyPhone{display:none}.onlyDeskTx{display:block}.onlyPhoneTx{display:none}}
 .heroLogo{width:150px;height:150px;border-radius:50%;display:block;margin:0 auto 16px;box-shadow:0 10px 30px rgba(20,10,40,.28)}
 .logo b{font-size:20px;line-height:1.1}.logo small{display:block;font-size:13px;color:var(--muted);font-weight:600}
 .btn{border:0;border-radius:999px;padding:13px 20px;font-weight:800;font-size:16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;cursor:pointer}
@@ -70,8 +70,7 @@ footer b{color:var(--ink)}
 
 <main>
   <div class="hero wrap">
-    <img class="heroLogo onlyPhone" src="/pv-logo.jpg?v=2" alt="Logo de Pro Video JSRHG: productos físicos y digitales">
-    <figure class="heroQr onlyDesk"><img src="/pv-qr.png?v=2" alt="Código QR de Pro Video JSRHG para abrir esta página en el celular"><figcaption>📲 Escaneá y abrí Pro Video en tu celular</figcaption></figure>
+    <figure class="heroQr"><img src="/pv-qr.png?v=2" alt="Código QR de Pro Video JSRHG para abrir esta página en el celular"><figcaption class="onlyDeskTx">📲 Escaneá y abrí Pro Video en tu celular</figcaption><figcaption class="onlyPhoneTx">📲 Mostrá este QR para que otra persona entre a Pro Video</figcaption></figure>
     <h1>Apps con <span>inteligencia artificial</span> para tu negocio</h1>
     <p>En Pro Video creamos herramientas simples para comercios, restaurantes, hoteles, casinos y profesionales de oficios: tu tienda online, tu menú QR, tus presupuestos con fotos y tus reseñas, todo con una asistente virtual que atiende por vos.</p>
     <div class="ctas">
