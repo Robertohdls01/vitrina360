@@ -353,6 +353,27 @@ async function parqueIA(res, KEY, b, req) {
     OF = { rol: nom + ' con muchos años de experiencia en Argentina', foto: 'el trabajo que necesita (lo que hay que arreglar, instalar o hacer)', m2: false, visita: true,
       guia: `- Qué es y qué hay que hacer, como lo vería un ${nom} en la visita: materiales, medidas aproximadas (usá referencias como puertas ~2 m × 0,8 m), estado y si es reparación o hay que hacerlo nuevo.\n- Lo que puede complicar el trabajo (altura, acceso, desgaste, instalación vieja).`,
       tips: 'Si ves algún peligro, avisale al cliente.', opc: 'el cliente pregunta "¿qué me conviene?". Proponele 2 o 3 OPCIONES de la más económica a la más completa.' }; }
+  // oficios: la IA mira las fotos y le hace al cliente las preguntas que haría el profesional (sin precio)
+  if (b.modo === 'preguntas' && OF) {
+    const quiere0 = String(b.quiere || '').slice(0, 300);
+    const pr = `Sos ${OF.rol}. Un cliente te manda ${ims.length > 1 ? ims.length + ' fotos' : 'una foto'} de ${OF.foto}.${quiere0 ? ' Cuenta: "' + quiere0 + '".' : ''}
+NO des precios ni presupuesto: el precio lo pone el profesional. Tu tarea es mirar la foto y hacerle al cliente las preguntas que el profesional le haría para poder presupuestar bien (por ejemplo: si quiere cambiar todo o arreglar solo esa parte, medidas, materiales, acceso, si sigue perdiendo, etc.). Preguntas cortas, sobre lo que se ve en la foto, cada una con 2 a 4 respuestas cortas para tocar.
+Fijate en:
+${OF.guia}
+Respondé en español rioplatense (con "vos") y SOLO con JSON válido:
+{"veo":"1 frase corta de lo que ves en la foto","seguridad":"advertencia importante si hay peligro, o vacío","preguntas":[{"p":"pregunta corta","ops":["respuesta","respuesta"]}]}
+Entre 3 y 5 preguntas.`;
+    const content = ims.map(im => ({ type: 'image', source: { type: 'base64', media_type: im.type && /^image\/(jpeg|png|webp|gif)$/.test(im.type) ? im.type : 'image/jpeg', data: im.data } })).concat([{ type: 'text', text: pr }]);
+    try {
+      const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'x-api-key': KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        body: JSON.stringify({ model: process.env.IA_MODEL_PREGUNTAS || 'claude-haiku-5-5', max_tokens: 900, messages: [{ role: 'user', content }] }) });
+      const j = await r.json().catch(() => ({})); if (!r.ok) return res.status(502).json({ error: 'No se pudo mirar la foto.' });
+      const txt = (j.content || []).filter(c => c.type === 'text').map(c => c.text).join(''), m = txt.match(/\{[\s\S]*\}/);
+      const o = m ? JSON.parse(m[0]) : {}, cut = (v, n) => String(v || '').slice(0, n);
+      const preguntas = (Array.isArray(o.preguntas) ? o.preguntas : []).slice(0, 5).map(q => ({ p: cut(q.p, 120), ops: (Array.isArray(q.ops) ? q.ops : []).slice(0, 4).map(x => cut(x, 50)).filter(Boolean) })).filter(q => q.p && q.ops.length >= 2);
+      return res.status(200).json({ veo: cut(o.veo, 240), seguridad: cut(o.seguridad, 240), preguntas });
+    } catch (e) { return res.status(502).json({ error: 'No se pudo mirar la foto.' }); }
+  }
   // los servicios y precios del parquero (o del profesional del oficio)
   const servs = [];
   try { (t.data.stores || []).forEach(st => (st.products || []).forEach(p => { if (!p || !p.name || servs.length >= 60 || p.sample) return;

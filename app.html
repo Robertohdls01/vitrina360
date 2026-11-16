@@ -6973,7 +6973,19 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     volquete: [['¿Qué vas a tirar?', ['Escombro', 'Restos de poda', 'Muebles y trastos', 'Mezcla']], ['¿Por cuántos días?', ['1 a 3', 'Una semana', 'Más']]],
     afilador: [['¿Qué hay que afilar?', ['Cuchillos', 'Tijeras', 'Herramientas', 'Cortadora de pasto']], ['¿Cuántos más o menos?', ['1 a 5', '6 a 15', 'Más de 15']]]
   };
-  const ofiQs = () => { const O = ofi() || OFI_BASE; return (OFI_Q[O.id] || []).concat(OFI_Q_GEN); };
+  let pqAIQs = null, pqAIVeo = '', pqAISeg = '', pqAIBusy = false;
+  const ofiQs = () => { const O = ofi() || OFI_BASE; return (pqAIQs && pqAIQs.length ? pqAIQs : (OFI_Q[O.id] || [])).concat(OFI_Q_GEN); };
+  const pqQsHTML = () => { const O = ofi() || OFI_BASE; return `${pqAIBusy ? '<p class="note" style="margin:0">🤖 Estoy mirando tus fotos para preguntarte lo justo…</p>' : ''}${pqAIVeo ? `<p style="margin:0">🤖 <b>Veo:</b> ${esc(pqAIVeo)}</p>` : ''}${pqAISeg ? `<p style="margin:0;color:#b91c1c">⚠️ ${esc(pqAISeg)}</p>` : ''}<b>📋 ${pqAIQs && pqAIQs.length ? 'Unas preguntas sobre tus fotos' : 'Unas preguntas rápidas'} (así ${esc(O.pro)} no te tiene que preguntar)</b>${ofiQs().map(([p, ops], i) => `<div style="display:grid;gap:4px"><span class="note" style="color:var(--ink)">${esc(p)}</span><div class="pqchips">${ops.map(o => `<button class="btn" type="button" data-pqqa="${i}">${esc(o)}</button>`).join('')}</div></div>`).join('')}`; };
+  async function pqPreguntar(){
+    const O = ofi() || OFI_BASE; if(!pqFotos.length || O.id === 'parques' || pqAIBusy) return;
+    pqAIBusy = true; const box = $('pqQs'); if(box) box.innerHTML = pqQsHTML();
+    try{ const r = await fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({parque: 1, modo: 'preguntas', slug: window.VITRINA_SLUG || (window.VITRINA_ME || {}).slug || '', images: pqFotos.map(f => ({type: 'image/jpeg', data: f.split(',')[1]})), quiere: ($('pqQuiere') || {}).value || ''})});
+      const j = await r.json().catch(() => ({}));
+      if(r.ok && Array.isArray(j.preguntas) && j.preguntas.length){ pqAIQs = j.preguntas.map(q => [q.p, q.ops]); pqAIVeo = j.veo || ''; pqAISeg = j.seguridad || '';
+        try{ hSpeak(`${j.veo ? 'Veo ' + j.veo.replace(/^./, c => c.toLowerCase()) + ' ' : ''}Contestame estas preguntas así ${O.pro} tiene todo para tu presupuesto.`); }catch(e){} }
+    }catch(e){}
+    pqAIBusy = false; const b2 = $('pqQs'); if(b2) b2.innerHTML = pqQsHTML();
+  }
   document.addEventListener('click', e => { const c = e.target.closest('[data-pqqa]'); if(!c) return; const on = !c.classList.contains('primary');
     c.parentElement.querySelectorAll('[data-pqqa]').forEach(x => x.classList.remove('primary')); if(on) c.classList.add('primary'); });
   function openParque(){
@@ -6995,7 +7007,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
           <div class="row" style="gap:6px"><button class="btn" type="button" data-pq="deshacer">↩ Deshacer</button><button class="btn" type="button" data-pq="borrar">🗑 Borrar</button></div></div></div>
       ${pq ? `<label class="note" style="display:grid;gap:4px">¿Qué querés hacer? (opcional)<input id="pqQuiere" maxlength="200" placeholder="${esc(O.ej)}"></label>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" data-pq="analizar" id="pqGo" ${pqFotos.length ? '' : 'disabled'}>🤖 Armar mi presupuesto con IA</button><button class="btn" type="button" data-pq="opciones" id="pqOpt" ${pqFotos.length ? '' : 'disabled'}>💡 ¿Qué me recomendás? Ver 3 opciones</button></div>` : `<label class="note" style="display:grid;gap:4px"><b style="color:var(--ink)">✍️ Contá todo lo que querés hacer</b>Con detalle: qué está roto o qué querés cambiar, cómo lo querés (${esc(O.ej.replace(/^Ej: /, 'ej: '))}).<textarea id="pqQuiere" maxlength="800" rows="4" placeholder="${esc(O.ej)}"></textarea></label>
-      <div class="pqbox" id="pqQs"><b>📋 Unas preguntas rápidas (así ${esc(O.pro)} no te tiene que preguntar)</b>${ofiQs().map(([p, ops], i) => `<div style="display:grid;gap:4px"><span class="note" style="color:var(--ink)">${esc(p)}</span><div class="pqchips">${ops.map(o => `<button class="btn" type="button" data-pqqa="${i}">${esc(o)}</button>`).join('')}</div></div>`).join('')}</div>
+      <div class="pqbox" id="pqQs">${pqQsHTML()}</div>
       <div class="row" style="gap:6px;flex-wrap:wrap"><input id="pqMNom" maxlength="60" placeholder="Tu nombre" style="flex:1;min-width:130px" value="${esc(pqCliNom() || '')}"><input id="pqMTel" maxlength="30" inputmode="tel" placeholder="Tu WhatsApp" style="flex:1;min-width:130px"></div>
       <button class="btn primary" type="button" data-pq="mandar" style="justify-self:start">📨 Mandarle todo a ${esc(O.pro)}</button>
       <p class="note" style="margin:0">Cada trabajo es distinto: ${esc(O.pro)} mira tus fotos y lo que contás, y te arma el presupuesto él mismo.</p>`}
@@ -7125,7 +7137,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         try{ localStorage.setItem('v360-cli-nombre-' + window.VITRINA_SLUG, nom); }catch(err){}
         const quien = O.pro.replace(/^./, c => c.toUpperCase()), n1 = nom.split(' ')[0];
         ov.querySelector('.tv').innerHTML = `<h2>${O.em || '📨'} ¡Listo, ${esc(n1)}!</h2><div class="pqbox" style="background:color-mix(in srgb,#25d366 10%,var(--surface))"><p style="margin:0">✅ Ya le mandé tus fotos y todo lo que me contaste ${esc(O.pro.replace(/^el /, 'al ').replace(/^la /, 'a la '))}.</p><p style="margin:0">${esc(quien)} lo mira y <b>en minutos te arma el presupuesto</b> y te escribe por WhatsApp al <b>${esc(tel)}</b>.</p><p class="note" style="margin:0">El precio lo pone ${esc(O.pro)}: cada trabajo es distinto y lo tiene que ver bien.</p></div><button class="btn" type="button" data-pq="cerrar">Cerrar</button>`;
-        pqFotos = []; pqRes = null;
+        pqFotos = []; pqRes = null; pqAIQs = null; pqAIVeo = ''; pqAISeg = '';
         try{ hSpeak(`¡Listo, ${n1}! Ya le mandé tus fotos y todo lo que me contaste ${O.pro.replace(/^el /, 'al ').replace(/^la /, 'a la ')}. En minutos te arma el presupuesto y te escribe por WhatsApp.`); }catch(err){}
       }catch(err){ msg.textContent = 'No se pudo conectar. Revisá internet y probá de nuevo.'; b.disabled = false; }
       return; }
@@ -7248,6 +7260,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(e.target.id !== 'pqFile') return; const fs = [...(e.target.files || [])].slice(0, ((ofi() || OFI_BASE).id === 'parques' ? 3 : 4) - pqFotos.length);
     for(const f of fs){ const u = URL.createObjectURL(f); const d = await tryShrink(u); URL.revokeObjectURL(u); if(d && /^data:/.test(d)) pqFotos.push(d); }
     pqFotosRender(); e.target.value = '';
+    if((ofi() || OFI_BASE).id !== 'parques'){ clearTimeout(window.__pqQT); window.__pqQT = setTimeout(pqPreguntar, 1200); }
   });
   // ---- La tienda como app en el celular del cliente: ícono con el logo del negocio (escanea el QR y la instala) ----
   if(PUBLIC && window.VITRINA_SLUG){
