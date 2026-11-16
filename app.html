@@ -7009,6 +7009,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" data-pq="analizar" id="pqGo" ${pqFotos.length ? '' : 'disabled'}>🤖 Armar mi presupuesto con IA</button><button class="btn" type="button" data-pq="opciones" id="pqOpt" ${pqFotos.length ? '' : 'disabled'}>💡 ¿Qué me recomendás? Ver 3 opciones</button></div>` : `${(window.SpeechRecognition || window.webkitSpeechRecognition) ? `<div class="pqbox" style="background:color-mix(in srgb,#7c3aed 7%,var(--surface))"><b>🎤 Contame qué pasa, hablando</b><span class="note">Es lo más fácil: tocá el botón y contame todo (qué pasa, dónde, medidas). Yo lo anoto.</span><button class="btn primary" type="button" data-pq="hablar" id="pqMicB" style="justify-self:start;font-size:17px;padding:12px 20px">🎤 Tocá y hablá</button><span class="note" id="pqMicTx"></span></div>` : ''}
       <label class="note" style="display:grid;gap:4px"><b style="color:var(--ink)">✍️ ${(window.SpeechRecognition || window.webkitSpeechRecognition) ? 'O escribilo acá' : 'Contá todo lo que querés hacer'}</b>Qué está roto o qué querés cambiar, y cómo lo querés (${esc(O.ej.replace(/^Ej: /, 'ej: '))}).<textarea id="pqQuiere" maxlength="800" rows="4" placeholder="${esc(O.ej)}"></textarea></label>
       <div class="pqbox" id="pqQs">${pqQsHTML()}</div>
+      <div class="pqbox"><b>📅 ¿Qué día y horario te queda bien para que venga ${esc(O.pro)}? <span class="note">(opcional)</span></b><span class="note">Estos son los días y horarios libres de su agenda. Él te confirma cuando te pasa el presupuesto.</span><div id="pqAgenda">${pqAgendaHTML()}</div></div>
       <div class="row" style="gap:6px;flex-wrap:wrap"><input id="pqMNom" maxlength="60" placeholder="Tu nombre" style="flex:1;min-width:130px" value="${esc(pqCliNom() || '')}"><input id="pqMTel" maxlength="30" inputmode="tel" placeholder="Tu WhatsApp" style="flex:1;min-width:130px"></div>
       <button class="btn primary" type="button" data-pq="mandar" style="justify-self:start">📨 Mandarle todo a ${esc(O.pro)}</button>
       <p class="note" style="margin:0">Cada trabajo es distinto: ${esc(O.pro)} mira tus fotos y lo que contás, y te arma el presupuesto él mismo.</p>`}
@@ -7028,6 +7029,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       <p class="note" style="margin:0">🔒 Tus fotos no se guardan: se usan solo para armar el presupuesto. Es una estimación: el precio final lo confirma ${esc(O.pro)}.</p>
       <button class="btn" type="button" data-pq="cerrar">Cerrar</button></div>`;
     ov.hidden = false; pqFotosRender(); pqTotal();
+    if(!pq && !pqRes && !window.__pqOcupOk){ window.__pqOcupOk = true; pqCargarOcupados().then(() => { const ag = $('pqAgenda'); if(ag) ag.innerHTML = pqAgendaHTML(); }).catch(() => {}); }
   }
   function pqFotosRender(){ const b = $('pqFotos'); if(!b) return; b.innerHTML = pqFotos.map((f, i) => `<span><img src="${f}" alt="Foto ${i + 1}"><button type="button" data-pqx="${i}" aria-label="Sacar foto">✕</button></span>`).join(''); const g = $('pqGo'); if(g) g.disabled = !pqFotos.length; const o = $('pqOpt'); if(o) o.disabled = !pqFotos.length; }
   async function pqMedir(){
@@ -7143,16 +7145,20 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       const quiereTodo = quiere + (resp.length ? '\n' + resp.join('\n') : '');
       if(!window.VITRINA_SLUG){ msg.textContent = 'Así lo ve tu cliente: el pedido te llega a tu panel con las fotos.'; return; }
       b.disabled = true; msg.textContent = 'Enviando tus fotos…';
+      const cuando = pqHora ? (() => { const d = new Date(pqDia + 'T12:00'); return `${DAYS_LONG[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1} a las ${pqHora} h`; })() : '';
       try{
+        const pb = {slug: window.VITRINA_SLUG, servicio: true, items: [{n: 'Pedido de presupuesto: ' + quiereTodo.replace(/\n/g, ' · ').slice(0, 300), q: 1, p: 'a presupuestar'}], total: 'a presupuestar', moneda: curCode(),
+          comprador: {nombre: nom, tel, dir: '', turno: (cuando ? '📅 Visita: ' + cuando + ' · ' : '') + `📨 Pide presupuesto (${pqFotos.length} foto${pqFotos.length === 1 ? '' : 's'} en tu panel)`, lugar: 'A coordinar'}, pago: 'A coordinar', paga_ahora: false};
+        if(pqHora) pb.cita = pqDia + 'T' + pqHora;
+        const rp = await fetch('/api/pedidos', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(pb)});
+        if(rp.status === 409){ const jp = await rp.json().catch(() => ({})); await pqCargarOcupados(); pqHora = ''; $('pqAgenda').innerHTML = pqAgendaHTML(); msg.textContent = (jp.error || 'Ese horario se acaba de ocupar.') + ' Elegí otro o mandalo sin horario.'; b.disabled = false; return; }
         const r = await fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({parque: 1, soloGuardar: 1, nombre: nom, tel, slug: window.VITRINA_SLUG, images: pqFotos.map(f => ({type: 'image/jpeg', data: f.split(',')[1]})), m2: pqM2 || 0, quiere: quiereTodo})});
         const j = await r.json().catch(() => ({}));
         if(!r.ok || !j.guardado){ msg.textContent = j.error || 'No se pudo enviar. Probá de nuevo.'; b.disabled = false; return; }
-        try{ await fetch('/api/pedidos', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({slug: window.VITRINA_SLUG, servicio: true, items: [{n: 'Pedido de presupuesto: ' + quiereTodo.replace(/\n/g, ' · ').slice(0, 300), q: 1, p: 'a presupuestar'}], total: 'a presupuestar', moneda: curCode(),
-          comprador: {nombre: nom, tel, dir: '', turno: `📨 Pide presupuesto (${pqFotos.length} foto${pqFotos.length === 1 ? '' : 's'} en tu panel)`, lugar: 'A coordinar'}, pago: 'A coordinar', paga_ahora: false})}); }catch(err){}
         try{ localStorage.setItem('v360-cli-nombre-' + window.VITRINA_SLUG, nom); }catch(err){}
         const quien = O.pro.replace(/^./, c => c.toUpperCase()), n1 = nom.split(' ')[0];
-        ov.querySelector('.tv').innerHTML = `<h2>${O.em || '📨'} ¡Listo, ${esc(n1)}!</h2><div class="pqbox" style="background:color-mix(in srgb,#25d366 10%,var(--surface))"><p style="margin:0">✅ Ya le mandé tus fotos y todo lo que me contaste ${esc(O.pro.replace(/^el /, 'al ').replace(/^la /, 'a la '))}.</p><p style="margin:0">${esc(quien)} lo mira y <b>en minutos te arma el presupuesto</b> y te escribe por WhatsApp al <b>${esc(tel)}</b>.</p><p class="note" style="margin:0">El precio lo pone ${esc(O.pro)}: cada trabajo es distinto y lo tiene que ver bien.</p></div><button class="btn" type="button" data-pq="cerrar">Cerrar</button>`;
-        pqFotos = []; pqRes = null; pqAIQs = null; pqAIVeo = ''; pqAISeg = '';
+        ov.querySelector('.tv').innerHTML = `<h2>${O.em || '📨'} ¡Listo, ${esc(n1)}!</h2><div class="pqbox" style="background:color-mix(in srgb,#25d366 10%,var(--surface))"><p style="margin:0">✅ Ya le mandé tus fotos y todo lo que me contaste ${esc(O.pro.replace(/^el /, 'al ').replace(/^la /, 'a la '))}.</p><p style="margin:0">${esc(quien)} lo mira y <b>en minutos te arma el presupuesto</b> y te escribe por WhatsApp al <b>${esc(tel)}</b>.</p>${cuando ? `<p style="margin:0">📅 Le pedí el turno del <b>${esc(cuando)}</b>. Te lo confirma junto con el presupuesto.</p>` : ''}<p class="note" style="margin:0">El precio lo pone ${esc(O.pro)}: cada trabajo es distinto y lo tiene que ver bien.</p></div><button class="btn" type="button" data-pq="cerrar">Cerrar</button>`;
+        pqFotos = []; pqRes = null; pqHora = ''; pqAIQs = null; pqAIVeo = ''; pqAISeg = '';
         try{ hSpeak(`¡Listo, ${n1}! Ya le mandé tus fotos y todo lo que me contaste ${O.pro.replace(/^el /, 'al ').replace(/^la /, 'a la ')}. En minutos te arma el presupuesto y te escribe por WhatsApp.`); }catch(err){}
       }catch(err){ msg.textContent = 'No se pudo conectar. Revisá internet y probá de nuevo.'; b.disabled = false; }
       return; }
