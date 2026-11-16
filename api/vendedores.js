@@ -85,8 +85,17 @@ module.exports = async (req, res) => {
       const b = cuerpo(req), nombre = corto(b.nombre, 60), email = corto(b.email, 120).toLowerCase(), wa = corto(b.wa, 30), alias = corto(b.alias, 60);
       if (nombre.length < 2 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || wa.replace(/\D/g, '').length < 8) return res.status(400).json({ error: 'Completá tu nombre, tu mail y tu WhatsApp.' });
       const idx = (await leer('indice.json')) || { codigos: [] };
+      // Si ese mail ya estaba anotado, se vuelve a anotar desde cero: mismo código (así su QR viejo sigue andando),
+      // panel nuevo y datos nuevos. Los clientes y pagos que ya tenía se conservan para no perder comisiones.
       const ya = idx.codigos.find(x => x.email === email);
-      if (ya) return res.status(409).json({ error: 'Ese mail ya está anotado como vendedor. Si perdiste el link de tu panel, escribile a ShopFlash.' });
+      if (ya) {
+        const viejo = (await leer('v/' + ya.code + '.json')) || {};
+        const v = { code: ya.code, nombre, email, wa, alias, k: crypto.randomBytes(12).toString('hex'), creado: new Date().toISOString(), clientes: viejo.clientes || [], pagos: viejo.pagos || [], pagado: viejo.pagado || { premios: [], premioMes: {}, meses: {} } };
+        await guardar('v/' + ya.code + '.json', v);
+        Object.assign(ya, { nombre, creado: v.creado });
+        await guardar('indice.json', idx);
+        return res.status(200).json({ code: ya.code, link: base + '/?ref=' + ya.code, panel: base + '/vendedor.html?c=' + ya.code + '&k=' + v.k, otraVez: true });
+      }
       const raiz = (nombre.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().match(/[A-Z0-9]+/g) || ['VENDE'])[0].slice(0, 10).padEnd(3, 'X');
       let code = raiz, n = 1;
       while (idx.codigos.some(x => x.code === code)) code = raiz + (++n);
