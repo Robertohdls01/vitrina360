@@ -62,7 +62,7 @@ module.exports = async (req, res) => {
   { let bb = req.body; if (typeof bb === 'string') { try { bb = JSON.parse(bb); } catch (e) { bb = null; } }
     if (bb && bb.corte) return bb.app ? shopCutApp(req, res, KEY, bb) : shopCut(res, KEY, bb);
     if (bb && bb.parque) return parqueIA(res, KEY, bb, req);
-    if (bb && (bb.pqPendientes || bb.pqProcesar)) return pqPendientes(req, res, KEY, bb); }
+    if (bb && (bb.pqPendientes || bb.pqProcesar || bb.pqVer || bb.pqListo)) return pqPendientes(req, res, KEY, bb); }
   const tok = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   if (!tok) return res.status(401).json({ error: 'Tenés que entrar a tu tienda.' });
   let user = null;
@@ -316,6 +316,8 @@ const OFICIOS = {
 
 async function parqueIA(res, KEY, b, req) {
   const slug = String(b.slug || '');
+  // oficios: el cliente manda fotos y lo que quiere hacer, y queda guardado para el profesional (sin IA, sin precio)
+  if (b.soloGuardar && esDemo(slug)) return res.status(200).json({ guardado: true, demo: true });
   // tienda de muestra: tope por día (total y por persona) para que nadie gaste de más probando
   if (esDemo(slug)) {
     const dia = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10), path = scBase() + '/object/' + SC_BUCKET + '/demo-ia/' + dia + '.json';
@@ -332,6 +334,18 @@ async function parqueIA(res, KEY, b, req) {
   let t = null;
   try { const rows = await db('GET', '/rest/v1/tiendas?slug=eq.' + slug + '&select=owner,activa,data'); t = rows && rows[0]; } catch (e) {}
   if (!t || t.activa === false) return res.status(404).json({ error: 'Esta tienda no está disponible.' });
+  if (b.soloGuardar) {
+    const nom = String(b.nombre || '').trim().slice(0, 60), tel = String(b.tel || '').trim().slice(0, 30);
+    if (!nom || tel.replace(/\D/g, '').length < 8) return res.status(400).json({ error: 'Poné tu nombre y tu WhatsApp.' });
+    const fotos = (Array.isArray(b.images) ? b.images : []).slice(0, 4).filter(im => im && typeof im.data === 'string' && im.data.length > 1000 && im.data.length < 4000000);
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6), dir = scBase() + '/object/' + SC_BUCKET + '/pqpend/' + t.owner + '/';
+    let idx = []; try { const r = await fetch(dir + 'index.json', { headers: scHead({ 'cache-control': 'no-cache' }) }); if (r.ok) idx = await r.json(); } catch (e) {}
+    idx = Array.isArray(idx) ? idx : []; if (idx.length >= 60) return res.status(429).json({ error: 'Tiene muchos pedidos esperando. Escribile por WhatsApp.' });
+    await fetch(dir + id + '.json', { method: 'POST', headers: scHead({ 'Content-Type': 'application/json', 'x-upsert': 'true' }), body: JSON.stringify({ images: fotos, m2: Number(b.m2) || 0, quiere: String(b.quiere || '').slice(0, 800) }) });
+    idx.unshift({ id, nombre: nom, tel, fecha: new Date().toISOString(), quiere: String(b.quiere || '').slice(0, 200), m2: Number(b.m2) || 0, fotos: fotos.length });
+    await fetch(dir + 'index.json', { method: 'POST', headers: scHead({ 'Content-Type': 'application/json', 'x-upsert': 'true', 'cache-control': 'no-cache' }), body: JSON.stringify(idx) });
+    return res.status(200).json({ guardado: true });
+  }
   let preset = ''; try { preset = String((((t.data.stores || [])[t.data.active || 0] || {}).brand || {}).preset || ''); } catch (e) {}
   let OF = OFICIOS[preset] || null;
   if (!OF && preset === 'oficio') { let nom = ''; try { nom = String((((t.data.stores || [])[t.data.active || 0] || {}).brand || {}).oficio || '').slice(0, 60); } catch (e) {}
@@ -463,6 +477,17 @@ async function pqPendientes(req, res, KEY, b) {
   let idx = []; try { const r = await fetch(dir + 'index.json', { headers: scHead({ 'cache-control': 'no-cache' }) }); if (r.ok) idx = await r.json(); } catch (e) {}
   idx = Array.isArray(idx) ? idx : [];
   if (b.pqPendientes) return res.status(200).json({ pendientes: idx });
+  // el profesional mira las fotos y todo lo que contó el cliente (sin IA), o lo marca como respondido
+  if (b.pqVer || b.pqListo) {
+    const it0 = idx.find(x => x.id === String(b.pqVer || b.pqListo)); if (!it0) return res.status(404).json({ error: 'Ese pedido ya no está.' });
+    if (b.pqListo) { try { await fetch(dir + it0.id + '.json', { method: 'DELETE', headers: scHead() }); } catch (e) {}
+      const resto0 = idx.filter(x => x.id !== it0.id);
+      await fetch(dir + 'index.json', { method: 'POST', headers: scHead({ 'Content-Type': 'application/json', 'x-upsert': 'true', 'cache-control': 'no-cache' }), body: JSON.stringify(resto0) });
+      return res.status(200).json({ ok: true, quedan: resto0.length }); }
+    let f0 = null; try { const r = await fetch(dir + it0.id + '.json', { headers: scHead() }); if (r.ok) f0 = await r.json(); } catch (e) {}
+    if (!f0) return res.status(404).json({ error: 'No encontré las fotos de ese pedido.' });
+    return res.status(200).json({ fotos: (f0.images || []).map(im => 'data:' + (im.type || 'image/jpeg') + ';base64,' + im.data), quiere: f0.quiere || '', m2: f0.m2 || 0 });
+  }
   const it = idx.find(x => x.id === String(b.pqProcesar)); if (!it) return res.status(404).json({ error: 'Ese pedido ya no está.' });
   let f = null; try { const r = await fetch(dir + it.id + '.json', { headers: scHead() }); if (r.ok) f = await r.json(); } catch (e) {}
   if (!f || !Array.isArray(f.images)) return res.status(404).json({ error: 'No encontré las fotos de ese pedido.' });

@@ -346,12 +346,20 @@
     const ov = document.createElement('div'); ov.style.cssText = 'position:fixed;inset:0;z-index:150;background:rgba(10,20,10,.6);display:grid;place-items:center;padding:14px';
     const fm = n => '$' + Math.round(n || 0).toLocaleString('es-AR'), wa = t => String(t || '').replace(/[^\d]/g, '').replace(/^0/, '').replace(/^(?!54)/, '549');
     const sub = (x, m2) => (x.porM2 ? x.precio * (m2 || 0) : x.precio * (x.cantidad || 1)) * (1 + (x.ajuste || 0) / 100);
-    ov.innerHTML = `<div style="width:min(560px,100%);max-height:calc(100dvh - 28px);overflow:auto;background:#fff;color:#1f2a1f;border-radius:20px;padding:18px;display:grid;gap:10px;font:15px system-ui,sans-serif"><h2 style="margin:0">🌿 Pedidos de presupuesto guardados</h2><p style="margin:0;color:#5b6b5b">Tocá <b>Armar</b> y la IA hace el presupuesto con tus precios. Después se lo mandás al cliente por WhatsApp.</p>
-      ${pend.map(p => `<div data-pp="${esc(p.id)}" style="border:1.5px solid #d5e8cc;border-radius:14px;padding:10px 12px;display:grid;gap:6px"><b>${esc(p.nombre)}</b><span style="color:#5b6b5b;font-size:14px">📷 ${p.fotos} foto${p.fotos > 1 ? 's' : ''}${p.m2 ? ' · ' + p.m2 + ' m²' : ''}${p.quiere ? ' · “' + esc(p.quiere) + '”' : ''} · ${new Date(p.fecha).toLocaleDateString('es-AR')}</span><span data-ppo></span><button type="button" data-ppgo style="justify-self:start;border:0;border-radius:999px;padding:8px 14px;background:#2e7d32;color:#fff;font-weight:800;cursor:pointer">🤖 Armar presupuesto</button></div>`).join('')}
+    ov.innerHTML = `<div style="width:min(560px,100%);max-height:calc(100dvh - 28px);overflow:auto;background:#fff;color:#1f2a1f;border-radius:20px;padding:18px;display:grid;gap:10px;font:15px system-ui,sans-serif"><h2 style="margin:0">📨 Pedidos de presupuesto de tus clientes</h2><p style="margin:0;color:#5b6b5b">Tocá <b>Armar</b> y la IA hace el presupuesto con tus precios. Después se lo mandás al cliente por WhatsApp.</p>
+      ${pend.map(p => `<div data-pp="${esc(p.id)}" style="border:1.5px solid #d5e8cc;border-radius:14px;padding:10px 12px;display:grid;gap:6px"><b>${esc(p.nombre)}</b><span style="color:#5b6b5b;font-size:14px">📷 ${p.fotos} foto${p.fotos > 1 ? 's' : ''}${p.m2 ? ' · ' + p.m2 + ' m²' : ''}${p.quiere ? ' · “' + esc(p.quiere) + '”' : ''} · ${new Date(p.fecha).toLocaleDateString('es-AR')}</span><span style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" data-ppv style="border:0;border-radius:999px;padding:8px 14px;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">👀 Ver fotos y lo que pidió</button><a href="https://wa.me/${esc(wa(p.tel))}?text=${encodeURIComponent('¡Hola ' + String(p.nombre).split(' ')[0] + '! Vi tu pedido de presupuesto con las fotos. ')}" target="_blank" rel="noopener" style="border-radius:999px;padding:8px 14px;background:#25d366;color:#fff;font-weight:800;text-decoration:none">💬 Escribirle</a><button type="button" data-ppok style="border:1px solid #d5e8cc;background:#fff;border-radius:999px;padding:8px 14px;cursor:pointer">✅ Ya le respondí</button></span><div data-ppf></div><span data-ppo></span><button type="button" data-ppgo style="justify-self:start;border:0;border-radius:999px;padding:8px 14px;background:#2e7d32;color:#fff;font-weight:800;cursor:pointer">🤖 Armar presupuesto</button></div>`).join('')}
       <button type="button" data-ppx style="border:1px solid #d5e8cc;background:#fff;border-radius:999px;padding:9px 14px;cursor:pointer">Cerrar</button></div>`;
     document.body.appendChild(ov);
     ov.onclick = async ev => {
       if(ev.target === ov || ev.target.closest('[data-ppx]')) return ov.remove();
+      const vb = ev.target.closest('[data-ppv],[data-ppok]');
+      if(vb){ const card = vb.closest('[data-pp]'), id = card.dataset.pp, ver = vb.hasAttribute('data-ppv'); vb.disabled = true;
+        try{ const r = await fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await token()}, body: JSON.stringify(ver ? {pqVer: id} : {pqListo: id})}); const j = await r.json().catch(() => ({}));
+          if(!r.ok){ card.querySelector('[data-ppf]').textContent = j.error || 'No se pudo.'; vb.disabled = false; return; }
+          if(!ver){ card.remove(); if(!ov.querySelector('[data-pp]')) ov.remove(); return; }
+          card.querySelector('[data-ppf]').innerHTML = `<p style="margin:0;white-space:pre-line;background:#f3f8f1;border-radius:10px;padding:8px 10px">📝 ${esc(j.quiere || '(no escribió nada)')}${j.m2 ? '\n📐 ' + j.m2 + ' m²' : ''}</p><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-top:6px">${j.fotos.map(u => `<a href="${u}" target="_blank" rel="noopener"><img src="${u}" alt="Foto del cliente" style="width:100%;border-radius:10px;display:block"></a>`).join('')}</div>`; vb.remove();
+        }catch(err){ vb.disabled = false; }
+        return; }
       const g = ev.target.closest('[data-ppgo]'); if(!g) return; const card = g.closest('[data-pp]'), it = pend.find(p => p.id === card.dataset.pp), out = card.querySelector('[data-ppo]');
       g.disabled = true; out.textContent = '⏳ La IA está mirando las fotos…';
       try{ const r = await fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + await token()}, body: JSON.stringify({pqProcesar: it.id})});
@@ -6948,6 +6956,26 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       <ul class="pqtr">${r.trabajos.map((x, i) => `<li><label><input type="checkbox" checked data-pqt="${i}"> <span><b>${esc(x.titulo)}</b>${x.plan ? (x.motivo ? ` · <span class="note">${esc(x.motivo)}</span>` : '') + (x.link ? ` · <a href="${esc(x.link)}" target="_blank" rel="noopener">🛒 ver en el vivero</a>` : '') : (x.porM2 ? ' · por m²' : x.cantidad > 1 ? ' · ×' + x.cantidad : '') + (x.ajuste ? ` · <span class="pqaj">${x.ajuste > 0 ? '+' : ''}${x.ajuste}% ${esc(x.motivo)}</span>` : '')}</span></label><b data-pqs="${i}"></b></li>`).join('')}</ul>
       <p id="pqTot" class="pqtot"></p>${est ? `<p class="note" style="margin:0">Algunos precios son estimados: ${esc(O.pro)} te confirma el valor final.</p>` : ''}${!pq && r.visita && !r.fijo ? `<p class="note" style="margin:0">🔎 Es un presupuesto orientativo por foto: ${esc(O.pro)} lo confirma cuando lo ve.</p>` : ''}${r.consejo ? `<p class="note" style="margin:0">💡 ${esc(r.consejo)}</p>` : ''}</div>`;
   }
+  // preguntas que el profesional siempre le haría al cliente: así le llega todo junto y no tiene que preguntar
+  const OFI_Q_GEN = [['¿Para cuándo lo necesitás?', ['Urgente', 'Esta semana', 'Este mes', 'Sin apuro']], ['¿Los materiales?', ['Que los ponga el profesional', 'Los pongo yo', 'No sé']]];
+  const OFI_Q = {
+    pintor: [['¿Qué hay que pintar?', ['Interior', 'Exterior / frente', 'Rejas o aberturas', 'Techo']], ['Estado de las paredes', ['Buenas', 'Con humedad', 'Descascaradas', 'Con grietas']], ['¿Rasquetear y enduir antes?', ['Sí, dejarlas bien', 'No, solo pintar', 'Que me aconseje']], ['¿Cuántas manos?', ['1 mano', '2 manos', 'Que me aconseje']], ['¿Cambio de color?', ['Mismo color', 'Color nuevo (más claro)', 'Color nuevo (más oscuro)']]],
+    plomero: [['¿Qué es?', ['Pérdida', 'Algo tapado', 'Cambiar algo', 'Instalación nueva']], ['¿Dónde?', ['Baño', 'Cocina', 'Lavadero', 'Afuera / patio']], ['¿El caño está a la vista?', ['Sí', 'No, está en la pared', 'No sé']], ['¿Hay que cortar el agua ya?', ['Sí, pierde mucho', 'No, gotea poco']]],
+    electricista: [['¿Qué es?', ['Algo no anda', 'Salta la térmica', 'Agregar tomas o luces', 'Instalación nueva']], ['¿Dónde?', ['Casa', 'Departamento', 'Local o comercio']], ['¿Hay olor a quemado o chispas?', ['Sí', 'No']]],
+    gasista: [['¿Qué es?', ['Olor a gas', 'Instalar artefacto', 'Prueba de hermeticidad', 'Habilitación / plano']], ['¿Qué artefacto?', ['Cocina', 'Calefón / termotanque', 'Estufa', 'Caldera']]],
+    albanil: [['¿Qué trabajo?', ['Pisos o cerámicos', 'Revoque', 'Pared nueva', 'Arreglo de humedad']], ['¿Cuántos m² más o menos?', ['Menos de 10', '10 a 30', 'Más de 30', 'No sé']], ['¿Hay que sacar lo viejo?', ['Sí', 'No', 'No sé']]],
+    durlock: [['¿Qué trabajo?', ['Cielorraso', 'Tabique / pared', 'Mueble o revestimiento', 'Arreglo']], ['¿Con terminación (masillado y pintura)?', ['Sí, todo terminado', 'Solo la estructura']]],
+    techista: [['¿Qué es?', ['Gotera', 'Membrana nueva', 'Cambiar chapas o tejas', 'Canaletas']], ['Tipo de techo', ['Losa / terraza', 'Chapa', 'Tejas', 'No sé']], ['¿Cuántos m² más o menos?', ['Menos de 30', '30 a 80', 'Más de 80', 'No sé']]],
+    aire: [['¿Qué necesitás?', ['Instalación', 'Service / limpieza', 'No enfría o pierde agua', 'Mudar el equipo']], ['¿Frigorías del equipo?', ['2250', '3000', '4500 o más', 'No sé']], ['¿Piso del equipo?', ['Planta baja', '1° o 2° piso', 'Más alto (con altura)']]],
+    solar: [['¿Qué te interesa?', ['Termotanque solar', 'Paneles para luz', 'Arreglo de lo que tengo']], ['¿Cuántas personas viven?', ['1 o 2', '3 o 4', '5 o más']]],
+    mecanico: [['¿Qué vehículo?', ['Auto', 'Moto', 'Bicicleta', 'Camioneta']], ['¿Qué le pasa?', ['Service', 'Frenos', 'Ruido raro', 'No arranca']], ['¿Se puede llevar al taller?', ['Sí', 'No, hay que ir a buscarlo']]],
+    tecnico: [['¿Qué equipo?', ['Celular', 'Computadora / notebook', 'Televisor', 'Otro']], ['¿Qué le pasa?', ['Pantalla rota', 'No prende', 'Batería / carga', 'Lento o con virus']]],
+    volquete: [['¿Qué vas a tirar?', ['Escombro', 'Restos de poda', 'Muebles y trastos', 'Mezcla']], ['¿Por cuántos días?', ['1 a 3', 'Una semana', 'Más']]],
+    afilador: [['¿Qué hay que afilar?', ['Cuchillos', 'Tijeras', 'Herramientas', 'Cortadora de pasto']], ['¿Cuántos más o menos?', ['1 a 5', '6 a 15', 'Más de 15']]]
+  };
+  const ofiQs = () => { const O = ofi() || OFI_BASE; return (OFI_Q[O.id] || []).concat(OFI_Q_GEN); };
+  document.addEventListener('click', e => { const c = e.target.closest('[data-pqqa]'); if(!c) return; const on = !c.classList.contains('primary');
+    c.parentElement.querySelectorAll('[data-pqqa]').forEach(x => x.classList.remove('primary')); if(on) c.classList.add('primary'); });
   function openParque(){
     let ov = document.getElementById('pqView');
     if(!ov){ ov = document.createElement('div'); ov.id = 'pqView'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); document.body.appendChild(ov); }
@@ -6964,8 +6992,12 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         <div id="pqMapBox" hidden><div class="row" style="gap:6px;margin:6px 0"><input id="pqDir" placeholder="Tu dirección (calle y número, ciudad)" style="flex:1"><button class="btn" type="button" data-pq="buscar">Buscar</button></div>
           <div id="pqMapa" style="height:280px;border-radius:12px"></div><p class="note" style="margin:4px 0" id="pqMapTx">Tocá las esquinas de tu parque en el mapa. Se calcula solo.</p>
           <div class="row" style="gap:6px"><button class="btn" type="button" data-pq="deshacer">↩ Deshacer</button><button class="btn" type="button" data-pq="borrar">🗑 Borrar</button></div></div></div>
-      <label class="note" style="display:grid;gap:4px">${pq ? '¿Qué querés hacer? (opcional)' : '✍️ Contá qué querés arreglar o cambiar (así te presupuesto solo eso)'}<input id="pqQuiere" maxlength="200" placeholder="${esc(O.ej)}"></label>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" data-pq="analizar" id="pqGo" ${pqFotos.length ? '' : 'disabled'}>🤖 Armar mi presupuesto con IA</button><button class="btn" type="button" data-pq="opciones" id="pqOpt" ${pqFotos.length ? '' : 'disabled'}>${pq ? '💡 ¿Qué me recomendás? Ver 3 opciones' : esc(O.opc)}</button></div>
+      ${pq ? `<label class="note" style="display:grid;gap:4px">¿Qué querés hacer? (opcional)<input id="pqQuiere" maxlength="200" placeholder="${esc(O.ej)}"></label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" data-pq="analizar" id="pqGo" ${pqFotos.length ? '' : 'disabled'}>🤖 Armar mi presupuesto con IA</button><button class="btn" type="button" data-pq="opciones" id="pqOpt" ${pqFotos.length ? '' : 'disabled'}>💡 ¿Qué me recomendás? Ver 3 opciones</button></div>` : `<label class="note" style="display:grid;gap:4px"><b style="color:var(--ink)">✍️ Contá todo lo que querés hacer</b>Con detalle: qué está roto o qué querés cambiar, cómo lo querés (${esc(O.ej.replace(/^Ej: /, 'ej: '))}).<textarea id="pqQuiere" maxlength="800" rows="4" placeholder="${esc(O.ej)}"></textarea></label>
+      <div class="pqbox" id="pqQs"><b>📋 Unas preguntas rápidas (así ${esc(O.pro)} no te tiene que preguntar)</b>${ofiQs().map(([p, ops], i) => `<div style="display:grid;gap:4px"><span class="note" style="color:var(--ink)">${esc(p)}</span><div class="pqchips">${ops.map(o => `<button class="btn" type="button" data-pqqa="${i}">${esc(o)}</button>`).join('')}</div></div>`).join('')}</div>
+      <div class="row" style="gap:6px;flex-wrap:wrap"><input id="pqMNom" maxlength="60" placeholder="Tu nombre" style="flex:1;min-width:130px" value="${esc(pqCliNom() || '')}"><input id="pqMTel" maxlength="30" inputmode="tel" placeholder="Tu WhatsApp" style="flex:1;min-width:130px"></div>
+      <button class="btn primary" type="button" data-pq="mandar" style="justify-self:start">📨 Mandarle todo a ${esc(O.pro)}</button>
+      <p class="note" style="margin:0">Cada trabajo es distinto: ${esc(O.pro)} mira tus fotos y lo que contás, y te arma el presupuesto él mismo.</p>`}
       <div id="pqOps">${pqRes ? '' : pqOpsHTML()}</div>
       <p class="msg" id="pqMsg" role="status" style="margin:0"></p>
       <div id="pqOut">${pqRes ? pqResHTML(pqRes) : ''}</div>
@@ -7073,6 +7105,29 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     const pp = e.target.closest('[data-pqp]'); if(pp){ pqPago = pp.dataset.pqp; ov.querySelectorAll('[data-pqp]').forEach(x => x.classList.toggle('primary', x === pp)); return; }
     const b = e.target.closest('[data-pq]'); if(!b) return; const k = b.dataset.pq;
     if(k === 'cerrar'){ ov.hidden = true; return; }
+    if(k === 'mandar'){
+
+      const msg = $('pqMsg'), O = ofi() || OFI_BASE, nom = $('pqMNom').value.trim(), tel = $('pqMTel').value.trim(), quiere = $('pqQuiere').value.trim();
+      if(!pqFotos.length){ msg.textContent = 'Subí fotos de todo lo que querés hacer (hasta 4).'; return; }
+      if(quiere.length < 8){ msg.textContent = `Contale con tus palabras qué querés hacer, así ${O.pro} te arma bien el presupuesto.`; $('pqQuiere').focus(); return; }
+      if(!nom || tel.replace(/\D/g, '').length < 8){ msg.textContent = `Poné tu nombre y tu WhatsApp, así ${O.pro} te responde.`; return; }
+      const resp = ofiQs().map(([p], i) => { const c = ov.querySelector(`[data-pqqa="${i}"].primary`); return c ? `${p} ${c.textContent}` : ''; }).filter(Boolean);
+      const quiereTodo = quiere + (resp.length ? '\n' + resp.join('\n') : '');
+      if(!window.VITRINA_SLUG){ msg.textContent = 'Así lo ve tu cliente: el pedido te llega a tu panel con las fotos.'; return; }
+      b.disabled = true; msg.textContent = 'Enviando tus fotos…';
+      try{
+        const r = await fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({parque: 1, soloGuardar: 1, nombre: nom, tel, slug: window.VITRINA_SLUG, images: pqFotos.map(f => ({type: 'image/jpeg', data: f.split(',')[1]})), m2: pqM2 || 0, quiere: quiereTodo})});
+        const j = await r.json().catch(() => ({}));
+        if(!r.ok || !j.guardado){ msg.textContent = j.error || 'No se pudo enviar. Probá de nuevo.'; b.disabled = false; return; }
+        try{ await fetch('/api/pedidos', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({slug: window.VITRINA_SLUG, servicio: true, items: [{n: 'Pedido de presupuesto: ' + quiereTodo.replace(/\n/g, ' · ').slice(0, 300), q: 1, p: 'a presupuestar'}], total: 'a presupuestar', moneda: curCode(),
+          comprador: {nombre: nom, tel, dir: '', turno: `📨 Pide presupuesto (${pqFotos.length} foto${pqFotos.length === 1 ? '' : 's'} en tu panel)`, lugar: 'A coordinar'}, pago: 'A coordinar', paga_ahora: false})}); }catch(err){}
+        try{ localStorage.setItem('v360-cli-nombre-' + window.VITRINA_SLUG, nom); }catch(err){}
+        const quien = O.pro.replace(/^./, c => c.toUpperCase()), n1 = nom.split(' ')[0];
+        ov.querySelector('.tv').innerHTML = `<h2>${O.em || '📨'} ¡Listo, ${esc(n1)}!</h2><div class="pqbox" style="background:color-mix(in srgb,#25d366 10%,var(--surface))"><p style="margin:0">✅ Ya le mandé tus fotos y todo lo que me contaste ${esc(O.pro.replace(/^el /, 'al ').replace(/^la /, 'a la '))}.</p><p style="margin:0">${esc(quien)} lo mira y <b>en minutos te arma el presupuesto</b> y te escribe por WhatsApp al <b>${esc(tel)}</b>.</p><p class="note" style="margin:0">El precio lo pone ${esc(O.pro)}: cada trabajo es distinto y lo tiene que ver bien.</p></div><button class="btn" type="button" data-pq="cerrar">Cerrar</button>`;
+        pqFotos = []; pqRes = null;
+        try{ hSpeak(`¡Listo, ${n1}! Ya le mandé tus fotos y todo lo que me contaste ${O.pro.replace(/^el /, 'al ').replace(/^la /, 'a la ')}. En minutos te arma el presupuesto y te escribe por WhatsApp.`); }catch(err){}
+      }catch(err){ msg.textContent = 'No se pudo conectar. Revisá internet y probá de nuevo.'; b.disabled = false; }
+      return; }
     if(k === 'contacto'){
       const msg = $('pqCtoMsg'), nom = $('pqCtoNom').value.trim(), tel = $('pqCtoTel').value.trim(), O = ofi() || OFI_BASE;
       if(!nom || tel.replace(/\D/g, '').length < 8){ msg.textContent = `Poné tu nombre y tu WhatsApp, así ${O.pro} te escribe.`; return; }
@@ -7189,7 +7244,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(e.target.id === 'pqL' || e.target.id === 'pqA'){ const l = +$('pqL').value || 0, a = +$('pqA').value || 0; if(l && a){ pqM2 = Math.round(l * a); $('pqM2').value = pqM2; pqTotal(); } }
   });
   document.addEventListener('change', async e => {
-    if(e.target.id !== 'pqFile') return; const fs = [...(e.target.files || [])].slice(0, 3 - pqFotos.length);
+    if(e.target.id !== 'pqFile') return; const fs = [...(e.target.files || [])].slice(0, ((ofi() || OFI_BASE).id === 'parques' ? 3 : 4) - pqFotos.length);
     for(const f of fs){ const u = URL.createObjectURL(f); const d = await tryShrink(u); URL.revokeObjectURL(u); if(d && /^data:/.test(d)) pqFotos.push(d); }
     pqFotosRender(); e.target.value = '';
   });
@@ -9909,8 +9964,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(isParques() && (/(presupuest|cotiz|cuanto (me )?(sale|cobr|cuesta)|quiero un turno|sacar turno)/.test(n) || ofi().kw.test(n))){ hShow([]); openParque();
       if(esParquero()) return hSpeak('¡Dale! Sacale una o dos fotos a tu parque, que se vea todo. Yo miro cuántos metros tiene, cómo está el pasto y las plantas, y te armo el presupuesto. Si querés, también te muestro cómo podría quedar.');
       try{ if($('pqQuiere') && !$('pqQuiere').value) $('pqQuiere').value = q.replace(/^presupuesto\s*/i, '').slice(0, 200); }catch(e){}
-      let ap = ''; try{ const f = hFindBest(q).filter(p => curPrice(p)).slice(0, 2); if(f.length) ap = `Por lo que me contás, sería ${f.map(p => `${p.name.toLowerCase()}, que ronda ${curPrice(p)}`).join(', o ')}. Es un precio orientativo: la última palabra la tiene ${ofi().pro}. `; }catch(e){}
-      return hSpeak(`¡Dale! ${ap}${ap ? 'Para afinarlo, ' + ofi().foto.replace(/^./, c => c.toLowerCase()) : ofi().foto} Después tocá “Armar mi presupuesto con IA” y te lo paso al toque.`); }
+      return hSpeak(`¡Dale! Mandame hasta 4 fotos de todo lo que querés hacer y contame con detalle cómo lo querés. Yo se lo paso a ${ofi().pro} y en minutos te arma el presupuesto: el precio lo pone él, porque cada trabajo es distinto.`); }
     if(hAskCaja && !hPending && /^(si|sii+|sip|dale|ok|okey|bueno|claro|de una|llevame|vamos|listo|a la caja|caja|por favor)\b/.test(n)){ hAskCaja = false; return hToCaja(); }
     if(hAskCaja && !hPending && /^(no|nop|algo mas|quiero (ver )?algo mas|todavia no|seguir|sigo mirando)\b/.test(n)){ hAskCaja = false; return hSpeak('¡Dale! ¿Qué más querés ver? Decime un producto o una vitrina.'); }
     hAskCaja = false;
