@@ -30,11 +30,11 @@ const ADMINS = () => String(process.env.ADMIN_EMAILS || process.env.IA_SIN_LIMIT
 const EN_VIVO = () => process.env.FIESTA_EN_VIVO === '1'; // los paquetes con la fiesta en vivo se venden cuando esté lista
 // Paquetes para la familia (precios cambiables desde Vercel). "extra" = recargo por más de 150 invitados (solo en los de fiesta en vivo).
 const PAQ = () => ({
-  invitacion: { nombre: 'Invitación', precio: Number(process.env.PRECIO_FIESTA_INV || 25000), disponible: true, incluye: 'Invitación virtual, confirmaciones, links por WhatsApp e ícono en el celular' },
-  completa: { nombre: 'Fiesta completa', precio: Number(process.env.PRECIO_FIESTA_COMPLETA || 60000), disponible: EN_VIVO(), vivo: true, incluye: 'Invitación + recepción, mesas, pedidos a las mozas, avisos de comida y vals, panel en vivo' },
-  recuerdos: { nombre: 'Fiesta completa + recuerdos', precio: Number(process.env.PRECIO_FIESTA_RECUERDOS || 80000), disponible: EN_VIVO(), vivo: true, incluye: 'Todo lo anterior + álbum de fotos, cuadro de firmas y resumen de la noche' }
+  invitacion: { nombre: 'Invitación', precio: Number(process.env.PRECIO_FIESTA_INV || 35000), disponible: true, incluye: 'Invitación virtual, confirmaciones, links por WhatsApp e ícono en el celular' },
+  completa: { nombre: 'Fiesta completa', precio: Number(process.env.PRECIO_FIESTA_COMPLETA || 100000), disponible: EN_VIVO(), vivo: true, incluye: 'Invitación + recepción, mesas, pedidos a las mozas, avisos de comida y vals, panel en vivo' },
+  recuerdos: { nombre: 'Fiesta completa + recuerdos', precio: Number(process.env.PRECIO_FIESTA_RECUERDOS || 140000), disponible: EN_VIVO(), vivo: true, incluye: 'Todo lo anterior + álbum de fotos, cuadro de firmas y resumen de la noche' }
 });
-const EXTRA150 = () => Number(process.env.PRECIO_FIESTA_EXTRA150 || 15000);
+const EXTRA150 = () => Number(process.env.PRECIO_FIESTA_EXTRA150 || 25000);
 const montoDe = (paq, e) => { const P = PAQ()[paq]; if (!P) return 0; return P.precio + (P.vivo && (e.invitados || []).length > 150 ? EXTRA150() : 0); };
 async function mpGet(path) {
   const tok = String(process.env.MP_ACCESS_TOKEN || '').trim(); if (!tok) return null;

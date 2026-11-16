@@ -76,7 +76,7 @@ code{background:#f3f1ea;padding:2px 6px;border-radius:6px;word-break:break-all}
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const P = new URLSearchParams(location.search);
-let PAQS = null, EXTRA = 15000, YA_AVISO_PAGO = false;
+let PAQS = null, EXTRA = 25000, YA_AVISO_PAGO = false;
 let CODE = (P.get('f') || '').toUpperCase(), K = P.get('k') || '', D = null, RESP = [], tab = 'inv', sucio = false, DEMO = false, tituloTocado = false;
 const TITULOS = {'15': 'Mis 15', casamiento: 'Nos casamos', cumple: 'Mi cumple', bautismo: 'Mi bautismo', egresados: 'Fiesta de egresados', otro: 'Te invito'};
 const PLANT = [['elegante', 'Elegante', '#fbf7f0'], ['flores', 'Flores', '#fbf1f3'], ['brillos', 'Brillos', '#1d1b2f'], ['moderna', 'Moderna', '#f5f5f2'], ['mariposas', 'Mariposas', '#f3effa'], ['luna', 'Luna y estrellas', '#1c2440']];
@@ -121,7 +121,7 @@ const sesionDueno = () => { try { return (JSON.parse(localStorage.getItem('v360-
 let paqElegido = 'invitacion';
 function activarHTML() {
   if (DEMO || !CODE || D.pagado) return '';
-  const L = PAQS ? Object.entries(PAQS) : [['invitacion', {nombre: 'Invitación', precio: 25000, disponible: true, incluye: ''}]];
+  const L = PAQS ? Object.entries(PAQS) : [['invitacion', {nombre: 'Invitación', precio: 35000, disponible: true, incluye: ''}]];
   const n = (D.invitados || []).length;
   return `<div class="sec" style="background:#fffaf0;border:2px solid #ecd9a8;border-radius:16px;padding:16px"><h3>🔓 Activá tu invitación para mandarla</h3>
     <p class="muted">Ya podés armarla y verla gratis. Para mandarla a tus invitados y recibir las confirmaciones, activala con un pago único.</p>
