@@ -81,7 +81,7 @@ const demoData = () => ({
   fecha: proxSabado(), hora: '21:30', salon: 'Salón de ejemplo', direccion: 'Mar del Plata',
   vestimenta: 'Elegante sport', regalo: 'Lluvia de sobres o alias: JULI.15.FIESTA', mostrarMesa: true, pedirMenu: true,
   catering: 'Catering de ejemplo', mozas: ['Karina', 'Sofía', 'Lucía'], modoP: 'encargada', pk: 'demo', paquete: 'recuerdos', pagado: true,
-  carta: CARTA_BASE(), crono: CRONO_BASE('21:30'),
+  carta: CARTA_BASE(), crono: CRONO_BASE('21:30'), lugares: [{ n: 'Mesa de regalos', d: 'entrando, a la izquierda, al lado del cuadro de firmas' }, { n: 'Baños', d: 'al fondo del salón, pasando la pista a la derecha' }, { n: 'Barra', d: 'al lado de la pista, frente al DJ' }, { n: 'Rincón de fotos', d: 'junto a la entrada, con las luces' }],
   foto: '', invitados: [
     { id: 'g1', nombre: 'Roberto Hernández', mesa: '2', menor: false, cupo: 1, tok: 'demoroberto' },
     { id: 'g2', nombre: 'Marta Gómez', mesa: '2', menor: false, cupo: 0, tok: 'demomarta' },
@@ -91,7 +91,7 @@ const demoData = () => ({
 });
 const CARTA_BASE = () => ['Coca-Cola', 'Coca-Cola Zero', 'Sprite', 'Agua sin gas', 'Agua con gas', 'Jugo de naranja', 'Trago sin alcohol', 'Fernet con coca*', 'Cerveza*', 'Vino tinto*', 'Vino blanco*', 'Champagne*', 'Hielo', 'Pan', 'Servilletas', 'Que limpien la mesa'].map(n => ({ n: n.replace('*', ''), alc: n.endsWith('*') }));
 const CRONO_BASE = h0 => { const [H, M] = String(h0 || '21:30').split(':').map(Number), at = mins => { const t = (H * 60 + M + mins) % 1440; return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
-  return [[0, 'Recepción', 'Bienvenidos 🎉 Buscá tu mesa y pedí lo que quieras desde acá.', 0], [45, 'Entrada de la quinceañera', '✨ En 15 minutos entra la quinceañera. ¡Vení al salón!', 15], [60, 'Entrada (comida)', '🍽 Ya sale la entrada. Volvé a tu mesa.', 5], [120, 'Plato principal', '🍽 En 10 minutos sale el plato principal. Volvé a tu mesa.', 10], [180, 'Vals', '💃 En 15 minutos empieza el vals. ¡No te lo pierdas!', 15], [240, 'Ceremonia de velas', '🕯 En 15 minutos es la ceremonia de velas.', 15], [270, 'Torta y mesa dulce', '🎂 ¡Abrió la mesa dulce! Vení a buscar tu porción.', 0], [420, 'Fin de fiesta y souvenirs', '🎁 Antes de irte, retirá tu souvenir. ¡Gracias por venir!', 0]].map(([d, t, a, m]) => ({ h: at(d), t, a, m })); };
+  return [[0, 'Recepción', 'Bienvenidos 🎉 Buscá tu mesa y pedí lo que quieras desde acá.', 0], [45, 'Entrada de la quinceañera', '✨ En 15 minutos entra la quinceañera. ¡Vení al salón!', 15], [60, 'Entrada (comida)', '🍽 Ya sale la entrada. Volvé a tu mesa.', 5], [120, 'Plato principal', '🍽 En 10 minutos sale el plato principal. Volvé a tu mesa.', 10], [180, 'Vals', '💃 En 15 minutos empieza el vals. ¡No te lo pierdas!', 15], [200, '¡A bailar!', '🪩 ¡A bailar! Se abre la pista para todos.', 0], [240, 'Ceremonia de velas', '🕯 En 15 minutos es la ceremonia de velas.', 15], [260, 'Brindis', '🥂 Se viene el brindis. ¡Llená tu copa!', 10], [270, 'Torta y mesa dulce', '🎂 Se acerca la hora de cortar la torta, y abre la mesa dulce. ¡Vení!', 0], [420, 'Fin de fiesta y souvenirs', '🎁 Antes de irte, retirá tu souvenir. ¡Gracias por venir!', 0]].map(([d, t, a, m]) => ({ h: at(d), t, a, m })); };
 function proxSabado() { const d = new Date(Date.now() - 3 * 3600e3); d.setUTCDate(d.getUTCDate() + ((6 - d.getUTCDay() + 7) % 7 || 7) + 21); return d.toISOString().slice(0, 10); }
 
 // Limpia lo que manda el panel. Conserva los links (tokens) de los invitados que ya existían.
@@ -112,6 +112,7 @@ function limpiar(d, prev) {
     // fiesta en vivo: lo que se puede pedir a la mesa, el cronograma de la noche y cómo trabaja el personal
     carta: (Array.isArray(d.carta) ? d.carta : []).slice(0, 80).map(x => ({ n: corto(x && x.n, 40), alc: !!(x && x.alc) })).filter(x => x.n),
     crono: (Array.isArray(d.crono) ? d.crono : []).slice(0, 30).map(x => ({ h: /^\d{2}:\d{2}$/.test(String(x && x.h)) ? x.h : '', t: corto(x && x.t, 60), a: corto(x && x.a, 140), m: [0, 5, 10, 15, 30, 60].includes(+(x && x.m)) ? +x.m : 10 })).filter(x => x.h && x.t),
+    lugares: (Array.isArray(d.lugares) ? d.lugares : []).slice(0, 20).map(x => ({ n: corto(x && x.n, 40), d: corto(x && x.d, 120) })).filter(x => x.n && x.d),
     modoP: d.modoP === 'mozas' ? 'mozas' : 'encargada', flLook: ['normal', 'traje', 'camisa', 'fiesta', 'claro'].includes(d.flLook) ? d.flLook : (LOOK_DE[d.tipo] || 'traje'),
     zonas: (d.zonas && typeof d.zonas === 'object' ? Object.entries(d.zonas) : []).slice(0, 40).reduce((o, [k, v]) => { k = corto(k, 30); v = corto(v, 60).replace(/[^\d,\- a-zA-Z]/g, ''); if (k && v) o[k] = v; return o; }, {})
   };
@@ -135,7 +136,7 @@ function limpiar(d, prev) {
 function publica(e) {
   const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'mostrarMesa', 'pedirMenu', 'foto', 'organiza'].forEach(k => { o[k] = e[k]; });
   o.total = (e.invitados || []).length; o.vivo = vivoOk(e); o.hoy = enDia(e) || !!e.demo;
-  if (o.vivo) { o.flLook = e.flLook || LOOK_DE[e.tipo] || 'traje'; o.carta = e.carta || []; o.crono = e.crono || []; o.atraso = e.atraso || 0; o.avisos = (e.avisos || []).slice(-15); }
+  if (o.vivo) { o.lugares = e.lugares || []; o.flLook = e.flLook || LOOK_DE[e.tipo] || 'traje'; o.carta = e.carta || []; o.crono = e.crono || []; o.atraso = e.atraso || 0; o.avisos = (e.avisos || []).slice(-15); }
   return o;
 }
 const enDia = e => { if (!e || !e.fecha) return false; const t = Date.parse(e.fecha + 'T' + (e.hora || '21:00') + ':00-03:00'), n = Date.now(); return n > t - 8 * 3600e3 && n < t + 14 * 3600e3; };

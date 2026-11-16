@@ -92,13 +92,22 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 #flb .esc{display:flex;gap:6px;margin-top:10px}#flb .esc input{flex:1;font:16px var(--sans);padding:10px;border-radius:12px;border:1.5px solid #e5e7eb;min-width:0}
 #flb .esc button{border:0;border-radius:12px;background:#f3f4f6;font-size:20px;width:46px;cursor:pointer}
 #flb .cerrar{float:right;border:0;background:none;font-size:20px;color:#9ca3af;cursor:pointer;margin:-6px -4px 0 6px}
+#esc{position:fixed;inset:0;z-index:18;pointer-events:none;display:none;overflow:hidden}
+#esc.on{display:block}#esc .big{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font-size:150px;animation:escpop 1.2s cubic-bezier(.2,1.6,.4,1) both;filter:drop-shadow(0 10px 20px rgba(0,0,0,.25))}
+#esc .e{position:absolute;bottom:-60px;font-size:40px;animation:escsube linear forwards}
+@keyframes escpop{0%{transform:translate(-50%,-50%) scale(0) rotate(-20deg)}70%{transform:translate(-50%,-50%) scale(1.15) rotate(6deg)}100%{transform:translate(-50%,-50%) scale(1)}}
+@keyframes escsube{0%{transform:translateY(0) rotate(0);opacity:0}10%{opacity:1}100%{transform:translateY(-115vh) rotate(40deg);opacity:.9}}
+#flprop{position:absolute;left:-14px;top:30px;font-size:34px;display:none;animation:flprop 1.4s ease-in-out infinite;transform-origin:bottom center}
+#flprop.on{display:block}@keyframes flprop{50%{transform:rotate(-14deg) translateY(-4px)}}
+#flav{position:relative}
 @keyframes baja{from{transform:translateY(-120%)}to{transform:none}}
 </style>
 </head>
 <body>
 <div class="wrap" id="app"><div class="carga">Abriendo tu invitación… 💌</div></div>
 <div class="toast" id="toast"></div>
-<div id="fl"><div id="flb"></div><div id="flav" aria-label="Flashy, tu asistente"></div></div>
+<div id="esc"></div>
+<div id="fl"><div id="flb"></div><div style="position:relative"><div id="flav" aria-label="Flashy, tu asistente"></div><span id="flprop"></span></div></div>
 <div class="modal" id="modal"><div class="in" id="modalIn"></div></div>
 <script>
 const $ = s => document.querySelector(s);
@@ -277,7 +286,7 @@ let estadoAnt = {};
 async function vivoTick() {
   if (!F || !F.vivo || !F.hoy || !INV) return;
   try { const r = await fetch('/api/fiesta?accion=vivo&f=' + CODE + '&i=' + encodeURIComponent(TOK)); const j = await r.json(); if (!r.ok || !j.vivo) return; VIVO = j; F.atraso = j.atraso || 0;
-    (j.avisos || []).forEach(a => { if (!vistos['a' + a.id] && Date.now() - Date.parse(a.t) < 45 * 60e3) { marcarVisto('a' + a.id); toast('📢 ' + a.txt, nomFiesta(F), true); } else marcarVisto('a' + a.id); });
+    (j.avisos || []).forEach(a => { if (!vistos['a' + a.id] && Date.now() - Date.parse(a.t) < 45 * 60e3) { marcarVisto('a' + a.id); escena(a.txt); toast('📢 ' + a.txt, nomFiesta(F), true); } else marcarVisto('a' + a.id); });
     (j.pedidos || []).forEach(p => { const k = p.estado + '|' + p.moza, ant = estadoAnt[p.id];
       if (ant && ant !== k) { const que = listaPed(p);
         if (p.estado === 'camino') { const t = p.moza ? `🚶 ${p.moza} te trae ${que}` : `🚶 Ya va en camino ${que}`; toast(t, nomFiesta(F), false, true); if (FL) flDecir(t + ' 😊', [{t: '👍 Gracias', alt: true, f: () => $('#flb').classList.remove('on')}]); }
@@ -285,9 +294,19 @@ async function vivoTick() {
         else if (p.estado === 'nuevo' && p.moza && !ant.endsWith('|' + p.moza)) toast(`👩 ${p.moza} va a llevarte ${que}`, nomFiesta(F)); }
       estadoAnt[p.id] = k; });
   } catch (e) {}
-  momentos().forEach((m, i, M) => { const k = 'c' + m.h + m.nombre; if (!vistos[k] && Date.now() >= m.aviso && Date.now() - m.aviso < 30 * 60e3) { marcarVisto(k); if (m.a) { toast(m.a, nomFiesta(F), true); const sig = M[i + 1]; if (FL) flDecir(m.a + (sig ? ` Después, a las ${hhmm(sig.ts)}: ${sig.nombre.charAt(0).toLowerCase() + sig.nombre.slice(1)}.` : ''), [{t: '🥤 Pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: '👍 Dale', alt: true, f: () => $('#flb').classList.remove('on')}]); } } else if (!vistos[k] && Date.now() - m.aviso >= 30 * 60e3) marcarVisto(k); });
+  momentos().forEach((m, i, M) => { const k = 'c' + m.h + m.nombre; if (!vistos[k] && Date.now() >= m.aviso && Date.now() - m.aviso < 30 * 60e3) { marcarVisto(k); if (m.a) { escena(m.nombre + ' ' + m.a); const tx = conNombre(m.a); toast(tx, nomFiesta(F), true, true); const sig = M[i + 1]; if (FL) flDecir(tx + (sig ? ` Después, a las ${hhmm(sig.ts)}: ${sig.nombre.charAt(0).toLowerCase() + sig.nombre.slice(1)}.` : ''), [{t: '🥤 Pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: '👍 Dale', alt: true, f: () => $('#flb').classList.remove('on')}]); } } else if (!vistos[k] && Date.now() - m.aviso >= 30 * 60e3) marcarVisto(k); });
   const ae = document.activeElement; if (!(ae && (ae.id === 'pnota'))) pVivo();
 }
+// ===== Escenas de cada momento (brindis, torta, mesa dulce, vals…) =====
+const ESCENAS = [[/brindis/i, '🥂', ['🥂', '✨', '🎉', '🍾']], [/torta/i, '🎂', ['🎂', '🕯', '✨', '🎉']], [/mesa dulce|dulces/i, '🍰', ['🍰', '🧁', '🍩', '🍬', '🍫', '🍭', '🍪']], [/karaoke|cantar/i, '🎤', ['🎤', '🎶', '🎵', '⭐']], [/vals/i, '💃', ['💃', '🕺', '🎶', '✨']], [/a bailar|baile|pista|bailar/i, '🪩', ['🪩', '💃', '🕺', '🎶', '✨']], [/carioca|cotill|disfraz|robot/i, '🎭', ['🎭', '🎉', '🎊', '🕶']], [/foto/i, '📸', ['📸', '✨', '😁']], [/vela/i, '🕯', ['🕯', '✨', '💫']], [/entrada de|entra la|quincea|novios/i, '👑', ['👑', '✨', '💖']], [/plato|entrada \(|entrada\b|comida|cena|sale la/i, '🍽', ['🍽', '😋', '✨']], [/souvenir|fin de fiesta/i, '🎁', ['🎁', '💖', '👋']], [/recepci|bienvenid/i, '🎉', ['🎉', '🥳', '✨']]];
+function escena(texto) {
+  const m = ESCENAS.find(([re]) => re.test(texto)); if (!m) return null;
+  const el = $('#esc'); el.innerHTML = `<div class="big">${m[1]}</div>` + Array.from({length: 22}, (_, i) => `<span class="e" style="left:${(i * 37) % 96}%;animation-duration:${3 + (i % 5) * .6}s;animation-delay:${(i % 7) * .25}s;font-size:${28 + (i % 4) * 10}px">${m[2][i % m[2].length]}</span>`).join('');
+  el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 6500);
+  const pr = $('#flprop'); if (pr) { pr.textContent = m[1]; pr.classList.add('on'); clearTimeout(pr._t); pr._t = setTimeout(() => pr.classList.remove('on'), 5 * 60e3); }
+  return m[1];
+}
+const conNombre = t => { if (!INV) return t; const nom = INV.nombre.split(' ')[0]; const mm = String(t).match(/^(\p{Extended_Pictographic}\uFE0F?\s*)(.)(.*)$/u); return mm ? `${mm[1]}${nom}, ${mm[2].toLowerCase()}${mm[3]}` : `${nom}, ${String(t).charAt(0).toLowerCase()}${String(t).slice(1)}`; };
 // ===== Flashy, el asistente del invitado =====
 let FL = false, flVoz = false, flPend = null;
 const norm = t => sinT(String(t).toLowerCase()).replace(/[^a-z0-9ñ ]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -316,7 +335,7 @@ function flHablar(t) {
 }
 function flDecir(texto, ops, conEscribir) {
   if (!FL) return; const b = $('#flb');
-  b.innerHTML = `<button class="cerrar" aria-label="Cerrar">✕</button><div class="tx">${esc(texto)}</div><div class="ops">${(ops || []).map((o, i) => `<button class="op ${o.alt ? 'alt' : ''}" data-flo="${i}">${esc(o.t)}</button>`).join('')}</div>${conEscribir ? `<div class="esc"><input id="flin" placeholder="Ej: dos cocas y un agua"><button id="flmic" aria-label="Hablar">🎤</button><button id="flok" aria-label="Enviar">➤</button></div>` : ''}`;
+  b.innerHTML = `<button class="cerrar" aria-label="Cerrar">✕</button><div class="tx">${esc(texto)}</div><div class="ops">${(ops || []).map((o, i) => `<button class="op ${o.alt ? 'alt' : ''}" data-flo="${i}">${esc(o.t)}</button>`).join('')}</div>${conEscribir ? `<div class="esc"><input id="flin" placeholder="Ej: dos cocas y un agua, o ¿dónde está el baño?"><button id="flmic" aria-label="Hablar">🎤</button><button id="flok" aria-label="Enviar">➤</button></div>` : ''}`;
   b.classList.add('on'); flHablar(texto);
   b.querySelector('.cerrar').onclick = () => b.classList.remove('on');
   b.querySelectorAll('[data-flo]').forEach(x => x.onclick = () => { flVoz = true; const o = ops[+x.dataset.flo]; o.f && o.f(); });
@@ -330,7 +349,15 @@ function flOpsPedir() {
   const carta = (F.carta || []).filter(x => !(x.alc && INV.menor)).slice(0, 6);
   return carta.map(x => ({t: x.n, f: () => flConfirmar([{n: x.n, c: 1}])})).concat([{t: 'Ver todo', alt: true, f: () => { $('#flb').classList.remove('on'); const v = $('#vivo'); if (v) v.scrollIntoView({behavior: 'smooth'}); }}]);
 }
-function flEntendi(t) { const it = entender(t); if (!it.length) return flDecir('Mmm, no lo encontré en la carta 🤔. Tocá una opción o probá con otras palabras.', flOpsPedir(), true); flConfirmar(it); }
+const ICONO_LUGAR = n => /regal/i.test(n) ? '🎁' : /ba[ñn]o/i.test(n) ? '🚻' : /barra|trago/i.test(n) ? '🍹' : /foto/i.test(n) ? '📸' : /guardarropa|abrigo|campera/i.test(n) ? '🧥' : /salida|puerta/i.test(n) ? '🚪' : /fum|patio/i.test(n) ? '🌙' : /pista|dj/i.test(n) ? '🪩' : '📍';
+function lugarDe(t) { const L = F.lugares || [], tn = norm(t); if (!L.length) return null;
+  const claves = [[/regal/, /regal/], [/bano|toilet|toalet/, /bano|toilet/], [/barra|trago/, /barra/], [/foto/, /foto/], [/abrigo|campera|saco|guardarropa/, /guardarropa|abrigo/], [/salida|irme|puerta/, /salida|puerta/], [/fumar|fumo|cigarr|patio/, /fum|patio/], [/pista|dj/, /pista|dj/]];
+  for (const [q, l] of claves) if (q.test(tn)) { const x = L.find(y => l.test(norm(y.n))); if (x) return x; }
+  return L.find(y => norm(y.n).split(' ').some(w => w.length > 3 && tn.includes(w.replace(/s$/, '')))) || null; }
+function flLugares() { const L = F.lugares || []; if (!L.length) return flDecir('La familia todavía no cargó los lugares del salón. Preguntale a una moza 🙂', []);
+  flDecir('¿Qué estás buscando?', L.map(x => ({t: ICONO_LUGAR(x.n) + ' ' + x.n, f: () => flDecir(`${ICONO_LUGAR(x.n)} ${x.n}: ${x.d}.`, [{t: '📍 Otro lugar', alt: true, f: flLugares}, {t: '👍 Gracias', alt: true, f: () => $('#flb').classList.remove('on')}])})), true); }
+function flEntendi(t) {
+  if (/d[oó]nde|ba[ñn]o|regalo|guardarropa|salida|fumar|abrigo/i.test(t)) { const x = lugarDe(t); if (x) return flDecir(`${ICONO_LUGAR(x.n)} ${x.n}: ${x.d}.`, [{t: '📍 Otro lugar', alt: true, f: flLugares}, {t: '👍 Gracias', alt: true, f: () => $('#flb').classList.remove('on')}]); if (/d[oó]nde/i.test(t)) return flLugares(); } const it = entender(t); if (!it.length) return flDecir('Mmm, no lo encontré en la carta 🤔. Tocá una opción o probá con otras palabras.', flOpsPedir(), true); flConfirmar(it); }
 const listaPed = p => { const it = p.items || []; return it.length === 1 ? 'tu ' + (it[0].c > 1 ? it[0].c + ' ' : '') + it[0].n : 'tu pedido (' + it.map(x => (x.c > 1 ? x.c + ' ' : '') + x.n).join(', ') + ')'; };
 const listaTx = it => it.map(x => x.c + ' ' + x.n).join(', ').replace(/, ([^,]*)$/, ' y $1');
 function flConfirmar(it) { flPend = it; flDecir(`¿Te pido ${listaTx(it)}?`, [{t: '✅ Sí, pedir', f: flPedir}, {t: '✏️ Cambiar', alt: true, f: () => flDecir('Decime qué querés 🙂', flOpsPedir(), true)}]); }
@@ -344,7 +371,9 @@ function flQueViene() { const M = momentos(), p = M.find(x => x.ts > Date.now())
 const LSI = () => 'fiestaInter:' + CODE;
 const marcaInter = () => { try { localStorage.setItem(LSI(), String(Date.now())); } catch (e) {} };
 function flMenu() { const nom = INV.nombre.split(' ')[0], mesa = INV.mesa || MESA;
-  flDecir(`¡Hola ${nom}! ${mesa ? 'Estás en la mesa ' + mesa + '. ' : ''}¿Querés que te traigan algo para tomar?`, [{t: '🥤 Sí, pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: '⏰ ¿Qué viene?', alt: true, f: flQueViene}, {t: 'Ahora no', alt: true, f: () => { marcaInter(); $('#flb').classList.remove('on'); }}]); }
+  const reg = (F.lugares || []).find(x => /regal/i.test(x.n));
+  flDecir(`¡Hola ${nom}! ${mesa ? 'Estás en la mesa ' + mesa + '. ' : ''}${reg && !yaSaludo() ? 'Si traés regalo, la mesa de regalos está ' + reg.d + ' 🎁. ' : ''}¿Querés que te traigan algo para tomar?`, [{t: '🥤 Sí, pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: '⏰ ¿Qué viene?', alt: true, f: flQueViene}].concat((F.lugares || []).length ? [{t: '📍 ¿Dónde está…?', alt: true, f: flLugares}] : []).concat([{t: 'Ahora no', alt: true, f: () => { marcaInter(); $('#flb').classList.remove('on'); }}])); try { localStorage.setItem('fiestaSaludo:' + CODE, '1'); } catch (e) {} }
+const yaSaludo = () => { try { return !!localStorage.getItem('fiestaSaludo:' + CODE); } catch (e) { return false; } };
 function flPasoDeVez() { // cada tanto, sin molestar: "¿te falta algo en la mesa?"
   if (!FL || $('#flb').classList.contains('on') || document.hidden) return;
   let ult = 0; try { ult = +localStorage.getItem(LSI()) || 0; } catch (e) {}
