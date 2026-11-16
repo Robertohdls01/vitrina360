@@ -110,8 +110,11 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 <div id="esc"></div>
 <div id="fl"><div id="flb"></div><div style="position:relative"><div id="flav" aria-label="Flashy, tu asistente"></div><span id="flprop"></span></div></div>
 <div class="modal" id="modal"><div class="in" id="modalIn"></div></div>
+<script src="/fiesta-i18n.js"></script>
 <script>
 const $ = s => document.querySelector(s);
+const t = I18N.t, tc = I18N.tc, LG = I18N.LANG;
+$('#app').innerHTML = `<div class="carga">${t('Abriendo tu invitación… 💌')}</div>`; $('#flav').setAttribute('aria-label', t('Flashy, tu asistente'));
 const FL_LOOKS = {
   normal: '<rect x="30" y="92" width="5" height="11" rx="2" fill="#ca8a04"/><rect x="45" y="92" width="5" height="11" rx="2" fill="#ca8a04"/><ellipse cx="30" cy="104" rx="6.5" ry="3.6" fill="#374151"/><ellipse cx="50" cy="104" rx="6.5" ry="3.6" fill="#374151"/><ellipse cx="27.5" cy="102.8" rx="2.4" ry=".9" fill="#9ca3af" opacity=".7"/><ellipse cx="47.5" cy="102.8" rx="2.4" ry=".9" fill="#9ca3af" opacity=".7"/>',
   traje: '<rect x="30" y="92" width="5" height="11" rx="2" fill="#1f2937"/><rect x="45" y="92" width="5" height="11" rx="2" fill="#1f2937"/><ellipse cx="30" cy="104" rx="7.5" ry="3.6" fill="#0b0f19"/><ellipse cx="50" cy="104" rx="7.5" ry="3.6" fill="#0b0f19"/><ellipse cx="27.5" cy="102.8" rx="2.4" ry=".9" fill="#fff" opacity=".7"/><ellipse cx="47.5" cy="102.8" rx="2.4" ry=".9" fill="#fff" opacity=".7"/><defs><clipPath id="flc"><circle cx="40" cy="64" r="31"/></clipPath></defs><g clip-path="url(#flc)"><rect x="0" y="83" width="80" height="30" fill="#1f2937"/><path d="M29 83 40 97 51 83z" fill="#fff"/><path d="M40 97 36 83h-3l7 14zM40 97l4-14h3z" fill="#111827" opacity=".5"/></g><path d="M32 81l8 4.5-8 4.5zM48 81l-8 4.5 8 4.5z" fill="#111827"/><circle cx="40" cy="85.5" r="2.4" fill="#374151"/>',
@@ -140,39 +143,41 @@ const DECO = {
   mariposas: c => `<svg viewBox="0 0 560 220" preserveAspectRatio="xMidYMin slice">${[[60,50,1,-15],[500,40,.8,20],[460,140,.55,-10],[110,150,.5,15]].map(([x,y,s,r]) => `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})" opacity=".8"><path d="M0 0C-30-34-46-6-28 8C-46 22-24 40 0 8C24 40 46 22 28 8C46-6 30-34 0 0Z" fill="#cbb8ef"/><rect x="-2" y="-14" width="4" height="28" rx="2" fill="${c}"/></g>`).join('')}</svg>`,
   luna: c => `<svg viewBox="0 0 560 220" preserveAspectRatio="xMidYMin slice"><circle cx="470" cy="60" r="34" fill="#f5e9c4"/><circle cx="486" cy="50" r="32" fill="var(--bg)"/>${Array.from({length:22}, (_, i) => `<circle cx="${(i * 89) % 560}" cy="${10 + (i * 41) % 190}" r="${1 + i % 2}" fill="#f5e9c4" opacity="${.4 + (i % 4) / 6}"/>`).join('')}<circle cx="80" cy="40" r="3" fill="${c}"/></svg>`
 };
-const fechaLarga = f => { if (!f.fecha) return ''; const d = new Date(f.fecha + 'T12:00:00-03:00'); const s = d.toLocaleDateString('es-AR', {weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Argentina/Buenos_Aires'}); return s.charAt(0).toUpperCase() + s.slice(1); };
+const fechaLarga = f => { if (!f.fecha) return ''; const d = new Date(f.fecha + 'T12:00:00-03:00'); const s = d.toLocaleDateString(I18N.LOC, {weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Argentina/Buenos_Aires'}); return s.charAt(0).toUpperCase() + s.slice(1); };
 const cuando = f => f.fecha ? new Date(f.fecha + 'T' + (f.hora || '21:00') + ':00-03:00') : null;
-const nomFiesta = f => (f.tipo === '15' ? 'Los 15 de ' : f.tipo === 'casamiento' ? 'El casamiento de ' : 'La fiesta de ') + (f.nombre || '');
+const nomFiesta = f => t(f.tipo === '15' ? 'Los 15 de {n}' : f.tipo === 'casamiento' ? 'El casamiento de {n}' : 'La fiesta de {n}', {n: f.nombre || ''});
+const nomMin = f => { const n = nomFiesta(f); return ['es', 'pt', 'it', 'fr'].includes(LG) ? n.charAt(0).toLowerCase() + n.slice(1) : n; };
 const mapa = f => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent([f.salon, f.direccion].filter(Boolean).join(', '));
 const agenda = f => { const d = cuando(f); if (!d) return ''; const fm = x => new Date(x.getTime() - 3 * 3600e3).toISOString().replace(/[-:]/g, '').slice(0, 15); const fin = new Date(d.getTime() + 6 * 3600e3);
-  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(nomFiesta(f)) + '&dates=' + fm(d) + '/' + fm(fin) + '&ctz=America/Argentina/Buenos_Aires&location=' + encodeURIComponent([f.salon, f.direccion].filter(Boolean).join(', ')) + '&details=' + encodeURIComponent('Tu invitación: ' + location.origin + '/fiesta/' + CODE); };
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(nomFiesta(f)) + '&dates=' + fm(d) + '/' + fm(fin) + '&ctz=America/Argentina/Buenos_Aires&location=' + encodeURIComponent([f.salon, f.direccion].filter(Boolean).join(', ')) + '&details=' + encodeURIComponent(t('Tu invitación') + ': ' + location.origin + '/fiesta/' + CODE); };
 
 function render() {
-  const f = F, m = f.modo || 'especial', t = f.plantilla || 'elegante';
-  document.body.className = 't-' + t + (m === 'link' ? ' linkmode' : '');
+  const f = F, m = f.modo || 'especial', tp = f.plantilla || 'elegante';
+  document.body.className = 't-' + tp + (m === 'link' ? ' linkmode' : '');
   document.documentElement.style.setProperty('--ac', f.color || '#c9a227');
   document.title = nomFiesta(f);
   const mt = document.querySelector('meta[name=theme-color]'); if (mt) mt.content = getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#fbf7f0';
   let h = '';
-  if (f.demo && !PREV) h += `<div class="banner">👀 Invitación de muestra: así la reciben tus invitados. <a href="/fiesta-panel">Armá la tuya →</a></div>`;
-  if (m !== 'link') h += `<div class="deco">${(DECO[t] || DECO.elegante)(f.color || '#c9a227')}</div>`;
+  if (f.demo && !PREV) h += `<div class="banner">👀 ${t('Invitación de muestra: así la reciben tus invitados.')} <a href="/fiesta-panel">${t('Armá la tuya →')}</a></div>`;
+  if (m !== 'link') h += `<div class="deco">${(DECO[tp] || DECO.elegante)(f.color || '#c9a227')}</div>`;
   h += `<div class="hero">`;
   if (m === 'especial' && f.foto) h += `<img class="foto" src="${esc(f.foto)}" alt="">`;
-  h += `<div class="tit">${esc(f.titulo || '')}</div><div class="nom">${esc(f.nombre || 'Tu nombre')}</div>`;
+  h += `<div class="tit">${esc(f.titulo || '')}</div><div class="nom">${esc(f.nombre || t('Tu nombre'))}</div>`;
   if (m !== 'link' && f.frase) h += `<p class="frase">${esc(f.frase)}</p>`;
   if (m === 'link') h += `<p class="frase">${esc(fechaLarga(f))}${f.hora ? ' · ' + esc(f.hora) + ' h' : ''}${f.salon ? '<br>' + esc(f.salon) : ''}</p>`;
   h += `</div>`;
   if (m !== 'link' && cuando(f)) h += `<div class="sep"></div><div class="cuenta" id="cuenta"></div><div class="falta" id="falta"></div>`;
   if (m !== 'link') {
-    if (f.fecha) h += `<div class="card"><h3>Cuándo</h3><p class="big">${esc(fechaLarga(f))}</p>${f.hora ? `<p>a las ${esc(f.hora)} h</p>` : ''}<a class="btn alt" href="${agenda(f)}" target="_blank" rel="noopener">🗓 Agendar</a></div>`;
-    if (f.salon || f.direccion) h += `<div class="card"><h3>Dónde</h3><p class="big">${esc(f.salon || '')}</p>${f.direccion ? `<p>${esc(f.direccion)}</p>` : ''}<a class="btn alt" href="${mapa(f)}" target="_blank" rel="noopener">📍 Cómo llegar</a></div>`;
-    if (f.vestimenta) h += `<div class="card"><h3>Vestimenta</h3><p class="big">${esc(f.vestimenta)}</p></div>`;
-    if (f.regalo) h += `<div class="card"><h3>Regalo</h3><p>${esc(f.regalo)}</p><button class="btn alt copiar" data-copiar="${esc(f.regalo)}">📋 Copiar</button></div>`;
-  } else if (f.salon || f.direccion) h += `<div style="text-align:center"><a class="btn alt" href="${mapa(f)}" target="_blank" rel="noopener">📍 Cómo llegar</a> ${f.fecha ? `<a class="btn alt" href="${agenda(f)}" target="_blank" rel="noopener">🗓 Agendar</a>` : ''}</div>`;
+    if (f.fecha) h += `<div class="card"><h3>${t('Cuándo')}</h3><p class="big">${esc(fechaLarga(f))}</p>${f.hora ? `<p>${t('a las {h} h', {h: esc(f.hora)})}</p>` : ''}<a class="btn alt" href="${agenda(f)}" target="_blank" rel="noopener">${t('🗓 Agendar')}</a></div>`;
+    if (f.salon || f.direccion) h += `<div class="card"><h3>${t('Dónde')}</h3><p class="big">${esc(f.salon || '')}</p>${f.direccion ? `<p>${esc(f.direccion)}</p>` : ''}<a class="btn alt" href="${mapa(f)}" target="_blank" rel="noopener">${t('📍 Cómo llegar')}</a></div>`;
+    if (f.vestimenta) h += `<div class="card"><h3>${t('Vestimenta')}</h3><p class="big">${esc(f.vestimenta)}</p></div>`;
+    if (f.salon || f.direccion || f.estaciona) h += `<div class="card"><h3>${t('Estacionamiento')}</h3>${f.estaciona ? `<p>${esc(f.estaciona).replace(/\+?\d[\d\s-]{6,}\d/g, n => `<a href="tel:${n.replace(/[^\d+]/g, '')}">${n}</a>`)}</p>` : ''}<a class="btn alt" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(t('estacionamiento') + ' ' + [f.direccion, f.salon].filter(Boolean).join(', '))}" target="_blank" rel="noopener">${t('🚗 Ver estacionamientos cerca')}</a></div>`;
+    if (f.regalo) h += `<div class="card"><h3>${t('Regalo')}</h3><p>${esc(f.regalo)}</p><button class="btn alt copiar" data-copiar="${esc(f.regalo)}">${t('📋 Copiar')}</button></div>`;
+  } else if (f.salon || f.direccion) h += `<div style="text-align:center"><a class="btn alt" href="${mapa(f)}" target="_blank" rel="noopener">${t('📍 Cómo llegar')}</a> ${f.fecha ? `<a class="btn alt" href="${agenda(f)}" target="_blank" rel="noopener">${t('🗓 Agendar')}</a>` : ''}</div>`;
   if (F.vivo && !PREV) h += `<div class="card vivo" id="vivo"></div>`;
   h += `<div class="card rsvp" id="rsvp"></div>`;
   h += `<div class="card" id="guardar"></div>`;
-  h += `<div class="pie">Invitación y fiesta organizadas con <b>ShopFiesta</b><br>Pro Video JSRHG · <a href="https://wa.me/5492235814437?text=${encodeURIComponent('Hola, vi la invitación de ShopFiesta y quiero una para mi fiesta')}" target="_blank" rel="noopener">¿Querés una para tu fiesta?</a></div>`;
+  h += `<div class="pie">${t('Invitación y fiesta organizadas con')} <b>ShopFiesta</b><br>Pro Video JSRHG · <a href="https://wa.me/5492235814437?text=${encodeURIComponent('Hola, vi la invitación de ShopFiesta y quiero una para mi fiesta')}" target="_blank" rel="noopener">${t('¿Querés una para tu fiesta?')}</a></div>`;
   $('#app').innerHTML = h;
   if (F.vivo && F.hoy && !PREV) { const v = $('#vivo'), hero = $('.hero'); if (v && hero) hero.after(v); }
   rsvp(); guardar(); cuenta(); pVivo();
@@ -180,15 +185,16 @@ function render() {
 function cuenta() {
   clearInterval(timer); const d = cuando(F); if (!d || !$('#cuenta')) return;
   const tick = () => { let s = Math.max(0, Math.floor((d - Date.now()) / 1000)); const D = Math.floor(s / 86400); s %= 86400; const H = Math.floor(s / 3600); s %= 3600; const M = Math.floor(s / 60), S = s % 60;
-    $('#cuenta').innerHTML = [[D, 'días'], [H, 'horas'], [M, 'min'], [S, 'seg']].map(([v, l]) => `<div><b>${v}</b><small>${l}</small></div>`).join('');
-    $('#falta').textContent = d - Date.now() > 0 ? 'para ' + nomFiesta(F).replace(/^L/, 'l').replace(/^E/, 'e') : '¡Hoy es la fiesta! 🎉'; };
+    $('#cuenta').innerHTML = [[D, t('días')], [H, t('horas')], [M, t('min')], [S, t('seg')]].map(([v, l]) => `<div><b>${v}</b><small>${l}</small></div>`).join('');
+    $('#falta').textContent = d - Date.now() > 0 ? t('para {f}', {f: nomMin(F)}) : t('¡Hoy es la fiesta! 🎉'); };
   tick(); timer = setInterval(tick, 1000);
 }
 function rsvp() {
   const el = $('#rsvp'); if (!el) return;
-  if (PREV) { el.innerHTML = `<h3>Confirmación</h3><p class="hola">¡Hola Roberto! 💌</p><p>¿Venís a ${esc(nomFiesta(F).charAt(0).toLowerCase() + nomFiesta(F).slice(1))}?</p><button class="btn big2">✅ ¡Sí, voy!</button><br><button class="btn no">No puedo ir</button>`; return; }
+  if (PREV) { el.innerHTML = `<h3>${t('Confirmación')}</h3><p class="hola">${t('¡Hola {n}! 💌', {n: 'Roberto'})}</p><p>${t('¿Venís a {f}?', {f: esc(nomMin(F))})}</p><button class="btn big2">${t('✅ ¡Sí, voy!')}</button><br><button class="btn no">${t('No puedo ir')}</button>`; return; }
   if (!INV) {
-    el.innerHTML = F.vivo && F.hoy ? `<h3>¡Bienvenido a la fiesta! 🎉</h3><p class="hola">¿Cómo te llamás?</p><p>Escribí tu nombre y apellido para encontrarte en la lista.</p>` : `<h3>Confirmá tu asistencia</h3><p>Escribí tu nombre y apellido para encontrarte en la lista.</p><input id="busca" placeholder="Ej: Roberto Hernández" autocomplete="name"><div class="res" id="res"></div>`;
+    const caja = `<p>${t('Escribí tu nombre y apellido para encontrarte en la lista.')}</p><input id="busca" placeholder="${t('Ej: Roberto Hernández')}" autocomplete="name"><div class="res" id="res"></div>`;
+    el.innerHTML = F.vivo && F.hoy ? `<h3>${t('¡Bienvenido a la fiesta! 🎉')}</h3><p class="hola">${t('¿Cómo te llamás?')}</p>` + caja : `<h3>${t('Confirmá tu asistencia')}</h3>` + caja;
     if (F.vivo && F.hoy) setTimeout(() => { const b = $('#busca'); if (b) b.scrollIntoView({block: 'center'}); }, 300);
     let tm = null; $('#busca').addEventListener('input', e => { clearTimeout(tm); tm = setTimeout(() => buscar(e.target.value), 350); });
     return;
@@ -196,19 +202,19 @@ function rsvp() {
   const r = INV.resp, nom = INV.nombre.split(' ')[0];
   if (r && !el.dataset.cambiar) {
     el.innerHTML = r.va
-      ? `<h3>Confirmación</h3><div class="ok"><p class="hola">¡Listo ${esc(nom)}, te esperamos! 🎉</p><p>Confirmaste ${r.cuantos > 1 ? r.cuantos + ' personas' : 'tu lugar'}${r.menu ? ' · menú ' + esc(r.menu) : ''}.</p>${INV.mesa ? `<div class="mesa">Mesa ${esc(INV.mesa)}</div>` : ''}</div><button class="btn alt" id="cambiar">Cambiar mi respuesta</button>`
-      : `<h3>Confirmación</h3><div class="ok" style="background:rgba(0,0,0,.05)"><p class="hola">Gracias por avisar, ${esc(nom)} 💛</p><p>Le contamos a la familia que no podés ir.</p></div><button class="btn alt" id="cambiar">Cambiar mi respuesta</button>`;
+      ? `<h3>${t('Confirmación')}</h3><div class="ok"><p class="hola">${t('¡Listo {n}, te esperamos! 🎉', {n: esc(nom)})}</p><p>${r.cuantos > 1 ? t('Confirmaste {c} personas', {c: r.cuantos}) : t('Confirmaste tu lugar')}${r.menu ? ' · ' + t('menú {m}', {m: esc(t(r.menu))}) : ''}.</p>${INV.mesa ? `<div class="mesa">${t('Mesa {m}', {m: esc(INV.mesa)})}</div>` : ''}</div><button class="btn alt" id="cambiar">${t('Cambiar mi respuesta')}</button>`
+      : `<h3>${t('Confirmación')}</h3><div class="ok" style="background:rgba(0,0,0,.05)"><p class="hola">${t('Gracias por avisar, {n} 💛', {n: esc(nom)})}</p><p>${t('Le contamos a la familia que no podés ir.')}</p></div><button class="btn alt" id="cambiar">${t('Cambiar mi respuesta')}</button>`;
     $('#cambiar').onclick = () => { el.dataset.cambiar = '1'; rsvp(); };
     return;
   }
   const cupo = INV.cupo || 0;
-  el.innerHTML = `<h3>Confirmación</h3><p class="hola">¡Hola ${esc(nom)}! 💌</p><p>¿Venís a ${esc(nomFiesta(F).charAt(0).toLowerCase() + nomFiesta(F).slice(1))}?</p>
-    <button class="btn big2" id="si">✅ ¡Sí, voy!</button><br><button class="btn no" id="nov">No puedo ir</button>
+  el.innerHTML = `<h3>${t('Confirmación')}</h3><p class="hola">${t('¡Hola {n}! 💌', {n: esc(nom)})}</p><p>${t('¿Venís a {f}?', {f: esc(nomMin(F))})}</p>
+    <button class="btn big2" id="si">${t('✅ ¡Sí, voy!')}</button><br><button class="btn no" id="nov">${t('No puedo ir')}</button>
     <div id="mas" style="display:none">
-      ${cupo ? `<label>¿Cuántos van, contándote a vos?</label><select id="cuantos">${Array.from({length: cupo + 1}, (_, i) => `<option value="${i + 1}">${i + 1}${i ? ' personas' : ' (solo yo)'}</option>`).join('')}</select>` : ''}
-      ${F.pedirMenu ? `<label>¿Necesitás un menú especial?</label><select id="menu"><option value="">No, el menú común</option><option>vegetariano</option><option>vegano</option><option>sin TACC</option><option>infantil</option><option value="otro">otro (lo aclaro abajo)</option></select>` : ''}
-      <label>Un mensaje para ${esc(F.nombre || 'la familia')} (si querés)</label><textarea id="nota" maxlength="300"></textarea>
-      <button class="btn big2" id="enviar">Confirmar 🎉</button></div><div id="msg"></div>`;
+      ${cupo ? `<label>${t('¿Cuántos van, contándote a vos?')}</label><select id="cuantos">${Array.from({length: cupo + 1}, (_, i) => `<option value="${i + 1}">${i ? t('{c} personas', {c: i + 1}) : t('1 (solo yo)')}</option>`).join('')}</select>` : ''}
+      ${F.pedirMenu ? `<label>${t('¿Necesitás un menú especial?')}</label><select id="menu"><option value="">${t('No, el menú común')}</option>${['vegetariano', 'vegano', 'sin TACC', 'infantil'].map(o => `<option value="${o}">${t(o)}</option>`).join('')}<option value="otro">${t('otro (lo aclaro abajo)')}</option></select>` : ''}
+      <label>${t('Un mensaje para {n} (si querés)', {n: esc(F.nombre || t('la familia'))})}</label><textarea id="nota" maxlength="300"></textarea>
+      <button class="btn big2" id="enviar">${t('Confirmar 🎉')}</button></div><div id="msg"></div>`;
   $('#si').onclick = () => { $('#mas').style.display = 'block'; $('#si').style.display = 'none'; $('#nov').style.display = 'none'; };
   $('#nov').onclick = () => responder(false);
   $('#enviar').onclick = () => responder(true);
@@ -216,15 +222,15 @@ function rsvp() {
 async function buscar(v) {
   const res = $('#res'); if (!res) return; if (String(v).trim().length < 3) { res.innerHTML = ''; return; }
   try { const r = await fetch('/api/fiesta?accion=buscar&f=' + CODE + '&q=' + encodeURIComponent(v)); const j = await r.json();
-    res.innerHTML = (j.items || []).length ? j.items.map(x => `<button data-tok="${esc(x.tok)}">👤 ${esc(x.nombre)}</button>`).join('') : '<p style="color:var(--soft)">No te encontramos todavía. Probá con tu apellido o pedile el link a la familia.</p>';
+    res.innerHTML = (j.items || []).length ? j.items.map(x => `<button data-tok="${esc(x.tok)}">👤 ${esc(x.nombre)}</button>`).join('') : `<p style="color:var(--soft)">${t('No te encontramos todavía. Probá con tu apellido o pedile el link a la familia.')}</p>`;
     res.querySelectorAll('[data-tok]').forEach(b => b.onclick = () => { TOK = b.dataset.tok; try { localStorage.setItem(LS, TOK); } catch (e) {} history.replaceState(null, '', location.pathname + '?i=' + TOK); cargar(); });
-  } catch (e) { res.innerHTML = '<p class="err">No pudimos buscar. Revisá internet.</p>'; }
+  } catch (e) { res.innerHTML = `<p class="err">${t('No pudimos buscar. Revisá internet.')}</p>`; }
 }
 async function responder(va) {
   const msg = $('#msg'); const b = $('#enviar') || $('#nov'); if (b) b.disabled = true;
   try {
     const r = await fetch('/api/fiesta?accion=responder', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, va, cuantos: ($('#cuantos') || {}).value || 1, menu: ($('#menu') || {}).value || '', nota: ($('#nota') || {}).value || ''})});
-    const j = await r.json(); if (!r.ok) throw new Error(j.error || 'No se pudo guardar');
+    const j = await r.json(); if (!r.ok) throw new Error(j.error || t('No se pudo guardar'));
     INV.resp = j.resp; delete $('#rsvp').dataset.cambiar; rsvp(); guardar();
     if (va) setTimeout(() => $('#guardar').scrollIntoView({behavior: 'smooth', block: 'center'}), 400);
   } catch (e) { if (msg) msg.innerHTML = `<p class="err">${esc(e.message)}</p>`; if (b) b.disabled = false; }
@@ -237,7 +243,7 @@ function momentos() { // cada momento del cronograma con su hora real (los de de
   return F.crono.map(x => { let m = minDe(x.h); if (m < h0) m += 1440; const ts = base + m * 60e3 + at; return {h: x.h, nombre: x.t, a: x.a, ts, aviso: ts - (x.m || 0) * 60e3}; }).sort((a, b) => a.ts - b.ts);
 }
 const hhmm = t => new Date(t).toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Argentina/Buenos_Aires'});
-const EST = p => p.estado === 'entregado' ? '✅ Entregado' : p.estado === 'cancelado' ? '❌ Cancelado' : p.estado === 'camino' ? `🚶 Ya va ${p.moza ? esc(p.moza) : 'la moza'} a tu mesa` : p.moza ? `👩 ${esc(p.moza)} te lo va a llevar` : '📝 Recibido: enseguida te avisamos quién te lo trae';
+const EST = p => p.estado === 'entregado' ? t('✅ Entregado') : p.estado === 'cancelado' ? t('❌ Cancelado') : p.estado === 'camino' ? t('🚶 Ya va {m} a tu mesa', {m: p.moza ? esc(p.moza) : t('la moza')}) : p.moza ? t('👩 {m} te lo va a llevar', {m: esc(p.moza)}) : t('📝 Recibido: enseguida te avisamos quién te lo trae');
 let progAbierto = false;
 document.addEventListener('toggle', e => { if (e.target.classList && e.target.classList.contains('prog')) progAbierto = e.target.open; }, true);
 function pVivo() {
@@ -245,35 +251,36 @@ function pVivo() {
   if (!INV) { el.style.display = 'none'; return; } el.style.display = '';
   const nom = INV.nombre.split(' ')[0], mesa = INV.mesa || MESA;
   if (!F.hoy) {
-    el.innerHTML = `<h3>El día de la fiesta</h3><p>Desde acá vas a poder <b>pedir a tu mesa</b> sin buscar a la moza, y te vamos a avisar de la comida, el vals y la torta.</p>${(F.crono || []).length ? '<p><b>Lo que viene esa noche:</b></p>' + F.crono.map(x => `<div class="item" style="font-size:16px"><span>${esc(x.h)} · ${esc(x.t)}</span></div>`).join('') : ''}`;
+    el.innerHTML = `<h3>${t('El día de la fiesta')}</h3><p>${t('Desde acá vas a poder <b>pedir a tu mesa</b> sin buscar a la moza, y te vamos a avisar de la comida, el vals y la torta.')}</p>${(F.crono || []).length ? `<p><b>${t('Lo que viene esa noche:')}</b></p>` + F.crono.map(x => `<div class="item" style="font-size:16px"><span>${esc(x.h)} · ${esc(tc(x.t))}</span></div>`).join('') : ''}`;
     return;
   }
   const carta = (F.carta || []).filter(x => !(x.alc && INV.menor)), M = momentos(), ahora = Date.now();
   const prox = M.find(x => x.ts > ahora - 5 * 60e3);
   const peds = (VIVO && VIVO.pedidos) || [];
-  el.innerHTML = `<h3>Tu fiesta</h3><p class="hola" style="text-align:center">¡Hola ${esc(nom)}! 🎉</p>
-    ${mesa ? `<div class="mesaG"><div class="mesa">Mesa ${esc(mesa)}</div></div>` : ''}
-    ${prox ? `<div class="prox">⏰ <b>${hhmm(prox.ts)}</b> · ${prox.ts > ahora ? 'Se viene: ' : 'Ahora: '}<b>${esc(prox.nombre)}</b></div>` : ''}
-    ${M.length ? `<details class="prog" ${progAbierto ? 'open' : ''}><summary>📋 El programa de la noche${F.atraso ? ' (corrido ' + F.atraso + ' min)' : ''}</summary>${M.map(x => { const ya = x.ts < ahora - 5 * 60e3, es = prox && x === prox; return `<div class="it ${ya ? 'ya' : ''} ${es ? 'ahora' : ''}"><b>${hhmm(x.ts)}</b><span>${ya ? '✅ ' : es ? '👉 ' : ''}${esc(x.nombre)}</span></div>`; }).join('')}</details>` : ''}
-    ${carta.length ? `<p style="font-weight:700;margin:12px 0 4px">¿Qué te traemos? 🛎</p><button class="btn alt" id="aFlashy" style="width:100%;margin:2px 0 8px">🎤 Pedíselo a Flashy (hablando o escribiendo)</button>${carta.map((x, i) => `<div class="item"><span>${esc(x.n)}</span><span class="qty"><button data-q="${i}" data-d="-1" aria-label="menos">−</button><b id="q${i}">${CANT[x.n] || 0}</b><button data-q="${i}" data-d="1" aria-label="más">+</button></span></div>`).join('')}
-      <input id="pnota" maxlength="140" placeholder="¿Algo más? (opcional)" style="width:100%;margin-top:10px;font:16px var(--sans);padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)">
-      <button class="btn big2" id="pedir" style="margin-top:10px">🛎 Pedir a mi mesa</button><div id="pmsg"></div>` : ''}
-    ${peds.length ? `<p style="font-weight:700;margin:14px 0 2px">Tus pedidos</p>${peds.map(p => `<div class="ped"><div class="est">${EST(p)}</div><div>${p.items.map(x => (x.c > 1 ? x.c + ' × ' : '') + esc(x.n) + (x.p && x.p !== 'vos' ? ' (para ' + esc(x.p) + ')' : '')).join(', ')} · <span style="color:var(--soft)">${hhmm(Date.parse(p.t))}</span></div></div>`).join('')}` : ''}
-    ${'Notification' in window && Notification.permission === 'default' ? '<button class="btn alt" id="permiso" style="margin-top:12px">🔔 Activar avisos de la fiesta</button>' : ''}`;
+  el.innerHTML = `<h3>${t('Tu fiesta')}</h3><p class="hola" style="text-align:center">${t('¡Hola {n}! 🎉', {n: esc(nom)})}</p>
+    ${mesa ? `<div class="mesaG"><div class="mesa">${t('Mesa {m}', {m: esc(mesa)})}</div></div>` : ''}
+    ${prox ? `<div class="prox">⏰ <b>${hhmm(prox.ts)}</b> · ${prox.ts > ahora ? t('Se viene: ') : t('Ahora: ')}<b>${esc(tc(prox.nombre))}</b></div>` : ''}
+    ${M.length ? `<details class="prog" ${progAbierto ? 'open' : ''}><summary>${t('📋 El programa de la noche')}${F.atraso ? t(' (corrido {m} min)', {m: F.atraso}) : ''}</summary>${M.map(x => { const ya = x.ts < ahora - 5 * 60e3, es = prox && x === prox; return `<div class="it ${ya ? 'ya' : ''} ${es ? 'ahora' : ''}"><b>${hhmm(x.ts)}</b><span>${ya ? '✅ ' : es ? '👉 ' : ''}${esc(tc(x.nombre))}</span></div>`; }).join('')}</details>` : ''}
+    ${carta.length ? `<p style="font-weight:700;margin:12px 0 4px">${t('¿Qué te traemos? 🛎')}</p><button class="btn alt" id="aFlashy" style="width:100%;margin:2px 0 8px">${t('🎤 Pedíselo a Flashy (hablando o escribiendo)')}</button>${carta.map((x, i) => `<div class="item"><span>${esc(tc(x.n))}</span><span class="qty"><button data-q="${i}" data-d="-1" aria-label="${t('menos')}">−</button><b id="q${i}">${CANT[x.n] || 0}</b><button data-q="${i}" data-d="1" aria-label="${t('más')}">+</button></span></div>`).join('')}
+      <input id="pnota" maxlength="140" placeholder="${t('¿Algo más? (opcional)')}" style="width:100%;margin-top:10px;font:16px var(--sans);padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)">
+      <button class="btn big2" id="pedir" style="margin-top:10px">${t('🛎 Pedir a mi mesa')}</button><div id="pmsg"></div>` : ''}
+    ${peds.length ? `<p style="font-weight:700;margin:14px 0 2px">${t('Tus pedidos')}</p>${peds.map(p => `<div class="ped"><div class="est">${EST(p)}</div><div>${p.items.map(x => (x.c > 1 ? x.c + ' × ' : '') + esc(tc(x.n)) + (x.p && x.p !== 'vos' ? ' (' + t('para {p}', {p: esc(x.p)}) + ')' : '')).join(', ')} · <span style="color:var(--soft)">${hhmm(Date.parse(p.t))}</span></div></div>`).join('')}` : ''}
+    ${'Notification' in window && Notification.permission === 'default' ? `<button class="btn alt" id="permiso" style="margin-top:12px">${t('🔔 Activar avisos de la fiesta')}</button>` : ''}`;
   el.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { const x = carta[+b.dataset.q]; CANT[x.n] = Math.max(0, Math.min(10, (CANT[x.n] || 0) + +b.dataset.d)); $('#q' + b.dataset.q).textContent = CANT[x.n]; });
   const pb = $('#pedir'); if (pb) pb.onclick = pedir;
-  const af = $('#aFlashy'); if (af) af.onclick = () => { flVoz = true; flDecir('¿Qué te traemos? Decímelo con el 🎤 o escribilo 🙂', flOpsPedir(), true); };
+  const af = $('#aFlashy'); if (af) af.onclick = () => { flVoz = true; flDecir(t('¿Qué te traemos? Decímelo con el 🎤 o escribilo 🙂'), flOpsPedir(), true); };
   const pm = $('#permiso'); if (pm) pm.onclick = async () => { try { await Notification.requestPermission(); } catch (e) {} pVivo(); };
 }
 async function pedir() {
   const items = Object.entries(CANT).filter(([n, c]) => c > 0).map(([n, c]) => ({n, c}));
-  const msg = $('#pmsg'); if (!items.length) { msg.innerHTML = '<p class="err">Elegí algo con el botón +</p>'; return; }
+  const msg = $('#pmsg'); if (!items.length) { msg.innerHTML = `<p class="err">${t('Elegí algo con el botón +')}</p>`; return; }
   const b = $('#pedir'); b.disabled = true;
+  if (FL) { flVoz = true; flDecir(t('🛎 Ya lo pido…'), []); }
   try { const r = await fetch('/api/fiesta?accion=pedir', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, items, nota: ($('#pnota') || {}).value || '', mesa: MESA})}); const j = await r.json();
-    if (!r.ok) throw new Error(j.error || 'No se pudo pedir'); CANT = {}; if (navigator.vibrate) navigator.vibrate(60); marcaInter(); await vivoTick();
-    const que = items.length === 1 ? 'tu ' + (items[0].c > 1 ? items[0].c + ' ' : '') + items[0].n : 'tu pedido';
-    const msgP = j.moza ? `¡Listo! 🛎 Ya se lo paso a ${j.moza}, que atiende tu mesa. Te aviso cuando va en camino.` : `¡Listo! 🛎 Ya se lo paso a la encargada. Enseguida te aviso quién te trae ${que}.`;
-    if (FL) flDecir(msgP, [{t: '👍 Gracias', alt: true, f: () => $('#flb').classList.remove('on')}]); else toast('🛎 ¡Pedido enviado!', msgP);
+    if (!r.ok) throw new Error(j.error || t('No se pudo pedir')); CANT = {}; if (navigator.vibrate) navigator.vibrate(60); marcaInter(); await vivoTick();
+    const que = items.length === 1 ? t('tu {x}', {x: (items[0].c > 1 ? items[0].c + ' ' : '') + tc(items[0].n)}) : t('tu pedido');
+    const msgP = j.moza ? t('¡Listo! 🛎 Ya se lo paso a {m}, que atiende tu mesa. Te aviso cuando va en camino.', {m: j.moza}) : t('¡Listo! 🛎 Ya se lo paso a la encargada. Enseguida te aviso quién te trae {q}.', {q: que});
+    if (FL) flDecir(msgP, [{t: t('👍 Gracias'), alt: true, f: () => $('#flb').classList.remove('on')}]); else toast(t('🛎 ¡Pedido enviado!'), msgP);
   } catch (e) { msg.innerHTML = `<p class="err">${esc(e.message)}</p>`; b.disabled = false; }
 }
 let vistos = {}; try { vistos = JSON.parse(localStorage.getItem('fiestaVistos:' + CODE) || '{}'); } catch (e) {}
@@ -297,16 +304,16 @@ async function vivoTick() {
     (j.avisos || []).forEach(a => { if (!vistos['a' + a.id] && Date.now() - Date.parse(a.t) < 45 * 60e3) { marcarVisto('a' + a.id); escena(a.txt); toast('📢 ' + a.txt, nomFiesta(F), true); } else marcarVisto('a' + a.id); });
     (j.pedidos || []).forEach(p => { const k = p.estado + '|' + p.moza, ant = estadoAnt[p.id];
       if (ant && ant !== k) { const que = listaPed(p);
-        if (p.estado === 'camino') { const t = p.moza ? `🚶 ${p.moza} te trae ${que}` : `🚶 Ya va en camino ${que}`; toast(t, nomFiesta(F), false, true); if (FL) flDecir(t + ' 😊', [{t: '👍 Gracias', alt: true, f: () => $('#flb').classList.remove('on')}]); }
-        else if (p.estado === 'entregado') { if (FL) flDecir(`¡Que lo disfrutes! 🥂 ¿Necesitás algo más?`, [{t: '🥤 Pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: 'No, gracias', alt: true, f: () => $('#flb').classList.remove('on')}]); }
-        else if (p.estado === 'nuevo' && p.moza && !ant.endsWith('|' + p.moza)) toast(`👩 ${p.moza} va a llevarte ${que}`, nomFiesta(F)); }
+        if (p.estado === 'camino') { const tx = p.moza ? t('🚶 {m} te trae {q}', {m: p.moza, q: que}) : t('🚶 Ya va en camino {q}', {q: que}); toast(tx, nomFiesta(F), false, true); if (FL) flDecir(tx + ' 😊', [{t: t('👍 Gracias'), alt: true, f: () => $('#flb').classList.remove('on')}]); }
+        else if (p.estado === 'entregado') { if (FL) flDecir(t('¡Que lo disfrutes! 🥂 ¿Necesitás algo más?'), [{t: t('🥤 Pedir algo'), f: () => flDecir(t('¿Qué te traemos?'), flOpsPedir(), true)}, {t: t('No, gracias'), alt: true, f: () => $('#flb').classList.remove('on')}]); }
+        else if (p.estado === 'nuevo' && p.moza && !ant.endsWith('|' + p.moza)) toast(t('👩 {m} va a llevarte {q}', {m: p.moza, q: que}), nomFiesta(F)); }
       estadoAnt[p.id] = k; });
   } catch (e) {}
   // aviso previo: 30 minutos antes de cada momento (si el aviso principal es más cerca), para que se vaya preparando
   momentos().forEach(m => { if (!m.a || (m.ts - m.aviso) >= 25 * 60e3 || /recepci|fin de fiesta/i.test(m.nombre)) return; const k = 'p' + m.h + m.nombre, pre = m.ts - 30 * 60e3;
-    if (!vistos[k] && Date.now() >= pre && Date.now() < m.aviso) { marcarVisto(k); const tx = conNombre(`⏰ En media hora llega el momento: ${m.nombre}. ¡Andá preparándote!`); toast(tx, nomFiesta(F), false, true); if (FL) flDecir(tx, [{t: '📋 Ver el programa', alt: true, f: () => { $('#flb').classList.remove('on'); progAbierto = true; pVivo(); }}, {t: '👍 Dale', alt: true, f: () => $('#flb').classList.remove('on')}]); }
+    if (!vistos[k] && Date.now() >= pre && Date.now() < m.aviso) { marcarVisto(k); const tx = conNombre(t('⏰ En media hora llega el momento: {m}. ¡Andá preparándote!', {m: tc(m.nombre)})); toast(tx, nomFiesta(F), false, true); if (FL) flDecir(tx, [{t: t('📋 Ver el programa'), alt: true, f: () => { $('#flb').classList.remove('on'); progAbierto = true; pVivo(); }}, {t: t('👍 Dale'), alt: true, f: () => $('#flb').classList.remove('on')}]); }
     else if (!vistos[k] && Date.now() >= m.aviso) marcarVisto(k); });
-  momentos().forEach((m, i, M) => { const k = 'c' + m.h + m.nombre; if (!vistos[k] && Date.now() >= m.aviso && Date.now() - m.aviso < 30 * 60e3) { marcarVisto(k); if (m.a) { escena(m.nombre + ' ' + m.a); const tx = conNombre(m.a); toast(tx, nomFiesta(F), true, true); const sig = M[i + 1]; if (FL) flDecir(tx + (sig ? ` Después, a las ${hhmm(sig.ts)}: ${sig.nombre}${/[.!?]$/.test(sig.nombre) ? '' : '.'}` : ''), [{t: '🥤 Pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: '👍 Dale', alt: true, f: () => $('#flb').classList.remove('on')}]); } } else if (!vistos[k] && Date.now() - m.aviso >= 30 * 60e3) marcarVisto(k); });
+  momentos().forEach((m, i, M) => { const k = 'c' + m.h + m.nombre; if (!vistos[k] && Date.now() >= m.aviso && Date.now() - m.aviso < 30 * 60e3) { marcarVisto(k); if (m.a) { escena(m.nombre + ' ' + m.a); const tx = conNombre(tc(m.a)); toast(tx, nomFiesta(F), true, true); const sig = M[i + 1]; if (FL) flDecir(tx + (sig ? t(' Después, a las {h}: {m}', {h: hhmm(sig.ts), m: tc(sig.nombre)}) + (/[.!?！。]$/.test(tc(sig.nombre)) ? '' : '.') : ''), [{t: t('🥤 Pedir algo'), f: () => flDecir(t('¿Qué te traemos?'), flOpsPedir(), true)}, {t: t('👍 Dale'), alt: true, f: () => $('#flb').classList.remove('on')}]); } } else if (!vistos[k] && Date.now() - m.aviso >= 30 * 60e3) marcarVisto(k); });
   const ae = document.activeElement; if (!(ae && (ae.id === 'pnota'))) pVivo();
 }
 // ===== Escenas de cada momento (brindis, torta, mesa dulce, vals…) =====
@@ -321,82 +328,87 @@ function escena(texto) {
 const conNombre = t => { if (!INV) return t; const nom = INV.nombre.split(' ')[0]; const mm = String(t).match(/^(\p{Extended_Pictographic}\uFE0F?\s*)(.)(.*)$/u); return mm ? `${mm[1]}${nom}, ${mm[2].toLowerCase()}${mm[3]}` : `${nom}, ${String(t).charAt(0).toLowerCase()}${String(t).slice(1)}`; };
 // ===== Flashy, el asistente del invitado =====
 let FL = false, flVoz = false, flPend = null;
-const norm = t => sinT(String(t).toLowerCase()).replace(/[^a-z0-9ñ ]/g, ' ').replace(/\s+/g, ' ').trim();
+const norm = x => sinT(String(x).toLowerCase()).replace(/[^\p{L}\p{N} ]/gu, ' ').replace(/\s+/g, ' ').trim();
 function sinT(t) { return t.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
-const NUMS = {un: 1, una: 1, uno: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, par: 2};
-const ALIAS = [['coca zero', 'coca-cola zero'], ['coca light', 'coca-cola zero'], ['cocas', 'coca-cola'], ['coca', 'coca-cola'], ['birra', 'cerveza'], ['champa', 'champagne'], ['fernet', 'fernet con coca'], ['vino', 'vino tinto'], ['agua mineral', 'agua sin gas'], ['soda', 'agua con gas'], ['jugo', 'jugo de naranja'], ['limpi', 'que limpien la mesa'], ['servilleta', 'servilletas']];
+const NUMS = {un: 1, una: 1, uno: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, par: 2, a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, um: 1, duas: 2, tres: 3, quatro: 4, due: 2, tre: 3, quattro: 4, une: 1, deux: 2, trois: 3, quatre: 4, ein: 1, eine: 1, einen: 1, zwei: 2, drei: 3, vier: 4};
+const ALIAS = [['coke zero', 'coca-cola zero'], ['diet coke', 'coca-cola zero'], ['cokes', 'coca-cola'], ['coke', 'coca-cola'], ['coca zero', 'coca-cola zero'], ['coca light', 'coca-cola zero'], ['cocas', 'coca-cola'], ['coca', 'coca-cola'], ['birra', 'cerveza'], ['champa', 'champagne'], ['fernet', 'fernet con coca'], ['vino', 'vino tinto'], ['agua mineral', 'agua sin gas'], ['soda', 'agua con gas'], ['jugo', 'jugo de naranja'], ['limpi', 'que limpien la mesa'], ['servilleta', 'servilletas']];
 const QUIEN = /\bpara (mi|vos|el|ella|la|mis|nosotros|los|las)\b ?(senora|senor|mujer|esposa|esposo|marido|novia|novio|pareja|hijo|hija|hijos|hijas|nene|nena|chicos|amigo|amiga|amigos|mama|papa|abuela|abuelo|hermano|hermana|suegra|suegro|tio|tia|primo|prima|compa\w*)?/;
 const MENORES = /hij|nene|nena|chicos/;
 function entender(texto) { // "para mí un fernet y para mi señora una coca" -> [{n:'Fernet con coca', c:1, p:'vos'}, {n:'Coca-Cola', c:1, p:'tu señora'}]
   const carta = (F.carta || []).filter(x => !(x.alc && INV.menor)), out = {}; let quien = '', avisoMenor = false;
-  norm(texto).split(/ y | mas | con hielo|,| tambien /).map(x => x.trim()).filter(Boolean).forEach(tr => {
+  norm(texto).split(/ y | mas | con hielo|,| tambien | and | e | et | und |和|、|と| also | too /).map(x => x.trim()).filter(Boolean).forEach(tr => {
     const qm = tr.match(QUIEN); if (qm) { quien = qm[2] ? (qm[1] === 'mi' || qm[1] === 'mis' ? 'tu' + (qm[1] === 'mis' ? 's ' : ' ') : '') + qm[2].replace('senora', 'señora').replace('senor', 'señor').replace('mama', 'mamá').replace('papa', 'papá').replace('tio', 'tío').replace('tia', 'tía') : (qm[1] === 'mi' || qm[1] === 'vos' ? 'vos' : qm[1]); tr = tr.replace(QUIEN, ' ').trim(); if (!tr) return; }
     let c = 1; const w = tr.split(' '); if (/^\d+$/.test(w[0])) { c = +w[0]; w.shift(); } else if (NUMS[w[0]]) { c = NUMS[w[0]]; w.shift(); }
     let t = w.join(' '); if (!t) return;
     let best = null, bs = 0;
-    carta.forEach(x => { const n = norm(x.n); let sc = 0; if (n === t) sc = 10; else if (n.includes(t) || t.includes(n)) sc = 6;
+    carta.forEach(x => { const nb = norm(x.n); I18N.todos(x.n).map(norm).forEach(n => { let sc = 0; if (n === t) sc = 10; else if (n.includes(t) || t.includes(n)) sc = 6;
       t.split(' ').forEach(p => { const ps = p.replace(/s$/, ''); if (ps.length > 2 && n.split(' ').some(q => q.replace(/s$/, '') === ps)) sc += 2; });
-      ALIAS.forEach(([a, b]) => { if ((' ' + t + ' ').includes(' ' + a) && n === b) sc += 5; });
-      if (sc > bs) { bs = sc; best = x; } });
+      ALIAS.forEach(([a, b]) => { if ((' ' + t + ' ').includes(' ' + a) && nb === b) sc += 5; });
+      if (sc > bs) { bs = sc; best = x; } }); });
     if (best && bs >= 2) { if (best.alc && MENORES.test(quien)) { avisoMenor = true; return; } const k = best.n + '|' + quien; out[k] = (out[k] || 0) + Math.max(1, Math.min(10, c)); }
   });
   const r = Object.entries(out).map(([k, c]) => { const [n, p] = k.split('|'); return p ? {n, c, p} : {n, c}; }); r.avisoMenor = avisoMenor; return r;
 }
-function flVozDe() { const vs = speechSynthesis.getVoices(); return vs.find(v => /es[-_]AR/i.test(v.lang)) || vs.find(v => /^es/i.test(v.lang) && /google|natural/i.test(v.name)) || vs.find(v => /^es/i.test(v.lang)); }
+function flVozDe() { const vs = speechSynthesis.getVoices(), L = I18N.VOZ, p = L.slice(0, 2); return vs.find(v => v.lang.replace('_', '-').toLowerCase() === L.toLowerCase()) || vs.find(v => v.lang.toLowerCase().startsWith(p) && /google|natural/i.test(v.name)) || vs.find(v => v.lang.toLowerCase().startsWith(p)); }
 function flHablar(t) {
   if (!flVoz || document.hidden || !('speechSynthesis' in window)) return;
-  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(String(t).replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu, '').slice(0, 200)); u.lang = 'es-AR'; const v = flVozDe(); if (v) u.voice = v; u.rate = 1.12; u.pitch = 1.25;
-    u.onstart = () => $('#fl').classList.add('habla'); u.onend = u.onerror = () => $('#fl').classList.remove('habla'); speechSynthesis.speak(u); } catch (e) {}
+  try { const ya = speechSynthesis.speaking || speechSynthesis.pending; if (ya) speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(String(t).replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu, '').slice(0, 200)); u.lang = I18N.VOZ; const v = flVozDe(); if (v) u.voice = v; u.rate = 1.12; u.pitch = 1.25;
+    u.onstart = () => $('#fl').classList.add('habla'); u.onend = u.onerror = () => $('#fl').classList.remove('habla'); if (ya) setTimeout(() => speechSynthesis.speak(u), 120); else speechSynthesis.speak(u); } catch (e) {}
 }
 function flDecir(texto, ops, conEscribir) {
   if (!FL) return; const b = $('#flb');
-  b.innerHTML = `<button class="cerrar" aria-label="Cerrar">✕</button><div class="tx">${esc(texto)}</div><div class="ops">${(ops || []).map((o, i) => `<button class="op ${o.alt ? 'alt' : ''}" data-flo="${i}">${esc(o.t)}</button>`).join('')}</div>${conEscribir ? `<div class="esc"><input id="flin" placeholder="Ej: dos cocas y un agua, o ¿dónde está el baño?"><button id="flmic" aria-label="Hablar">🎤</button><button id="flok" aria-label="Enviar">➤</button></div>` : ''}`;
+  b.innerHTML = `<button class="cerrar" aria-label="${t('Cerrar')}">✕</button><div class="tx">${esc(texto)}</div><div class="ops">${(ops || []).map((o, i) => `<button class="op ${o.alt ? 'alt' : ''}" data-flo="${i}">${esc(o.t)}</button>`).join('')}</div>${conEscribir ? `<div class="esc"><input id="flin" placeholder="${t('Ej: dos cocas y un agua, o ¿dónde está el baño?')}"><button id="flmic" aria-label="${t('Hablar')}">🎤</button><button id="flok" aria-label="${t('Enviar')}">➤</button></div>` : ''}`;
   b.classList.add('on'); flHablar(texto);
   b.querySelector('.cerrar').onclick = () => b.classList.remove('on');
   b.querySelectorAll('[data-flo]').forEach(x => x.onclick = () => { flVoz = true; const o = ops[+x.dataset.flo]; o.f && o.f(); });
   const inp = $('#flin'); if (inp) { const ir = () => { const t = inp.value.trim(); if (t) flEntendi(t); }; $('#flok').onclick = ir; inp.onkeydown = e => { if (e.key === 'Enter') ir(); }; $('#flmic').onclick = flEscuchar; }
 }
 function flEscuchar() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SR) return flDecir('Tu celular no me deja escucharte. Escribime lo que querés 🙂', [], true);
-  try { const r = new SR(); r.lang = 'es-AR'; r.interimResults = false; r.onresult = e => flEntendi(e.results[0][0].transcript); r.onerror = () => flDecir('No te escuché bien, hay mucha música 🎶. Escribímelo o tocá una opción.', flOpsPedir(), true); $('#flmic').textContent = '👂'; r.start(); } catch (e) {}
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SR) return flDecir(t('Tu celular no me deja escucharte. Escribime lo que querés 🙂'), [], true);
+  try { const r = new SR(); r.lang = I18N.VOZ; r.interimResults = false; r.onresult = e => flEntendi(e.results[0][0].transcript); r.onerror = () => flDecir(t('No te escuché bien, hay mucha música 🎶. Escribímelo o tocá una opción.'), flOpsPedir(), true); $('#flmic').textContent = '👂'; r.start(); } catch (e) {}
 }
 function flOpsPedir() {
   const carta = (F.carta || []).filter(x => !(x.alc && INV.menor)).slice(0, 6);
-  return carta.map(x => ({t: x.n, f: () => flConfirmar([{n: x.n, c: 1}])})).concat([{t: 'Ver todo', alt: true, f: () => { $('#flb').classList.remove('on'); const v = $('#vivo'); if (v) v.scrollIntoView({behavior: 'smooth'}); }}]);
+  return carta.map(x => ({t: tc(x.n), f: () => flConfirmar([{n: x.n, c: 1}])})).concat([{t: t('Ver todo'), alt: true, f: () => { $('#flb').classList.remove('on'); const v = $('#vivo'); if (v) v.scrollIntoView({behavior: 'smooth'}); }}]);
 }
-const ICONO_LUGAR = n => /regal/i.test(n) ? '🎁' : /ba[ñn]o/i.test(n) ? '🚻' : /barra|trago/i.test(n) ? '🍹' : /foto/i.test(n) ? '📸' : /guardarropa|abrigo|campera/i.test(n) ? '🧥' : /salida|puerta/i.test(n) ? '🚪' : /fum|patio/i.test(n) ? '🌙' : /pista|dj/i.test(n) ? '🪩' : '📍';
+const ICONO_LUGAR = n => /regal/i.test(n) ? '🎁' : /ba[ñn]o/i.test(n) ? '🚻' : /barra|trago/i.test(n) ? '🍹' : /foto/i.test(n) ? '📸' : /guardarropa|abrigo|campera/i.test(n) ? '🧥' : /salida|puerta/i.test(n) ? '🚪' : /terraza|rooftop/i.test(n) ? '🌇' : /cochera|estacion|parking/i.test(n) ? '🚗' : /fum|patio|jard/i.test(n) ? '🌙' : /pista|dj/i.test(n) ? '🪩' : '📍';
 function lugarDe(t) { const L = F.lugares || [], tn = norm(t); if (!L.length) return null;
-  const claves = [[/regal/, /regal/], [/bano|toilet|toalet/, /bano|toilet/], [/barra|trago/, /barra/], [/foto/, /foto/], [/abrigo|campera|saco|guardarropa/, /guardarropa|abrigo/], [/salida|irme|puerta/, /salida|puerta/], [/fumar|fumo|cigarr|patio/, /fum|patio/], [/pista|dj/, /pista|dj/]];
+  const claves = [[/regal|gift|present|cadeau|geschenk|礼物|プレゼント/, /regal/], [/bano|toilet|toalet|bathroom|restroom|banheiro|bagno|wc|厕所|洗手间|トイレ/, /bano|toilet/], [/barra|trago|\bbar\b|吧台|バー/, /barra/], [/foto|photo|照|写真/, /foto/], [/abrigo|campera|saco|guardarropa|coat|cloak|chapelaria|guardaroba|vestiaire|garderobe|衣帽|クローク/, /guardarropa|abrigo/], [/salida|irme|puerta|exit|saida|uscita|sortie|ausgang|出口/, /salida|puerta/], [/fumar|fumo|cigarr|patio|smok|fumare|fumer|rauch|吸烟|タバコ/, /fum|patio/], [/pista|dj|dance|tanz|舞池|ダンス/, /pista|dj/], [/terraza|terrace|rooftop|terrazza|terrasse|露台|テラス/, /terraza/], [/patio|jardin|garden|jardim|giardino|garten|庭|花园/, /patio|jardin/], [/cochera|estacionamiento|auto|parking|car\b|estacionamento|parcheggio|parkplatz|停车|駐車/, /cochera|estacion/]];
   for (const [q, l] of claves) if (q.test(tn)) { const x = L.find(y => l.test(norm(y.n))); if (x) return x; }
   return L.find(y => norm(y.n).split(' ').some(w => w.length > 3 && tn.includes(w.replace(/s$/, '')))) || null; }
-function flLugares() { const L = F.lugares || []; if (!L.length) return flDecir('La familia todavía no cargó los lugares del salón. Preguntale a una moza 🙂', []);
-  flDecir('¿Qué estás buscando?', L.map(x => ({t: ICONO_LUGAR(x.n) + ' ' + x.n, f: () => flDecir(`${ICONO_LUGAR(x.n)} ${x.n}: ${x.d}.`, [{t: '📍 Otro lugar', alt: true, f: flLugares}, {t: '👍 Gracias', alt: true, f: () => $('#flb').classList.remove('on')}])})), true); }
-function flEntendi(t) {
-  if (/\bpara\b/i.test(t) && !/d[oó]nde/i.test(t)) { const it = entender(t); if (it.avisoMenor && !it.length) return flDecir('Para los chicos te puedo pedir algo sin alcohol 🧃. ¿Qué les traemos?', flOpsPedir(), true); if (it.length) { if (it.avisoMenor) flPend = null; return flConfirmar(it, it.avisoMenor); } }
-  if (/d[oó]nde|ba[ñn]o|regalo|guardarropa|salida|fumar|abrigo/i.test(t)) { const x = lugarDe(t); if (x) return flDecir(`${ICONO_LUGAR(x.n)} ${x.n}: ${x.d}.`, [{t: '📍 Otro lugar', alt: true, f: flLugares}, {t: '👍 Gracias', alt: true, f: () => $('#flb').classList.remove('on')}]); if (/d[oó]nde/i.test(t)) return flLugares(); } const it = entender(t); if (!it.length) return flDecir('Mmm, no lo encontré en la carta 🤔. Tocá una opción o probá con otras palabras.', flOpsPedir(), true); flConfirmar(it); }
-const listaPed = p => { const it = p.items || []; return it.length === 1 ? 'tu ' + (it[0].c > 1 ? it[0].c + ' ' : '') + it[0].n : 'tu pedido (' + it.map(x => (x.c > 1 ? x.c + ' ' : '') + x.n).join(', ') + ')'; };
-const listaTx = it => { const quienes = new Set(it.map(x => x.p || '')); return it.map(x => x.c + ' ' + x.n + (quienes.size > 1 || x.p && x.p !== 'vos' ? ' para ' + (x.p || 'vos') : '')).join(', ').replace(/, ([^,]*)$/, ' y $1'); };
-function flConfirmar(it, menor) { flPend = it; flDecir(`${menor ? 'Lo que tiene alcohol no se lo puedo pedir a los chicos 🧃. ' : ''}¿Te pido ${listaTx(it)}?`, [{t: '✅ Sí, pedir', f: flPedir}, {t: '✏️ Cambiar', alt: true, f: () => flDecir('Decime qué querés 🙂', flOpsPedir(), true)}]); }
+function flLugares() { const L = F.lugares || []; if (!L.length) return flDecir(t('La familia todavía no cargó los lugares del salón. Preguntale a una moza 🙂'), []);
+  flDecir(t('¿Qué estás buscando?'), L.map(x => ({t: ICONO_LUGAR(x.n) + ' ' + tc(x.n), f: () => flDecir(`${ICONO_LUGAR(x.n)} ${tc(x.n)}: ${x.d}.`, [{t: t('📍 Otro lugar'), alt: true, f: flLugares}, {t: t('👍 Gracias'), alt: true, f: () => $('#flb').classList.remove('on')}])})), true); }
+function flEntendi(q) { // q = lo que dijo el invitado
+  if (ESTAC.test(q)) return flEstaciona();
+  if (/\bpara\b/i.test(q) && !/d[oó]nde/i.test(q)) { const it = entender(q); if (it.avisoMenor && !it.length) return flDecir(t('Para los chicos te puedo pedir algo sin alcohol 🧃. ¿Qué les traemos?'), flOpsPedir(), true); if (it.length) { if (it.avisoMenor) flPend = null; return flConfirmar(it, it.avisoMenor); } }
+  if (DONDE.test(q)) { const x = lugarDe(q); if (x) return flDecir(`${ICONO_LUGAR(x.n)} ${tc(x.n)}: ${x.d}.`, [{t: I18N.t('📍 Otro lugar'), alt: true, f: flLugares}, {t: t('👍 Gracias'), alt: true, f: () => $('#flb').classList.remove('on')}]); if (DONDE_Q.test(q)) return flLugares(); } const it = entender(q); if (!it.length) return flDecir(I18N.t('Mmm, no lo encontré en la carta 🤔. Tocá una opción o probá con otras palabras.'), flOpsPedir(), true); flConfirmar(it); }
+const ESTAC = /cochera|estacion|parking|aparcar|estacionamento|parcheggio|parkplatz|parken|stationn|停车|駐車/i;
+function flEstaciona() { const dir = [F.direccion, F.salon].filter(Boolean).join(', '), url = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(t('estacionamiento') + ' ' + dir), tel = String(F.estaciona || '').match(/\+?\d[\d\s-]{6,}\d/);
+  flDecir(F.estaciona ? '🚗 ' + F.estaciona : t('La familia no cargó datos del estacionamiento. Te muestro los que hay cerca en el mapa 🗺'), [{t: t('🗺 Ver en el mapa'), f: () => open(url, '_blank')}].concat(tel ? [{t: t('📞 Llamar'), alt: true, f: () => { location.href = 'tel:' + tel[0].replace(/[^\d+]/g, ''); }}] : []).concat([{t: t('👍 Gracias'), alt: true, f: () => $('#flb').classList.remove('on')}])); }
+const DONDE_Q = /d[oó]nde|where|onde|dove|\bo[uù]\b|\bwo\b|哪|どこ/i, DONDE = new RegExp(DONDE_Q.source + '|ba[ñn]o|regalo|guardarropa|salida|fumar|abrigo|bathroom|restroom|toilet|banheiro|bagno|\\bwc\\b|厕所|洗手间|トイレ|gift|present|cadeau|geschenk|礼物|プレゼント|exit|coat|terraza|terrace|patio|garden|cochera|estacionamiento|parking|停车|駐車|テラス', 'i');
+const listaPed = p => { const it = p.items || []; return it.length === 1 ? t('tu {x}', {x: (it[0].c > 1 ? it[0].c + ' ' : '') + tc(it[0].n)}) : t('tu pedido ({x})', {x: it.map(x => (x.c > 1 ? x.c + ' ' : '') + tc(x.n)).join(', ')}); };
+const listaTx = it => { const quienes = new Set(it.map(x => x.p || '')); return it.map(x => x.c + ' ' + tc(x.n) + (quienes.size > 1 || x.p && x.p !== 'vos' ? ' ' + t('para {p}', {p: x.p || 'vos'}) : '')).join(', ').replace(/, ([^,]*)$/, ' ' + t('y') + ' $1'); };
+function flConfirmar(it, menor) { flPend = it; flDecir(`${menor ? t('Lo que tiene alcohol no se lo puedo pedir a los chicos 🧃. ') : ''}${t('¿Te pido {x}?', {x: listaTx(it)})}`, [{t: t('✅ Sí, pedir'), f: flPedir}, {t: t('✏️ Cambiar'), alt: true, f: () => flDecir(t('Decime qué querés 🙂'), flOpsPedir(), true)}]); }
 async function flPedir() {
   if (!flPend) return; const it = flPend; flPend = null;
   try { const r = await fetch('/api/fiesta?accion=pedir', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, items: it, mesa: MESA})}); const j = await r.json();
-    if (!r.ok) throw new Error(j.error || 'No se pudo'); marcaInter(); await vivoTick(); flDecir(j.moza ? `¡Listo! 🛎 Ya se lo paso a ${j.moza}, que atiende tu mesa. Te aviso cuando va en camino.` : `¡Listo! 🛎 Ya se lo paso a la encargada. Enseguida te aviso quién te trae ${it.length === 1 ? 'tu ' + it[0].n : 'tu pedido'}.`, [{t: '👍 Gracias', alt: true, f: () => $('#flb').classList.remove('on')}]);
-  } catch (e) { flDecir('😕 ' + e.message, [{t: 'Ok', alt: true, f: () => $('#flb').classList.remove('on')}]); }
+    if (!r.ok) throw new Error(j.error || t('No se pudo')); marcaInter(); await vivoTick(); flDecir(j.moza ? t('¡Listo! 🛎 Ya se lo paso a {m}, que atiende tu mesa. Te aviso cuando va en camino.', {m: j.moza}) : t('¡Listo! 🛎 Ya se lo paso a la encargada. Enseguida te aviso quién te trae {q}.', {q: it.length === 1 ? t('tu {x}', {x: tc(it[0].n)}) : t('tu pedido')}), [{t: t('👍 Gracias'), alt: true, f: () => $('#flb').classList.remove('on')}]);
+  } catch (e) { flDecir('😕 ' + e.message, [{t: t('Ok'), alt: true, f: () => $('#flb').classList.remove('on')}]); }
 }
-function flQueViene() { const M = momentos(), sig = M.filter(x => x.ts > Date.now()).slice(0, 3); flDecir(sig.length ? 'Lo que viene: ' + sig.map(x => `${hhmm(x.ts)} ${x.nombre.charAt(0).toLowerCase() + x.nombre.slice(1)}`).join(' · ') + ' ✨' : 'Ya pasaron todos los momentos del cronograma. ¡A disfrutar! 💃', [{t: '🥤 Pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: 'Listo', alt: true, f: () => $('#flb').classList.remove('on')}]); }
+function flQueViene() { const M = momentos(), sig = M.filter(x => x.ts > Date.now()).slice(0, 3); flDecir(sig.length ? t('Lo que viene: ') + sig.map(x => `${hhmm(x.ts)} ${tc(x.nombre)}`).join(' · ') + ' ✨' : t('Ya pasaron todos los momentos del cronograma. ¡A disfrutar! 💃'), [{t: t('🥤 Pedir algo'), f: () => flDecir(t('¿Qué te traemos?'), flOpsPedir(), true)}, {t: t('Listo'), alt: true, f: () => $('#flb').classList.remove('on')}]); }
 const LSI = () => 'fiestaInter:' + CODE;
 const marcaInter = () => { try { localStorage.setItem(LSI(), String(Date.now())); } catch (e) {} };
 function flMenu() { const nom = INV.nombre.split(' ')[0], mesa = INV.mesa || MESA;
   const reg = (F.lugares || []).find(x => /regal/i.test(x.n));
-  flDecir(`¡Hola ${nom}! ${mesa ? 'Estás en la mesa ' + mesa + '. ' : ''}${reg && !yaSaludo() ? 'Si traés regalo, la mesa de regalos está ' + reg.d + ' 🎁. ' : ''}¿Querés que te traigan algo para tomar?`, [{t: '🥤 Sí, pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: '⏰ ¿Qué viene?', alt: true, f: flQueViene}, {t: '📋 Todo el programa', alt: true, f: () => { $('#flb').classList.remove('on'); progAbierto = true; pVivo(); const d = document.querySelector('.prog'); if (d) d.scrollIntoView({behavior: 'smooth', block: 'center'}); }}].concat((F.lugares || []).length ? [{t: '📍 ¿Dónde está…?', alt: true, f: flLugares}] : []).concat([{t: 'Ahora no', alt: true, f: () => { marcaInter(); $('#flb').classList.remove('on'); }}]), true); try { localStorage.setItem('fiestaSaludo:' + CODE, '1'); } catch (e) {} }
+  flDecir(`${t('¡Hola {n}! ', {n: nom})}${mesa ? t('Estás en la mesa {m}. ', {m: mesa}) : ''}${reg && reg.d && !yaSaludo() ? t('Si traés regalo, la mesa de regalos está {d} 🎁. ', {d: reg.d}) : ''}${t('¿Querés que te traigan algo para tomar?')}`, [{t: t('🥤 Sí, pedir algo'), f: () => flDecir(t('¿Qué te traemos?'), flOpsPedir(), true)}, {t: t('⏰ ¿Qué viene?'), alt: true, f: flQueViene}, {t: t('📋 Todo el programa'), alt: true, f: () => { $('#flb').classList.remove('on'); progAbierto = true; pVivo(); const d = document.querySelector('.prog'); if (d) d.scrollIntoView({behavior: 'smooth', block: 'center'}); }}].concat((F.lugares || []).length ? [{t: t('📍 ¿Dónde está…?'), alt: true, f: flLugares}] : []).concat(F.estaciona ? [{t: t('🚗 Estacionamiento'), alt: true, f: flEstaciona}] : []).concat([{t: t('Ahora no'), alt: true, f: () => { marcaInter(); $('#flb').classList.remove('on'); }}]), true); try { localStorage.setItem('fiestaSaludo:' + CODE, '1'); } catch (e) {} }
 const yaSaludo = () => { try { return !!localStorage.getItem('fiestaSaludo:' + CODE); } catch (e) { return false; } };
 function flPasoDeVez() { // cada tanto, sin molestar: "¿te falta algo en la mesa?"
   if (!FL || $('#flb').classList.contains('on') || document.hidden) return;
   let ult = 0; try { ult = +localStorage.getItem(LSI()) || 0; } catch (e) {}
   if (Date.now() - ult < 30 * 60e3) return; marcaInter();
   const extras = (F.carta || []).filter(x => /pan|hielo|servillet|agua/i.test(x.n)).slice(0, 4);
-  const frases = ['¿Te falta algo en la mesa? 🙂', '¿Te traigo algo más para tomar? 🥤', '¿Necesitás más pan, hielo o servilletas?'];
-  flDecir(frases[Math.floor(Math.random() * frases.length)], extras.map(x => ({t: x.n, f: () => flConfirmar([{n: x.n, c: 1}])})).concat([{t: '🥤 Otra cosa', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: 'No, gracias', alt: true, f: () => $('#flb').classList.remove('on')}]));
+  const frases = [t('¿Te falta algo en la mesa? 🙂'), t('¿Te traigo algo más para tomar? 🥤'), t('¿Necesitás más pan, hielo o servilletas?')];
+  flDecir(frases[Math.floor(Math.random() * frases.length)], extras.map(x => ({t: tc(x.n), f: () => flConfirmar([{n: x.n, c: 1}])})).concat([{t: t('🥤 Otra cosa'), f: () => flDecir(t('¿Qué te traemos?'), flOpsPedir(), true)}, {t: t('No, gracias'), alt: true, f: () => $('#flb').classList.remove('on')}]));
 }
 // El celular solo deja hablar después de un toque: con el primer toque en cualquier parte, Flashy queda habilitado para hablar.
 function flDesbloquear() { if (flVoz) return; flVoz = true; try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch (e) {} }
@@ -414,39 +426,38 @@ const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.
 const instalada = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone;
 function guardar() {
   const el = $('#guardar'); if (!el) return;
-  if (instalada()) { el.innerHTML = `<h3>Tu fiesta</h3><p>✅ Ya tenés la fiesta guardada en tu celular.</p><p>🔔 El día de la fiesta abrila desde el ícono, <b>activá los avisos</b> y dejá el celular con sonido o vibración: te vamos a avisar de la comida, el vals y la torta.</p>`; return; }
-  el.innerHTML = `<h3>Guardala en tu celular</h3><p><b>Guardala en tu celular y dejá todo activado para que el día de la fiesta no te pierdas nada.</b> Desde acá te vamos a avisar cuándo sale la comida, cuándo es el vals y la torta, aunque estés afuera.</p><button class="btn big2" id="inst">📲 Guardar la fiesta en mi celular</button><p style="font-size:15px;margin-top:12px">🔔 El día de la fiesta: abrila, <b>activá los avisos</b> y dejá el celular con sonido o vibración.</p>`;
+  if (instalada()) { el.innerHTML = `<h3>${t('Tu fiesta')}</h3><p>${t('✅ Ya tenés la fiesta guardada en tu celular.')}</p><p>${t('🔔 El día de la fiesta abrila desde el ícono, <b>activá los avisos</b> y dejá el celular con sonido o vibración: te vamos a avisar de la comida, el vals y la torta.')}</p>`; return; }
+  el.innerHTML = `<h3>${t('Guardala en tu celular')}</h3><p>${t('<b>Guardala en tu celular y dejá todo activado para que el día de la fiesta no te pierdas nada.</b> Desde acá te vamos a avisar cuándo sale la comida, cuándo es el vals y la torta, aunque estés afuera.')}</p><button class="btn big2" id="inst">${t('📲 Guardar la fiesta en mi celular')}</button><p style="font-size:15px;margin-top:12px">${t('🔔 El día de la fiesta: abrila, <b>activá los avisos</b> y dejá el celular con sonido o vibración.')}</p>`;
   $('#inst').onclick = instalar;
 }
 async function instalar() {
   if (PREV) return;
   if (deferred) { deferred.prompt(); try { await deferred.userChoice; } catch (e) {} deferred = null; return; }
   const ios = esIOS();
-  $('#modalIn').innerHTML = `<h3 style="margin:0 0 6px">📲 Guardar la fiesta</h3>${ios
-    ? `<ol><li>Tocá el botón <b>Compartir</b> <span style="font-size:20px">⬆️</span> (abajo en Safari).</li><li>Elegí <b>“Agregar a inicio”</b>.</li><li>Tocá <b>Agregar</b>. ¡Listo! Te queda el ícono de la fiesta.</li></ol>`
-    : `<ol><li>Tocá el menú <b>⋮</b> arriba a la derecha.</li><li>Elegí <b>“Agregar a la pantalla principal”</b> o <b>“Instalar”</b>.</li><li>Confirmá. ¡Listo! Te queda el ícono de la fiesta.</li></ol>`}<button class="btn big2" id="cerrar">Entendido</button>`;
+  $('#modalIn').innerHTML = `<h3 style="margin:0 0 6px">${t('📲 Guardar la fiesta')}</h3><ol>${(ios ? ['Tocá el botón <b>Compartir</b> <span style="font-size:20px">⬆️</span> (abajo en Safari).', 'Elegí <b>“Agregar a inicio”</b>.', 'Tocá <b>Agregar</b>. ¡Listo! Te queda el ícono de la fiesta.'] : ['Tocá el menú <b>⋮</b> arriba a la derecha.', 'Elegí <b>“Agregar a la pantalla principal”</b> o <b>“Instalar”</b>.', 'Confirmá. ¡Listo! Te queda el ícono de la fiesta.']).map(x => `<li>${t(x)}</li>`).join('')}</ol><button class="btn big2" id="cerrar">${t('Entendido')}</button>`;
   $('#modal').classList.add('on'); $('#cerrar').onclick = () => $('#modal').classList.remove('on');
 }
 addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; });
-document.addEventListener('click', e => { const b = e.target.closest('[data-copiar]'); if (!b) return; navigator.clipboard && navigator.clipboard.writeText(b.dataset.copiar).then(() => { b.textContent = '✅ Copiado'; setTimeout(() => b.textContent = '📋 Copiar', 1800); }); });
+document.addEventListener('click', e => { const b = e.target.closest('[data-copiar]'); if (!b) return; navigator.clipboard && navigator.clipboard.writeText(b.dataset.copiar).then(() => { b.textContent = t('✅ Copiado'); setTimeout(() => b.textContent = t('📋 Copiar'), 1800); }); });
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') e.currentTarget.classList.remove('on'); });
 
 async function cargar() {
   try {
     const r = await fetch('/api/fiesta?accion=ver&f=' + encodeURIComponent(CODE) + (TOK ? '&i=' + encodeURIComponent(TOK) : ''));
-    const j = await r.json(); if (!r.ok) throw new Error(j.error || 'No encontramos esta fiesta.');
+    const j = await r.json(); if (!r.ok) throw new Error(j.error || t('No encontramos esta fiesta.'));
     F = j.fiesta; INV = j.inv || null; render(); arrancarVivo();
   } catch (e) { $('#app').innerHTML = `<div class="carga">😕 ${esc(e.message)}</div>`; }
 }
 if (PREV) {
   addEventListener('message', e => { if (e.origin !== location.origin || !e.data || e.data.tipo !== 'fiesta-prev') return; F = e.data.fiesta; render(); });
   parent.postMessage({tipo: 'fiesta-prev-listo'}, location.origin);
-} else if (!CODE) { $('#app').innerHTML = '<div class="carga">Falta el link de la fiesta.</div>'; }
+} else if (!CODE) { $('#app').innerHTML = `<div class="carga">${t('Falta el link de la fiesta.')}</div>`; }
 else {
   const l = document.createElement('link'); l.rel = 'manifest'; l.href = '/api/fiesta?manifest=' + encodeURIComponent(CODE); document.head.appendChild(l);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
   cargar();
 }
+if (!PREV) I18N.boton();
 </script>
 </body>
 </html>

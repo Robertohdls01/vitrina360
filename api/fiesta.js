@@ -79,7 +79,7 @@ const demoData = () => ({
   code: DEMO, demo: true, tipo: '15', modo: 'especial', plantilla: 'elegante', color: '#c9a227',
   titulo: 'Mis 15', nombre: 'Julieta', frase: 'Hay momentos que no se olvidan. Quiero compartir este con vos.',
   fecha: proxSabado(), hora: '21:30', salon: 'Salón de ejemplo', direccion: 'Mar del Plata',
-  vestimenta: 'Elegante sport', regalo: 'Lluvia de sobres o alias: JULI.15.FIESTA', mostrarMesa: true, pedirMenu: true,
+  vestimenta: 'Elegante sport', estaciona: 'El salón tiene estacionamiento propio sin cargo. Si se llena, hay una cochera a media cuadra.', regalo: 'Lluvia de sobres o alias: JULI.15.FIESTA', mostrarMesa: true, pedirMenu: true,
   catering: 'Catering de ejemplo', mozas: ['Karina', 'Sofía', 'Lucía'], modoP: 'encargada', pk: 'demo', paquete: 'recuerdos', pagado: true,
   carta: CARTA_BASE(), crono: CRONO_BASE('21:30'), lugares: [{ n: 'Mesa de regalos', d: 'entrando, a la izquierda, al lado del cuadro de firmas' }, { n: 'Baños', d: 'al fondo del salón, pasando la pista a la derecha' }, { n: 'Barra', d: 'al lado de la pista, frente al DJ' }, { n: 'Rincón de fotos', d: 'junto a la entrada, con las luces' }],
   foto: '', invitados: [
@@ -104,7 +104,7 @@ function limpiar(d, prev) {
     color: /^#[0-9a-fA-F]{6}$/.test(String(d.color || '')) ? d.color : '#c9a227',
     titulo: corto(d.titulo, 40) || 'Mis 15', nombre: corto(d.nombre, 40), frase: largo(d.frase, 220),
     fecha: /^\d{4}-\d{2}-\d{2}$/.test(String(d.fecha || '')) ? d.fecha : '', hora: /^\d{2}:\d{2}$/.test(String(d.hora || '')) ? d.hora : '',
-    salon: corto(d.salon, 80), direccion: corto(d.direccion, 120), vestimenta: corto(d.vestimenta, 80), regalo: largo(d.regalo, 200),
+    salon: corto(d.salon, 80), direccion: corto(d.direccion, 120), vestimenta: corto(d.vestimenta, 80), regalo: largo(d.regalo, 200), estaciona: largo(d.estaciona, 240),
     mostrarMesa: !!d.mostrarMesa, pedirMenu: d.pedirMenu !== false, organiza: corto(d.organiza, 60),
     // catering y mozas: se usan el día de la fiesta ("Ya va Karina a tu mesa")
     catering: corto(d.catering, 60), cateringTel: corto(d.cateringTel, 20).replace(/[^\d+]/g, ''),
@@ -134,7 +134,7 @@ function limpiar(d, prev) {
 }
 // Lo que puede ver cualquiera con el link de la fiesta (sin la lista de invitados ni claves).
 function publica(e) {
-  const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'mostrarMesa', 'pedirMenu', 'foto', 'organiza'].forEach(k => { o[k] = e[k]; });
+  const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'organiza'].forEach(k => { o[k] = e[k]; });
   o.total = (e.invitados || []).length; o.vivo = vivoOk(e); o.hoy = enDia(e) || !!e.demo;
   if (o.vivo) { o.lugares = e.lugares || []; o.flLook = e.flLook || LOOK_DE[e.tipo] || 'traje'; o.carta = e.carta || []; o.crono = e.crono || []; o.atraso = e.atraso || 0; o.avisos = (e.avisos || []).slice(-15); }
   return o;

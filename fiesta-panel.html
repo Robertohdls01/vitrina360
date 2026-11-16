@@ -227,7 +227,7 @@ function pFiesta() {
   $$('[data-lc]').forEach(el => el.addEventListener('input', () => { D.lugares[+el.dataset.li][el.dataset.lc] = el.value; cambio(); }));
   $$('[data-ldel]').forEach(b => b.onclick = () => { D.lugares.splice(+b.dataset.ldel, 1); re(); });
   $('#lAdd').onclick = () => { D.lugares = (D.lugares || []).concat([{n: '', d: ''}]); re(); };
-  const lb = $('#lBase'); if (lb) lb.onclick = () => { D.lugares = ['Mesa de regalos', 'Baños', 'Barra', 'Guardarropa', 'Rincón de fotos', 'Salida'].map(n => ({n, d: ''})); re(); };
+  const lb = $('#lBase'); if (lb) lb.onclick = () => { D.lugares = ['Mesa de regalos', 'Baños', 'Barra', 'Pista de baile', 'Guardarropa', 'Rincón de fotos', 'Terraza', 'Patio interno', 'Patio externo', 'Zona de fumadores', 'Cochera', 'Salida'].map(n => ({n, d: ''})); re(); };
   $$('[data-look]').forEach(b => b.onclick = () => { lookTocado = true; D.flLook = b.dataset.look; cambio(); pFiesta(); });
   $$('[name=modoP]').forEach(r => r.onchange = () => { D.modoP = r.value; cambio(); });
   $$('[name=rota]').forEach(r => r.onchange = () => { D.rotan = r.value === 'rotan'; if (D.rotan) D.zonas = {}; cambio(); pFiesta(); });
@@ -260,7 +260,7 @@ function pInv() {
       ${D.modo !== 'link' ? `<label>Frase</label><textarea data-k="frase" maxlength="220">${esc(D.frase)}</textarea>` : ''}
       <div class="row"><div>${campo('fecha', 'Fecha', '', 'date')}</div><div>${campo('hora', 'Hora', '', 'time')}</div></div>
       <div class="row"><div>${campo('salon', 'Salón', 'Nombre del salón')}</div><div>${campo('direccion', 'Dirección', 'Calle, número, ciudad')}</div></div>
-      ${D.modo !== 'link' ? `<div class="row"><div>${campo('vestimenta', 'Vestimenta (opcional)', 'Elegante sport')}</div><div>${campo('regalo', 'Regalo (opcional)', 'Lluvia de sobres o alias')}</div></div>` : ''}
+      ${D.modo !== 'link' ? `<div class="row"><div>${campo('vestimenta', 'Vestimenta (opcional)', 'Elegante sport')}</div><div>${campo('regalo', 'Regalo (opcional)', 'Lluvia de sobres o alias')}</div></div>${campo('estaciona', '🚗 Estacionamiento (opcional)', 'Ej: estacionamiento propio sin cargo. Si se llena: cochera Los Pinos, Av. Colón 1234, tel 223 555 1234')}` : ''}
     </div>
     ${D.modo !== 'link' ? `<div class="sec"><h3>Diseño</h3><div class="chips">${PLANT.map(([v, t, bg]) => `<button class="chip ${D.plantilla === v ? 'on' : ''}" data-plant="${v}"><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${bg};border:1px solid #ccc;vertical-align:-2px;margin-right:6px"></span>${t}</button>`).join('')}</div>
       <label>Color principal</label><div class="chips" style="align-items:center">${COLORES.map(c => `<button class="sw ${D.color === c ? 'on' : ''}" data-color="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')}<input type="color" data-k="color" value="${esc(D.color)}" style="width:52px;height:40px;padding:2px"></div>
