@@ -217,7 +217,7 @@ function momentos() { // cada momento del cronograma con su hora real (los de de
   return F.crono.map(x => { let m = minDe(x.h); if (m < h0) m += 1440; const ts = base + m * 60e3 + at; return {h: x.h, nombre: x.t, a: x.a, ts, aviso: ts - (x.m || 0) * 60e3}; }).sort((a, b) => a.ts - b.ts);
 }
 const hhmm = t => new Date(t).toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Argentina/Buenos_Aires'});
-const EST = p => p.estado === 'entregado' ? '✅ Entregado' : p.estado === 'cancelado' ? '❌ Cancelado' : p.estado === 'camino' ? `🚶 Ya va ${p.moza ? esc(p.moza) : 'la moza'} a tu mesa` : p.moza ? `👩 ${esc(p.moza)} te lo va a llevar` : '📝 Recibido, ya te lo preparan';
+const EST = p => p.estado === 'entregado' ? '✅ Entregado' : p.estado === 'cancelado' ? '❌ Cancelado' : p.estado === 'camino' ? `🚶 Ya va ${p.moza ? esc(p.moza) : 'la moza'} a tu mesa` : p.moza ? `👩 ${esc(p.moza)} te lo va a llevar` : '📝 Recibido: enseguida te avisamos quién te lo trae';
 function pVivo() {
   const el = $('#vivo'); if (!el) return;
   if (!INV) { el.style.display = 'none'; return; } el.style.display = '';
@@ -246,7 +246,7 @@ async function pedir() {
   const msg = $('#pmsg'); if (!items.length) { msg.innerHTML = '<p class="err">Elegí algo con el botón +</p>'; return; }
   const b = $('#pedir'); b.disabled = true;
   try { const r = await fetch('/api/fiesta?accion=pedir', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, items, nota: ($('#pnota') || {}).value || '', mesa: MESA})}); const j = await r.json();
-    if (!r.ok) throw new Error(j.error || 'No se pudo pedir'); CANT = {}; if (navigator.vibrate) navigator.vibrate(60); await vivoTick(); toast('🛎 ¡Pedido enviado!', j.moza ? `Se lo pasamos a ${j.moza}. Te avisamos cuando va en camino.` : 'Te avisamos cuando va en camino.'); if (FL) flHablar(`Listo, ya se lo paso a ${j.moza || 'la moza'}`);
+    if (!r.ok) throw new Error(j.error || 'No se pudo pedir'); CANT = {}; if (navigator.vibrate) navigator.vibrate(60); await vivoTick(); toast('🛎 ¡Pedido enviado!', j.moza ? `Se lo pasamos a ${j.moza}, que atiende tu mesa.` : 'Enseguida te avisamos quién te lo trae.'); if (FL) flHablar(j.moza ? `Listo, ya se lo paso a ${j.moza}` : 'Listo, ya se lo paso a la encargada. Enseguida te aviso quién te lo trae');
   } catch (e) { msg.innerHTML = `<p class="err">${esc(e.message)}</p>`; b.disabled = false; }
 }
 let vistos = {}; try { vistos = JSON.parse(localStorage.getItem('fiestaVistos:' + CODE) || '{}'); } catch (e) {}
@@ -327,7 +327,7 @@ function flConfirmar(it) { flPend = it; flDecir(`¿Te pido ${listaTx(it)}?`, [{t
 async function flPedir() {
   if (!flPend) return; const it = flPend; flPend = null;
   try { const r = await fetch('/api/fiesta?accion=pedir', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, items: it, mesa: MESA})}); const j = await r.json();
-    if (!r.ok) throw new Error(j.error || 'No se pudo'); marcaInter(); await vivoTick(); flDecir(`¡Listo! 🛎 Ya se lo paso a ${j.moza || 'la moza'}. Te aviso cuando va en camino.`, [{t: '👍 Gracias', alt: true, f: () => $('#flb').classList.remove('on')}]);
+    if (!r.ok) throw new Error(j.error || 'No se pudo'); marcaInter(); await vivoTick(); flDecir(j.moza ? `¡Listo! 🛎 Ya se lo paso a ${j.moza}, que atiende tu mesa. Te aviso cuando va en camino.` : `¡Listo! 🛎 Ya se lo paso a la encargada. Enseguida te aviso quién te trae ${it.length === 1 ? 'tu ' + it[0].n : 'tu pedido'}.`, [{t: '👍 Gracias', alt: true, f: () => $('#flb').classList.remove('on')}]);
   } catch (e) { flDecir('😕 ' + e.message, [{t: 'Ok', alt: true, f: () => $('#flb').classList.remove('on')}]); }
 }
 function flQueViene() { const M = momentos(), p = M.find(x => x.ts > Date.now()); flDecir(p ? `A las ${hhmm(p.ts)} es ${p.nombre.charAt(0).toLowerCase() + p.nombre.slice(1)} ✨` : 'Ya pasaron todos los momentos del cronograma. ¡A disfrutar! 💃', [{t: '🥤 Pedir algo', f: () => flDecir('¿Qué te traemos?', flOpsPedir(), true)}, {t: 'Listo', alt: true, f: () => $('#flb').classList.remove('on')}]); }

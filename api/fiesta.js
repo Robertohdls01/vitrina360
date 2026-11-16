@@ -138,14 +138,13 @@ function publica(e) {
   return o;
 }
 const enDia = e => { if (!e || !e.fecha) return false; const t = Date.parse(e.fecha + 'T' + (e.hora || '21:00') + ':00-03:00'), n = Date.now(); return n > t - 8 * 3600e3 && n < t + 14 * 3600e3; };
-// Qué moza atiende cada mesa: lo que cargó la familia ("1-5, 8") o, si no, se reparten solas.
+// Qué moza atiende cada mesa, según lo que cargó la familia ("1-5, 8"). Si no está cargada, decide la encargada.
 function mozaDeMesa(e, mesa) {
   const M = e.mozas || []; if (!M.length || !mesa) return '';
   const n = parseInt(mesa, 10), z = e.zonas || {};
   for (const moza of M) { const r = String(z[moza] || ''); if (!r) continue;
     for (const parte of r.split(',')) { const [a, b] = parte.split('-').map(x => x.trim()); if (String(a).toLowerCase() === String(mesa).toLowerCase()) return moza; if (n && +a && n >= +a && n <= (+b || +a)) return moza; } }
-  const libres = M.filter(m => !z[m]); if (!libres.length) return '';
-  return libres[((n || 1) - 1 + libres.length * 100) % libres.length];
+  return ''; // sin mesa asignada: la encargada elige en el momento
 }
 const vivoOk = e => !!(e && (e.demo || (e.pagado && ['completa', 'recuerdos'].includes(e.paquete))));
 const azarK = () => azar(10, 'abcdefghijkmnpqrstuvwxyz23456789');
