@@ -88,6 +88,8 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp
 const P = new URLSearchParams(location.search);
 let PAQS = null, EXTRA = 25000, YA_AVISO_PAGO = false, VIVO = false, PEDN = 0;
 let CODE = (P.get('f') || '').toUpperCase(), K = P.get('k') || '', D = null, RESP = [], tab = 'inv', sucio = false, DEMO = false, tituloTocado = false;
+const LOOK_DE = {'15': 'traje', casamiento: 'claro', cumple: 'fiesta', bautismo: 'claro', egresados: 'fiesta', otro: 'traje'};
+let lookTocado = false;
 const TITULOS = {'15': 'Mis 15', casamiento: 'Nos casamos', cumple: 'Mi cumple', bautismo: 'Mi bautismo', egresados: 'Fiesta de egresados', otro: 'Te invito'};
 const PLANT = [['elegante', 'Elegante', '#fbf7f0'], ['flores', 'Flores', '#fbf1f3'], ['brillos', 'Brillos', '#1d1b2f'], ['moderna', 'Moderna', '#f5f5f2'], ['mariposas', 'Mariposas', '#f3effa'], ['luna', 'Luna y estrellas', '#1c2440']];
 const COLORES = ['#c9a227', '#d98ca0', '#9b87c9', '#6fa8c9', '#7fa88a', '#9aa3ad', '#a85a6a', '#d4a373'];
@@ -123,7 +125,7 @@ async function cargar() {
   try {
     const r = await fetch('/api/fiesta?accion=panel&f=' + encodeURIComponent(CODE) + '&k=' + encodeURIComponent(K)); const j = await r.json();
     if (!r.ok) throw new Error(j.error || 'No se pudo abrir');
-    D = Object.assign(nuevo(), j.fiesta); RESP = j.resp || []; DEMO = !!j.demo; PAQS = j.paquetes || null; EXTRA = j.extra150 || EXTRA; VIVO = !!j.vivo; PEDN = j.pedidos || 0; tituloTocado = true; guardarMis(); pintar(); vueltaPago();
+    D = Object.assign(nuevo(), j.fiesta); RESP = j.resp || []; DEMO = !!j.demo; PAQS = j.paquetes || null; EXTRA = j.extra150 || EXTRA; VIVO = !!j.vivo; PEDN = j.pedidos || 0; tituloTocado = true; lookTocado = !!j.fiesta.flLook; guardarMis(); pintar(); vueltaPago();
   } catch (e) { $('#raiz').innerHTML = `<div class="hero"><h1>😕 ${esc(e.message)}</h1><p><a href="/fiesta-panel">Volver</a></p></div>`; }
 }
 const pesos = n => '$' + Number(n || 0).toLocaleString('es-AR');
@@ -219,7 +221,7 @@ function pFiesta() {
   $$('[data-rc]').forEach(el => el.addEventListener('change', () => { const x = D.crono[+el.dataset.ri]; x[el.dataset.rc] = el.dataset.rc === 'm' ? +el.value : el.value; cambio(); }));
   $$('[data-rdel]').forEach(b => b.onclick = () => { D.crono.splice(+b.dataset.rdel, 1); re(); });
   $('#rAdd').onclick = () => { D.crono = (D.crono || []).concat([{h: D.hora || '22:00', t: '', a: '', m: 10}]); re(); }; const rb = $('#rBase'); if (rb) rb.onclick = () => { D.crono = CRONO_BASE(D.hora); re(); };
-  $$('[data-look]').forEach(b => b.onclick = () => { D.flLook = b.dataset.look; cambio(); pFiesta(); });
+  $$('[data-look]').forEach(b => b.onclick = () => { lookTocado = true; D.flLook = b.dataset.look; cambio(); pFiesta(); });
   $$('[name=modoP]').forEach(r => r.onchange = () => { D.modoP = r.value; cambio(); });
   $$('[name=rota]').forEach(r => r.onchange = () => { D.rotan = r.value === 'rotan'; if (D.rotan) D.zonas = {}; cambio(); pFiesta(); });
   $$('[data-zona]').forEach(el => el.addEventListener('input', () => { D.zonas = Object.assign({}, D.zonas || {}); if (el.value.trim()) D.zonas[el.dataset.zona] = el.value.trim(); else delete D.zonas[el.dataset.zona]; cambio(); }));
@@ -267,6 +269,7 @@ function pInv() {
     const k = el.dataset.k; D[k] = el.type === 'checkbox' ? el.checked : el.value;
     if (k === 'titulo') tituloTocado = true;
     if (k === 'tipo' && !tituloTocado) { D.titulo = TITULOS[D.tipo] || ''; const t = $('#c_titulo'); if (t) t.value = D.titulo; }
+    if (k === 'tipo' && !lookTocado) D.flLook = LOOK_DE[D.tipo] || 'traje';
     if (k === 'color') $$('.sw').forEach(s => s.classList.toggle('on', s.dataset.color === D.color));
     if (k === 'nombre') $('#hdr').textContent = (D.tipo === '15' ? 'Los 15 de ' : 'Fiesta de ') + D.nombre;
     cambio(); }));
