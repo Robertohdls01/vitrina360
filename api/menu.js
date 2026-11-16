@@ -20,12 +20,23 @@ const hash = s => crypto.createHash('sha256').update('shopmenu|' + s).digest('he
 async function leerObj0(path) { const r = await fetch(base() + '/object/' + BUCKET + '/' + path, { headers: head() }); return r.ok ? r.json().catch(() => null) : null; }
 async function guardarObj0(path, obj) { await fetch(base() + '/object/' + BUCKET + '/' + path, { method: 'POST', headers: head({ 'Content-Type': 'application/json', 'x-upsert': 'true', 'cache-control': 'no-cache' }), body: JSON.stringify(obj) }); }
 // Café de prueba público (/shopmenu "Probalo vos mismo"): usa la carta del Café Demo, con sus propios pedidos; la caja abre con la clave "demo" y la carta no se puede cambiar.
-const PUB = 'demopublico', PUB_BASE = 'fdaf46084d';
+const PUB = 'demopublico', PUB_BASE = 'fdaf46084d', BAL = 'demobalneario';
+// balneario de muestra: carpas en vez de mesas, alquileres y parador (no se puede editar; los pedidos se borran solos)
+const BAL_MENU = { nombre: 'Balneario Las Gaviotas (demo)', lugar: 'carpa', idioma: 'es', moneda: '$', asistente: 'Sol', deco: 'verano',
+  saludo: '¡Hola! Soy Sol, del Balneario Las Gaviotas. Pedime reposeras, sombrilla o algo del parador y te lo llevamos a tu carpa.',
+  cats: [
+    { n: '🏖 Alquileres del día', items: [{ n: 'Reposera', d: 'Por día. Te la llevamos a tu carpa.', p: '$6.000' }, { n: 'Sombrilla', d: 'Por día, armada en tu lugar.', p: '$9.000' }, { n: 'Mesita plegable', d: 'Por día.', p: '$3.000' }, { n: 'Toallón', d: 'Grande, limpio.', p: '$3.500' }, { n: 'Locker con llave', d: 'Para dejar tus cosas.', p: '$4.000' }] },
+    { n: '🥤 Bebidas', items: [{ n: 'Agua mineral 500 ml', d: 'Bien fría.', p: '$1.800' }, { n: 'Gaseosa lata', d: 'Coca, Sprite o Fanta.', p: '$2.200' }, { n: 'Licuado de frutilla', d: 'Con leche o con agua.', p: '$4.500', promo: true }, { n: 'Limonada con menta y jengibre', d: 'Jarra de 1 litro.', p: '$6.500' }, { n: 'Cerveza artesanal', d: 'Pinta, rubia o roja.', p: '$5.000' }, { n: 'Café con leche', d: 'Para la mañana.', p: '$2.800' }] },
+    { n: '🍔 Parador', items: [{ n: 'Hamburguesa completa con papas', d: 'Lechuga, tomate, queso y huevo.', p: '$11.500' }, { n: 'Tostado de jamón y queso', d: 'Con papas fritas.', p: '$7.500' }, { n: 'Rabas', d: 'Porción para compartir, con limón.', p: '$14.000' }, { n: 'Ensalada de frutas', d: 'De estación.', p: '$5.000' }, { n: 'Medialunas x3', d: 'Manteca o grasa.', p: '$3.000' }] },
+    { n: '🍦 Helados', items: [{ n: 'Palito de agua', d: 'Frutilla o limón.', p: '$1.500' }, { n: 'Cucurucho 2 gustos', d: '', p: '$4.000' }] },
+    { n: '🏄 Actividades', items: [{ n: 'Clase de surf (1 hora)', d: 'Con tabla y traje incluidos.', p: '$25.000' }, { n: 'Alquiler de kayak (1 hora)', d: 'Con chaleco.', p: '$15.000' }] }
+  ] };
 async function leerObj(path) {
   if (path === 'menus/' + PUB + '.json') { const f = await leerObj0('menus/' + PUB_BASE + '.json'); if (!f) return null; f.clave = hash('demo'); f.libre = true; f.menu = Object.assign({}, f.menu, { nombre: 'Café de Prueba', dueno: '', mozos: [], paylink: '', alias: '' }); return f; }
+  if (path === 'menus/' + BAL + '.json') { const st = await leerObj0(path); return { clave: hash('demo'), libre: true, creado: '2026-11-16T00:00:00Z', menu: Object.assign({}, BAL_MENU, st && st.menu && st.menu.tr ? { tr: st.menu.tr } : {}) }; }
   return leerObj0(path);
 }
-async function guardarObj(path, obj) { if (path === 'menus/' + PUB + '.json') return; return guardarObj0(path, obj); }
+async function guardarObj(path, obj) { if (path === 'menus/' + PUB + '.json' || path === 'menus/' + BAL + '.json') return; return guardarObj0(path, obj); }
 
 // deja el menú limpio y con tamaños razonables
 function limpiar(m) {
@@ -33,7 +44,7 @@ function limpiar(m) {
   const cats = (Array.isArray(m.cats) ? m.cats : []).slice(0, 40).map(c => ({ n: t(c && c.n, 60),
     items: (Array.isArray(c && c.items) ? c.items : []).slice(0, 80).map(i => ({ n: t(i && i.n, 90), d: t(i && i.d, 240), p: t(i && i.p, 30), promo: !!(i && i.promo) })).filter(i => i.n) })).filter(c => c.n || c.items.length);
   const logo = typeof m.logo === 'string' && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(m.logo) && m.logo.length < 120000 ? m.logo : '';
-  return { deco: ['navidad', 'anionuevo', 'deportes', 'fiesta', 'madre', 'padre', 'enamorados', 'halloween', 'verano', 'invierno', 'otono', 'primavera', 'pascua', 'ofertas'].includes(m.deco) ? m.deco : '', musica: !!m.musica, idioma: LANGS.includes(m.idioma) ? m.idioma : 'es', fondoV: /^\d{6,16}$/.test(String(m.fondoV || '')) ? String(m.fondoV) : '', fondoCaja: !!m.fondoCaja, envio: !!m.envio, envioTx: t(m.envioTx, 120), logo, lugar: ['mesa', 'maquina', 'habitacion', 'sombrilla', 'butaca'].includes(m.lugar) ? m.lugar : 'mesa', nombre: t(m.nombre, 60), wa: t(m.wa, 20).replace(/[^\d+]/g, ''), mesas: Math.max(1, Math.min(500, parseInt(m.mesas, 10) || 10)), asistente: t(m.asistente, 20) || 'Lola', avatar: ['moza', 'mozo'].includes(m.avatar) ? m.avatar : '', pelo: ['castano', 'rubio', 'negro', 'colorado', 'canoso'].includes(m.pelo) ? m.pelo : '', largo: m.largo === 'corto' ? 'corto' : 'largo', piel: ['clara', 'media', 'morena', 'oscura'].includes(m.piel) ? m.piel : '', barba: !!m.barba,
+  return { deco: ['navidad', 'anionuevo', 'deportes', 'fiesta', 'madre', 'padre', 'enamorados', 'halloween', 'verano', 'invierno', 'otono', 'primavera', 'pascua', 'ofertas'].includes(m.deco) ? m.deco : '', musica: !!m.musica, idioma: LANGS.includes(m.idioma) ? m.idioma : 'es', fondoV: /^\d{6,16}$/.test(String(m.fondoV || '')) ? String(m.fondoV) : '', fondoCaja: !!m.fondoCaja, envio: !!m.envio, envioTx: t(m.envioTx, 120), logo, lugar: ['mesa', 'maquina', 'habitacion', 'sombrilla', 'carpa', 'butaca'].includes(m.lugar) ? m.lugar : 'mesa', nombre: t(m.nombre, 60), wa: t(m.wa, 20).replace(/[^\d+]/g, ''), mesas: Math.max(1, Math.min(500, parseInt(m.mesas, 10) || 10)), asistente: t(m.asistente, 20) || 'Lola', avatar: ['moza', 'mozo'].includes(m.avatar) ? m.avatar : '', pelo: ['castano', 'rubio', 'negro', 'colorado', 'canoso'].includes(m.pelo) ? m.pelo : '', largo: m.largo === 'corto' ? 'corto' : 'largo', piel: ['clara', 'media', 'morena', 'oscura'].includes(m.piel) ? m.piel : '', barba: !!m.barba,
     saludo: t(m.saludo, 200), moneda: t(m.moneda, 4) || '$', alias: t(m.alias, 60), dueno: t(m.dueno, 30), cajaAva: ['flashi', 'robot', 'gatito', 'igual'].includes(m.cajaAva) ? m.cajaAva : 'flashi', greview: /^https:\/\//i.test(String(m.greview || '')) ? t(m.greview, 300) : '', mozos: (Array.isArray(m.mozos) ? m.mozos : String(m.mozos || '').split(',')).map(x => t(String(x).trim(), 20)).filter(Boolean).slice(0, 12), demora: Math.max(0, Math.min(120, parseInt(m.demora, 10) || 0)), paylink: /^https:\/\//i.test(String(m.paylink || '')) ? t(m.paylink, 300) : '', ig: t(m.ig, 60).replace(/[^\w.@/:\-]/g, ''), fb: t(m.fb, 200).replace(/[\s<>"']/g, ''), tt: t(m.tt, 60).replace(/[^\w.@/:\-]/g, ''), web: /^https:\/\//i.test(String(m.web || '')) ? t(m.web, 300) : '', tienda: /^https:\/\//i.test(String(m.tienda || '')) ? t(m.tienda, 300) : '', tiendaTx: t(m.tiendaTx, 40), nov: t(m.nov, 300), links: (Array.isArray(m.links) ? m.links : []).slice(0, 10).map(x => ({ t: t(x && x.t, 12).replace(/[^a-z]/g, ''), u: t(x && x.u, 300).replace(/[\s<>"']/g, ''), l: t(x && x.l, 40) })).filter(x => x.u && (/^https:\/\//i.test(x.u) || /^(ig|fb|tt|wa|yt)$/.test(x.t))), cats };
 }
 
@@ -217,7 +228,7 @@ module.exports = async (req, res) => {
     }
     if (req.method === 'POST' && q.accion === 'fondo') {
       const b = cuerpo(req);
-      if (!okId(b.id) || b.id === PUB) return res.status(400).json({ error: 'Menú inválido.' });
+      if (!okId(b.id) || b.id === PUB || b.id === BAL) return res.status(400).json({ error: 'Menú inválido.' });
       const f = await leerObj('menus/' + b.id + '.json');
       if (!f || hash(String(b.clave || '')) !== f.clave) return res.status(403).json({ error: 'La clave no es correcta.' });
       if (b.img === null) { f.menu.fondoCaja = !!b.caja; await guardarObj('menus/' + b.id + '.json', f); return res.status(200).json({ ok: true, fondoV: f.menu.fondoV || '', fondoCaja: !!f.menu.fondoCaja }); }
@@ -260,7 +271,7 @@ module.exports = async (req, res) => {
       if (!f || hash(String(q.clave || '')) !== f.clave) return res.status(403).json({ error: 'La clave no es correcta.' });
       const L = (await leerObj(pedPath(q.id))) || { items: [] };
       const cu = await cuenta(q.id, f);
-      if (q.id === PUB) L.items = (L.items || []).filter(it => Date.now() - Date.parse(it.creado) < 3 * 3600e3);
+      if (q.id === PUB || q.id === BAL) L.items = (L.items || []).filter(it => Date.now() - Date.parse(it.creado) < 3 * 3600e3);
       return res.status(200).json({ fondo: f.menu.fondoCaja && f.menu.fondoV ? f.menu.fondoV : '', lugar: f.menu.lugar || 'mesa', cuenta: cu, items: (L.items || []).map(x => Object.assign({}, x, { k: undefined })), nombre: f.menu.nombre, mozos: f.menu.mozos || [], dueno: f.menu.dueno || '', cajaAva: f.menu.cajaAva || 'flashi', asistente: f.menu.asistente || 'Lola', avatar: f.menu.avatar || '', pelo: f.menu.pelo || '', largo: f.menu.largo || '', piel: f.menu.piel || '', barba: !!f.menu.barba });
     }
     // ---- Opiniones de los dueños sobre ShopMenu (para mostrar en la página de venta, solo las aprobadas) ----
@@ -271,7 +282,7 @@ module.exports = async (req, res) => {
     }
     if (req.method === 'POST' && q.accion === 'testimonio') {
       const b = cuerpo(req);
-      if (!okId(b.id) || b.id === PUB) return res.status(400).json({ error: 'Menú inválido.' });
+      if (!okId(b.id) || b.id === PUB || b.id === BAL) return res.status(400).json({ error: 'Menú inválido.' });
       const f = await leerObj('menus/' + b.id + '.json');
       if (!f || hash(String(b.clave || '')) !== f.clave) return res.status(403).json({ error: 'La clave no es correcta.' });
       const e = parseInt(b.e, 10); if (!(e >= 1 && e <= 5)) return res.status(400).json({ error: 'Elegí de 1 a 5 estrellas.' });
@@ -428,7 +439,7 @@ module.exports = async (req, res) => {
       let prev = null;
       if (id) {
         if (!/^[a-z0-9]{6,20}$/.test(id)) return res.status(400).json({ error: 'Menú inválido.' });
-        if (id === PUB) return res.status(403).json({ error: 'El café de prueba no se puede editar.' });
+        if (id === PUB || id === BAL) return res.status(403).json({ error: 'El café de prueba no se puede editar.' });
         prev = await leerObj('menus/' + id + '.json');
         if (!prev || hash(clave) !== prev.clave) return res.status(403).json({ error: 'No tenés permiso para editar este menú.' });
       }
