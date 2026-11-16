@@ -91,7 +91,7 @@
       window.VITRINA_SLUG = slugM[1];
       window.VITRINA_LOAD = async () => {
         let t = null;
-        if(/^(parques|vivero)-demo$/.test(slugM[1])){ try{ const d = await (await fetch('/demo-' + slugM[1] + '.json')).json(); t = {nombre: d.stores[0].brand.name, data: d, activa: true, plan: 'pro', pagada_hasta: '2099-12-31T00:00:00Z'}; }catch(e){} }
+        if(/^(parques|vivero|plomero|electricista|gasista|pintor|albanil|durlock|techista|solar|aire|volquete|tecnico|afilador|mecanico)-demo$/.test(slugM[1])){ try{ const d = await (await fetch('/demo-' + slugM[1] + '.json')).json(); t = {nombre: d.stores[0].brand.name, data: d, activa: true, plan: 'pro', pagada_hasta: '2099-12-31T00:00:00Z'}; }catch(e){} }
         else try{ const rows = await api('GET', `/rest/v1/tiendas?slug=eq.${slugM[1]}&select=nombre,data,activa,plan,prueba_hasta,pagada_hasta`); t = rows && rows[0]; }catch(e){}
         if(!t || t.activa === false || !(t.data && Array.isArray(t.data.stores) && t.data.stores.length)){
           onReady(() => overlay(`<h2>${t ? T('Tienda en preparación', 'Store coming soon', 'Loja em preparação') : T('Esta tienda no está disponible', 'This store is not available', 'Esta loja não está disponível')}</h2>
