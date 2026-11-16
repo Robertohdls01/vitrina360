@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Firmar documento · Pro Video JSR(HG)</title>
+<title>Firmar documento · Pro Video JSRHG</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#2f6f6a">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✍️</text></svg>">
@@ -47,9 +47,9 @@ footer{text-align:center;color:var(--muted);font-size:12px;margin-top:20px}
 </head>
 <body>
 <div class="wrap">
-  <header><img src="/pv-logo-180.jpg" alt="" style="width:42px;height:42px;border-radius:50%"><span><b>Pro Video JSR(HG)</b><small>Productos físicos y digitales</small></span></header>
+  <header><img src="/pv-logo-180.jpg" alt="" style="width:42px;height:42px;border-radius:50%"><span><b>Pro Video JSRHG</b><small>Productos físicos y digitales</small></span></header>
   <div id="app"></div>
-  <footer>Pro Video JSR(HG) · Productos físicos y digitales · vitrina360app.com.ar/provideo</footer>
+  <footer>Pro Video JSRHG · Productos físicos y digitales · vitrina360app.com.ar/provideo</footer>
 </div>
 <script>
 // WhatsApp de soporte de Pro Video (se completa en un solo lugar)
@@ -73,7 +73,7 @@ function docHTML(doc, d){
     <li>Al terminar, el negocio decide si contrata. <b>Si no contrata</b>, Pro Video retira los materiales de prueba indicados (o el negocio los devuelve) y la prueba termina sin costo.</li>
     <li><b>Si contrata</b>, los materiales quedan para el negocio y paga el plan que elija, mes a mes, pudiendo darlo de baja cuando quiera.</li>
     <li>Ante cualquier duda o problema, el negocio se comunica con Pro Video ${soporte()}.</li></ul>`;
-  return `<h1>Acuerdo de servicio</h1><p class="note">Entre <b>Pro Video JSR(HG)</b> ("Pro Video") y el negocio que firma ("el Cliente"), para el uso de la aplicación contratada.</p>
+  return `<h1>Acuerdo de servicio</h1><p class="note">Entre <b>Pro Video JSRHG</b> ("Pro Video") y el negocio que firma ("el Cliente"), para el uso de la aplicación contratada.</p>
     <h3>1. Datos del Cliente</h3>${cab}
     <h3>2. Servicio contratado</h3><p><b>Producto:</b> ${v(d, 'producto')} · <b>Plan:</b> ${v(d, 'plan')}<br><b>Precio por mes:</b> $ ${v(d, 'precio')} · <b>Forma de pago:</b> ${v(d, 'pago')} · <b>Desde:</b> ${fmtF(d.desde)}<br><b>Link de la app:</b> ${v(d, 'link')} · <b>Materiales entregados:</b> ${v(d, 'materiales')}</p>
     <h3>3. Lo que hace Pro Video</h3><p><b>Mientras el Cliente tenga el plan activo y los pagos al día, Pro Video se hace cargo de:</b></p><ul>
@@ -165,8 +165,8 @@ async function ver(){
   app.innerHTML = `<div class="noprint" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px"><button class="btn pri" onclick="print()">📄 Bajar PDF / imprimir</button></div>
     <div class="card doc">${docHTML(r.doc, r.datos)}
       <div class="firmas"><div>${r.firmaCli ? `<img src="${r.firmaCli}" alt="Firma del cliente">` : '<br><br>'}<b>Por el ${r.doc === 'prueba' ? 'negocio' : 'Cliente'}</b><br>${esc(r.datos.responsable)}</div>
-        <div>${r.firmaVen ? `<img src="${r.firmaVen}" alt="Firma de Pro Video">` : '<br><br>'}<b>Por Pro Video JSR(HG)</b><br>${esc(r.vendedor || '')}</div></div>
-      <div class="sello">✍️ <b>Firmado digitalmente</b> el ${esc(f)} · Código del documento: <b>${esc(r.id)}</b> · Huella: ${esc(r.huella)}<br>Copia guardada por Pro Video JSR(HG). Se puede volver a ver en cualquier momento con este mismo link.</div></div>`;
+        <div>${r.firmaVen ? `<img src="${r.firmaVen}" alt="Firma de Pro Video">` : '<br><br>'}<b>Por Pro Video JSRHG</b><br>${esc(r.vendedor || '')}</div></div>
+      <div class="sello">✍️ <b>Firmado digitalmente</b> el ${esc(f)} · Código del documento: <b>${esc(r.id)}</b> · Huella: ${esc(r.huella)}<br>Copia guardada por Pro Video JSRHG. Se puede volver a ver en cualquier momento con este mismo link.</div></div>`;
   if(Q.get('pdf')) setTimeout(() => print(), 700);
 }
 
