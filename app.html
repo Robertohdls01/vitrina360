@@ -7056,7 +7056,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         <button class="btn primary" type="button" data-pq="reservar">✅ Reservar mi turno</button>
         <p class="msg" id="pqResMsg" role="status" style="margin:0"></p></div>
       <button class="btn wa" type="button" data-pq="enviar" id="pqSend" ${pqRes ? '' : 'hidden'}>💬 O mandale el presupuesto por WhatsApp</button>
-      <p class="note" style="margin:0">🔒 Tus fotos no se guardan: se usan solo para armar el presupuesto. Es una estimación: el precio final lo confirma ${esc(O.pro)}.</p>
+      <p class="note" style="margin:0">🔒 Tus fotos solo las ve ${esc(O.pro)}, para revisar el trabajo (y si querés, mostrar el antes y el después). Es una estimación: el precio final lo confirma ${esc(O.pro)}.</p>
       <button class="btn" type="button" data-pq="cerrar">Cerrar</button></div>`;
     ov.hidden = false; pqFotosRender(); pqTotal();
     if(!ia && !pqRes && !window.__pqOcupOk){ window.__pqOcupOk = true; pqCargarOcupados().then(() => { const ag = $('pqAgenda'); if(ag) ag.innerHTML = pqAgendaHTML(); }).catch(() => {}); }
@@ -7232,6 +7232,8 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         const j = await r.json().catch(() => ({}));
         if(r.status === 409){ await pqCargarOcupados(); pqHora = ''; $('pqAgenda').innerHTML = pqAgendaHTML(); msg.textContent = j.error || 'Ese horario se ocupó. Elegí otro.'; b.disabled = false; return; }
         if(!r.ok || !j.ref){ msg.textContent = j.error || 'No se pudo reservar. Probá de nuevo.'; b.disabled = false; return; }
+        // las fotos le llegan al profesional junto con el turno (para revisar el precio y para el "antes" del antes/después)
+        try{ if(pqFotos.length) fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({parque: 1, soloGuardar: 1, nombre: nom, tel, slug: window.VITRINA_SLUG, images: pqFotos.map(f => ({type: 'image/jpeg', data: f.split(',')[1]})), m2: pqM2 || 0, quiere: `📅 Turno ${cuando} · ${dir}` + (($('pqQuiere') || {}).value ? ' · ' + $('pqQuiere').value : '')})}).catch(() => {}); }catch(err){}
         try{ trackStart({ref: j.ref, k: j.k, turno: j.turno || null, slug: window.VITRINA_SLUG, paid: pqPago === 'ahora', start: Date.now(), cita: pqDia + 'T' + pqHora}); }catch(err){}
         try{ localStorage.setItem('pq-ultimo-' + window.VITRINA_SLUG, JSON.stringify({m2: pqM2, nom, tel, dir, trabajos: sel.filter(x => !x.plan).map(x => ({titulo: x.titulo, porM2: x.porM2, cantidad: x.cantidad, precio: x.precio, ajuste: x.ajuste, motivo: x.motivo, estimado: x.estimado}))})); }catch(err){}
         if(pqPago === 'ahora'){ msg.textContent = 'Te llevo a Mercado Pago…';
