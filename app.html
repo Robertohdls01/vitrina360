@@ -6794,7 +6794,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       saludo: '¿Qué querés pintar? Pasame una foto de la pared o del ambiente y te digo ya el presupuesto. Si no sabés qué color, también te recomiendo.',
       chips: [['🖌 Pintar un ambiente', 'presupuesto pintar un ambiente'], ['🏠 Frente o exterior', 'presupuesto pintar el frente'], ['💧 Tengo humedad', 'presupuesto humedad en la pared'], ['🎨 Recomendame colores', 'recomendame colores']],
       kw: /pint|pared|humedad|color|frente|fachada|reja|abertura|esmalte|latex/},
-    plomero: {em: '🔧', t: 'Presupuesto de plomería', pro: 'el plomero', ej: 'Ej: gotea la canilla de la cocina / pierde la mochila del inodoro', fab: '🔧 Presupuesto de plomería', opc: '💡 ¿Arreglo o cambio?',
+    plomero: {em: '🔧', t: 'Presupuesto de plomería', pro: 'el plomero', ej: 'Ej: cambiar solo el pico de la canilla / pierde la mochila del inodoro', fab: '🔧 Presupuesto de plomería', opc: '💡 ¿Arreglo o cambio?',
       foto: 'Sacale 1 a 3 fotos al problema: la pérdida, la canilla, el inodoro, el caño o el termotanque. Una de cerca y una de lejos, así se entiende dónde está. Contá abajo qué pasa.', wait: 'La IA está mirando tus fotos: qué es, de qué material y qué falla…',
       urg: '🚨 Es urgente: pierde mucha agua', urgTip: 'Mientras tanto cerrá la llave de paso.', lema: 'Pérdidas · Destapaciones · Instalaciones',
       add: [['🚿 Revisar otra cosa del baño o la cocina', 'revisar también otra cosa del baño o la cocina'], ['🔥 Sumar el termotanque o calefón', 'revisar también el termotanque o calefón']],
@@ -6964,7 +6964,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         <div id="pqMapBox" hidden><div class="row" style="gap:6px;margin:6px 0"><input id="pqDir" placeholder="Tu dirección (calle y número, ciudad)" style="flex:1"><button class="btn" type="button" data-pq="buscar">Buscar</button></div>
           <div id="pqMapa" style="height:280px;border-radius:12px"></div><p class="note" style="margin:4px 0" id="pqMapTx">Tocá las esquinas de tu parque en el mapa. Se calcula solo.</p>
           <div class="row" style="gap:6px"><button class="btn" type="button" data-pq="deshacer">↩ Deshacer</button><button class="btn" type="button" data-pq="borrar">🗑 Borrar</button></div></div></div>
-      <label class="note" style="display:grid;gap:4px">${pq ? '¿Qué querés hacer? (opcional)' : 'Contá qué pasa o qué querés hacer'}<input id="pqQuiere" maxlength="200" placeholder="${esc(O.ej)}"></label>
+      <label class="note" style="display:grid;gap:4px">${pq ? '¿Qué querés hacer? (opcional)' : '✍️ Contá qué querés arreglar o cambiar (así te presupuesto solo eso)'}<input id="pqQuiere" maxlength="200" placeholder="${esc(O.ej)}"></label>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" data-pq="analizar" id="pqGo" ${pqFotos.length ? '' : 'disabled'}>🤖 Armar mi presupuesto con IA</button><button class="btn" type="button" data-pq="opciones" id="pqOpt" ${pqFotos.length ? '' : 'disabled'}>${pq ? '💡 ¿Qué me recomendás? Ver 3 opciones' : esc(O.opc)}</button></div>
       <div id="pqOps">${pqRes ? '' : pqOpsHTML()}</div>
       <p class="msg" id="pqMsg" role="status" style="margin:0"></p>
@@ -7085,9 +7085,10 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
         const r = await fetch('/api/pedidos', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)}); const j = await r.json().catch(() => ({}));
         if(!r.ok){ msg.textContent = j.error || 'No se pudo enviar. Probá de nuevo o escribile vos.'; b.disabled = false; return; }
         try{ localStorage.setItem('v360-cli-nombre-' + window.VITRINA_SLUG, nom); }catch(err){}
+        try{ if(pqFotos.length) fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({parque: 1, guardar: 1, nombre: nom, tel, slug: window.VITRINA_SLUG, images: pqFotos.map(f => ({type: 'image/jpeg', data: f.split(',')[1]})), m2: pqM2 || 0, quiere: ($('pqQuiere') || {}).value || ''})}).catch(() => {}); }catch(err){}
         const quien = O.pro.replace(/^./, c => c.toUpperCase());
-        $('pqCtoBox').innerHTML = `<p style="margin:0">✅ <b>¡Listo, ${esc(nom.split(' ')[0])}!</b> Ya le pasé tu pedido a ${esc(O.pro)}. ${esc(quien)} te va a escribir por WhatsApp al <b>${esc(tel)}</b> para verlo bien y darte el precio final.${pqRes.urgencia === 'alta' ? ' Como es urgente, le marqué el pedido como <b>URGENTE</b>.' : ''}</p>`;
-        try{ hSpeak(`¡Listo, ${nom.split(' ')[0]}! Ya le pasé tu pedido a ${O.pro}. Te va a escribir por WhatsApp para verlo bien y darte el precio final.`); }catch(err){}
+        $('pqCtoBox').innerHTML = `<p style="margin:0">✅ <b>¡Listo, ${esc(nom.split(' ')[0])}!</b> Ya le mandé tu pedido y tus fotos a ${esc(O.pro)}. En instantes te responde por WhatsApp al <b>${esc(tel)}</b> con el presupuesto.${pqRes.urgencia === 'alta' ? ' Como es urgente, le marqué el pedido como <b>URGENTE</b>.' : ''}</p>`;
+        try{ hSpeak(`¡Listo, ${nom.split(' ')[0]}! Ya le mandé tu pedido y tus fotos a ${O.pro}. En instantes te responde por WhatsApp con el presupuesto.`); }catch(err){}
       }catch(err){ msg.textContent = 'No se pudo conectar. Revisá internet y probá de nuevo.'; b.disabled = false; }
       return; }
     if(k === 'reservar'){
@@ -9908,7 +9909,8 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
     if(isParques() && (/(presupuest|cotiz|cuanto (me )?(sale|cobr|cuesta)|quiero un turno|sacar turno)/.test(n) || ofi().kw.test(n))){ hShow([]); openParque();
       if(esParquero()) return hSpeak('¡Dale! Sacale una o dos fotos a tu parque, que se vea todo. Yo miro cuántos metros tiene, cómo está el pasto y las plantas, y te armo el presupuesto. Si querés, también te muestro cómo podría quedar.');
       try{ if($('pqQuiere') && !$('pqQuiere').value) $('pqQuiere').value = q.replace(/^presupuesto\s*/i, '').slice(0, 200); }catch(e){}
-      return hSpeak(`¡Dale! ${ofi().foto} Después tocá “Armar mi presupuesto con IA” y te lo paso al toque.`); }
+      let ap = ''; try{ const f = hFindBest(q).filter(p => curPrice(p)).slice(0, 2); if(f.length) ap = `Por lo que me contás, sería ${f.map(p => `${p.name.toLowerCase()}, que ronda ${curPrice(p)}`).join(', o ')}. Es un precio orientativo: la última palabra la tiene ${ofi().pro}. `; }catch(e){}
+      return hSpeak(`¡Dale! ${ap}${ap ? 'Para afinarlo, ' + ofi().foto.replace(/^./, c => c.toLowerCase()) : ofi().foto} Después tocá “Armar mi presupuesto con IA” y te lo paso al toque.`); }
     if(hAskCaja && !hPending && /^(si|sii+|sip|dale|ok|okey|bueno|claro|de una|llevame|vamos|listo|a la caja|caja|por favor)\b/.test(n)){ hAskCaja = false; return hToCaja(); }
     if(hAskCaja && !hPending && /^(no|nop|algo mas|quiero (ver )?algo mas|todavia no|seguir|sigo mirando)\b/.test(n)){ hAskCaja = false; return hSpeak('¡Dale! ¿Qué más querés ver? Decime un producto o una vitrina.'); }
     hAskCaja = false;
