@@ -7030,7 +7030,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       <p style="margin:0">${esc(ia ? O.foto : O.foto.replace(/1 a 3 fotos/g, 'hasta 4 fotos').replace(/ Contá abajo qué pasa\.?/, ''))}</p>
       <div class="pqfotos" id="pqFotos"></div>
       <label class="btn primary" style="justify-self:start">📷 ${pqFotos.length ? 'Agregar otra foto' : 'Sacar o elegir fotos'}<input type="file" accept="image/*" multiple class="vh" id="pqFile"></label>
-      <div class="pqbox" ${O.m2 ? '' : 'hidden'}><b>📐 ${esc(O.m2t)} <span class="note">(opcional, si lo sabés)</span></b>
+      <div class="pqbox" id="pqM2box" ${O.m2 ? '' : 'hidden'}><b>📐 ${esc(O.m2t)} <span class="note">(muy recomendado: así el precio sale más justo)</span></b>
         <div class="row" style="gap:6px;flex-wrap:wrap;align-items:center"><input id="pqM2" type="number" inputmode="numeric" min="0" placeholder="m²" style="width:100px" value="${pqM2 || ''}"> o <input id="pqL" type="number" inputmode="decimal" placeholder="largo m" style="width:90px"> × <input id="pqA" type="number" inputmode="decimal" placeholder="ancho m" style="width:90px"><button class="btn" type="button" data-pq="mapa">🗺 Medir en el mapa</button></div>
         <div id="pqMapBox" hidden><div class="row" style="gap:6px;margin:6px 0"><input id="pqDir" placeholder="Tu dirección (calle y número, ciudad)" style="flex:1"><button class="btn" type="button" data-pq="buscar">Buscar</button></div>
           <div id="pqMapa" style="height:280px;border-radius:12px"></div><p class="note" style="margin:4px 0" id="pqMapTx">Tocá las esquinas de tu parque en el mapa. Se calcula solo.</p>
@@ -7279,7 +7279,13 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
     if(k === 'deshacer'){ pqPts.pop(); pqDraw(); return; }
     if(k === 'borrar'){ pqPts = []; pqDraw(); return; }
     if(k === 'analizar'){
-      if(!pqFotos.length) return; b.disabled = true; $('pqMsg').innerHTML = `<span class="tvwait"><i></i>${esc((ofi() || OFI_BASE).wait)}</span>`;
+      if(!pqFotos.length) return;
+      // si no puso los metros, primero se los pide (una vez): la foto sola no siempre muestra todo el terreno
+      if(!pqM2 && (ofi() || OFI_BASE).m2 && !window.__pqM2Pedido){ window.__pqM2Pedido = true; const bx = $('pqM2box'); if(bx){ bx.style.outline = '3px solid #f59e0b'; bx.scrollIntoView({block: 'center', behavior: 'smooth'}); setTimeout(() => { const i = $('pqM2'); if(i) i.focus(); }, 350); }
+        $('pqMsg').textContent = '👉 ¿Sabés más o menos cuántos metros tiene? Ponelo arriba, o medilo en el mapa. Si no sabés, tocá de nuevo y lo calculo con la foto.';
+        try{ hSpeak('Antes de calcular: ¿sabés más o menos cuántos metros cuadrados tiene? Ponelo arriba o medilo en el mapa, así el precio sale más justo. Si no sabés, tocá de nuevo y lo calculo yo con la foto.'); }catch(err){}
+        return; }
+      b.disabled = true; $('pqMsg').innerHTML = `<span class="tvwait"><i></i>${esc((ofi() || OFI_BASE).wait)}</span>`;
       const chat = ['¡Qué buena foto! Dame un segundito que la miro…', 'Estoy midiendo todo…', 'Ya casi, estoy sacando la cuenta…', 'Un toque más y te lo paso…']; let ci = 0; hReact(chat[0]); const chatT = setInterval(() => { ci++; if(ci < chat.length) hReact(chat[ci]); }, 3500); setTimeout(() => clearInterval(chatT), 16000);
       try{ const images = pqFotos.map(f => ({type: 'image/jpeg', data: f.split(',')[1]}));
         const r = await fetch('/api/ia', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({parque: 1, slug: window.VITRINA_SLUG || (window.VITRINA_ME || {}).slug || '', images, m2: pqM2 || 0, quiere: $('pqQuiere').value || ''})});
