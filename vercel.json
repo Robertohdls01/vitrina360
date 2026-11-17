@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/vida/:code",
+      "destination": "/vida.html"
+    },
+    {
+      "source": "/vida",
+      "destination": "/vida.html"
+    },
+    {
       "source": "/fiesta-autos",
       "destination": "/fiesta-autos.html"
     },

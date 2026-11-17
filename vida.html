@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ShopVida · QR de emergencia</title>
+<meta name="description" content="Tu información de emergencia en un QR: grupo sanguíneo, alergias, remedios y a quién llamar. Para adultos y chicos.">
+<meta name="theme-color" content="#b91c1c">
+<link rel="icon" href="/icons/fiesta-192.png">
+<style>
+:root{--rojo:#b91c1c;--rojoS:#fef2f2;--verde:#2f6f63;--verdeS:#e8f3ef;--ink:#1f2937;--soft:#4b5563;--line:#d7e2dd;--bg:#f6f8f7}
+*{box-sizing:border-box}body{margin:0;font:18px/1.45 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+main{max-width:640px;margin:0 auto;padding:14px 14px 40px}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 4px 14px rgba(0,0,0,.04)}
+h1{font-size:26px;margin:6px 0}h2{font-size:20px;margin:0 0 8px}
+.emer{background:var(--rojo);color:#fff;border-radius:18px;padding:18px;text-align:center}
+.emer h1{margin:0;font-size:24px}.emer .nom{font-size:30px;font-weight:800;margin-top:6px}
+.dato{border-left:6px solid var(--rojo);background:var(--rojoS);border-radius:12px;padding:10px 12px;margin:10px 0}
+.dato small{display:block;font-weight:800;color:var(--rojo);text-transform:uppercase;letter-spacing:.04em;font-size:13px}
+.dato b{font-size:22px}
+.grupo{font-size:44px;font-weight:900;color:var(--rojo)}
+.btn{display:inline-block;border:0;border-radius:14px;padding:14px 18px;font:800 18px system-ui,sans-serif;cursor:pointer;background:var(--verde);color:#fff;text-decoration:none;margin:6px 6px 0 0;text-align:center}
+.btn.rojo{background:var(--rojo)}.btn.alt{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 2px var(--line)}.btn.wa{background:#16a34a}.btn.full{display:block;width:100%;margin:8px 0 0}
+label{display:block;font-weight:700;margin:12px 0 4px;font-size:16px}
+input,select,textarea{width:100%;font:17px system-ui,sans-serif;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:var(--ink)}
+textarea{min-height:70px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chk{display:flex;gap:10px;align-items:center;font-weight:600;margin-top:12px}.chk input{width:22px;height:22px}
+.tabs{display:flex;gap:8px}.tabs button{flex:1;border:2px solid var(--line);background:#fff;border-radius:14px;padding:14px;font:800 17px system-ui;cursor:pointer}.tabs button.on{border-color:var(--verde);background:var(--verdeS)}
+.note{font-size:15px;color:var(--soft)}
+.aviso{background:#fff8e6;border:1px solid #e2c26b;border-radius:12px;padding:10px 12px;font-size:15px}
+.pie{text-align:center;color:var(--soft);font-size:13px;margin-top:22px}
+.err{color:var(--rojo);font-weight:700}
+.ok{background:var(--verdeS);border-radius:12px;padding:12px}
+code{word-break:break-all;background:#f1f5f4;padding:2px 6px;border-radius:6px}
+</style>
+</head>
+<body>
+<main id="app"><p style="text-align:center;margin-top:40px">Cargando…</p></main>
+<script>
+const $ = s => document.querySelector(s), esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const P = new URLSearchParams(location.search), CODE = (location.pathname.split('/')[2] || P.get('c') || '').toUpperCase(), K = P.get('k') || '';
+const tel = t => String(t || '').replace(/[^\d+]/g, '');
+const wa = t => { let d = tel(t).replace(/^\+/, ''); if (!d.startsWith('54')) d = '549' + d.replace(/^0/, ''); return 'https://wa.me/' + d; };
+async function api(acc, body) { const r = await fetch('/api/vida?accion=' + acc + (body ? '' : '&c=' + CODE + (K ? '&k=' + encodeURIComponent(K) : '')), body ? {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)} : {}); const j = await r.json(); if (!r.ok) throw new Error(j.error || 'No se pudo'); return j; }
+const PIE = `<div class="pie">ShopVida · QR de emergencia<br>Pro Video JSRHG</div>`;
+
+// ===== Lo que ve quien escanea =====
+function verFicha(f) {
+  const nene = f.tipo === 'nene', c = f.contactos || [];
+  let h = `<div class="emer">${nene ? '<h1>🧒 ¿Me perdí? Ayudame a encontrar a mi familia</h1>' : '<h1>🚑 Información de emergencia</h1>'}<div class="nom">${f.nombre ? esc(f.nombre) : nene ? '' : '👤 Persona'}</div>${f.edad ? `<div>${esc(f.edad)}</div>` : ''}</div>`;
+  if (nene) h += `<div class="aviso" style="margin-top:12px">Si encontraste a este chico/a solo o perdido (en la playa, en la calle, en un evento), <b>llamá a su familia</b> con los botones de abajo y quedate con él/ella en un lugar seguro y a la vista, por ejemplo junto al guardavidas o a un policía.</div>`;
+  if (c.length) h += `<div class="card"><h2>📞 Llamá a su familia</h2>${c.map(x => `<div style="margin:8px 0"><b>${esc(x.n)}</b>${x.rel ? ' · ' + esc(x.rel) : ''}<br>${x.tel ? `<a class="btn rojo" href="tel:${esc(tel(x.tel))}">📞 Llamar</a><a class="btn wa" href="#" data-wa="${esc(x.tel)}">📍 Avisar dónde está</a>` : ''}</div>`).join('')}</div>`;
+  h += `<div class="card">`;
+  if (f.grupo) h += `<div class="dato"><small>Grupo sanguíneo</small><span class="grupo">${esc(f.grupo)}</span></div>`;
+  if (f.alergias) h += `<div class="dato"><small>⚠️ Alergias</small><b>${esc(f.alergias)}</b></div>`;
+  if (f.enfermedades) h += `<div class="dato"><small>Enfermedades</small><b>${esc(f.enfermedades)}</b></div>`;
+  if (f.remedios) h += `<div class="dato"><small>Toma estos remedios</small><b>${esc(f.remedios)}</b></div>`;
+  if (f.indicaciones) h += `<div class="dato"><small>Qué hacer</small><b>${esc(f.indicaciones)}</b></div>`;
+  if (f.medico || f.obra) h += `<p>${f.medico ? '🩺 Médico: <b>' + esc(f.medico) + '</b>' + (f.medicoTel ? ` · <a href="tel:${esc(tel(f.medicoTel))}">${esc(f.medicoTel)}</a>` : '') + '<br>' : ''}${f.obra ? '🏥 Obra social: <b>' + esc(f.obra) + '</b>' : ''}</p>`;
+  h += `</div><div class="card"><h2>🚨 Emergencias</h2><a class="btn rojo" href="tel:107">📞 107 · Emergencias médicas</a><a class="btn rojo" href="tel:911">📞 911</a><p class="note">Números de Argentina. Si estás en otro país, llamá al número de emergencias local.</p></div>` + PIE;
+  $('#app').innerHTML = h;
+  document.querySelectorAll('[data-wa]').forEach(b => b.onclick = e => { e.preventDefault(); const go = u => location.href = wa(b.dataset.wa) + '?text=' + encodeURIComponent('Hola, escaneé el QR de emergencia' + (f.nombre ? ' de ' + f.nombre : '') + ' y necesita ayuda.' + (u ? '\n📍 Está acá: ' + u : ''));
+    if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => go('https://maps.google.com/?q=' + p.coords.latitude.toFixed(5) + ',' + p.coords.longitude.toFixed(5)), () => go(''), {timeout: 6000}); else go(''); });
+}
+
+// ===== Formulario (crear o editar) =====
+let D = {tipo: 'adulto', contactos: [{n: '', rel: '', tel: ''}], mostrarSalud: true};
+function form(editando) {
+  const nene = D.tipo === 'nene', c = D.contactos && D.contactos.length ? D.contactos : [{n: '', rel: '', tel: ''}];
+  $('#app').innerHTML = `<h1>🚑 ${editando ? 'Tu QR de emergencia' : 'Creá tu QR de emergencia'}</h1>
+    <p class="note">Lo pegás en el celular, la billetera, el casco o la mochila. Si te pasa algo, quien lo escanea ve tus datos importantes y llama a tu familia. Lo podés cambiar cuando quieras sin reimprimir.</p>
+    ${editando ? `<div class="ok">✅ Guardá este link para editarlo después (no lo compartas):<br><code>${esc(location.origin + '/vida/' + CODE + '?k=' + K)}</code><br><a class="btn alt" href="/vida/${CODE}" target="_blank">👀 Ver lo que ve quien lo escanea</a> <button class="btn" id="imp">🖨 Imprimir los stickers</button></div>` : ''}
+    <div class="card"><div class="tabs"><button data-t="adulto" class="${nene ? '' : 'on'}">👤 Para mí (adulto)</button><button data-t="nene" class="${nene ? 'on' : ''}">🧒 Para un chico/a</button></div>
+      <label>Nombre</label><input id="f_nombre" maxlength="60" value="${esc(D.nombre || '')}" placeholder="${nene ? 'Ej: Juli' : 'Ej: Roberto Hernández'}">
+      <label class="chk"><input type="checkbox" id="f_mostrarNombre" ${(nene ? D.mostrarNombre === true : D.mostrarNombre !== false) ? 'checked' : ''}> Mostrar el nombre a quien escanea el QR</label>
+      ${nene ? '<p class="aviso">Para chicos recomendamos <b>no</b> mostrar el nombre: así un desconocido no puede llamarlo por su nombre para engañarlo. Igual se ven sus alergias y los botones para llamar a la familia.</p>' : ''}
+      <div class="row"><div><label>${nene ? 'Edad (no se muestra)' : 'Edad'}</label><input id="f_edad" maxlength="20" value="${esc(D.edad || '')}" placeholder="Ej: 6 años"></div>
+      <div><label>Grupo sanguíneo</label><select id="f_grupo">${['', '0+', '0-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'No sé'].map(g => `<option ${D.grupo === g ? 'selected' : ''} value="${g}">${g || 'Elegí…'}</option>`).join('')}</select></div></div>
+      <label>⚠️ Alergias (se muestran siempre)</label><input id="f_alergias" maxlength="200" value="${esc(D.alergias || '')}" placeholder="Ej: penicilina, maní, picadura de abeja">
+      <label>Enfermedades</label><input id="f_enfermedades" maxlength="200" value="${esc(D.enfermedades || '')}" placeholder="Ej: diabetes, asma, epilepsia">
+      <label>Remedios que toma</label><input id="f_remedios" maxlength="200" value="${esc(D.remedios || '')}" placeholder="Ej: insulina, inhalador">
+      <label class="chk"><input type="checkbox" id="f_mostrarSalud" ${D.mostrarSalud !== false ? 'checked' : ''}> Mostrar enfermedades, remedios y médico a quien escanea</label>
+      <label>Qué hacer en una emergencia</label><textarea id="f_indicaciones" maxlength="300" placeholder="Ej: tiene el inhalador en el bolsillo de la mochila. Si se descompensa, darle azúcar.">${esc(D.indicaciones || '')}</textarea>
+      <h2 style="margin-top:16px">📞 A quién llamar</h2>${c.map((x, i) => `<div class="row" style="grid-template-columns:1fr 1fr 1.2fr"><input data-c="${i}" data-k="n" maxlength="40" value="${esc(x.n)}" placeholder="Nombre"><input data-c="${i}" data-k="rel" maxlength="30" value="${esc(x.rel)}" placeholder="${nene ? 'Mamá' : 'Hermano'}"><input data-c="${i}" data-k="tel" maxlength="25" inputmode="tel" value="${esc(x.tel)}" placeholder="223 555 1234"></div>`).join('<div style="height:6px"></div>')}
+      ${c.length < 3 ? '<button class="btn alt" id="masC">➕ Otro contacto</button>' : ''}
+      <div class="row"><div><label>Médico (opcional)</label><input id="f_medico" maxlength="60" value="${esc(D.medico || '')}"></div><div><label>Teléfono del médico</label><input id="f_medicoTel" maxlength="25" inputmode="tel" value="${esc(D.medicoTel || '')}"></div></div>
+      <label>Obra social (opcional)</label><input id="f_obra" maxlength="60" value="${esc(D.obra || '')}">
+      <button class="btn full" id="guardar">${editando ? '💾 Guardar cambios' : '✅ Crear mi QR'}</button><div id="msg"></div></div>
+    <p class="note">Lo que cargues lo puede ver cualquiera que escanee el QR (menos lo que elijas ocultar). No pongas documentos, direcciones ni claves.</p>` + PIE;
+  const leerForm = () => { ['nombre', 'edad', 'grupo', 'alergias', 'enfermedades', 'remedios', 'indicaciones', 'medico', 'medicoTel', 'obra'].forEach(k => { const el = $('#f_' + k); if (el) D[k] = el.value; });
+    D.mostrarNombre = $('#f_mostrarNombre').checked; D.mostrarSalud = $('#f_mostrarSalud').checked;
+    D.contactos = c.map((x, i) => ({n: document.querySelector(`[data-c="${i}"][data-k="n"]`).value, rel: document.querySelector(`[data-c="${i}"][data-k="rel"]`).value, tel: document.querySelector(`[data-c="${i}"][data-k="tel"]`).value})); };
+  document.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { leerForm(); D.tipo = b.dataset.t; if (D.tipo === 'nene') D.mostrarNombre = false; form(editando); });
+  const mc = $('#masC'); if (mc) mc.onclick = () => { leerForm(); D.contactos = c.concat([{n: '', rel: '', tel: ''}]).slice(0, 3); form(editando); };
+  const im = $('#imp'); if (im) im.onclick = imprimir;
+  $('#guardar').onclick = async () => { leerForm(); if (!D.contactos.some(x => x.tel)) { $('#msg').innerHTML = '<p class="err">Poné al menos un teléfono para llamar.</p>'; return; }
+    try { if (editando) { await api('guardar', {c: CODE, k: K, datos: D}); $('#msg').innerHTML = '<p class="ok">✅ Guardado. El QR ya muestra los datos nuevos.</p>'; }
+      else { const j = await api('crear', {datos: D}); location.href = '/vida/' + j.code + '?k=' + j.clave + '&nuevo=1'; } } catch (e) { $('#msg').innerHTML = `<p class="err">${esc(e.message)}</p>`; } };
+}
+
+// ===== Hoja de stickers para imprimir =====
+function imprimir() {
+  const u = location.origin + '/vida/' + CODE, w = window.open('', '_blank'); if (!w) return alert('Permití las ventanas emergentes para imprimir.');
+  const nom = D.mostrarNombre && D.nombre ? esc(D.nombre) : '';
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Stickers QR de emergencia</title><style>@page{size:A4;margin:8mm}body{font-family:Arial,sans-serif;margin:0}h3{font-size:11pt;margin:3mm 0}.g{display:flex;flex-wrap:wrap;gap:3mm}.s{border:1px dashed #999;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;page-break-inside:avoid;box-sizing:border-box}.s b{color:#b91c1c;font-size:var(--t)}.s small{font-size:var(--p);color:#444}.s svg{width:var(--q);height:var(--q);display:block}.c{width:40mm;height:40mm;--q:27mm;--t:8pt;--p:5.5pt}.m{width:60mm;height:60mm;--q:42mm;--t:11pt;--p:7pt}.l{width:30mm;height:30mm;--q:21mm;--t:6.5pt;--p:4.5pt}</style></head><body></body></html>`); w.document.close();
+  const s = w.document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
+  s.onload = () => { const q = w.qrcode(0, 'M'); q.addData(u); q.make(); const svg = q.createSvgTag({cellSize: 4, margin: 1, scalable: true});
+    const st = (cl, n) => Array.from({length: n}, () => `<div class="s ${cl}"><b>🚑 EMERGENCIA</b>${svg}<small>${nom ? nom + ' · ' : ''}Escaneame</small></div>`).join('');
+    w.document.body.innerHTML = `<h3>Para el celular o la billetera (4 × 4 cm)</h3><div class="g">${st('c', 8)}</div><h3>Para la mochila o el casco (6 × 6 cm)</h3><div class="g">${st('m', 3)}</div><h3>Para el llavero (3 × 3 cm)</h3><div class="g">${st('l', 6)}</div><p style="font-size:8pt;color:#777">ShopVida · Pro Video JSRHG</p>`; setTimeout(() => w.print(), 500); };
+  w.document.head.appendChild(s);
+}
+
+(async () => {
+  try {
+    if (!CODE) return form(false);
+    if (K) { const j = await api('editar'); D = j.ficha; form(true); if (P.get('nuevo')) $('#app').insertAdjacentHTML('afterbegin', '<div class="ok" style="margin-bottom:10px">🎉 ¡Listo! Tu QR ya funciona. Imprimí los stickers y pegalos donde quieras.</div>'); return; }
+    const j = await api('ver'); verFicha(j.ficha);
+  } catch (e) { $('#app').innerHTML = `<p class="err" style="text-align:center;margin-top:40px">😕 ${esc(e.message)}</p>` + PIE; }
+})();
+</script>
+</body>
+</html>
