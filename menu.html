@@ -544,7 +544,7 @@ body:has(.mesa){--v:#3f7a5a;--o:#5aa37c;--p:#8cc9a5;--ink:#2d3a32;--cream:#f6faf
         const parts = []; let cur = '';
         clean.split(/(?<=[.!?])\s+/).forEach(f => { if((cur + ' ' + f).length > 180 && cur){ parts.push(cur); cur = f; } else cur = cur ? cur + ' ' + f : f; });
         if(cur) parts.push(cur);
-        parts.filter(x => /[\p{L}\d]/u.test(x)).forEach((ptxt, k, arr) => { const u = new SpeechSynthesisUtterance(ptxt); u.lang = voice ? voice.lang : VL; if(voice) u.voice = voice; u.rate = 1.22; u.pitch = M.avatar === 'flashy' ? 1.25 : 1; u.volume = 0.8;
+        parts.filter(x => /[\p{L}\d]/u.test(x)).forEach((ptxt, k, arr) => { const u = new SpeechSynthesisUtterance(ptxt); u.lang = voice ? voice.lang : VL; if(voice) u.voice = voice; u.rate = 1.05; u.pitch = M.avatar === 'flashy' ? 1.12 : 1; u.volume = 0.8;
           if(k === 0) u.onstart = () => chef.classList.add('talk');
           if(k === arr.length - 1) u.onend = u.onerror = () => { chef.classList.remove('talk'); if(talk.listen){ talk.listen = false; listen(); } };
           if(wasSpeaking) setTimeout(() => speechSynthesis.speak(u), 120); else speechSynthesis.speak(u); }); }catch(e){}

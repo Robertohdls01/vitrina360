@@ -720,7 +720,7 @@ function flVozDe() { const vs = speechSynthesis.getVoices(), L = I18N.VOZ.toLowe
   return vs.find(v => lg(v) === L && buena(v)) || vs.find(v => lg(v).startsWith(p) && buena(v)) || vs.find(v => lg(v) === L && v.localService) || vs.find(v => lg(v) === L) || vs.find(v => lg(v).startsWith(p)); }
 function flHablar(t) {
   if (!flVoz || document.hidden || !('speechSynthesis' in window)) return;
-  try { const ya = speechSynthesis.speaking || speechSynthesis.pending; if (ya) speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(String(t).replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu, '').slice(0, 200)); u.lang = I18N.VOZ; const v = flVozDe(); if (v) u.voice = v; u.rate = 1.2; u.pitch = 1.05; u.volume = .85;
+  try { const ya = speechSynthesis.speaking || speechSynthesis.pending; if (ya) speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(String(t).replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu, '').slice(0, 200)); u.lang = I18N.VOZ; const v = flVozDe(); if (v) u.voice = v; u.rate = 1.05; u.pitch = 1.08; u.volume = .85;
     // mientras Flashy habla, la música baja para que no se sature el parlante
     u.onstart = () => { $('#fl').classList.add('habla'); if (MUS && !MUS.paused) MUS.volume = .15; }; u.onend = u.onerror = () => { $('#fl').classList.remove('habla'); if (MUS) MUS.volume = .7; }; if (ya) setTimeout(() => speechSynthesis.speak(u), 120); else speechSynthesis.speak(u); } catch (e) {}
 }
