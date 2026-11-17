@@ -507,7 +507,7 @@ function abrirAyuda() {
   const c = $('#capa'); const tel = F.saludTel ? String(F.saludTel).replace(/[^\d+]/g, '') : '';
   c.innerHTML = `<div style="max-width:520px;margin:0 auto"><h2 style="font:800 28px var(--sans);color:#b91c1c;margin:8px 0">${t('🆘 Necesito ayuda')}</h2>
     <p>${t('Le avisamos ya mismo al personal{s}. Decinos qué pasa y dónde estás.', {s: F.salud && F.saludNom ? ' ' + t('y a {n}', {n: esc(F.saludNom)}) : ''})}</p>
-    <div style="display:grid;gap:8px">${[['mal', t('🤢 Me siento mal o me voy a desmayar')], ['botiquin', t('🩹 Necesito el botiquín')], ['emergencia', t('🚑 Es una emergencia')]].concat(F.seguridad ? [['seguridad', t('🛡 Tengo un problema: llamar a seguridad')]] : []).concat([['otro', t('🙋 Otra cosa')]]).map(([k, l]) => `<button class="btn alt" data-ay="${k}" style="text-align:left">${l}</button>`).join('')}</div>
+    <div style="display:grid;gap:8px">${[['mal', t('🤢 Me siento mal o me voy a desmayar')], ['botiquin', t('🩹 Necesito el botiquín')], ['emergencia', t('🚑 Es una emergencia')]].concat(F.seguridad ? [['acoso', t('😟 Me están molestando o acosando')], ['seguridad', t('🛡 Tengo un problema: llamar a seguridad')]] : []).concat([['otro', t('🙋 Otra cosa')]]).map(([k, l]) => `<button class="btn alt" data-ay="${k}" style="text-align:left">${l}</button>`).join('')}</div>
     <label style="display:block;margin-top:12px;font-weight:700">${t('¿Dónde estás? (ej: en el medio de la pista, en el baño)')}</label>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0">${(F.abierto ? [t('Pista'), t('Barra'), t('Baños'), t('Entrada')] : []).concat((F.lugares || []).map(x => tc(x.n))).filter((x, i, a) => a.indexOf(x) === i).slice(0, 8).map(x => `<button type="button" class="btn alt sm" data-sec="${esc(x)}" style="padding:8px 12px;font-size:15px">${esc(x)}</button>`).join('')}</div>
     <input id="ayDonde" maxlength="100" style="width:100%;font:17px var(--sans);padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)" value="${INV && INV.mesa ? esc(t('Mesa {m}', {m: INV.mesa})) : ''}">
@@ -521,11 +521,11 @@ function abrirAyuda() {
   $('#ayNo').onclick = cerrarCapa;
   c.querySelectorAll('[data-sec]').forEach(b => b.onclick = () => { $('#ayDonde').value = b.dataset.sec; c.querySelectorAll('[data-sec]').forEach(y => y.style.boxShadow = y === b ? '0 0 0 3px #dc2626' : ''); });
   $('#ayOk').onclick = async () => { const b = $('#ayOk'); b.disabled = true;
-    const que = {mal: 'Se siente mal', botiquin: 'Necesita el botiquín', emergencia: 'EMERGENCIA', seguridad: 'Llama a seguridad', otro: 'Necesita ayuda'}[tipo];
-    try { const r = await fetch('/api/fiesta?accion=pedir', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, nombre: INV && INV.nombre, mesa: MESA, items: [{n: tipo === 'seguridad' ? SEGU : AYUDA, c: 1}], nota: que + ' · ' + ($('#ayDonde').value || '').trim()})}); const j = await r.json();
+    const que = {mal: 'Se siente mal', botiquin: 'Necesita el botiquín', emergencia: 'EMERGENCIA', acoso: 'ACOSO: la están molestando', seguridad: 'Llama a seguridad', otro: 'Necesita ayuda'}[tipo], seg = tipo === 'seguridad' || tipo === 'acoso';
+    try { const r = await fetch('/api/fiesta?accion=pedir', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, nombre: INV && INV.nombre, mesa: MESA, items: [{n: seg ? SEGU : AYUDA, c: 1}], nota: que + ' · ' + ($('#ayDonde').value || '').trim()})}); const j = await r.json();
       if (!r.ok) throw new Error(j.error || t('No se pudo'));
       if (navigator.vibrate) navigator.vibrate([200, 100, 200]); cerrarCapa(); await vivoTick();
-      const tx = tipo === 'seguridad' ? t('🛡 Ya avisamos a seguridad. Quedate en un lugar con gente, ya van para ahí.') : t('🆘 Ya avisamos. Quedate donde estás, ya van para ahí.'); toast(tx, nomFiesta(F), true, !!FL); if (FL) flDecir(tx, []);
+      const tx = seg ? t('🛡 Ya avisamos a seguridad. Quedate en un lugar con gente, ya van para ahí.') : t('🆘 Ya avisamos. Quedate donde estás, ya van para ahí.'); toast(tx, nomFiesta(F), true, !!FL); if (FL) flDecir(tx, []);
     } catch (e) { $('#ayMsg').innerHTML = `<p class="err">${esc(e.message)}</p>`; b.disabled = false; } };
 }
 
