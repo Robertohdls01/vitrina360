@@ -149,6 +149,8 @@ const ENTRADA = P.get('e') === '1';
 const LS = 'fiesta:' + CODE;
 let F = null, INV = null, TOK = '', deferred = null, timer = null, VIVO = null, CANT = {}, vivoTimer = null;
 try { TOK = P.get('i') || localStorage.getItem(LS) || ''; if (P.get('i')) localStorage.setItem(LS, P.get('i')); } catch (e) { TOK = P.get('i') || ''; }
+// Muestra: entra directo como un invitado de ejemplo, así se ve a Flashy y la fiesta en vivo sin buscar un nombre.
+if (CODE === 'DEMO15' && !TOK && !PREV && !P.get('k') && !P.get('firmas') && !P.get('album')) { TOK = 'demoroberto'; if (!MESA) MESA = '2'; }
 
 const DECO = {
   elegante: c => `<svg viewBox="0 0 560 220" preserveAspectRatio="xMidYMin slice"><g fill="none" stroke="${c}" stroke-width="1.4" opacity=".7"><path d="M0 60 Q140 10 280 60 T560 60"/><path d="M0 80 Q140 30 280 80 T560 80" opacity=".5"/></g><g fill="${c}" opacity=".55"><circle cx="280" cy="60" r="4"/><circle cx="140" cy="36" r="2.5"/><circle cx="420" cy="36" r="2.5"/></g></svg>`,
