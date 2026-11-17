@@ -93,7 +93,7 @@ body:has(.mesa){--v:#3f7a5a;--o:#5aa37c;--p:#8cc9a5;--ink:#2d3a32;--cream:#f6faf
 .mesa .pri,body:has(.mesa) .pri{box-shadow:0 6px 18px rgba(63,122,90,.3)}
 /* Flashy de mozo con más gracia: se balancea, da saltitos y saluda */
 .chef.fly2{animation:baile 3.4s ease-in-out infinite;transform-origin:60px 160px}
-@keyframes baile{0%,100%{transform:translateY(0) rotate(0)}12%{transform:translateY(-7px) rotate(-5deg)}24%{transform:translateY(0) rotate(0)}36%{transform:translateY(-7px) rotate(5deg)}48%{transform:translateY(0) rotate(0)}62%{transform:translateY(-3px) rotate(-2deg) scale(1.03)}76%{transform:translateY(0) rotate(2deg)}}
+@keyframes baile{0%,100%{transform:translateY(0)}12%{transform:translateY(-7px)}24%{transform:translateY(0)}36%{transform:translateY(-7px)}48%{transform:translateY(0)}62%{transform:translateY(-3px) scale(1.03)}76%{transform:translateY(0)}}
 .chef.fly2 .arm{animation:tray 1.7s ease-in-out infinite}
 .chef.fly2.talk{animation:baile 1.2s ease-in-out infinite}
 @media (prefers-reduced-motion:reduce){.chef.fly2{animation:none}}
