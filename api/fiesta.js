@@ -15,7 +15,7 @@ const { cuerpo, stHeaders, usuario } = require('./_comun');
 const SURL = () => String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const ST = () => SURL() + '/storage/v1';
 const B = 'fiestas';
-const DEMO = 'DEMO15';
+const DEMO = 'DEMO15', DEMOBAR = 'DEMOBAR';
 const corto = (v, n) => String(v == null ? '' : v).replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, n);
 const largo = (v, n) => String(v == null ? '' : v).replace(/[\u0000-\u0009\u000b-\u001f]/g, ' ').trim().slice(0, n);
 const hash = s => crypto.createHash('sha256').update('fiesta:' + String(s)).digest('hex');
@@ -82,6 +82,16 @@ async function rest(method, path, body, prefer) {
   return j;
 }
 
+// Bar de muestra (ShopEventos Boliche) para mostrar a los dueños de boliches, bares y peñas.
+const demoBar = () => ({
+  code: DEMOBAR, demo: true, tipo: 'boliche', modo: 'especial', plantilla: 'elegante', color: '#2f8f83', titulo: 'Esta noche', nombre: 'Bar de Prueba', frase: '',
+  salon: 'Bar de Prueba', direccion: 'Mar del Plata', pk: 'demobar', paquete: 'completa', pagado: true, autos: true, salud: true, saludNom: 'Emergencias del bar', mozas: [], modoP: 'encargada', flLook: 'fiesta',
+  carta: [{ n: 'Fernet con coca', p: '$5.000', alc: true }, { n: 'Cerveza tirada', p: '$4.000', alc: true }, { n: 'Gin tonic', p: '$6.000', alc: true }, { n: 'Daiquiri de frutilla', p: '$5.500', alc: true }, { n: 'Coca-Cola', p: '$2.500' }, { n: 'Agua sin gas', p: '$2.000' }, { n: 'Energizante', p: '$3.500' }, { n: 'Hielo', p: 'Sin cargo' }],
+  crono: [{ h: '23:30', t: 'Abre la barra', a: '🍹 ¡Ya abrió la barra! Pedí desde acá sin hacer fila.', m: 0 }, { h: '00:30', t: 'Happy hour', a: '🍻 Happy hour hasta la 1: 2x1 en cerveza tirada.', m: 0 }, { h: '01:30', t: 'Sube el DJ', a: '🎧 En 15 minutos sube el DJ. ¡A la pista!', m: 15 }, { h: '04:30', t: 'Última ronda', a: '⏰ Última ronda: pedí ahora tu último trago.', m: 15 }],
+  lugares: [{ n: 'Barra', d: 'al fondo, a la derecha de la pista' }, { n: 'Baños', d: 'subiendo la escalera, a la izquierda' }, { n: 'Salida de emergencia', d: 'detrás de la cabina del DJ' }, { n: 'Guardarropa', d: 'a la entrada, a la izquierda' }],
+  estaciona: 'Hay una cochera a media cuadra, abierta toda la noche.', invitados: [], avisos: []
+});
+const demoDe = c => c === DEMOBAR ? demoBar() : demoData();
 // Fiesta de muestra para mostrar a los clientes (no se guarda nada).
 const demoData = () => ({
   code: DEMO, demo: true, tipo: '15', modo: 'especial', plantilla: 'elegante', color: '#c9a227',
@@ -160,7 +170,7 @@ function mozaDeMesa(e, mesa) {
 const vivoOk = e => !!(e && (e.demo || (e.pagado && ['completa', 'recuerdos'].includes(e.paquete))));
 const azarK = () => azar(10, 'abcdefghijkmnpqrstuvwxyz23456789');
 async function pedidosDe(code, extra) {
-  const desde = new Date(Date.now() - (code === DEMO ? 3 : (extra && extra.includes('&_noche') ? 14 : 36)) * 3600e3).toISOString(); extra = (extra || '').replace('&_noche', '');
+  const desde = new Date(Date.now() - (code === DEMO || code === DEMOBAR ? 3 : (extra && extra.includes('&_noche') ? 14 : 36)) * 3600e3).toISOString(); extra = (extra || '').replace('&_noche', '');
   try { return await rest('GET', 'fiesta_pedidos?code=eq.' + code + '&t=gte.' + encodeURIComponent(desde) + (extra || '') + '&order=t.desc&limit=400&select=id,gid,nombre,mesa,items,nota,estado,moza,prueba,t,tu'); } catch (e) { return []; }
 }
 async function respuestas(code) {
@@ -173,7 +183,7 @@ module.exports = async (req, res) => {
     // ---- Para instalar la fiesta como app (ícono con el nombre de la fiesta) ----
     if (req.method === 'GET' && (q.manifest || q.icono)) {
       const code = String(q.manifest || q.icono).toUpperCase(); if (!okCode(code)) return res.status(400).json({ error: 'Fiesta inválida.' });
-      const e = code === DEMO ? demoData() : await leer(code); if (!e) return res.status(404).json({ error: 'No existe esa fiesta.' });
+      const e = (code === DEMO || code === DEMOBAR) ? demoDe(code) : await leer(code); if (!e) return res.status(404).json({ error: 'No existe esa fiesta.' });
       const nom = (e.tipo === '15' ? 'Los 15 de ' : 'Fiesta de ') + (e.nombre || 'la fiesta');
       if (q.icono) {
         const num = (String(e.titulo || '').match(/\d+/) || [])[0] || (e.nombre || 'F').charAt(0).toUpperCase();
@@ -210,7 +220,7 @@ module.exports = async (req, res) => {
 
     const code = String(q.f || cuerpo(req).f || '').toUpperCase();
     if (!okCode(code)) return res.status(400).json({ error: 'Fiesta inválida.' });
-    const esDemo = code === DEMO;
+    const esDemo = code === DEMO || code === DEMOBAR;
 
     if (req.method === 'POST' && acc === 'guardar') {
       const b = cuerpo(req);
@@ -224,7 +234,7 @@ module.exports = async (req, res) => {
 
     if (req.method === 'GET' && acc === 'panel') {
       if (esDemo) {
-        const d = Object.assign(demoData(), { pagado: true, paquete: 'invitacion' }); d.ak = akDe(d); d.sk = skDe(d); return res.status(200).json({ ok: true, demo: true, paquetes: PAQ(), extra150: EXTRA150(), fiesta: d,
+        const d = Object.assign(demoDe(code), code === DEMOBAR ? {} : { pagado: true, paquete: 'invitacion' }); d.ak = akDe(d); d.sk = skDe(d); return res.status(200).json({ ok: true, demo: true, paquetes: PAQ(), extra150: EXTRA150(), fiesta: d,
           resp: [{ gid: 'g1', va: true, cuantos: 2, menu: '', nota: '¡Ahí estaremos!', t: new Date().toISOString() }, { gid: 'g3', va: true, cuantos: 1, menu: 'sin TACC', nota: '', t: new Date().toISOString() }, { gid: 'g4', va: false, cuantos: 0, menu: '', nota: 'Estoy de viaje, ¡felicidades!', t: new Date().toISOString() }] });
       }
       const e = await leer(code); if (!e) return res.status(404).json({ error: 'No existe esa fiesta.' });
@@ -269,7 +279,7 @@ module.exports = async (req, res) => {
       return res.status(200).json({ url: j.init_point });
     }
 
-    const e = esDemo ? demoData() : await leer(code);
+    const e = esDemo ? demoDe(code) : await leer(code);
     if (!e) return res.status(404).json({ error: 'No encontramos esta fiesta. Revisá el link.' });
     if (!esDemo && !e.pagado && ['ver', 'buscar', 'responder', 'firmar', 'firmas'].includes(acc)) return res.status(402).json({ error: 'Esta invitación todavía no está activa. La familia la está terminando de preparar.' });
 

@@ -172,7 +172,7 @@ function render() {
   document.title = nomFiesta(f);
   const mt = document.querySelector('meta[name=theme-color]'); if (mt) mt.content = getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#fbf7f0';
   let h = '';
-  if (f.demo && !PREV) h += `<div class="banner">👀 ${t('Invitación de muestra: así la reciben tus invitados.')} <a href="/fiesta-panel">${t('Armá la tuya →')}</a></div>`;
+  if (f.demo && !PREV) h += f.abierto ? `<div class="banner">👀 ${t('Bar de muestra: así lo ven tus clientes. Pedí algo y mirá cómo llega a la barra.')}</div>` : `<div class="banner">👀 ${t('Invitación de muestra: así la reciben tus invitados.')} <a href="/fiesta-panel">${t('Armá la tuya →')}</a></div>`;
   if (m !== 'link') h += `<div class="deco">${(DECO[tp] || DECO.elegante)(f.color || '#c9a227')}</div>`;
   h += `<div class="hero">`;
   if (m === 'especial' && f.foto) h += `<img class="foto" src="${esc(f.foto)}" alt="">`;
@@ -343,7 +343,7 @@ function pVivo() {
   const carta = (F.carta || []).filter(x => !(x.alc && INV.menor)), M = momentos(), ahora = Date.now();
   const prox = M.find(x => x.ts > ahora - 5 * 60e3);
   const peds = (VIVO && VIVO.pedidos) || [];
-  el.innerHTML = `<h3>${t('Tu fiesta')}</h3><p class="hola" style="text-align:center">${t('¡Hola {n}! 🎉', {n: esc(nom)})}</p>
+  el.innerHTML = `<h3>${F.abierto ? t('Tu noche') : t('Tu fiesta')}</h3><p class="hola" style="text-align:center">${t('¡Hola {n}! 🎉', {n: esc(nom)})}</p>
     ${mesa ? `<div class="mesaG"><div class="mesa">${t('Mesa {m}', {m: esc(mesa)})}</div></div>` : ''}
     ${prox ? `<div class="prox">⏰ <b>${hhmm(prox.ts)}</b> · ${prox.ts > ahora ? t('Se viene: ') : t('Ahora: ')}<b>${esc(tc(prox.nombre))}</b></div>` : ''}
     ${M.length ? `<details class="prog" ${progAbierto ? 'open' : ''}><summary>${t('📋 El programa de la noche')}${F.atraso ? t(' (corrido {m} min)', {m: F.atraso}) : ''}</summary>${M.map(x => { const ya = x.ts < ahora - 5 * 60e3, es = prox && x === prox; return `<div class="it ${ya ? 'ya' : ''} ${es ? 'ahora' : ''}"><b>${hhmm(x.ts)}</b><span>${ya ? '✅ ' : es ? '👉 ' : ''}${esc(tc(x.nombre))}</span></div>`; }).join('')}</details>` : ''}
@@ -546,7 +546,7 @@ const LSI = () => 'fiestaInter:' + CODE;
 const marcaInter = () => { try { localStorage.setItem(LSI(), String(Date.now())); } catch (e) {} };
 function flMenu() { const nom = INV.nombre.split(' ')[0], mesa = INV.mesa || MESA;
   const reg = (F.lugares || []).find(x => /regal/i.test(x.n));
-  flDecir(`${t('¡Hola {n}! ', {n: nom})}${mesa ? t('Estás en la mesa {m}. ', {m: mesa}) : ''}${reg && reg.d && !yaSaludo() ? t('Si traés regalo, la mesa de regalos está {d} 🎁. ', {d: reg.d}) : ''}${t('¿Querés que te traigan algo para tomar?')}`, [{t: t('🥤 Sí, pedir algo'), f: () => flDecir(t('¿Qué te traemos?'), flOpsPedir(), true)}, {t: t('⏰ ¿Qué viene?'), alt: true, f: flQueViene}, {t: t('📋 Todo el programa'), alt: true, f: () => { $('#flb').classList.remove('on'); progAbierto = true; pVivo(); const d = document.querySelector('.prog'); if (d) d.scrollIntoView({behavior: 'smooth', block: 'center'}); }}].concat((F.lugares || []).length ? [{t: t('📍 ¿Dónde está…?'), alt: true, f: flLugares}] : []).concat(F.estaciona ? [{t: t('🚗 Estacionamiento'), alt: true, f: flEstaciona}] : []).concat(F.autos ? [{t: t('🚗 Mi auto'), alt: true, f: () => flEntendi('mi auto')}] : []).concat([{t: t('✍️ Firmar la foto'), alt: true, f: () => { $('#flb').classList.remove('on'); abrirFirma(); }}]).concat([{t: t('Ahora no'), alt: true, f: () => { marcaInter(); $('#flb').classList.remove('on'); }}]), true); try { localStorage.setItem('fiestaSaludo:' + CODE, '1'); } catch (e) {} }
+  flDecir(`${t('¡Hola {n}! ', {n: nom})}${mesa ? t('Estás en la mesa {m}. ', {m: mesa}) : ''}${reg && reg.d && !yaSaludo() ? t('Si traés regalo, la mesa de regalos está {d} 🎁. ', {d: reg.d}) : ''}${F.abierto ? t('¿Qué te pido en la barra? 🍹') : t('¿Querés que te traigan algo para tomar?')}`, [{t: t('🥤 Sí, pedir algo'), f: () => flDecir(t('¿Qué te traemos?'), flOpsPedir(), true)}, {t: t('⏰ ¿Qué viene?'), alt: true, f: flQueViene}, {t: t('📋 Todo el programa'), alt: true, f: () => { $('#flb').classList.remove('on'); progAbierto = true; pVivo(); const d = document.querySelector('.prog'); if (d) d.scrollIntoView({behavior: 'smooth', block: 'center'}); }}].concat((F.lugares || []).length ? [{t: t('📍 ¿Dónde está…?'), alt: true, f: flLugares}] : []).concat(F.estaciona ? [{t: t('🚗 Estacionamiento'), alt: true, f: flEstaciona}] : []).concat(F.autos ? [{t: t('🚗 Mi auto'), alt: true, f: () => flEntendi('mi auto')}] : []).concat([{t: t('✍️ Firmar la foto'), alt: true, f: () => { $('#flb').classList.remove('on'); abrirFirma(); }}]).concat([{t: t('Ahora no'), alt: true, f: () => { marcaInter(); $('#flb').classList.remove('on'); }}]), true); try { localStorage.setItem('fiestaSaludo:' + CODE, '1'); } catch (e) {} }
 const yaSaludo = () => { try { return !!localStorage.getItem('fiestaSaludo:' + CODE); } catch (e) { return false; } };
 function flPasoDeVez() { // cada tanto, sin molestar: "¿te falta algo en la mesa?"
   if (!FL || $('#flb').classList.contains('on') || document.hidden) return;
