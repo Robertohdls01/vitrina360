@@ -86,16 +86,8 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .vnom{display:block;font:700 11px/1.1 var(--sans);color:var(--ac);margin-top:-2px;text-shadow:0 1px 0 #fff,0 0 6px #fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .alr.gira .orb{animation:orbita 70s linear infinite}
 .alr.gira .pos{animation:orbita 70s linear infinite reverse}
-.halo{position:absolute;left:50%;top:50%;width:58%;aspect-ratio:1;transform:translate(-50%,-50%);z-index:1;pointer-events:none}
-.halo::before{content:'';position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(255,214,110,.55) 0 4deg,transparent 4deg 18deg);-webkit-mask:radial-gradient(circle,#000 30%,transparent 70%);mask:radial-gradient(circle,#000 30%,transparent 70%);animation:orbita 40s linear infinite}
-.halo::after{content:'';position:absolute;inset:14%;border-radius:50%;background:radial-gradient(circle,rgba(255,226,140,.95) 0,rgba(240,190,70,.55) 45%,transparent 72%);animation:late 3.2s ease-in-out infinite}
-.halo i{position:absolute;color:#e8b93a;font-style:normal;text-shadow:0 0 8px #ffd76a,0 0 2px #fff;animation:titila 2.4s ease-in-out infinite}
-@keyframes late{0%,100%{transform:scale(.92);opacity:.8}50%{transform:scale(1.08);opacity:1}}
-@keyframes titila{0%,100%{opacity:.15;transform:scale(.6)}50%{opacity:1;transform:scale(1.15)}}
-.foto.estrella{animation:brilla 3.2s ease-in-out infinite}
-@keyframes brilla{0%,100%{box-shadow:0 0 0 3px var(--ac),0 0 18px 4px rgba(240,190,70,.55)}50%{box-shadow:0 0 0 3px var(--ac),0 0 38px 12px rgba(255,214,110,.85)}}
 @keyframes orbita{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){.alr.gira .orb,.alr.gira .pos,.halo::before,.halo::after,.halo i,.foto.estrella{animation:none}}
+@media (prefers-reduced-motion:reduce){.alr.gira .orb,.alr.gira .pos{animation:none}}
 .pm{position:absolute;pointer-events:none;z-index:4;border-radius:50%;animation:pm var(--t,1.8s) ease-out forwards}
 .pm.st{border-radius:0;background:none!important;color:#e8b93a;font-size:var(--z);line-height:1;text-shadow:0 0 6px var(--ac),0 0 2px #fff}
 @keyframes pm{0%{opacity:0;transform:translate(0,0) scale(.4)}15%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.1) rotate(160deg)}}
@@ -272,10 +264,10 @@ function render() {
     const conG = HI.some(x => x.g != null), NOM = f.vitNom || [];
     const g = [0, 1, 2, 3].map(j => { const x = HI.filter((y, i) => conG ? y.g === j : i % 4 === j); return x.length >= 1 && conG ? x : x.length >= 2 ? x : x.length >= 2 ? x : [0, 1, 2].map(n => HI[(j + n * 2) % HI.length]); });
     const P = ['left:50%;top:64px', 'left:calc(100% - 59px);top:50%', 'left:50%;top:calc(100% - 64px)', 'left:59px;top:50%'];
-    h += `<div class="alr${VE === 'gira' ? ' gira' : ''}"><div class="brillos">${Array.from({length: 16}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 94 + 2}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div><div class="orb">${g.map((x, j) => `<div class="pos" style="${P[j]}">${vitrina(x, j % 2 === 1, true)}${NOM[j] ? `<b class="vnom">${esc(NOM[j])}</b>` : ''}</div>`).join('')}</div><div class="halo">${[[50, -2], [96, 30], [86, 84], [14, 84], [4, 30], [72, 4], [28, 4]].map(([x, y], i) => `<i style="left:${x}%;top:${y}%;font-size:${i % 2 ? 11 : 16}px;animation-delay:${i * .35}s">✦</i>`).join('')}</div>${f.foto ? `<img class="foto estrella" src="${esc(f.foto)}" alt="">` : ''}</div>`;
+    h += `<div class="alr${VE === 'gira' ? ' gira' : ''}"><div class="brillos">${Array.from({length: 16}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 94 + 2}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div><div class="orb">${g.map((x, j) => `<div class="pos" style="${P[j]}">${vitrina(x, j % 2 === 1, true)}${NOM[j] ? `<b class="vnom">${esc(NOM[j])}</b>` : ''}</div>`).join('')}</div>${f.foto ? `<img class="foto" src="${esc(f.foto)}" alt="">` : ''}</div>`;
   }
   else if (HI) { const mitad = Math.ceil(HI.length / 2); h += vitrina(HI.slice(0, mitad), false) + `<div class="brillos">${Array.from({length: 14}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 90 + 3}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div>`; }
-  if (m === 'especial' && f.foto && !(HI && VE !== 'arriba')) h += `<img class="foto${HI ? ' estrella' : ''}" src="${esc(f.foto)}" alt=""${HI ? ' style="margin-bottom:6px"' : ''}>`;
+  if (m === 'especial' && f.foto && !(HI && VE !== 'arriba')) h += `<img class="foto" src="${esc(f.foto)}" alt=""${HI ? ' style="margin-bottom:6px"' : ''}>`;
   if (HI && VE === 'arriba') { const mitad = Math.ceil(HI.length / 2), abajo = HI.slice(mitad); h += vitrina(abajo.length >= 2 ? abajo : HI, true); }
   if (m === 'especial' && f.video && f.video.id && /^[A-Za-z0-9_-]{11}$/.test(f.video.id)) h += `<div class="vbox${f.video.vert ? ' vert' : ''}" id="vbox" data-v="${f.video.id}"><img src="https://i.ytimg.com/vi/${f.video.id}/hqdefault.jpg" alt=""><span class="play">▶</span><div class="brillos">${Array.from({length: 8}, (_, i) => `<i style="left:${(i * 41) % 92 + 3}%;top:${(i * 29) % 88 + 4}%;animation-delay:${(i * .53) % 3.2}s"></i>`).join('')}</div></div>`;
   if (f.musica && f.musica.url && m !== 'link' && !f.abierto) h += `<button type="button" class="btn alt" id="musBtn" style="margin:4px auto 10px;display:inline-flex">🎵 ${t('Escuchar la música')}</button>`;
