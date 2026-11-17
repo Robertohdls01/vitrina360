@@ -446,7 +446,7 @@ function momentos() { // cada momento del cronograma con su hora real (los de de
   return F.crono.map(x => { let m = minDe(x.h); if (m < h0) m += 1440; const ts = base + m * 60e3 + at; return {h: x.h, nombre: x.t, a: x.a, ts, aviso: ts - (x.m || 0) * 60e3}; }).sort((a, b) => a.ts - b.ts);
 }
 const hhmm = t => new Date(t).toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Argentina/Buenos_Aires'});
-const AYUDA = '🆘 Ayuda urgente', esAyuda = p => (p.items || []).some(x => x.n === AYUDA);
+const AYUDA = '🆘 Ayuda urgente', SEGU = '🛡 Seguridad', esAyuda = p => (p.items || []).some(x => x.n === AYUDA || x.n === SEGU);
 const EST = p => F.abierto && !esAyuda(p) ? (p.estado === 'nuevo' ? t('📝 Pedido {n}: ya lo están preparando', {n: numP(p)}) : p.estado === 'camino' ? t('🍹 Pedido {n} listo: retiralo en la barra', {n: numP(p)}) : p.estado === 'entregado' ? t('✅ Entregado') : t('❌ Cancelado')) : esAyuda(p) ? (p.estado === 'nuevo' ? t('🆘 Pedido de ayuda enviado. Ya lo están viendo.') : p.estado === 'camino' ? t('🚑 Ya van para donde estás') : p.estado === 'entregado' ? t('✅ Atendido') : t('❌ Cancelado')) : p.estado === 'entregado' ? t('✅ Entregado') : p.estado === 'cancelado' ? t('❌ Cancelado') : p.estado === 'camino' ? t('🚶 Ya va {m} a tu mesa', {m: p.moza ? esc(p.moza) : t('la moza')}) : p.moza ? t('👩 {m} te lo va a llevar', {m: esc(p.moza)}) : t('📝 Recibido: enseguida te avisamos quién te lo trae');
 let progAbierto = false;
 document.addEventListener('toggle', e => { if (e.target.classList && e.target.classList.contains('prog')) progAbierto = e.target.open; }, true);
@@ -507,8 +507,9 @@ function abrirAyuda() {
   const c = $('#capa'); const tel = F.saludTel ? String(F.saludTel).replace(/[^\d+]/g, '') : '';
   c.innerHTML = `<div style="max-width:520px;margin:0 auto"><h2 style="font:800 28px var(--sans);color:#b91c1c;margin:8px 0">${t('🆘 Necesito ayuda')}</h2>
     <p>${t('Le avisamos ya mismo al personal{s}. Decinos qué pasa y dónde estás.', {s: F.salud && F.saludNom ? ' ' + t('y a {n}', {n: esc(F.saludNom)}) : ''})}</p>
-    <div style="display:grid;gap:8px">${[['mal', t('🤢 Me siento mal')], ['botiquin', t('🩹 Necesito el botiquín')], ['emergencia', t('🚑 Es una emergencia')], ['otro', t('🙋 Otra cosa')]].map(([k, l]) => `<button class="btn alt" data-ay="${k}" style="text-align:left">${l}</button>`).join('')}</div>
+    <div style="display:grid;gap:8px">${[['mal', t('🤢 Me siento mal o me voy a desmayar')], ['botiquin', t('🩹 Necesito el botiquín')], ['emergencia', t('🚑 Es una emergencia')]].concat(F.seguridad ? [['seguridad', t('🛡 Tengo un problema: llamar a seguridad')]] : []).concat([['otro', t('🙋 Otra cosa')]]).map(([k, l]) => `<button class="btn alt" data-ay="${k}" style="text-align:left">${l}</button>`).join('')}</div>
     <label style="display:block;margin-top:12px;font-weight:700">${t('¿Dónde estás? (ej: en el medio de la pista, en el baño)')}</label>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0">${(F.abierto ? [t('Pista'), t('Barra'), t('Baños'), t('Entrada')] : []).concat((F.lugares || []).map(x => tc(x.n))).filter((x, i, a) => a.indexOf(x) === i).slice(0, 8).map(x => `<button type="button" class="btn alt sm" data-sec="${esc(x)}" style="padding:8px 12px;font-size:15px">${esc(x)}</button>`).join('')}</div>
     <input id="ayDonde" maxlength="100" style="width:100%;font:17px var(--sans);padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)" value="${INV && INV.mesa ? esc(t('Mesa {m}', {m: INV.mesa})) : ''}">
     <button class="btn big2" id="ayOk" style="margin-top:12px;background:#dc2626">${t('🆘 Pedir ayuda ahora')}</button>
     ${tel ? `<a class="btn alt" href="tel:${esc(tel)}" style="display:block;text-align:center;margin-top:8px">${t('📞 Llamar a {n}', {n: esc(F.saludNom || t('Servicio médico'))})}</a>` : ''}
@@ -518,12 +519,13 @@ function abrirAyuda() {
   c.querySelectorAll('[data-ay]').forEach(b => b.onclick = () => { tipo = b.dataset.ay; c.querySelectorAll('[data-ay]').forEach(y => y.style.boxShadow = y === b ? '0 0 0 3px #dc2626' : ''); });
   c.querySelector('[data-ay="mal"]').style.boxShadow = '0 0 0 3px #dc2626';
   $('#ayNo').onclick = cerrarCapa;
+  c.querySelectorAll('[data-sec]').forEach(b => b.onclick = () => { $('#ayDonde').value = b.dataset.sec; c.querySelectorAll('[data-sec]').forEach(y => y.style.boxShadow = y === b ? '0 0 0 3px #dc2626' : ''); });
   $('#ayOk').onclick = async () => { const b = $('#ayOk'); b.disabled = true;
-    const que = {mal: 'Se siente mal', botiquin: 'Necesita el botiquín', emergencia: 'EMERGENCIA', otro: 'Necesita ayuda'}[tipo];
-    try { const r = await fetch('/api/fiesta?accion=pedir', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, nombre: INV && INV.nombre, mesa: MESA, items: [{n: AYUDA, c: 1}], nota: que + ' · ' + ($('#ayDonde').value || '').trim()})}); const j = await r.json();
+    const que = {mal: 'Se siente mal', botiquin: 'Necesita el botiquín', emergencia: 'EMERGENCIA', seguridad: 'Llama a seguridad', otro: 'Necesita ayuda'}[tipo];
+    try { const r = await fetch('/api/fiesta?accion=pedir', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, nombre: INV && INV.nombre, mesa: MESA, items: [{n: tipo === 'seguridad' ? SEGU : AYUDA, c: 1}], nota: que + ' · ' + ($('#ayDonde').value || '').trim()})}); const j = await r.json();
       if (!r.ok) throw new Error(j.error || t('No se pudo'));
       if (navigator.vibrate) navigator.vibrate([200, 100, 200]); cerrarCapa(); await vivoTick();
-      const tx = t('🆘 Ya avisamos. Quedate donde estás, ya van para ahí.'); toast(tx, nomFiesta(F), true, !!FL); if (FL) flDecir(tx, []);
+      const tx = tipo === 'seguridad' ? t('🛡 Ya avisamos a seguridad. Quedate en un lugar con gente, ya van para ahí.') : t('🆘 Ya avisamos. Quedate donde estás, ya van para ahí.'); toast(tx, nomFiesta(F), true, !!FL); if (FL) flDecir(tx, []);
     } catch (e) { $('#ayMsg').innerHTML = `<p class="err">${esc(e.message)}</p>`; b.disabled = false; } };
 }
 
@@ -641,7 +643,7 @@ function lugarDe(t) { const L = F.lugares || [], tn = norm(t); if (!L.length) re
 function flLugares() { const L = F.lugares || []; if (!L.length) return flDecir(t('La familia todavía no cargó los lugares del salón. Preguntale a una moza 🙂'), []);
   flDecir(t('¿Qué estás buscando?'), L.map(x => ({t: ICONO_LUGAR(x.n) + ' ' + tc(x.n), f: () => flDecir(`${ICONO_LUGAR(x.n)} ${tc(x.n)}: ${x.d}.`, [{t: t('📍 Otro lugar'), alt: true, f: flLugares}, {t: t('👍 Gracias'), alt: true, f: () => $('#flb').classList.remove('on')}])})), true); }
 function flEntendi(q) { // q = lo que dijo el invitado
-  if (/ayuda|me siento mal|descompu|desmay|botiquin|botiquín|ambulancia|enfermer|medico|médico|\bhelp\b|ajuda|aiuto|\baide\b|hilfe|救命|助けて/i.test(q)) return flDecir(t('¿Necesitás ayuda? Toco el botón y les aviso ya mismo 🆘'), [{t: t('🆘 Necesito ayuda'), f: () => { $('#flb').classList.remove('on'); abrirAyuda(); }}, {t: t('No, estoy bien'), alt: true, f: () => $('#flb').classList.remove('on')}]);
+  if (/ayuda|me siento mal|descompu|desmay|seguridad|patovica|pelea|me molesta|me pegan|security|segurança|sicurezza|sécurité|sicherheit|botiquin|botiquín|ambulancia|enfermer|medico|médico|\bhelp\b|ajuda|aiuto|\baide\b|hilfe|救命|助けて/i.test(q)) return flDecir(t('¿Necesitás ayuda? Toco el botón y les aviso ya mismo 🆘'), [{t: t('🆘 Necesito ayuda'), f: () => { $('#flb').classList.remove('on'); abrirAyuda(); }}, {t: t('No, estoy bien'), alt: true, f: () => $('#flb').classList.remove('on')}]);
   if (F.autos && /mi auto|mi coche|mi carro|my car|meu carro|la mia auto|ma voiture|mein auto|我的车|車/i.test(q)) { const a = VIVO && VIVO.auto; if (a) { preguntarAuto(); return; } $('#flb').classList.remove('on'); const b = $('#aPat'); if (b) { b.scrollIntoView({behavior: 'smooth', block: 'center'}); b.focus(); } return; }
   if (ESTAC.test(q)) return flEstaciona();
   if (/\bpara\b/i.test(q) && !/d[oó]nde/i.test(q)) { const it = entender(q); if (it.avisoMenor && !it.length) return flDecir(t('Para los chicos te puedo pedir algo sin alcohol 🧃. ¿Qué les traemos?'), flOpsPedir(), true); if (it.length) { if (it.avisoMenor) flPend = null; return flConfirmar(it, it.avisoMenor); } }

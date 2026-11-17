@@ -48,8 +48,8 @@ main{padding:10px 12px 140px;max-width:900px;margin:0 auto}
 const t = I18N.t, tc = I18N.tc;
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const P = new URLSearchParams(location.search), CODE = (P.get('f') || '').toUpperCase(), PK = P.get('p') || '', SK = P.get('s') || '', AYUDA = '🆘 Ayuda urgente';
-const esAyuda = p => (p.items || []).some(x => x.n === AYUDA);
+const P = new URLSearchParams(location.search), CODE = (P.get('f') || '').toUpperCase(), PK = P.get('p') || '', SK = P.get('s') || '', AYUDA = '🆘 Ayuda urgente', SEGU = '🛡 Seguridad';
+const esAyuda = p => (p.items || []).some(x => x.n === AYUDA || x.n === SEGU), esSegP = p => (p.items || []).some(x => x.n === SEGU);
 let F = null, PED = [], tab = 'nuevo', yo = '', conocidos = null, timer = null, herr = false;
 try { yo = localStorage.getItem('fiestaYo:' + CODE) || ''; } catch (e) {}
 const hace = x => { const m = Math.floor((Date.now() - Date.parse(x)) / 60000); return m < 1 ? t('recién') : t('hace {m} min', {m}); };
@@ -65,7 +65,7 @@ async function cargar() {
     if (conocidos && nuevos.some(id => !conocidos.has(id))) { sonar(); document.title = t('🔔 Pedido nuevo'); setTimeout(() => document.title = 'Personal · ShopEventos', 4000); }
     conocidos = new Set(PED.map(p => p.id));
     $('#tit').textContent = '🎉 ' + t(F.tipo === '15' ? 'Los 15 de {n}' : F.tipo === 'casamiento' ? 'El casamiento de {n}' : F.tipo === 'egresados' ? 'La fiesta de egresados de {n}' : 'La fiesta de {n}', {n: F.nombre});
-    if (F.modoP === 'salud') { $('#tit').textContent = '🚑 ' + (F.saludNom || t('Servicio médico')) + ' · ' + F.nombre; $('#sub').textContent = t('{n} pedidos de ayuda', {n: PED.filter(p => p.estado === 'nuevo').length}); pintar(); return; }
+    if (F.modoP === 'salud' || F.modoP === 'seguridad') { const sg = F.modoP === 'seguridad'; $('#tit').textContent = (sg ? '🛡 ' : '🚑 ') + (F.saludNom || (sg ? t('🛡 Seguridad').replace('🛡 ', '') : t('Servicio médico'))) + ' · ' + F.nombre; $('#sub').textContent = t('{n} pedidos de ayuda', {n: PED.filter(p => p.estado === 'nuevo').length}); pintar(); return; }
     if (F.modoP === 'barra') { $('#tit').textContent = '🍹 ' + t('Barra') + ' · ' + F.nombre; $('#sub').textContent = t('{n} pedidos para preparar', {n: PED.filter(p => p.estado === 'nuevo' && !esAyuda(p)).length}); pintar(); return; }
     $('#sub').textContent = t(F.modoP === 'mozas' ? 'Modo mozas' : 'Modo encargada') + (F.catering ? ' · ' + F.catering : '') + ' · ' + t('{n} pedidos para atender', {n: PED.filter(p => p.estado === 'nuevo').length});
     pintar();
@@ -75,7 +75,7 @@ function tarjeta(p) {
   const mz = F.mozas || [], esMozas = F.modoP === 'mozas', ay = esAyuda(p);
   let b = '';
   if (F.modoP === 'barra' && !ay) { if (p.estado === 'nuevo') b = `<button class="btn azul" data-cam="${p.id}">${t('✅ Listo para retirar')}</button>`; if (p.estado === 'camino') b = `<button class="btn ok" data-ent="${p.id}">${t('🤝 Ya lo retiró')}</button>`; }
-  else if (ay || F.modoP === 'salud') { if (p.estado === 'nuevo') b = `<button class="btn azul" data-cam="${p.id}">${t('🚑 Voy para allá')}</button>`; if (p.estado === 'camino') b = `<button class="btn ok" data-ent="${p.id}">${t('✅ Atendido')}</button>`; }
+  else if (ay || F.modoP === 'salud' || F.modoP === 'seguridad') { if (p.estado === 'nuevo') b = `<button class="btn azul" data-cam="${p.id}">${esSegP(p) ? t('🚑 Voy para allá').replace('🚑', '🛡') : t('🚑 Voy para allá')}</button>`; if (p.estado === 'camino') b = `<button class="btn ok" data-ent="${p.id}">${t('✅ Atendido')}</button>`; }
   else {
   if (p.estado === 'nuevo') {
     if (esMozas) b = `<button class="btn azul" data-llevo="${p.id}">${t('🚶 Lo llevo yo')}</button>`;
@@ -83,13 +83,13 @@ function tarjeta(p) {
   }
   if (p.estado === 'camino') b = `<button class="btn ok" data-ent="${p.id}">${t('✅ Entregado')}</button>` + (!esMozas && mz.length > 1 ? `<details style="width:100%"><summary style="font-size:14px;color:var(--soft)">${t('Cambiar quién lo lleva')}</summary>${mz.filter(m => m !== p.moza).map(m => `<button class="chip" data-moza="${esc(m)}" data-id="${p.id}">${esc(m)}</button>`).join(' ')}</details>` : '');
   }
-  return `<div class="p ${p.estado} ${ay ? 'ayuda' : ''}"><span class="hace ${tarde(p) ? 'tarde' : ''}">${hace(p.t)}${tarde(p) ? ' ⚠️' : ''}</span><div class="mesa">${F.modoP === 'barra' && !ay ? '#' + (p.id % 1000) + (p.mesa ? ' · ' + esc(p.mesa) : '') : t('Mesa {m}', {m: esc(p.mesa || '?')})}</div><div class="quien">${esc(p.nombre)}${p.prueba ? ' · ' + t('🧪 prueba') : ''}${p.moza ? ' · ' + t('lleva {m}', {m: esc(p.moza)}) : ''}</div>
+  return `<div class="p ${p.estado} ${ay ? 'ayuda' : ''}"><span class="hace ${tarde(p) ? 'tarde' : ''}">${hace(p.t)}${tarde(p) ? ' ⚠️' : ''}</span><div class="mesa">${F.modoP === 'barra' && !ay ? '#' + (p.id % 1000) + (p.mesa ? ' · ' + esc(p.mesa) : '') : ay && !p.mesa ? '📍 ' + esc((String(p.nota || '').split(' · ')[1] || '').trim() || '?') : t('Mesa {m}', {m: esc(p.mesa || '?')})}</div><div class="quien">${esc(p.nombre)}${p.prueba ? ' · ' + t('🧪 prueba') : ''}${p.moza ? ' · ' + t('lleva {m}', {m: esc(p.moza)}) : ''}</div>
     <div class="its">${p.items.map(x => (x.c > 1 ? x.c + ' × ' : '') + esc(tc(x.n)) + (x.p ? ` <span style="font-size:15px;font-weight:600;color:var(--soft)">· ${t('para {p}', {p: esc(x.p === 'vos' ? 'él/ella' : x.p.replace(/^tu /, 'su '))})}</span>` : '')).join('<br>')}</div>${p.nota ? `<div class="nota">📝 ${esc(p.nota)}</div>` : ''}
     <div class="btns">${b}${p.estado !== 'entregado' ? `<button class="btn alt sm" data-can="${p.id}">${t('Cancelar')}</button>` : ''}</div></div>`;
 }
 function pintar() {
   if (!F) return;
-  const esMozas = F.modoP === 'mozas', sal = F.modoP === 'salud';
+  const esMozas = F.modoP === 'mozas', sal = F.modoP === 'salud' || F.modoP === 'seguridad';
   if (esMozas && !yo && (F.mozas || []).length) {
     $('#tabs').innerHTML = ''; $('#barra').innerHTML = '';
     $('#main').innerHTML = `<div class="vacio"><h2>${t('¿Quién sos?')}</h2><p>${t('Tocá tu nombre para ver los pedidos.')}</p><div class="quien-soy">${F.mozas.map(m => `<button class="chip" data-yo="${esc(m)}">${esc(m)}</button>`).join('')}</div></div>`;

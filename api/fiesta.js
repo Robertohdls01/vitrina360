@@ -19,13 +19,15 @@ const DEMO = 'DEMO15', DEMOBAR = 'DEMOBAR';
 const corto = (v, n) => String(v == null ? '' : v).replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, n);
 const largo = (v, n) => String(v == null ? '' : v).replace(/[\u0000-\u0009\u000b-\u001f]/g, ' ').trim().slice(0, n);
 const hash = s => crypto.createHash('sha256').update('fiesta:' + String(s)).digest('hex');
-const AYUDA = '🆘 Ayuda urgente';
+const AYUDA = '🆘 Ayuda urgente', SEGU = '🛡 Seguridad';
+const esUrg = n => n === AYUDA || n === SEGU;
 // Boliche / bar / peña: evento abierto todas las noches, sin lista de invitados (cualquiera escanea, pone su nombre y pide a la barra)
 const esAbierto = e => !!(e && e.tipo === 'boliche');
 const nocheDe = () => new Date(Date.now() - 3 * 3600e3 - 12 * 3600e3).toISOString().slice(0, 10); // la noche empieza el día anterior si son las 2 de la mañana
 const invDe = (e, tok, nom, mesa) => { tok = String(tok || ''); const g = (e.invitados || []).find(x => x.tok === tok); if (g) return g;
   const m = tok.match(/^c:([a-z0-9]{10,24})$/); return esAbierto(e) && m ? { id: 'c_' + m[1], nombre: corto(nom, 40) || 'Cliente', mesa: corto(mesa, 12), anon: true } : null; };
 const skDe = e => e && e.pk ? hash(e.pk + ':salud').slice(0, 14) : ''; // link del servicio médico (solo ve los pedidos de ayuda)
+const gkDe = e => e && e.pk ? hash(e.pk + ':seguridad').slice(0, 14) : ''; // link de los de seguridad (solo ve los llamados a seguridad)
 const akDe = e => e && e.pk ? hash(e.pk + ':autos').slice(0, 14) : ''; // link del personal que cuida los autos (no ve los pedidos)
 const okCode = c => /^[A-Z0-9]{4,12}$/.test(String(c || ''));
 const azar = (n, abc) => { const b = crypto.randomBytes(n); let s = ''; for (let i = 0; i < n; i++) s += abc[b[i] % abc.length]; return s; };
@@ -85,7 +87,7 @@ async function rest(method, path, body, prefer) {
 // Bar de muestra (ShopEventos Boliche) para mostrar a los dueños de boliches, bares y peñas.
 const demoBar = () => ({
   code: DEMOBAR, demo: true, tipo: 'boliche', modo: 'especial', plantilla: 'elegante', color: '#2f8f83', titulo: 'Esta noche', nombre: 'Bar de Prueba', frase: '',
-  salon: 'Bar de Prueba', direccion: 'Mar del Plata', pk: 'demobar', paquete: 'completa', pagado: true, autos: true, salud: true, saludNom: 'Emergencias del bar', mozas: [], modoP: 'encargada', flLook: 'fiesta',
+  salon: 'Bar de Prueba', direccion: 'Mar del Plata', pk: 'demobar', paquete: 'completa', pagado: true, autos: true, salud: true, saludNom: 'Emergencias del bar', seguridad: true, seguNom: 'Seguridad del bar', mozas: [], modoP: 'encargada', flLook: 'fiesta',
   carta: [{ n: 'Fernet con coca', p: '$5.000', alc: true }, { n: 'Cerveza tirada', p: '$4.000', alc: true }, { n: 'Gin tonic', p: '$6.000', alc: true }, { n: 'Daiquiri de frutilla', p: '$5.500', alc: true }, { n: 'Coca-Cola', p: '$2.500' }, { n: 'Agua sin gas', p: '$2.000' }, { n: 'Energizante', p: '$3.500' }, { n: 'Hielo', p: 'Sin cargo' }],
   crono: [{ h: '23:30', t: 'Abre la barra', a: '🍹 ¡Ya abrió la barra! Pedí desde acá sin hacer fila.', m: 0 }, { h: '00:30', t: 'Happy hour', a: '🍻 Happy hour hasta la 1: 2x1 en cerveza tirada.', m: 0 }, { h: '01:30', t: 'Sube el DJ', a: '🎧 En 15 minutos sube el DJ. ¡A la pista!', m: 15 }, { h: '04:30', t: 'Última ronda', a: '⏰ Última ronda: pedí ahora tu último trago.', m: 15 }],
   lugares: [{ n: 'Barra', d: 'al fondo, a la derecha de la pista' }, { n: 'Baños', d: 'subiendo la escalera, a la izquierda' }, { n: 'Salida de emergencia', d: 'detrás de la cabina del DJ' }, { n: 'Guardarropa', d: 'a la entrada, a la izquierda' }],
@@ -123,7 +125,7 @@ function limpiar(d, prev) {
     titulo: corto(d.titulo, 40) || 'Mis 15', nombre: corto(d.nombre, 40), frase: largo(d.frase, 220),
     fecha: /^\d{4}-\d{2}-\d{2}$/.test(String(d.fecha || '')) ? d.fecha : '', hora: /^\d{2}:\d{2}$/.test(String(d.hora || '')) ? d.hora : '',
     salon: corto(d.salon, 80), direccion: corto(d.direccion, 120), vestimenta: corto(d.vestimenta, 80), regalo: largo(d.regalo, 200), estaciona: largo(d.estaciona, 240),
-    mostrarMesa: !!d.mostrarMesa, pedirMenu: d.pedirMenu !== false, autos: !!d.autos, salud: !!d.salud, saludNom: corto(d.saludNom, 50), saludTel: corto(d.saludTel, 30), organiza: corto(d.organiza, 60),
+    mostrarMesa: !!d.mostrarMesa, pedirMenu: d.pedirMenu !== false, autos: !!d.autos, salud: !!d.salud, saludNom: corto(d.saludNom, 50), saludTel: corto(d.saludTel, 30), seguridad: !!d.seguridad, seguNom: corto(d.seguNom, 50), organiza: corto(d.organiza, 60),
     // catering y mozas: se usan el día de la fiesta ("Ya va Karina a tu mesa")
     catering: corto(d.catering, 60), cateringTel: corto(d.cateringTel, 20).replace(/[^\d+]/g, ''),
     mozas: (Array.isArray(d.mozas) ? d.mozas : []).map(x => corto(x, 30)).filter(Boolean).slice(0, 40),
@@ -152,7 +154,7 @@ function limpiar(d, prev) {
 }
 // Lo que puede ver cualquiera con el link de la fiesta (sin la lista de invitados ni claves).
 function publica(e) {
-  const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'organiza', 'autos', 'salud', 'saludNom', 'saludTel'].forEach(k => { o[k] = e[k]; });
+  const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'organiza', 'autos', 'salud', 'saludNom', 'saludTel', 'seguridad', 'seguNom'].forEach(k => { o[k] = e[k]; });
   o.total = (e.invitados || []).length; o.vivo = vivoOk(e); o.hoy = enDia(e) || !!e.demo || esAbierto(e);
   if (esAbierto(e)) { o.abierto = true; o.fecha = nocheDe(); }
   o.album = !!(e.demo || (e.pagado && e.paquete === 'recuerdos'));
@@ -284,7 +286,7 @@ module.exports = async (req, res) => {
 
     if (req.method === 'GET' && acc === 'panel') {
       if (esDemo) {
-        const d = Object.assign(demoDe(code), code === DEMOBAR ? {} : { pagado: true, paquete: 'invitacion' }); d.ak = akDe(d); d.sk = skDe(d); return res.status(200).json({ ok: true, demo: true, vivo: code === DEMOBAR, paquetes: PAQ(), extra150: EXTRA150(), fiesta: d,
+        const d = Object.assign(demoDe(code), code === DEMOBAR ? {} : { pagado: true, paquete: 'invitacion' }); d.ak = akDe(d); d.sk = skDe(d); d.gk = gkDe(d); return res.status(200).json({ ok: true, demo: true, vivo: code === DEMOBAR, paquetes: PAQ(), extra150: EXTRA150(), fiesta: d,
           resp: [{ gid: 'g1', va: true, cuantos: 2, menu: '', nota: '¡Ahí estaremos!', t: new Date().toISOString() }, { gid: 'g3', va: true, cuantos: 1, menu: 'sin TACC', nota: '', t: new Date().toISOString() }, { gid: 'g4', va: false, cuantos: 0, menu: '', nota: 'Estoy de viaje, ¡felicidades!', t: new Date().toISOString() }] });
       }
       const e = await leer(code); if (!e) return res.status(404).json({ error: 'No existe esa fiesta.' });
@@ -293,7 +295,7 @@ module.exports = async (req, res) => {
       if (!e.pagado && e.pagoRef && await revisarPago(e)) cambio = true;
       if (!e.pk) { e.pk = azarK(); cambio = true; }
       if (cambio) await guardarObj(code, e);
-      const f = Object.assign({}, e); delete f.clave; delete f.pagoRef; f.ak = akDe(e); f.sk = skDe(e);
+      const f = Object.assign({}, e); delete f.clave; delete f.pagoRef; f.ak = akDe(e); f.sk = skDe(e); f.gk = gkDe(e);
       res.setHeader('Cache-Control', 'no-store');
       return res.status(200).json({ ok: true, fiesta: f, vivo: vivoOk(e), resp: await respuestas(code), paquetes: PAQ(), extra150: EXTRA150(), pedidos: vivoOk(e) ? (await pedidosDe(code)).length : 0 });
     }
@@ -513,8 +515,8 @@ module.exports = async (req, res) => {
       if (!g && !prueba) return res.status(403).json({ error: 'Primero decinos quién sos, así te lo llevamos a tu mesa.' });
       const carta = {}; (e.carta || []).forEach(x => { carta[x.n] = x; });
       const items = (Array.isArray(b.items) ? b.items : []).slice(0, 20).map(x => Object.assign({ n: String(x && x.n || ''), c: Math.max(1, Math.min(10, parseInt(x && x.c, 10) || 1)) }, x && x.p ? { p: corto(x.p, 30) } : {}))
-        .filter(x => x.n === AYUDA || (carta[x.n] && !(carta[x.n].alc && g && g.menor)));
-      const esAyuda = items.some(x => x.n === AYUDA);
+        .filter(x => x.n === AYUDA || (x.n === SEGU && e.seguridad) || (carta[x.n] && !(carta[x.n].alc && g && g.menor)));
+      const esAyuda = items.some(x => esUrg(x.n));
       if (!items.length) return res.status(400).json({ error: 'Elegí algo de la lista.' });
       if (g && !esAyuda) { const ult = await pedidosDe(code, '&gid=eq.' + g.id + '&estado=in.(nuevo,camino)'); if (ult.length >= 4) return res.status(429).json({ error: 'Ya tenés pedidos en camino. Esperá que te lleguen 🙂' }); }
       const mesaP = corto(g ? (g.mesa || b.mesa) : (b.mesa || 'Prueba'), 12);
@@ -524,8 +526,9 @@ module.exports = async (req, res) => {
     }
     // El personal (encargada o mozas): todos los pedidos de la noche
     if (req.method === 'GET' && acc === 'personal') {
-      const esSalud = q.s && skDe(e) && String(q.s) === skDe(e);
-      if (!esPersonal(q.p) && !esFamilia(q.k) && !esSalud) return res.status(403).json({ error: 'El link del personal no es correcto. Pedíselo a la familia.' });
+      const esSalud = q.s && skDe(e) && String(q.s) === skDe(e), esSeg = q.s && gkDe(e) && String(q.s) === gkDe(e);
+      if (!esPersonal(q.p) && !esFamilia(q.k) && !esSalud && !esSeg) return res.status(403).json({ error: 'El link del personal no es correcto. Pedíselo a la familia.' });
+      if (esSeg) { res.setHeader('Cache-Control', 'no-store'); return res.status(200).json({ ok: true, fiesta: { nombre: e.nombre, tipo: e.tipo, modoP: 'seguridad', mozas: [], salon: e.salon, saludNom: e.seguNom || '' }, pedidos: (await pedidosDe(code, esAbierto(e) ? '&_noche' : '')).filter(p => (p.items || []).some(x => x.n === SEGU)) }); }
       if (esSalud) { res.setHeader('Cache-Control', 'no-store'); return res.status(200).json({ ok: true, fiesta: { nombre: e.nombre, tipo: e.tipo, modoP: 'salud', mozas: [], salon: e.salon, saludNom: e.saludNom || '' }, pedidos: (await pedidosDe(code)).filter(p => (p.items || []).some(x => x.n === AYUDA)) }); }
       if (!vivoOk(e)) return res.status(403).json({ error: 'La fiesta en vivo no está activa todavía.' });
       res.setHeader('Cache-Control', 'no-store');
@@ -533,11 +536,11 @@ module.exports = async (req, res) => {
     }
     if (req.method === 'POST' && ['estado', 'avisar', 'atrasar', 'listo'].includes(acc)) {
       const b = cuerpo(req);
-      const esSalud = b.s && skDe(e) && String(b.s) === skDe(e) && acc === 'estado';
+      const rolS = acc === 'estado' && b.s ? (skDe(e) && String(b.s) === skDe(e) ? AYUDA : gkDe(e) && String(b.s) === gkDe(e) ? SEGU : '') : '', esSalud = !!rolS;
       if (!esPersonal(b.p) && !esFamilia(b.k) && !esSalud) return res.status(403).json({ error: 'No tenés permiso.' });
       if (!vivoOk(e)) return res.status(403).json({ error: 'La fiesta en vivo no está activa todavía.' });
       if (acc === 'estado') {
-        if (esSalud) { const pid = parseInt(b.id, 10), p = (await pedidosDe(code)).find(x => x.id === pid); if (!p || !(p.items || []).some(x => x.n === AYUDA)) return res.status(403).json({ error: 'No tenés permiso.' }); }
+        if (esSalud) { const pid = parseInt(b.id, 10), p = (await pedidosDe(code)).find(x => x.id === pid); if (!p || !(p.items || []).some(x => x.n === rolS)) return res.status(403).json({ error: 'No tenés permiso.' }); }
         const id = parseInt(b.id, 10); if (!id) return res.status(400).json({ error: 'Pedido inválido.' });
         const cambio = { tu: new Date().toISOString() };
         if (['nuevo', 'camino', 'entregado', 'cancelado'].includes(b.estado)) cambio.estado = b.estado;
