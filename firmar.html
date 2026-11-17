@@ -140,10 +140,12 @@ function firmar(){
     : [['negocio', 'Negocio'], ['responsable', 'Nombre del responsable'], ['cuit', 'CUIT o DNI (opcional)'], ['wa', 'WhatsApp'], ['dir', 'Dirección'], ['producto', 'Producto', PRODUCTOS], ['plan', 'Plan (ej: Start, Oficios, ShopMenu)'], ['precio', 'Precio por mes (solo el número)'], ['pago', 'Forma de pago', ['Mercado Pago', 'Transferencia', 'Efectivo']], ['desde', 'Desde', 'date'], ['link', 'Link de la app'], ['materiales', 'Materiales entregados (opcional)']];
   const input = ([k, lb, tp]) => Array.isArray(tp) ? `<label>${lb}<select data-k="${k}">${tp.map(o => `<option${o === d[k] ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select></label>`
     : `<label>${lb}<input data-k="${k}" ${tp === 'date' ? 'type="date"' : ''} value="${esc(d[k])}" ${k === 'precio' ? 'inputmode="numeric"' : k === 'wa' ? 'inputmode="tel"' : ''}></label>`;
+  const BASICOS = ['negocio', 'responsable', 'wa', 'producto', 'plan', 'precio']; // lo mínimo: el resto queda como opcional, para no asustar
   const render = () => {
     app.innerHTML = `<div class="card noprint"><div class="tabs"><button class="btn ${doc === 'acuerdo' ? 'on' : 'sec'}" data-doc="acuerdo">🤝 Acuerdo de servicio</button><button class="btn ${doc === 'prueba' ? 'on' : 'sec'}" data-doc="prueba">🧪 Constancia de prueba</button><button class="btn ${doc === 'galeria' ? 'on' : 'sec'}" data-doc="galeria">🏢 Galería / shopping</button></div>
       <p class="note" style="margin:8px 0 0">Completá los datos, leé el documento y firmá con el dedo. Queda guardada una copia para Pro Video y te podés bajar la tuya en PDF.</p></div>
-      <div class="card noprint"><h2>Datos</h2><div class="row">${campos().map(input).join('')}</div></div>
+      <div class="card noprint"><h2>Datos</h2><div class="row">${campos().filter(c => BASICOS.includes(c[0])).map(input).join('')}</div>
+        <details style="margin-top:10px"><summary style="cursor:pointer;font-weight:700">➕ Más datos (opcional)</summary><div class="row" style="margin-top:8px">${campos().filter(c => !BASICOS.includes(c[0])).map(input).join('')}</div></details></div>
       <div class="card doc" id="doc">${docHTML(doc, d)}</div>
       <div class="card noprint"><h2>✍️ Firma del cliente</h2><canvas class="pad" id="pc"></canvas><div class="padbar"><span class="note">Firmá con el dedo dentro del recuadro</span><button type="button" data-clr="c">Borrar</button></div>
         <p class="note" style="margin:10px 0 0">✅ La firma de Pro Video JSRHG ya está puesta en el documento. Solo firma el cliente.</p><label>Vendedor (opcional, para tu comisión)<input id="ven" value="${esc(Q.get('vendedor') || '')}"></label>
