@@ -147,6 +147,16 @@ function limpiar(d, prev) {
   if (Array.isArray(d.historia)) {
     o.historia = d.historia.slice(0, 10).filter(x => x && typeof x.img === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(x.img) && x.img.length <= 200000).map(x => ({ img: x.img, txt: corto(x.txt, 40) }));
   } else o.historia = prev.historia || [];
+  // Video de la protagonista: link de YouTube (no listado). Guardamos solo el id; lo sirve YouTube, no nosotros.
+  if (typeof d.video === 'string') {
+    const u = d.video.trim();
+    if (!u) o.video = null;
+    else {
+      const mm = u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/))([A-Za-z0-9_-]{11})/);
+      if (!mm) throw Object.assign(new Error('Ese link no es de un video de YouTube. Copiá el link desde "Compartir" en YouTube.'), { st: 400 });
+      o.video = { id: mm[1], vert: /\/shorts\//.test(u) };
+    }
+  } else o.video = prev.video || null;
   const viejos = {}; (prev.invitados || []).forEach(g => { viejos[g.id] = g; });
   const lista = Array.isArray(d.invitados) ? d.invitados.slice(0, 600) : (prev.invitados || []);
   let n = (prev.ultimo || 0);
@@ -161,7 +171,7 @@ function limpiar(d, prev) {
 }
 // Lo que puede ver cualquiera con el link de la fiesta (sin la lista de invitados ni claves).
 function publica(e) {
-  const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'historia', 'organiza', 'autos', 'salud', 'saludNom', 'saludTel', 'seguridad', 'seguNom'].forEach(k => { o[k] = e[k]; });
+  const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'historia', 'video', 'organiza', 'autos', 'salud', 'saludNom', 'saludTel', 'seguridad', 'seguNom'].forEach(k => { o[k] = e[k]; });
   o.total = (e.invitados || []).length; o.vivo = vivoOk(e); o.hoy = enDia(e) || !!e.demo || esAbierto(e);
   if (esAbierto(e)) { o.abierto = true; o.fecha = nocheDe(); }
   o.album = !!(e.demo || (e.pagado && e.paquete === 'recuerdos'));

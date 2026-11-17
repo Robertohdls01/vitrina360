@@ -316,7 +316,11 @@ function pInv() {
       <div id="histL">${(D.historia || []).map((x, i) => `<div class="row" style="grid-template-columns:64px 1fr auto;align-items:center;margin:6px 0"><img src="${esc(x.img)}" style="width:56px;height:68px;object-fit:cover;border-radius:8px;border:2px solid ${esc(D.color)}"><input data-hi="${i}" value="${esc(x.txt || '')}" maxlength="40" placeholder="Frase (opcional)"><span style="white-space:nowrap"><button class="btn alt sm" data-hup="${i}" ${i ? '' : 'disabled'}>↑</button> <button class="btn alt sm" data-hdel="${i}">🗑</button></span></div>`).join('')}</div>
       ${(D.historia || []).length < 10 ? '<input type="file" accept="image/*" multiple id="histF" style="margin-top:6px">' : '<p class="muted">Ya tenés 10 fotos (el máximo).</p>'}</div>
     <div class="sec"><h3>🎵 Música de la invitación</h3><p class="muted">Una canción que suena mientras gira la vitrina (MP3, hasta 8 MB). Los invitados la escuchan al tocar la invitación. Usá una canción que puedas compartir.</p>
-      ${!CODE ? '<p class="muted">Primero guardá la invitación.</p>' : D.musicaNom ? `<p>🎶 <b>${esc(D.musicaNom)}</b> <button class="btn alt sm" id="musQ">Quitar</button></p>` : '<input type="file" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,.mp3,.m4a" id="musF">'}<p class="muted" id="musMsg"></p></div>` : ''}
+      ${!CODE ? '<p class="muted">Primero guardá la invitación.</p>' : D.musicaNom ? `<p>🎶 <b>${esc(D.musicaNom)}</b> <button class="btn alt sm" id="musQ">Quitar</button></p>` : '<input type="file" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,.mp3,.m4a" id="musF">'}<p class="muted" id="musMsg"></p></div>
+    <div class="sec"><h3>🎬 Video de ${esc(D.nombre || 'la protagonista')}</h3><p class="muted">Un video corto que aparece en la invitación en un cuadro con brillos. Se carga desde YouTube:</p>
+      <ol class="muted" style="margin:4px 0 8px 18px;padding:0"><li>En la app de YouTube tocá <b>+</b> y elegí el video.</li><li>En <b>Visibilidad</b> elegí <b>"No listado"</b>: no aparece en YouTube ni en búsquedas, solo lo ve quien tiene el link (tus invitados). No uses "Privado", porque así no lo ve nadie.</li><li>Subilo, tocá <b>Compartir → Copiar vínculo</b> y pegalo acá abajo.</li></ol>
+      <input id="vidL" placeholder="https://youtu.be/…" value="${esc(D.video && D.video.id ? (D.video.vert ? 'https://youtube.com/shorts/' : 'https://youtu.be/') + D.video.id : (typeof D.video === 'string' ? D.video : ''))}">
+      ${D.video && D.video.id ? `<img src="https://i.ytimg.com/vi/${esc(D.video.id)}/hqdefault.jpg" style="width:160px;border-radius:10px;margin-top:8px;border:2px solid ${esc(D.color)}">` : ''}</div>` : ''}
     <div class="sec"><h3>Opciones</h3>
       <label class="chk"><input type="checkbox" data-k="pedirMenu" ${D.pedirMenu ? 'checked' : ''}> Preguntar si necesitan menú especial (vegetariano, sin TACC, infantil…)</label>
       <label class="chk"><input type="checkbox" data-k="mostrarMesa" ${D.mostrarMesa ? 'checked' : ''}> Mostrar a cada invitado su número de mesa</label></div>
@@ -349,6 +353,7 @@ function pInv() {
       const up = await fetch(a.url, {method: 'PUT', body: fd}); if (!up.ok) throw new Error('No se pudo subir');
       await accionVivo('musicaListo', {path: a.path, nombre: f.name.replace(/\.[^.]+$/, '')}); D.musicaNom = f.name.replace(/\.[^.]+$/, ''); pInv();
     } catch (e) { msg.textContent = '⚠️ ' + e.message; } };
+  const vl = $('#vidL'); if (vl) vl.addEventListener('input', () => { D.video = vl.value.trim(); cambio(); });
   const mq = $('#musQ'); if (mq) mq.onclick = async () => { try { await accionVivo('musicaQuitar', {}); D.musicaNom = ''; pInv(); } catch (e) { alert(e.message); } };
   if (DEMO) $$('#main input,#main select,#main textarea,#main button').forEach(x => x.disabled = true);
   enganchePago(); setTimeout(prev, 300);
