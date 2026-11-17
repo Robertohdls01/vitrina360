@@ -96,6 +96,10 @@
     {
       "path": "/api/sincronizar",
       "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/fiesta?accion=programados",
+      "schedule": "0 22 * * *"
     }
   ]
 }

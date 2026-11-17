@@ -194,12 +194,13 @@ function render() {
   h += `<div class="card rsvp" id="rsvp"></div>`;
   if (!f.abierto) h += `<div class="card" id="firmasCard"></div>`;
   if (f.album && !f.abierto) h += `<div class="card" id="albumCard"></div>`;
+  if (f.abierto && !PREV) h += `<div class="card" id="resCard"></div><div class="card" id="pushCard"></div>`;
   if (f.abierto && !PREV) h += `<div class="card" id="recCard"></div>`;
   h += `<div class="card" id="guardar"></div>`;
   h += `<div class="pie">${t('Invitación y fiesta organizadas con')} <b>ShopFiesta</b><br>Pro Video JSRHG · <a href="https://wa.me/5492235814437?text=${encodeURIComponent('Hola, vi la invitación de ShopFiesta y quiero una para mi fiesta')}" target="_blank" rel="noopener">${t('¿Querés una para tu fiesta?')}</a></div>`;
   $('#app').innerHTML = h;
   if (F.vivo && F.hoy && !PREV) { const v = $('#vivo'), hero = $('.hero'); if (v && hero) hero.after(v); }
-  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas(); tarjAlbum(); tarjRecuerdos();
+  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas(); tarjAlbum(); tarjRecuerdos(); tarjPush(); tarjResena();
 }
 function cuenta() {
   clearInterval(timer); const d = cuando(F); if (!d || !$('#cuenta')) return;
@@ -371,6 +372,45 @@ async function verAlbum(auth) {
 const idb = () => new Promise((ok, mal) => { const r = indexedDB.open('shopeventos-recuerdos', 1); r.onupgradeneeded = () => r.result.createObjectStore('r', {keyPath: 'id'}); r.onsuccess = () => ok(r.result); r.onerror = () => mal(r.error); });
 const idbTx = async (modo, fn) => { const db = await idb(); return new Promise((ok, mal) => { const tx = db.transaction('r', modo), st = tx.objectStore('r'), out = fn(st); tx.oncomplete = () => ok(out && out.result !== undefined ? out.result : out); tx.onerror = () => mal(tx.error); }); };
 const recTodos = () => idbTx('readonly', st => st.getAll()).then(L => (L || []).filter(x => x.code === CODE).sort((a, b) => b.t - a.t));
+// ---- Avisos del boliche al celular ("Mañana noche de cumbia") ----
+const b64u = s => { const p = '='.repeat((4 - s.length % 4) % 4), r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(r, c => c.charCodeAt(0)); };
+async function pushSub() { try { if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null; const r = await navigator.serviceWorker.ready; return await r.pushManager.getSubscription(); } catch (e) { return null; } }
+async function anotarCodigo() { try { const c = await caches.open('v360-push'); await c.put('/_push/' + CODE, new Response(JSON.stringify({code: CODE, nombre: F.nombre || ''}))); } catch (e) {} }
+async function activarPush() {
+  const msg = $('#pushMsg');
+  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) { msg.innerHTML = esIOS() && !instalada() ? t('En iPhone, primero guardá {n} en tu pantalla (Compartir ⬆️ → “Agregar a inicio”) y abrilo desde el logo. Ahí activás los avisos.', {n: esc(F.nombre || '')}) : t('Este celular no acepta avisos.'); return; }
+  try {
+    if ((await Notification.requestPermission()) !== 'granted') { msg.textContent = t('No diste permiso. Si cambiás de idea, activá las notificaciones en la configuración del navegador.'); return; }
+    const k = (await (await fetch('/api/fiesta?accion=pushKey')).json()).key, r = await navigator.serviceWorker.ready;
+    const sub = (await r.pushManager.getSubscription()) || await r.pushManager.subscribe({userVisibleOnly: true, applicationServerKey: b64u(k)});
+    const rs = await fetch('/api/fiesta?accion=pushAlta', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, sub: sub.toJSON()})});
+    if (!rs.ok) throw new Error((await rs.json().catch(() => ({}))).error || t('No se pudo'));
+    await anotarCodigo(); try { localStorage.setItem('fiestaPush:' + CODE, '1'); } catch (e) {} tarjPush();
+  } catch (e) { msg.textContent = '⚠️ ' + e.message; }
+}
+async function tarjPush() {
+  const el = $('#pushCard'); if (!el) return;
+  let ya = false; try { ya = localStorage.getItem('fiestaPush:' + CODE) === '1' && !!(await pushSub()) && Notification.permission === 'granted'; } catch (e) {}
+  if (ya) anotarCodigo();
+  el.innerHTML = `<h3>${t('🔔 Lo que viene en {n}', {n: esc(F.nombre || '')})}</h3>` + (ya ? `<p>${t('✅ Te avisamos al celular cuando haya fiesta, banda en vivo o promos.')}</p>` : `<p>${t('Enterate antes que nadie: fiestas, bandas en vivo y promos de la barra. Te llega al celular, como un mensaje.')}</p><button class="btn big2" id="pushOn">${t('🔔 Avisame de las próximas fiestas')}</button>`) + `<div id="pushMsg"></div><div id="pushNov"></div>`;
+  const b = $('#pushOn'); if (b) b.onclick = activarPush;
+  try { const j = await (await fetch('/api/fiesta?accion=novedades&f=' + CODE)).json(); const L = (j.items || []).slice(0, 3);
+    if (L.length) $('#pushNov').innerHTML = L.map(x => `<div style="border-top:1px solid var(--line);padding:8px 0;text-align:left"><b>${x.autor === 'barra' ? '🍹 ' : '📣 '}${esc(x.titulo)}</b>${x.texto ? '<br>' + esc(x.texto) : ''}</div>`).join(''); } catch (e) {}
+}
+// ---- Reseñas: cada noche, cada cliente dice cómo la pasó ----
+async function tarjResena() {
+  const el = $('#resCard'); if (!el) return; if (!INV) { el.style.display = 'none'; return; } el.style.display = '';
+  let j = {}; try { j = await (await fetch('/api/fiesta?accion=resenas&f=' + CODE + '&i=' + encodeURIComponent(TOK || ''))).json(); } catch (e) {}
+  const star = n => '★★★★★'.slice(0, Math.round(n)) + '☆☆☆☆☆'.slice(0, 5 - Math.round(n));
+  const res = j.cantidad ? `<p style="font-size:18px;margin:4px 0"><b>${j.promedio}</b> <span style="color:#d4a017">${star(j.promedio)}</span> · ${(j.cantidad === 1 ? t('1 opinión') : t('{n} opiniones', {n: j.cantidad}))}</p>` + (j.items || []).slice(0, 3).map(x => `<div style="border-top:1px solid var(--line);padding:6px 0;text-align:left"><span style="color:#d4a017">${star(x.estrellas)}</span> <b>${esc(x.nombre)}</b><br>${esc(x.texto)}</div>`).join('') : '';
+  let sel = j.mia ? j.mia.estrellas : 0;
+  el.innerHTML = `<h3>${t('⭐ ¿Cómo estuvo la noche?')}</h3>${j.mia ? `<p>${t('¡Gracias! Tu opinión de esta noche: {s}', {s: '<span style="color:#d4a017">' + star(j.mia.estrellas) + '</span>'})}</p><button class="btn alt" id="resEd">${t('✏️ Cambiar mi opinión')}</button>` : `<div id="resF"></div>`}${res}`;
+  const form = () => { const f = $('#resF') || (() => { const d = document.createElement('div'); d.id = 'resF'; $('#resEd').replaceWith(d); return d; })();
+    f.innerHTML = `<div style="font-size:38px;letter-spacing:4px;cursor:pointer;color:#d4a017" id="resS">${[1, 2, 3, 4, 5].map(n => `<span data-st="${n}">${n <= sel ? '★' : '☆'}</span>`).join('')}</div><textarea id="resT" rows="2" maxlength="400" placeholder="${t('Contá cómo la pasaste (opcional)')}" style="width:100%;box-sizing:border-box">${esc(j.mia ? j.mia.texto : '')}</textarea><button class="btn big2" id="resOk">${t('⭐ Dejar mi opinión')}</button><div id="resMsg"></div>`;
+    document.querySelectorAll('[data-st]').forEach(s => s.onclick = () => { sel = +s.dataset.st; document.querySelectorAll('[data-st]').forEach(x => x.textContent = +x.dataset.st <= sel ? '★' : '☆'); });
+    $('#resOk').onclick = async () => { if (!sel) return ($('#resMsg').textContent = t('Tocá las estrellas: de 1 a 5.')); try { const r = await fetch('/api/fiesta?accion=resenar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, nombre: INV.nombre, estrellas: sel, texto: $('#resT').value})}); if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || t('No se pudo')); tarjResena(); } catch (e) { $('#resMsg').textContent = '⚠️ ' + e.message; } }; };
+  if (j.mia) $('#resEd').onclick = form; else form();
+}
 function tarjRecuerdos() {
   const el = $('#recCard'); if (!el) return; if (!INV) { el.style.display = 'none'; return; } el.style.display = '';
   el.innerHTML = `<h3>${t('📸 Mis recuerdos de la noche')}</h3><p>${t('Sacá fotos y videos cortos con tus amigos desde acá: te quedan guardados por noche en tu celular, para volver a verlos cuando quieras.')}</p>

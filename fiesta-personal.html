@@ -43,6 +43,7 @@ main{padding:10px 12px 140px;max-width:900px;margin:0 auto}
 <main id="main"></main>
 <div class="barra" id="barra"></div>
 <script src="/fiesta-i18n.js"></script>
+<script src="/fiesta-avisos.js"></script>
 <script>
 const t = I18N.t, tc = I18N.tc;
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
@@ -115,10 +116,12 @@ function herramientas() {
   const base = F.fecha ? Date.parse(F.fecha + 'T00:00:00-03:00') : 0;
   $('#main').innerHTML = `<div class="herr"><h3 style="margin-top:0">${t('🧪 Prueba antes de abrir')}</h3><p>${t('Hacé un pedido de prueba: tiene que aparecer en “Para atender” y sonar. Después marcalo como entregado.')}</p>
       <button class="btn" id="prueba">${t('🧪 Hacer pedido de prueba')}</button> <button class="btn ok" id="listo">${t('✅ Todo funciona: avisar a la familia')}</button><p id="hmsg">${F.listo ? `<span class="okt">${t('✅ Ya le avisaste a la familia que todo funciona.')}</span>` : ''}</p></div>
+    ${F.abierto && F.modoP === 'barra' ? '<div class="herr" id="avisosBol"></div>' : ''}
     <div class="herr"><h3 style="margin-top:0">${t('📢 Aviso a todos los invitados')}</h3><input id="aviso" maxlength="160" placeholder="${t('Ej: 🍽 Ya sale el plato principal, vuelvan a sus mesas')}"><div class="btns"><button class="btn" id="mandar">${t('📢 Mandar aviso')}</button></div></div>
     <div class="herr"><h3 style="margin-top:0">${t('⏰ Cronograma')} ${F.atraso ? t('(atrasado {m} min)', {m: F.atraso}) : ''}</h3><div class="crono">${(F.crono || []).map(x => `<div><span>${esc(x.h)}</span><b>${esc(tc(x.t))}</b></div>`).join('') || `<p>${t('La familia todavía no cargó el cronograma.')}</p>`}</div>
       <div class="btns"><button class="btn alt sm" data-atr="15">${t('Atrasar 15 min')}</button><button class="btn alt sm" data-atr="30">${t('Atrasar 30 min')}</button><button class="btn alt sm" data-atr="-15">${t('Adelantar 15 min')}</button></div></div>
     <div class="pie">ShopEventos · Pro Video JSRHG</div>`;
+  const avb = $('#avisosBol'); if (avb && window.AvisosUI) AvisosUI(avb, {code: CODE, p: PK, autor: 'barra'});
   $('#prueba').onclick = async () => { const it = (F.carta || [])[0]; if (!it) return alert(t('La familia todavía no cargó la carta.')); try { await api('pedir', {mesa: 'Prueba', items: [{n: it.n, c: 1}]}); tab = 'nuevo'; cargar(); } catch (e) { $('#hmsg').innerHTML = `<span class="err">${esc(e.message)}</span>`; } };
   $('#listo').onclick = async () => { try { await api('listo', {}); F.listo = new Date().toISOString(); $('#hmsg').innerHTML = `<span class="okt">${t('✅ Listo, la familia ya lo ve en su panel.')}</span>`; } catch (e) { $('#hmsg').innerHTML = `<span class="err">${esc(e.message)}</span>`; } };
   $('#mandar').onclick = async () => { const tx = $('#aviso').value.trim(); if (!tx) return; try { await api('avisar', {txt: tx}); $('#aviso').value = ''; alert(t('✅ Aviso enviado a todos los invitados')); } catch (e) { alert(e.message); } };

@@ -178,6 +178,49 @@ async function respuestas(code) {
   try { return await rest('GET', 'fiesta_resp?code=eq.' + encodeURIComponent(code) + '&select=gid,va,cuantos,menu,nota,t'); } catch (e) { return []; }
 }
 
+// ---- Avisos al celular (notificaciones) de los boliches: "Mañana noche de cumbia…" ----
+// Claves VAPID: se crean solas la primera vez y quedan guardadas en el almacenamiento privado.
+let VAP = null;
+async function vapid() {
+  if (VAP) return VAP;
+  const url = ST() + '/object/' + B + '/_push/vapid.json';
+  try { const r = await fetch(url, { headers: stHeaders({ 'cache-control': 'no-cache' }) }); if (r.ok) { const j = await r.json(); if (j && j.jwk && j.pub) return (VAP = j); } } catch (e) {}
+  const { privateKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+  const jwk = privateKey.export({ format: 'jwk' });
+  const pub = Buffer.concat([Buffer.from([4]), Buffer.from(jwk.x, 'base64url'), Buffer.from(jwk.y, 'base64url')]).toString('base64url');
+  await bucket();
+  const w = await fetch(url, { method: 'POST', headers: stHeaders({ 'Content-Type': 'application/json', 'x-upsert': 'false' }), body: JSON.stringify({ jwk, pub }) });
+  if (!w.ok) { const r = await fetch(url, { headers: stHeaders({ 'cache-control': 'no-cache' }) }); const j = r.ok ? await r.json() : null; if (j && j.jwk) return (VAP = j); throw new Error('claves de avisos'); }
+  return (VAP = { jwk, pub });
+}
+const PUSH_OK = /^https:\/\/([a-z0-9-]+\.)*(fcm\.googleapis\.com|push\.services\.mozilla\.com|notify\.windows\.com|push\.apple\.com|push\.api\.chromium\.org)\//i;
+// Manda un "toque" vacío a cada celular; el celular busca el aviso nuevo y lo muestra con el logo del boliche.
+async function empujar(subs) {
+  if (!subs.length) return 0;
+  const V = await vapid(), key = crypto.createPrivateKey({ key: V.jwk, format: 'jwk' }), J = {}, muertos = [];
+  const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url'); let ok = 0;
+  for (let i = 0; i < subs.length; i += 50) await Promise.all(subs.slice(i, i + 50).map(async s => {
+    try {
+      if (!PUSH_OK.test(s.endpoint)) return;
+      const aud = new URL(s.endpoint).origin;
+      if (!J[aud]) { const h = b64({ typ: 'JWT', alg: 'ES256' }) + '.' + b64({ aud, exp: Math.floor(Date.now() / 1000) + 12 * 3600, sub: 'https://www.vitrina360app.com.ar' }); J[aud] = h + '.' + crypto.sign('sha256', Buffer.from(h), { key, dsaEncoding: 'ieee-p1363' }).toString('base64url'); }
+      const r = await fetch(s.endpoint, { method: 'POST', headers: { Authorization: 'vapid t=' + J[aud] + ', k=' + V.pub, TTL: '86400', Urgency: 'normal', 'Content-Length': '0' } });
+      if (r.status === 404 || r.status === 410) muertos.push(s.id); else if (r.ok) ok++;
+      else if (process.env.DEBUG_FIESTA) console.error('push', r.status, await r.text().catch(() => ''));
+    } catch (e) { if (process.env.DEBUG_FIESTA) console.error('push', e.message); }
+  }));
+  if (muertos.length) await rest('DELETE', 'fiesta_push?id=in.(' + muertos.join(',') + ')').catch(() => {});
+  return ok;
+}
+async function enviarNovedad(nov) {
+  const subs = (await rest('GET', 'fiesta_push?code=eq.' + nov.code + '&select=id,endpoint&limit=20000').catch(() => [])) || [];
+  await rest('PATCH', 'fiesta_novedad?id=eq.' + nov.id, { enviado: true, enviar_at: new Date().toISOString() }).catch(() => {});
+  const n = await empujar(subs);
+  await rest('PATCH', 'fiesta_novedad?id=eq.' + nov.id, { n }).catch(() => {});
+  return n;
+}
+const pNombre = s => corto(String(s || '').split(' ')[0], 20);
+
 module.exports = async (req, res) => {
   const q = req.query || {}, acc = String(q.accion || '');
   try {
@@ -219,6 +262,12 @@ module.exports = async (req, res) => {
     }
     if (req.method === 'GET' && acc === 'precios') return res.status(200).json({ paquetes: PAQ(), extra150: EXTRA150() });
 
+    if (req.method === 'GET' && acc === 'pushKey') { res.setHeader('Cache-Control', 'public, max-age=3600'); return res.status(200).json({ key: (await vapid()).pub }); }
+    if (acc === 'programados') { // lo llama Vercel todos los días a las 19 h: manda los avisos programados para hoy
+      const L = (await rest('GET', 'fiesta_novedad?enviado=eq.false&enviar_at=lte.' + encodeURIComponent(new Date().toISOString()) + '&select=id,code&limit=30').catch(() => [])) || [];
+      let n = 0; for (const nov of L) n += await enviarNovedad(nov);
+      return res.status(200).json({ ok: true, avisos: L.length, celulares: n });
+    }
     const code = String(q.f || cuerpo(req).f || '').toUpperCase();
     if (!okCode(code)) return res.status(400).json({ error: 'Fiesta inválida.' });
     const esDemo = code === DEMO || code === DEMOBAR;
@@ -235,7 +284,7 @@ module.exports = async (req, res) => {
 
     if (req.method === 'GET' && acc === 'panel') {
       if (esDemo) {
-        const d = Object.assign(demoDe(code), code === DEMOBAR ? {} : { pagado: true, paquete: 'invitacion' }); d.ak = akDe(d); d.sk = skDe(d); return res.status(200).json({ ok: true, demo: true, paquetes: PAQ(), extra150: EXTRA150(), fiesta: d,
+        const d = Object.assign(demoDe(code), code === DEMOBAR ? {} : { pagado: true, paquete: 'invitacion' }); d.ak = akDe(d); d.sk = skDe(d); return res.status(200).json({ ok: true, demo: true, vivo: code === DEMOBAR, paquetes: PAQ(), extra150: EXTRA150(), fiesta: d,
           resp: [{ gid: 'g1', va: true, cuantos: 2, menu: '', nota: '¡Ahí estaremos!', t: new Date().toISOString() }, { gid: 'g3', va: true, cuantos: 1, menu: 'sin TACC', nota: '', t: new Date().toISOString() }, { gid: 'g4', va: false, cuantos: 0, menu: '', nota: 'Estoy de viaje, ¡felicidades!', t: new Date().toISOString() }] });
       }
       const e = await leer(code); if (!e) return res.status(404).json({ error: 'No existe esa fiesta.' });
@@ -284,6 +333,62 @@ module.exports = async (req, res) => {
     if (!e) return res.status(404).json({ error: 'No encontramos esta fiesta. Revisá el link.' });
     if (!esDemo && !e.pagado && ['ver', 'buscar', 'responder', 'firmar', 'firmas', 'albumSubir', 'albumListo', 'album'].includes(acc)) return res.status(402).json({ error: 'Esta invitación todavía no está activa. La familia la está terminando de preparar.' });
 
+    // ---- Clientes del boliche: avisos al celular y reseñas ----
+    if (req.method === 'POST' && acc === 'pushAlta') {
+      const b = cuerpo(req), sub = b.sub || {}, ep = String(sub.endpoint || '');
+      if (!PUSH_OK.test(ep) || !sub.keys || !sub.keys.p256dh || !sub.keys.auth) return res.status(400).json({ error: 'Este celular no acepta avisos.' });
+      await rest('POST', 'fiesta_push?on_conflict=endpoint', { code, endpoint: ep.slice(0, 900), sub: { endpoint: ep.slice(0, 900), keys: { p256dh: corto(sub.keys.p256dh, 200), auth: corto(sub.keys.auth, 60) } } }, 'resolution=merge-duplicates,return=minimal');
+      return res.status(200).json({ ok: true });
+    }
+    if (req.method === 'GET' && acc === 'novedades') {
+      const dueno = esDemo || (q.k && hash(String(q.k)) === e.clave) || !!(q.p && e.pk && String(q.p) === e.pk);
+      const L = (await rest('GET', 'fiesta_novedad?code=eq.' + code + (dueno ? '' : '&enviado=eq.true') + '&order=enviar_at.desc&limit=' + (dueno ? 20 : 5) + '&select=id,autor,titulo,texto,enviar_at,enviado,n').catch(() => [])) || [];
+      const out = { ok: true, items: L.map(x => dueno ? x : { id: x.id, autor: x.autor, titulo: x.titulo, texto: x.texto, t: x.enviar_at }) };
+      if (dueno) out.clientes = ((await rest('GET', 'fiesta_push?code=eq.' + code + '&select=id&limit=20000').catch(() => [])) || []).length;
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).json(out);
+    }
+    if (req.method === 'POST' && acc === 'novedad') {
+      const b = cuerpo(req);
+      const barra = !!(b.p && e.pk && String(b.p) === e.pk), autor = barra ? 'barra' : 'dueno';
+      if (!esDemo && !barra && hash(String(b.k || '')) !== e.clave) return res.status(403).json({ error: 'No tenés permiso para mandar avisos.' });
+      if (!esDemo && !e.pagado) return res.status(402).json({ error: 'Activá el boliche para mandar avisos.' });
+      const titulo = corto(b.titulo, 70), texto = largo(b.texto, 300);
+      if (titulo.length < 3) return res.status(400).json({ error: 'Escribí el título del aviso (por ejemplo: Mañana noche de cumbia).' });
+      let cuando = new Date();
+      if (b.dia && !esDemo) { if (!/^\d{4}-\d{2}-\d{2}$/.test(String(b.dia))) return res.status(400).json({ error: 'Fecha inválida.' });
+        cuando = new Date(b.dia + 'T' + (/^\d{2}:\d{2}$/.test(String(b.hora || '')) ? b.hora : '19:00') + ':00-03:00');
+        if (cuando < Date.now() - 60e3 || cuando > Date.now() + 40 * 864e5) return res.status(400).json({ error: 'Los programados salen a las 19 h: elegí un día que todavía no haya pasado esa hora (hasta 40 días).' }); }
+      const prev = (await rest('GET', 'fiesta_novedad?code=eq.' + code + '&t=gte.' + encodeURIComponent(new Date(Date.now() - (esDemo ? 60e3 : 7 * 864e5)).toISOString()) + '&autor=eq.' + autor + '&select=id').catch(() => [])) || [];
+      if (esDemo && prev.length) return res.status(429).json({ error: 'Esperá un minuto para probar otro aviso.' });
+      const tope = barra ? 2 : 3;
+      if (!esDemo && prev.length >= tope) return res.status(429).json({ error: 'Ya mandaste ' + tope + ' avisos esta semana. Así la gente no apaga las notificaciones.' });
+      const row = ((await rest('POST', 'fiesta_novedad', { code, autor, titulo, texto, enviar_at: cuando.toISOString() }, 'return=representation')) || [])[0];
+      if (!row) throw new Error('no se guardó el aviso');
+      if (cuando <= Date.now() + 5 * 60e3) { const n = await enviarNovedad(row); return res.status(200).json({ ok: true, enviado: true, celulares: n }); }
+      return res.status(200).json({ ok: true, enviado: false, programado: row.enviar_at });
+    }
+    if (req.method === 'POST' && acc === 'novedadBorrar') {
+      const b = cuerpo(req); if (!esDemo && hash(String(b.k || '')) !== e.clave && !(b.p && e.pk && String(b.p) === e.pk)) return res.status(403).json({ error: 'No tenés permiso.' });
+      await rest('DELETE', 'fiesta_novedad?code=eq.' + code + '&enviado=eq.false&id=eq.' + (parseInt(b.id, 10) || 0));
+      return res.status(200).json({ ok: true });
+    }
+    if (req.method === 'POST' && acc === 'resenar') {
+      const b = cuerpo(req), g = esAbierto(e) && invDe(e, b.i, b.nombre);
+      if (!g) return res.status(403).json({ error: 'Entrá con tu nombre para dejar tu opinión.' });
+      const est = parseInt(b.estrellas, 10); if (!(est >= 1 && est <= 5)) return res.status(400).json({ error: 'Elegí de 1 a 5 estrellas.' });
+      await rest('POST', 'fiesta_resena?on_conflict=code,cid,noche', { code, cid: g.id, noche: nocheDe(), nombre: pNombre(g.nombre), estrellas: est, texto: largo(b.texto, 400) }, 'resolution=merge-duplicates,return=minimal');
+      return res.status(200).json({ ok: true });
+    }
+    if (req.method === 'GET' && acc === 'resenas') {
+      const L = (await rest('GET', 'fiesta_resena?code=eq.' + code + '&order=t.desc&limit=300&select=cid,noche,nombre,estrellas,texto,t').catch(() => [])) || [];
+      const g = q.i && invDe(e, q.i), noche = nocheDe();
+      const prom = L.length ? Math.round(L.reduce((a, x) => a + x.estrellas, 0) / L.length * 10) / 10 : 0;
+      const dueno = q.k && hash(String(q.k)) === e.clave;
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).json({ ok: true, promedio: prom, cantidad: L.length, mia: g ? (L.find(x => x.cid === g.id && x.noche === noche) || null) : null,
+        items: L.filter(x => dueno || x.texto).slice(0, dueno ? 100 : 10).map(x => ({ nombre: x.nombre, estrellas: x.estrellas, texto: x.texto, noche: x.noche })) });
+    }
     if (req.method === 'GET' && acc === 'ver') {
       const out = { ok: true, fiesta: publica(e) };
       const g = q.i && (e.invitados || []).find(x => x.tok === String(q.i));

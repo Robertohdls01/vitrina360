@@ -72,6 +72,7 @@ code{background:#f3f1ea;padding:2px 6px;border-radius:6px;word-break:break-all}
 <header><b>🎉 ShopFiesta</b><small id="hdr">Panel de tu fiesta</small></header>
 <div id="raiz"></div>
 <div class="modal" id="modal"><div class="in" id="modalIn"></div></div>
+<script src="/fiesta-avisos.js"></script>
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const FL_LOOKS = {
@@ -202,6 +203,7 @@ function qrAutos() { const u = location.origin + '/fiesta-autos?f=' + CODE + '&a
   const s = w.document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
   s.onload = () => { const q = w.qrcode(0, 'M'); q.addData(u); q.make(); w.document.body.innerHTML = `<h1>🚗 Cuidado de autos</h1><p style="font-size:16pt">${esc(D.nombre ? (D.tipo === '15' ? 'Los 15 de ' : 'La fiesta de ') + D.nombre : '')}</p>${q.createSvgTag({cellSize: 4, margin: 1, scalable: true})}<p style="font-size:15pt"><b>Escaneá, poné tu nombre y listo.</b><br>Ves los autos anotados y te suena si un invitado pregunta por el suyo.</p><p style="color:#777">ShopEventos · Pro Video JSRHG</p>`; setTimeout(() => w.print(), 500); };
   w.document.head.appendChild(s); }
+const campo = (id, lbl, ph, tipo) => `<label for="c_${id}">${lbl}</label><input id="c_${id}" data-k="${id}" type="${tipo || 'text'}" value="${esc(D[id])}" placeholder="${esc(ph || '')}">`;
 function pFiesta() {
   if (!CODE) { $('#main').innerHTML = '<div class="box"><p>Primero guardá tu fiesta (botón Guardar, abajo).</p></div>'; return; }
   if (!VIVO) { $('#main').innerHTML = `<div class="box">${activarHTML(true) || ''}<div class="sec"><h3>🎉 La fiesta en vivo</h3><p>Con la <b>fiesta completa</b>, tus invitados piden desde su mesa (los menores no ven alcohol), la encargada o las mozas reciben los pedidos en el celular y a todos les llegan los avisos de la comida, el vals y la torta.</p><p class="muted">Se activa con el paquete Fiesta completa o Fiesta completa + recuerdos.</p></div></div>`; enganchePago(); return; }
@@ -228,6 +230,7 @@ function pFiesta() {
       <p><b>Link del personal</b> (no lo compartas con los invitados):<br><code>${esc(linkPersonal())}</code></p>
       <a class="btn wa" href="${waLink(D.cateringTel, '¡Hola! Te paso el link para la fiesta de ' + D.nombre + ' 🎉\nAbrilo el día de la fiesta: ahí te llegan los pedidos de las mesas.\n👉 ' + linkPersonal() + '\n\nAntes de abrir, tocá "Pedido de prueba" para ver que todo funciona.')}" target="_blank" rel="noopener">📲 Mandárselo a la encargada</a> <button class="btn alt" data-copy="${esc(linkPersonal())}">📋 Copiar link</button> <a class="btn alt" href="${esc(linkPersonal())}" target="_blank" rel="noopener">👀 Ver la pantalla del personal</a>
       ${D.listo ? `<p class="ok">✅ El personal probó el sistema: ${esc(new Date(D.listo).toLocaleString('es-AR'))}</p>` : ''}</div>
+    ${D.tipo === 'boliche' ? '<div class="sec" id="avisosBol"></div>' : ''}
     ${D.tipo === 'boliche' ? `<div class="sec"><h3>🖨 Carteles QR para pedir a la barra</h3><p class="muted">Todos los carteles llevan el mismo QR. Ponelos en la entrada, cerca de la barra, en el medio de la pista y cerca de los baños: cualquiera escanea, pone su nombre y pide. Salen 4 por hoja A4.</p><label>¿Cuántos carteles?</label><input type="number" id="nMesas" value="10" min="1" max="60" style="width:110px"><br><button class="btn" id="imprimir" style="margin-top:8px">🖨 Imprimir los carteles</button><p><b>Link de la barra</b> (abrilo en la tablet o el celular de la barra):<br><code>${esc(linkPersonal())}</code></p></div>` : `<div class="sec"><h3>🖨 QR de la entrada y cartelitos de mesa</h3><p class="muted">Una hoja grande para la entrada y un cartelito por mesa${mesas.length ? ' (' + mesas.length + ' mesas, según tu lista de invitados)' : ''}. Elegí el tamaño de los cartelitos. Salen separados para plastificar la hoja entera y cortar por el medio del espacio blanco (así cada uno queda con el borde sellado). Imprimilos en hoja de stickers o recortalos y plastificalos.</p>
       ${mesas.length ? '' : '<label>¿Cuántas mesas?</label><input type="number" id="nMesas" value="10" min="1" max="80" style="width:110px">'}
       <label>Tamaño de los cartelitos</label><select id="tamCart" style="max-width:340px"><option value="est">Estándar 10 × 5 cm (10 por hoja) · recomendado</option><option value="vert">Parado 6 × 12 cm (6 por hoja)</option><option value="chico">Chico 5 × 5 cm (15 por hoja) · el más barato</option></select><br>
@@ -270,6 +273,7 @@ function pFiesta() {
   $('#mandarAviso').onclick = async () => { const t = $('#aviso').value.trim(); if (!t) return; try { await accionVivo('avisar', {txt: t}); $('#aviso').value = ''; $('#vivoMsg').innerHTML = '<span class="ok">✅ Aviso enviado a todos</span>'; } catch (e) { $('#vivoMsg').textContent = '⚠️ ' + e.message; } };
   $$('[data-atr]').forEach(b => b.onclick = async () => { try { const j = await accionVivo('atrasar', {min: +b.dataset.atr}); D.atraso = j.atraso; $('#atrasoTx').textContent = 'Atraso actual: ' + j.atraso + ' min'; } catch (e) { $('#vivoMsg').textContent = '⚠️ ' + e.message; } });
   if (DEMO) $$('#main input,#main select,#cAdd,#cBase,#rAdd,#rBase,[data-cdel],[data-rdel],#mandarAviso,[data-atr]').forEach(x => x && (x.disabled = true));
+  const avb = $('#avisosBol'); if (avb && window.AvisosUI) AvisosUI(avb, {code: CODE, k: K, autor: 'dueno', resenas: true});
 }
 function pintar() {
   $('#hdr').textContent = D.nombre ? (D.tipo === '15' ? 'Los 15 de ' : 'Fiesta de ') + D.nombre : 'Nueva fiesta';
@@ -285,7 +289,6 @@ function prev() { const fr = $('#prev'); if (fr && fr.contentWindow) fr.contentW
 addEventListener('message', e => { if (e.origin === location.origin && e.data && e.data.tipo === 'fiesta-prev-listo') prev(); });
 
 function pInv() {
-  const campo = (id, lbl, ph, tipo) => `<label for="c_${id}">${lbl}</label><input id="c_${id}" data-k="${id}" type="${tipo || 'text'}" value="${esc(D[id])}" placeholder="${esc(ph || '')}">`;
   $('#main').innerHTML = `<div class="grid"><div class="box">${activarHTML()}
     <div class="sec"><h3>¿Qué tipo de invitación querés?</h3><div class="opts">
       ${[['especial', '💌 Especial', 'Con foto y diseño completo'], ['comun', '✉️ Común', 'Diseño lindo, sin foto'], ['link', '🔗 Solo el link', 'Para confirmar y guardar la fiesta en el celular']].map(([v, t, s]) => `<button class="opt ${D.modo === v ? 'on' : ''}" data-modo="${v}"><b>${t}</b><small>${s}</small></button>`).join('')}</div></div>
