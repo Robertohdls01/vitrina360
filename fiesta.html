@@ -91,6 +91,11 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .pm{position:absolute;pointer-events:none;z-index:4;border-radius:50%;animation:pm var(--t,1.8s) ease-out forwards}
 .pm.st{border-radius:0;background:none!important;color:#e8b93a;font-size:var(--z);line-height:1;text-shadow:0 0 6px var(--ac),0 0 2px #fff}
 @keyframes pm{0%{opacity:0;transform:translate(0,0) scale(.4)}15%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.1) rotate(160deg)}}
+#abrirInv{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;background:rgba(251,247,240,.94);backdrop-filter:blur(4px);cursor:pointer;transition:opacity .6s}
+#abrirInv>div{text-align:center;display:grid;gap:8px;animation:late2 2.2s ease-in-out infinite}
+#abrirInv b{font:600 34px/1.1 Georgia,serif;color:var(--ac)}#abrirInv span{font:600 16px var(--sans);color:#6b5b45}
+#abrirInv.fuera{opacity:0;pointer-events:none}
+@keyframes late2{50%{transform:scale(1.05)}}
 @keyframes giro{from{transform:rotateY(0)}to{transform:rotateY(-360deg)}}
 .vbox{position:relative;width:min(88%,380px);aspect-ratio:16/9;margin:8px auto 12px;border-radius:16px;overflow:hidden;border:3px solid var(--ac);box-shadow:0 0 22px -4px var(--ac);background:#000;cursor:pointer}
 .vbox.vert{width:min(62%,230px);aspect-ratio:9/16}
@@ -256,6 +261,13 @@ function musica() {
   const b = document.getElementById('musBtn');
   const pintar = () => { const x = document.getElementById('musBtn'); if (x) x.innerHTML = MUS.paused ? '🎵 ' + t('Escuchar la música') : '🔇 ' + t('Pausar la música'); };
   if (b) b.onclick = e => { e.stopPropagation(); if (MUS.paused) MUS.play().catch(() => {}); else MUS.pause(); setTimeout(pintar, 120); };
+  // Intenta arrancar sola; si el celular no deja, muestra "Tocá para abrir tu invitación" y arranca con ese toque.
+  if (!musica.una && !musica.parada) MUS.play().then(pintar).catch(() => {
+    if (document.getElementById('abrirInv') || (F.demo && !localStorage.getItem('demoNom'))) return;
+    const o = document.createElement('div'); o.id = 'abrirInv';
+    o.innerHTML = `<div><div style="font-size:54px">💌</div><b>${esc(F.nombre || '')}</b><span>${t('Tocá para abrir tu invitación')} 🎵</span></div>`;
+    document.body.appendChild(o); o.onclick = () => { o.classList.add('fuera'); setTimeout(() => o.remove(), 600); };
+  });
   if (!musica.una) { musica.una = true; const arr = () => { if (MUS && MUS.paused && !musica.parada) MUS.play().then(pintar).catch(() => {}); document.removeEventListener('pointerdown', arr, true); }; document.addEventListener('pointerdown', arr, true); }
   pintar();
 }
