@@ -63,7 +63,7 @@ async function cargar() {
     if (urg) { sonar(); setTimeout(sonar, 700); setTimeout(sonar, 1400); }
     if (conocidos && nuevos.some(id => !conocidos.has(id))) { sonar(); document.title = t('🔔 Pedido nuevo'); setTimeout(() => document.title = 'Personal · ShopEventos', 4000); }
     conocidos = new Set(PED.map(p => p.id));
-    $('#tit').textContent = '🎉 ' + t(F.tipo === '15' ? 'Los 15 de {n}' : F.tipo === 'casamiento' ? 'El casamiento de {n}' : 'La fiesta de {n}', {n: F.nombre});
+    $('#tit').textContent = '🎉 ' + t(F.tipo === '15' ? 'Los 15 de {n}' : F.tipo === 'casamiento' ? 'El casamiento de {n}' : F.tipo === 'egresados' ? 'La fiesta de egresados de {n}' : 'La fiesta de {n}', {n: F.nombre});
     if (F.modoP === 'salud') { $('#tit').textContent = '🚑 ' + (F.saludNom || t('Servicio médico')) + ' · ' + F.nombre; $('#sub').textContent = t('{n} pedidos de ayuda', {n: PED.filter(p => p.estado === 'nuevo').length}); pintar(); return; }
     $('#sub').textContent = t(F.modoP === 'mozas' ? 'Modo mozas' : 'Modo encargada') + (F.catering ? ' · ' + F.catering : '') + ' · ' + t('{n} pedidos para atender', {n: PED.filter(p => p.estado === 'nuevo').length});
     pintar();
