@@ -185,7 +185,7 @@ module.exports = async (req, res) => {
     if (req.method === 'GET' && (q.manifest || q.icono)) {
       const code = String(q.manifest || q.icono).toUpperCase(); if (!okCode(code)) return res.status(400).json({ error: 'Fiesta inválida.' });
       const e = (code === DEMO || code === DEMOBAR) ? demoDe(code) : await leer(code); if (!e) return res.status(404).json({ error: 'No existe esa fiesta.' });
-      const nom = (e.tipo === '15' ? 'Los 15 de ' : 'Fiesta de ') + (e.nombre || 'la fiesta');
+      const nom = esAbierto(e) ? (e.nombre || 'El boliche') : (e.tipo === '15' ? 'Los 15 de ' : 'Fiesta de ') + (e.nombre || 'la fiesta');
       if (q.icono) {
         const num = (String(e.titulo || '').match(/\d+/) || [])[0] || (e.nombre || 'F').charAt(0).toUpperCase();
         const esc = s => String(s).replace(/[<>&"]/g, '');

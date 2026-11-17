@@ -194,11 +194,12 @@ function render() {
   h += `<div class="card rsvp" id="rsvp"></div>`;
   if (!f.abierto) h += `<div class="card" id="firmasCard"></div>`;
   if (f.album && !f.abierto) h += `<div class="card" id="albumCard"></div>`;
+  if (f.abierto && !PREV) h += `<div class="card" id="recCard"></div>`;
   h += `<div class="card" id="guardar"></div>`;
   h += `<div class="pie">${t('Invitación y fiesta organizadas con')} <b>ShopFiesta</b><br>Pro Video JSRHG · <a href="https://wa.me/5492235814437?text=${encodeURIComponent('Hola, vi la invitación de ShopFiesta y quiero una para mi fiesta')}" target="_blank" rel="noopener">${t('¿Querés una para tu fiesta?')}</a></div>`;
   $('#app').innerHTML = h;
   if (F.vivo && F.hoy && !PREV) { const v = $('#vivo'), hero = $('.hero'); if (v && hero) hero.after(v); }
-  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas(); tarjAlbum();
+  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas(); tarjAlbum(); tarjRecuerdos();
 }
 function cuenta() {
   clearInterval(timer); const d = cuando(F); if (!d || !$('#cuenta')) return;
@@ -365,6 +366,37 @@ async function verAlbum(auth) {
   const td = $('#albTodo'); if (td) td.onclick = async () => { td.disabled = true; let n = 0;
     for (const x of L) { try { const b = await (await fetch(x.url)).blob(), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'fiesta-' + (n + 1) + (x.tipo === 'video' ? '.mp4' : '.jpg'); a.click(); n++; $('#albD').textContent = t('Descargando {n} de {t}…', {n, t: L.length}); await new Promise(r => setTimeout(r, 350)); } catch (e) {} }
     $('#albD').textContent = t('✅ Listo: {n} archivos descargados.', {n}); td.disabled = false; };
+}
+// ===== Boliche: mis recuerdos de cada noche (se guardan solo en el celular de cada uno) =====
+const idb = () => new Promise((ok, mal) => { const r = indexedDB.open('shopeventos-recuerdos', 1); r.onupgradeneeded = () => r.result.createObjectStore('r', {keyPath: 'id'}); r.onsuccess = () => ok(r.result); r.onerror = () => mal(r.error); });
+const idbTx = async (modo, fn) => { const db = await idb(); return new Promise((ok, mal) => { const tx = db.transaction('r', modo), st = tx.objectStore('r'), out = fn(st); tx.oncomplete = () => ok(out && out.result !== undefined ? out.result : out); tx.onerror = () => mal(tx.error); }); };
+const recTodos = () => idbTx('readonly', st => st.getAll()).then(L => (L || []).filter(x => x.code === CODE).sort((a, b) => b.t - a.t));
+function tarjRecuerdos() {
+  const el = $('#recCard'); if (!el) return; if (!INV) { el.style.display = 'none'; return; } el.style.display = '';
+  el.innerHTML = `<h3>${t('📸 Mis recuerdos de la noche')}</h3><p>${t('Sacá fotos y videos cortos con tus amigos desde acá: te quedan guardados por noche en tu celular, para volver a verlos cuando quieras.')}</p>
+    <input type="file" id="recF" accept="image/*" capture="environment" hidden><input type="file" id="recV" accept="video/*" capture="environment" hidden>
+    <button class="btn big2" id="recBF">${t('📸 Sacar una foto')}</button><br><button class="btn alt" id="recBV">${t('🎬 Grabar un video (hasta 30 segundos)')}</button><br><button class="btn alt" id="recVer">${t('🖼 Mis recuerdos')}</button><div id="recMsg"></div>`;
+  $('#recBF').onclick = () => $('#recF').click(); $('#recBV').onclick = () => $('#recV').click(); $('#recVer').onclick = verRecuerdos;
+  const guardarRec = async (f, tipo) => { if (!f) return; try {
+      if (tipo === 'video' && (await duracion(f)) > 31) throw new Error(t('El video dura más de 30 segundos. Recortalo y probá de nuevo.'));
+      const blob = tipo === 'foto' ? await achicar(f) : f;
+      await idbTx('readwrite', st => st.put({id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), code: CODE, noche: F.fecha, lugar: F.nombre || '', tipo, blob, t: Date.now()}));
+      try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
+      $('#recMsg').innerHTML = `<div class="ok">${t('✅ Guardado en tus recuerdos de esta noche.')}</div>`;
+    } catch (e) { $('#recMsg').innerHTML = `<p class="err">${esc(e.message || t('No se pudo guardar'))}</p>`; } };
+  $('#recF').onchange = e => guardarRec(e.target.files[0], 'foto'); $('#recV').onchange = e => guardarRec(e.target.files[0], 'video');
+}
+async function verRecuerdos() {
+  const c = $('#capa'); c.classList.add('on'); document.body.style.overflow = 'hidden'; let L = [];
+  try { L = await recTodos(); } catch (e) {}
+  const porNoche = {}; L.forEach(x => (porNoche[x.noche] = porNoche[x.noche] || []).push(x));
+  const urls = new Map(); L.forEach(x => urls.set(x.id, URL.createObjectURL(x.blob)));
+  const fecha = d => { try { return new Date(d + 'T12:00:00').toLocaleDateString(I18N.LOC, {weekday: 'long', day: 'numeric', month: 'long'}); } catch (e) { return d; } };
+  c.innerHTML = `<div style="max-width:900px;margin:0 auto"><h2>${t('🖼 Mis recuerdos')}</h2><p style="color:var(--soft)">${t('Se guardan solo en este celular. Para no perderlos, guardá los que más te gusten en tu galería.')}</p>
+    ${Object.keys(porNoche).sort().reverse().map(n => `<h3 style="margin:16px 0 4px">🌙 ${esc(fecha(n))}</h3><div class="alb">${porNoche[n].map(x => `<div>${x.tipo === 'video' ? `<video src="${urls.get(x.id)}" controls playsinline preload="metadata"></video>` : `<img src="${urls.get(x.id)}" alt="">`}<small><a href="${urls.get(x.id)}" download="recuerdo-${x.id}.${x.tipo === 'video' ? 'mp4' : 'jpg'}" style="color:#fff">⬇️</a> · <a href="#" data-del="${x.id}" style="color:#fff">🗑</a></small></div>`).join('')}</div>`).join('') || `<p style="color:var(--soft)">${t('Todavía no guardaste recuerdos. ¡Sacá la primera foto! 📸')}</p>`}
+    <div style="margin-top:14px"><button class="btn no" id="recCerrar">${t('Cerrar')}</button></div></div>`;
+  $('#recCerrar').onclick = () => { urls.forEach(u => URL.revokeObjectURL(u)); cerrarCapa(); };
+  c.querySelectorAll('[data-del]').forEach(a => a.onclick = async e => { e.preventDefault(); if (!confirm(t('¿Borrar este recuerdo?'))) return; await idbTx('readwrite', st => st.delete(a.dataset.del)); verRecuerdos(); });
 }
 // ===== Fiesta en vivo =====
 const minDe = h => { const [a, b] = String(h).split(':').map(Number); return a * 60 + b; };
@@ -618,6 +650,7 @@ const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.
 const instalada = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone;
 function guardar() {
   const el = $('#guardar'); if (!el) return;
+  if (F.abierto) { el.innerHTML = instalada() ? `<h3>${esc(F.nombre || '')}</h3><p>${t('✅ Ya lo tenés en tu celular. Abrilo desde el ícono cada vez que vengas.')}</p>` : `<h3>${t('Guardalo en tu celular')}</h3><p>${t('Tené {n} en tu celular: pedís a la barra sin fila, te enterás de lo que viene y guardás los recuerdos de cada noche.', {n: '<b>' + esc(F.nombre || '') + '</b>'})}</p><button class="btn big2" id="inst">${t('📲 Guardar en mi celular')}</button>`; const ib = $('#inst'); if (ib) ib.onclick = instalar; return; }
   if (instalada()) { el.innerHTML = `<h3>${t('Tu fiesta')}</h3><p>${t('✅ Ya tenés la fiesta guardada en tu celular.')}</p><p>${t('🔔 El día de la fiesta abrila desde el ícono, <b>activá los avisos</b> y dejá el celular con sonido o vibración: te vamos a avisar de la comida, el vals y la torta.')}</p>`; return; }
   el.innerHTML = `<h3>${t('Guardala en tu celular')}</h3><p>${t('<b>Guardala en tu celular y dejá todo activado para que el día de la fiesta no te pierdas nada.</b> Desde acá te vamos a avisar cuándo sale la comida, cuándo es el vals y la torta, aunque estés afuera.')}</p><button class="btn big2" id="inst">${t('📲 Guardar la fiesta en mi celular')}</button><p style="font-size:15px;margin-top:12px">${t('🔔 El día de la fiesta: abrila, <b>activá los avisos</b> y dejá el celular con sonido o vibración.')}</p>`;
   $('#inst').onclick = instalar;
@@ -637,7 +670,9 @@ $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') e.curr
 const LSC = 'fiestaCli:' + (location.pathname.split('/')[2] || '');
 function cliAbierto() { try { const c = JSON.parse(localStorage.getItem(LSC) || 'null'); if (c && c.cid && c.nombre) { TOK = 'c:' + c.cid; INV = {id: 'c_' + c.cid, nombre: c.nombre, mesa: MESA || '', anon: true}; } } catch (e) {} }
 function entrarAbierto(nombre) { nombre = String(nombre || '').trim().slice(0, 40); if (!nombre) return; const cid = Array.from(crypto.getRandomValues(new Uint8Array(8)), b => b.toString(16).padStart(2, '0')).join('');
-  try { localStorage.setItem(LSC, JSON.stringify({cid, nombre})); } catch (e) {} TOK = 'c:' + cid; INV = {id: 'c_' + cid, nombre, mesa: MESA || '', anon: true}; render(); arrancarVivo(); if (FL) flMenu(); }
+  try { localStorage.setItem(LSC, JSON.stringify({cid, nombre})); } catch (e) {} TOK = 'c:' + cid; INV = {id: 'c_' + cid, nombre, mesa: MESA || '', anon: true}; render(); arrancarVivo(); if (!instalada()) ofrecerLogo(); else if (FL) flMenu(); }
+function ofrecerLogo() { const c = $('#capa'); c.innerHTML = `<div style="max-width:460px;margin:12vh auto 0;background:var(--card);border-radius:22px;padding:22px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.25)"><div style="font-size:52px">📲</div><h2>${t('¿Querés guardar {n} en tu celular?', {n: esc(F.nombre || '')})}</h2><p>${t('Te queda el logo en la pantalla: la próxima vez lo abrís directo para pedir a la barra y ver tus recuerdos.')}</p><button class="btn big2" id="olSi">${t('📲 Sí, guardar')}</button><br><button class="btn no" id="olNo">${t('Ahora no')}</button></div>`; c.classList.add('on');
+  $('#olSi').onclick = () => { cerrarCapa(); instalar(); }; $('#olNo').onclick = () => { cerrarCapa(); if (FL) flMenu(); }; }
 const numP = p => '#' + (p.id % 1000);
 async function cargar() {
   try {
