@@ -605,7 +605,7 @@
   --body:"Inter", "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
 }
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+@media (prefers-color-scheme: dark) and (max-width: 1px){ :root:not([data-theme="light"]){
   --bg:#13111a; --surface:#1c1925; --ink:#ece9f3; --muted:#a7a1b5; --line:#322d3f;
   --accent:#b69cff; --accent-ink:#140b26; --brass:#c9a24f;
   --stage-top:#1b2421; --stage-bot:#0c110f; --wall:rgba(34,46,42,.72); --glass:rgba(90,150,135,.18);
@@ -783,7 +783,7 @@ textarea{min-height:110px;resize:vertical}
 #homeView.branded.logo-only{background:linear-gradient(var(--veil),var(--veil)),var(--brand-img) center/min(60%,520px) no-repeat,var(--bg)}
 #homeView.branded .plaque,#homeView.branded .mfoot{background:var(--surface);border-radius:10px;padding:5px 9px;box-shadow:0 4px 10px -6px var(--shadow)}
 .stagelogo{position:absolute;left:50%;top:5%;width:min(34%,280px);height:22%;transform:translateX(-50%);background:var(--brand-logo) center/contain no-repeat;opacity:.22;pointer-events:none;mix-blend-mode:multiply}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .stagelogo{mix-blend-mode:screen;opacity:.3}}
+@media (prefers-color-scheme: dark) and (max-width: 1px){:root:not([data-theme="light"]) .stagelogo{mix-blend-mode:screen;opacity:.3}}
 :root[data-theme="dark"] .stagelogo{mix-blend-mode:screen;opacity:.3}
 .pricerow{display:flex;gap:8px;align-items:stretch}
 .pricerow input{flex:1;min-width:0}
@@ -2267,7 +2267,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .sitem,.mini,.shop,.ordcard{animation:rise .45s cubic-bezier(.2,.8,.2,1) both}
 @media (prefers-reduced-motion:reduce){.sitem,.mini,.shop,.ordcard{animation:none}.btn{transition:none}}
-@media (prefers-color-scheme:dark){header h1,#brandName{background:linear-gradient(120deg,#fff 30%,color-mix(in srgb,var(--accent) 70%,#fff))}}
+@media (prefers-color-scheme: dark) and (max-width: 1px){header h1,#brandName{background:linear-gradient(120deg,#fff 30%,color-mix(in srgb,var(--accent) 70%,#fff))}}
 </style>
 
 <div class="clientbar" id="clientBar" hidden>
