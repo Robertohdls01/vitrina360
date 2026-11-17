@@ -48,45 +48,53 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
 @media print{body{background:#fff}.hero,.noprint{display:none!important}.wrap{margin:0;max-width:none}.card{box-shadow:none;padding:0}.qrs{grid-template-columns:repeat(2,10cm);grid-auto-rows:5cm;gap:0;justify-content:center}.qrc{width:10cm;height:5cm;aspect-ratio:auto;border:1px dashed #999;border-radius:0;padding:3mm 4mm;box-sizing:border-box}.qrc svg{width:4cm;height:4cm}.qrc .mesaN{font-size:26pt}.qrc small{font-size:9.5pt;color:#444}.qrc b{font-size:13pt}@page{size:A4;margin:8mm}.qrs.sticker{grid-template-columns:repeat(3,6cm);grid-auto-rows:6cm}.qrs.sticker .qrc{width:6cm;height:6cm;padding:2mm;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:0}.qrs.sticker .qrc svg{width:3.6cm;height:3.6cm}.qrs.sticker .qrc .mesaN{font-size:15pt}.qrs.sticker .qrc b{font-size:9pt}.qrs.sticker .qrc small{font-size:7.5pt}.qrs.sticker .qrc img,.qrs.sticker .qrc small+small{display:none}}
 .qrs.sticker{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}.qrs.sticker .qrc{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.qrs.sticker .qrc svg{width:120px;height:120px}.qrs.sticker .qrc img,.qrs.sticker .qrc small+small{display:none}
 /* ---------- mesa (cliente) ---------- */
-.mesa{min-height:100vh;display:flex;flex-direction:column;background:radial-gradient(circle at 50% 0,#fff 0,var(--cream) 60%)}
-.mtop{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#5b21b6;color:#fff}
-.mtop b{font-size:18px;flex:1}.mtop .tag{background:rgba(255,255,255,.18);border-radius:999px;padding:3px 10px;font-weight:700;font-size:14px}
-.mtop button{border:0;background:rgba(255,255,255,.15);color:#fff;border-radius:999px;width:38px;height:38px}
+.mesa{--v:#3f7a5a;--o:#5aa37c;--p:#8cc9a5;--ink:#2d3a32;--cream:#f6faf5;--line:#d6eadb;color:var(--ink);min-height:100vh;display:flex;flex-direction:column;background:radial-gradient(circle at 50% 0,#fff 0,var(--cream) 60%)}
+.mtop{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fff;color:var(--ink);border-bottom:2px solid var(--line);box-shadow:0 2px 10px rgba(63,122,90,.08)}
+.mtop b{font-size:18px;flex:1;color:var(--v)}.mtop .tag{background:#e8f5ec;color:var(--v);border-radius:999px;padding:3px 10px;font-weight:700;font-size:14px}
+.mtop button{border:0;background:#eef6f0;color:var(--ink);border-radius:999px;width:38px;height:38px}
 .stage{display:grid;grid-template-columns:118px 1fr;gap:10px;align-items:end;padding:16px 14px 6px}
 .chef{width:118px;height:162px}.chef .arm{transform-origin:84px 98px;animation:tray 3s ease-in-out infinite}@keyframes tray{50%{transform:rotate(-4deg)}}.chef.talk .mouth{animation:mouth .25s ease-in-out infinite alternate}@keyframes mouth{to{transform:scaleY(.35)}}
-#cajaAsis{position:fixed;left:10px;right:10px;bottom:10px;z-index:50;display:grid;grid-template-columns:84px 1fr auto;gap:8px;align-items:end;background:#fff;border:2px solid var(--line);border-radius:20px;padding:8px 10px;box-shadow:0 10px 30px rgba(91,33,182,.22)}
+#cajaAsis{position:fixed;left:10px;right:10px;bottom:10px;z-index:50;display:grid;grid-template-columns:84px 1fr auto;gap:8px;align-items:end;background:#fff;border:2px solid var(--line);border-radius:20px;padding:8px 10px;box-shadow:0 10px 30px rgba(63,122,90,.22)}
 #cajaAsis.min{right:auto;grid-template-columns:84px;padding:4px;background:transparent;border:0;box-shadow:none}#cajaAsis.min > :not(#cAva){display:none}
 #cAva{cursor:pointer}.caja{padding-bottom:240px}#cTxt{grid-column:1/-1}
 @media(min-width:820px){#cajaAsis{grid-template-columns:84px minmax(0,1.3fr) minmax(240px,1fr) auto}#cTxt{grid-column:3;grid-row:1;align-self:end}#cajaAsis > div:nth-child(3){grid-column:4;grid-row:1}.caja{padding-bottom:180px}}
 .wave{position:absolute;right:-6px;bottom:-4px;font-size:30px;animation:wave 1.4s ease-in-out infinite;transform-origin:70% 80%}@keyframes wave{0%,60%,100%{transform:rotate(0)}20%{transform:rotate(-22deg)}40%{transform:rotate(14deg)}}
 .chef.talk{animation:talkb .35s ease-in-out infinite alternate}@keyframes talkb{to{transform:translateY(-3px) rotate(-2deg)}}.fly{position:fixed;z-index:60;pointer-events:none;transition:transform .9s cubic-bezier(.5,-0.3,.4,1.3)}.fly.back{transition:transform .8s ease-in-out}.fly .point{position:absolute;right:-26px;top:30%;font-size:30px;animation:pt .5s ease-in-out infinite alternate}@keyframes pt{to{transform:translateX(6px)}}
-.flash{animation:fl 0.6s ease-in-out 5}@keyframes fl{50%{box-shadow:0 0 0 6px rgba(124,58,237,.35)}}
+.flash{animation:fl 0.6s ease-in-out 5}@keyframes fl{50%{box-shadow:0 0 0 6px rgba(90,163,124,.35)}}
 .chef .mouth{transform-origin:60px 70px}.chef .eyes{transform-origin:60px 52px;animation:blink 4s infinite}@keyframes blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}.chef{animation:bob 2.6s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-4px)}}
-.bubble{background:#fff;border:2px solid #ddd6fe;border-radius:20px 20px 20px 6px;padding:12px 14px;font-size:17px;box-shadow:0 6px 18px rgba(91,33,182,.1);white-space:pre-line}
+.bubble{background:#fff;border:2px solid var(--line);border-radius:20px 20px 20px 6px;padding:12px 14px;font-size:17px;box-shadow:0 6px 18px rgba(63,122,90,.1);white-space:pre-line}
 .opts{display:flex;gap:8px;flex-wrap:wrap;padding:6px 14px 4px}
-.opts button{border:2px solid #ddd6fe;background:#fff;border-radius:999px;padding:9px 14px;font-weight:700;color:var(--ink)}
+.opts button{border:2px solid var(--line);background:#fff;border-radius:999px;padding:9px 14px;font-weight:700;color:var(--ink)}
 .opts button.pri{border:0}
 .area{flex:1;padding:6px 14px 120px;display:grid;gap:10px;align-content:start}
 .promo{display:flex;justify-content:space-between;gap:10px;align-items:center;background:#fffbeb;border:2px solid #fde68a;border-radius:16px;padding:10px 12px}
 .promo b{display:block}.promo small{color:#7a5f4c}
 .add{border:0;background:var(--o);color:#fff;border-radius:999px;min-width:44px;height:44px;font-size:22px;font-weight:900}
-.sec2 h3{margin:10px 0 4px;font-size:18px;color:#5b21b6}
+.sec2 h3{margin:10px 0 4px;font-size:18px;color:var(--v)}
 .dish{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid var(--line);padding:8px 0}
-.dish b{display:block}.dish small{display:block;color:#6b5b86}.dish .pr{font-weight:800;white-space:nowrap}
+.dish b{display:block}.dish small{display:block;color:#5f6f64}.dish .pr{font-weight:800;white-space:nowrap}
 .dock{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:2px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;z-index:5}
 .say{display:flex;gap:8px;align-items:center}
-.mic{border:0;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--o),var(--p));color:#fff;font-size:26px;flex:none;box-shadow:0 6px 16px rgba(124,58,237,.35)}
-.mic.on{animation:pulse 1s infinite}@keyframes pulse{50%{box-shadow:0 0 0 12px rgba(124,58,237,.15)}}
-.say input{flex:1}.say .send{border:0;background:#5b21b6;color:#fff;border-radius:12px;padding:0 14px;height:44px;font-weight:800}
-.cartbtn{border:0;border-radius:14px;padding:11px;background:#5b21b6;color:#fff;font-weight:800;font-size:16px}
+.mic{border:0;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--o),var(--p));color:#fff;font-size:26px;flex:none;box-shadow:0 6px 16px rgba(90,163,124,.35)}
+.mic.on{animation:pulse 1s infinite}@keyframes pulse{50%{box-shadow:0 0 0 12px rgba(90,163,124,.15)}}
+.say input{flex:1}.say .send{border:0;background:var(--v);color:#fff;border-radius:12px;padding:0 14px;height:44px;font-weight:800}
+.cartbtn{border:0;border-radius:14px;padding:11px;background:var(--v);color:#fff;font-weight:800;font-size:16px}
 .sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9;display:flex;align-items:flex-end}
 .sheet > div{background:#fff;width:100%;max-height:85vh;overflow:auto;border-radius:22px 22px 0 0;padding:16px;display:grid;gap:10px}
 .line{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:6px 0}.line span{flex:1}
 .line button{border:2px solid var(--line);background:#fff;border-radius:10px;width:34px;height:34px;font-weight:900}
-.startbig{display:block;width:100%;margin-top:6px;border:0;border-radius:22px;padding:22px 16px;font:900 22px system-ui;color:#fff;background:linear-gradient(90deg,var(--o),var(--p));box-shadow:0 10px 26px rgba(124,58,237,.35);animation:startp 1.6s ease-in-out infinite}@keyframes startp{50%{transform:scale(1.04)}}
-.status.st-nuevo{background:#f3e8ff;border-color:#c4b5fd}.status.st-preparando{background:#fef9c3;border-color:#facc15}.status.st-listo{background:#22c55e;border-color:#16a34a;color:#fff;font-size:18px;animation:okp 1.2s ease-in-out 4}.status.st-entregado{background:#dcfce7;border-color:#86efac}@keyframes okp{50%{transform:scale(1.04)}}
+.startbig{display:block;width:100%;margin-top:6px;border:0;border-radius:22px;padding:22px 16px;font:900 22px system-ui;color:#fff;background:linear-gradient(90deg,var(--o),var(--p));box-shadow:0 10px 26px rgba(90,163,124,.35);animation:startp 1.6s ease-in-out infinite}@keyframes startp{50%{transform:scale(1.04)}}
+.status.st-nuevo{background:#e8f5ec;border-color:#a9d6b8}.status.st-preparando{background:#fef9c3;border-color:#facc15}.status.st-listo{background:#22c55e;border-color:#16a34a;color:#fff;font-size:18px;animation:okp 1.2s ease-in-out 4}.status.st-entregado{background:#dcfce7;border-color:#86efac}@keyframes okp{50%{transform:scale(1.04)}}
 .tk.preparando{border-color:#facc15;background:#fefce8}.tk.listo{border-color:#16a34a;background:#dcfce7}.tk.listo .h{color:#15803d}
 .status{background:#ecfdf5;border:2px solid #86efac;border-radius:16px;padding:10px 12px;font-weight:700}
+body:has(.mesa){--v:#3f7a5a;--o:#5aa37c;--p:#8cc9a5;--ink:#2d3a32;--cream:#f6faf5;--line:#d6eadb}
+.mesa .pri,body:has(.mesa) .pri{box-shadow:0 6px 18px rgba(63,122,90,.3)}
+/* Flashy de mozo con más gracia: se balancea, da saltitos y saluda */
+.chef.fly2{animation:baile 3.4s ease-in-out infinite;transform-origin:60px 160px}
+@keyframes baile{0%,100%{transform:translateY(0) rotate(0)}12%{transform:translateY(-7px) rotate(-5deg)}24%{transform:translateY(0) rotate(0)}36%{transform:translateY(-7px) rotate(5deg)}48%{transform:translateY(0) rotate(0)}62%{transform:translateY(-3px) rotate(-2deg) scale(1.03)}76%{transform:translateY(0) rotate(2deg)}}
+.chef.fly2 .arm{animation:tray 1.7s ease-in-out infinite}
+.chef.fly2.talk{animation:baile 1.2s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.chef.fly2{animation:none}}
 /* ---------- caja ---------- */
 .caja{padding:12px;display:grid;gap:12px}
 .cajatop{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
@@ -128,7 +136,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     o = o || {};
     if(o.g === 'flashy'){ // Flashy de mozo: la carita amarilla con traje, moño, bandeja y zapatos
       const nom = esc(String(o.local || '').trim().slice(0, 14)), fs = nom.length > 10 ? 4.2 : nom.length > 7 ? 5 : 6, id = 'fl' + Math.random().toString(36).slice(2, 7);
-      return `<svg class="chef" viewBox="0 0 120 165" aria-hidden="true"><defs><radialGradient id="${id}" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fde68a"/><stop offset=".6" stop-color="#facc15"/><stop offset="1" stop-color="#eab308"/></radialGradient><clipPath id="${id}c"><circle cx="60" cy="88" r="39"/></clipPath></defs>
+      return `<svg class="chef fly2" viewBox="0 0 120 165" aria-hidden="true"><defs><radialGradient id="${id}" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fde68a"/><stop offset=".6" stop-color="#facc15"/><stop offset="1" stop-color="#eab308"/></radialGradient><clipPath id="${id}c"><circle cx="60" cy="88" r="39"/></clipPath></defs>
       <ellipse cx="60" cy="161" rx="30" ry="4" fill="rgba(0,0,0,.14)"/>
       <rect x="45" y="122" width="8" height="30" rx="3" fill="#1f2937"/><rect x="67" y="122" width="8" height="30" rx="3" fill="#1f2937"/>
       <ellipse cx="47" cy="153" rx="11" ry="5" fill="#0b0f19"/><ellipse cx="73" cy="153" rx="11" ry="5" fill="#0b0f19"/><ellipse cx="43" cy="151.5" rx="3.5" ry="1.2" fill="#fff" opacity=".7"/><ellipse cx="69" cy="151.5" rx="3.5" ry="1.2" fill="#fff" opacity=".7"/>
@@ -504,7 +512,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     try{ mute = localStorage.getItem('shopmenu-mute') === '1'; }catch(e){}
     const FLAGS = {es: '🇦🇷 ES', en: '🇺🇸 EN', pt: '🇧🇷 PT', fr: '🇫🇷 FR', it: '🇮🇹 IT', de: '🇩🇪 DE', ru: '🇷🇺 RU', zh: '🇨🇳 中文'};
     const REDES = allLinks(M), LG = LUGARES[M.lugar] || LUGARES.mesa;
-    app.innerHTML = `<div class="mesa"><div class="mtop"><b style="display:flex;align-items:center;gap:8px">${M.logo ? `<img src="${M.logo}" alt="" style="height:34px;width:34px;object-fit:contain;border-radius:8px;background:#fff">` : ''}${esc(M.nombre)}</b><span class="tag" id="tagMesa">${MESA ? T(cap(LG[0]) + ' ', cap(LG[1]) + ' ', cap(LG[2]) + ' ') + MESA : T('Bienvenido', 'Welcome', 'Bem-vindo')}</span><select id="selLang" aria-label="Idioma / Language" style="width:auto;padding:4px 6px;border-radius:999px;background:rgba(255,255,255,.15);color:#fff;border:0">${Object.entries(FLAGS).map(([k, v]) => `<option value="${k}" ${k === LANG ? 'selected' : ''} style="color:#000">${v}</option>`).join('')}</select>${REDES.length || M.nov ? `<button type="button" id="bRedes" title="${T('Redes y novedades', 'Social & news', 'Redes e novidades')}">📲</button>` : ''}${M.musica ? `<button type="button" id="bMus" title="${T('Música', 'Music', 'Música')}">🎵</button>` : ''}<button type="button" id="bMute" title="Voz">${mute ? '🔇' : '🔊'}</button></div>
+    app.innerHTML = `<div class="mesa"><div class="mtop"><b style="display:flex;align-items:center;gap:8px">${M.logo ? `<img src="${M.logo}" alt="" style="height:34px;width:34px;object-fit:contain;border-radius:8px;background:#fff">` : ''}${esc(M.nombre)}</b><span class="tag" id="tagMesa">${MESA ? T(cap(LG[0]) + ' ', cap(LG[1]) + ' ', cap(LG[2]) + ' ') + MESA : T('Bienvenido', 'Welcome', 'Bem-vindo')}</span><select id="selLang" aria-label="Idioma / Language" style="width:auto;padding:4px 6px;border-radius:999px;background:#eef6f0;color:#2d3a32;border:0">${Object.entries(FLAGS).map(([k, v]) => `<option value="${k}" ${k === LANG ? 'selected' : ''} style="color:#000">${v}</option>`).join('')}</select>${REDES.length || M.nov ? `<button type="button" id="bRedes" title="${T('Redes y novedades', 'Social & news', 'Redes e novidades')}">📲</button>` : ''}${M.musica ? `<button type="button" id="bMus" title="${T('Música', 'Music', 'Música')}">🎵</button>` : ''}<button type="button" id="bMute" title="Voz">${mute ? '🔇' : '🔊'}</button></div>
       <div class="stage"><div id="ava">${CHEF}</div><div class="bubble" id="say" role="status" aria-live="polite"></div></div>
       <div class="opts" id="opts"></div>
       <div class="area" id="area"></div>
@@ -799,7 +807,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
     function bannerApp(){
       if(STANDALONE || CLI.noApp || CLI.vioBanner || $('#appTop')) return;
       const b = document.createElement('div'); b.id = 'appTop'; b.setAttribute('role', 'dialog');
-      b.style.cssText = 'position:fixed;left:8px;right:8px;top:8px;z-index:75;background:#fff;border:2px solid #ddd6fe;border-radius:16px;padding:10px 12px;box-shadow:0 8px 24px rgba(91,33,182,.18);display:grid;gap:6px;max-width:520px;margin:0 auto';
+      b.style.cssText = 'position:fixed;left:8px;right:8px;top:8px;z-index:75;background:#fff;border:2px solid var(--line);border-radius:16px;padding:10px 12px;box-shadow:0 8px 24px rgba(63,122,90,.18);display:grid;gap:6px;max-width:520px;margin:0 auto';
       b.innerHTML = `<div style="display:flex;gap:10px;align-items:center"><img src="/api/menu?icono=${encodeURIComponent(ID)}" alt="" width="44" height="44" style="border-radius:10px"><span><b>${T(`¿Querés el ícono de ${esc(M.nombre)} en tu celular?`, `Add ${esc(M.nombre)} to your phone?`, `Quer o ícone do ${esc(M.nombre)} no seu celular?`)}</b><br><span style="color:#6b5b86;font-size:14px">${T('Así la próxima pedís más rápido.', 'Order faster next time.', 'Assim você pede mais rápido.')}</span></span></div>
         <div style="display:flex;gap:8px"><button class="btn pri" type="button" id="atSi" style="flex:1">📲 ${T('Sí, descargar', 'Yes, add it', 'Sim, baixar')}</button><button class="btn sec" type="button" id="atNo">${T('No, gracias', 'No, thanks', 'Não, obrigado')}</button></div><div class="instSteps note" style="display:none"></div>`;
       document.body.appendChild(b); guardaCli({vioBanner: true});

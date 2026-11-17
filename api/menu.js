@@ -32,7 +32,7 @@ const BAL_MENU = { nombre: 'Balneario Las Gaviotas (demo)', lugar: 'carpa', idio
     { n: '🏄 Actividades', items: [{ n: 'Clase de surf (1 hora)', d: 'Con tabla y traje incluidos.', p: '$25.000' }, { n: 'Alquiler de kayak (1 hora)', d: 'Con chaleco.', p: '$15.000' }] }
   ] };
 async function leerObj(path) {
-  if (path === 'menus/' + PUB + '.json') { const f = await leerObj0('menus/' + PUB_BASE + '.json'); if (!f) return null; f.clave = hash('demo'); f.libre = true; f.menu = Object.assign({}, f.menu, { nombre: 'Café de Prueba', dueno: '', mozos: [], paylink: '', alias: '' }); return f; }
+  if (path === 'menus/' + PUB + '.json') { const f = await leerObj0('menus/' + PUB_BASE + '.json'); if (!f) return null; f.clave = hash('demo'); f.libre = true; f.menu = Object.assign({}, f.menu, { nombre: 'Café de Prueba', dueno: '', mozos: [], paylink: '', alias: '', avatar: 'flashy', asistente: 'Flashy' }); return f; }
   if (path === 'menus/' + BAL + '.json') { const st = await leerObj0(path); return { clave: hash('demo'), libre: true, creado: '2026-11-16T00:00:00Z', menu: Object.assign({}, BAL_MENU, st && st.menu && st.menu.tr ? { tr: st.menu.tr } : {}) }; }
   return leerObj0(path);
 }
