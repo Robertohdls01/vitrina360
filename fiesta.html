@@ -110,7 +110,7 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .capa .fgr{width:58%;max-width:300px;aspect-ratio:1;border-radius:22px;object-fit:cover;border:5px solid var(--card);box-shadow:0 0 0 3px var(--ac),0 12px 28px rgba(0,0,0,.18)}
 .capa .fgr.fini{font-size:110px}
 .capa h2{font:400 40px/1.05 var(--script);margin:6px 0 4px;color:var(--ink)}
-#lienzo{width:100%;height:240px;background:#fff;border:2px dashed var(--ac);border-radius:18px;touch-action:none;display:block;margin-top:12px}
+#lienzo{width:100%;height:280px;background:#fff;border:2px dashed var(--ac);border-radius:18px;touch-action:none;display:block;margin-top:12px}
 .colores{display:flex;gap:10px;align-items:center;margin:10px 0}.colores button{width:34px;height:34px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px var(--line);cursor:pointer}.colores button.on{box-shadow:0 0 0 3px var(--ink)}
 .firmas{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:14px}
 .firmas div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:6px;text-align:center;color:#1f2937;font-size:13px}.firmas img{width:100%;height:80px;object-fit:contain}.firmas div.yo{box-shadow:0 0 0 2px var(--ac)}
@@ -126,6 +126,7 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 <div class="capa" id="capa"></div>
 <div class="modal" id="modal"><div class="in" id="modalIn"></div></div>
 <script src="/fiesta-i18n.js"></script>
+<script src="/pluma.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const t = I18N.t, tc = I18N.tc, LG = I18N.LANG;
@@ -275,7 +276,9 @@ function abrirFirma() {
   const c = $('#capa'), n = esc(F.nombre || '');
   c.innerHTML = `<div style="max-width:560px;margin:0 auto"><div class="top">${fotoHTML('fgr')}<div><h2>${n}</h2><p style="color:var(--soft);margin:0">${t('Firmá acá abajo con el dedo ✍️')}</p></div></div>
     <canvas id="lienzo"></canvas>
-    <div class="colores">${['#1f2937', '#b8860b', '#db2777', '#2563eb', '#16a34a'].map((k, i) => `<button type="button" data-col="${k}" class="${i ? '' : 'on'}" style="background:${k}" aria-label="color"></button>`).join('')}<button type="button" class="btn alt" id="fBorrar" style="width:auto;height:auto;border-radius:999px;margin:0 0 0 auto;box-shadow:inset 0 0 0 2px var(--line)">${t('Borrar')}</button></div>
+    <div class="colores">${['#1f2937', '#b8860b', '#db2777', '#2563eb', '#16a34a'].map((k, i) => `<button type="button" data-col="${k}" class="${i ? '' : 'on'}" style="background:${k}" aria-label="color"></button>`).join('')}</div>
+    <div class="colores" style="margin-top:6px">${[['fino', 1.8], ['medio', 2.8], ['grueso', 4.2]].map(([k, a], i) => `<button type="button" data-anc="${a}" class="btn alt" style="width:auto;height:auto;border-radius:999px;padding:6px 12px;box-shadow:inset 0 0 0 2px ${i === 1 ? 'var(--ac)' : 'var(--line)'}"><span style="display:inline-block;width:22px;height:${a}px;background:#1f2937;border-radius:9px;vertical-align:middle"></span></button>`).join('')}<button type="button" class="btn alt" id="fDesh" style="width:auto;height:auto;border-radius:999px;margin:0 0 0 auto;padding:6px 12px;box-shadow:inset 0 0 0 2px var(--line)">↩️ ${t('Deshacer')}</button><button type="button" class="btn alt" id="fBorrar" style="width:auto;height:auto;border-radius:999px;padding:6px 12px;box-shadow:inset 0 0 0 2px var(--line)">${t('Borrar')}</button></div>
+    <p style="color:var(--soft);font-size:14px;margin:6px 0 10px">${t('Consejo: firmá despacio. Con un lápiz táctil sale todavía mejor.')}</p>
     <input id="fMsg" maxlength="120" placeholder="${t('Un mensajito (opcional)')}" style="width:100%;font:17px var(--sans);padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)">
     <button class="btn big2" id="fOk" style="margin-top:12px">${t('✍️ Firmar')}</button><br><button class="btn no" id="fNo">${t('Cancelar')}</button><div id="fErr"></div></div>`;
   c.classList.add('on'); document.body.style.overflow = 'hidden';
@@ -283,11 +286,16 @@ function abrirFirma() {
   const x = cv.getContext('2d'); x.scale(dpr, dpr); x.lineCap = 'round'; x.lineJoin = 'round'; x.lineWidth = 3.2; x.strokeStyle = '#1f2937';
   let dib = false, hay = false, last = null;
   const pos = e => { const b = cv.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
-  cv.onpointerdown = e => { dib = true; $('#fErr').innerHTML = ''; last = pos(e); cv.setPointerCapture(e.pointerId); x.beginPath(); x.arc(last[0], last[1], 1.4, 0, 7); x.fillStyle = x.strokeStyle; x.fill(); hay = true; };
-  cv.onpointermove = e => { if (!dib) return; const p = pos(e); x.beginPath(); x.moveTo(last[0], last[1]); x.lineTo(p[0], p[1]); x.stroke(); last = p; hay = true; };
-  cv.onpointerup = cv.onpointercancel = () => { dib = false; };
+  let anc = 2.8, pl = null; const mkP = mouse => window.Pluma ? Pluma(cv, x, {ancho: anc, mouse}) : null;
+  cv.onpointerdown = e => { $('#fErr').innerHTML = ''; pl = mkP(e.pointerType === 'mouse') || pl; if (pl) { pl.down(e); hay = true; dib = true; return; } dib = true; last = pos(e); cv.setPointerCapture(e.pointerId); hay = true; };
+  cv.onpointermove = e => { if (!dib) return; if (pl) return pl.move(e); const p = pos(e); x.beginPath(); x.moveTo(last[0], last[1]); x.lineTo(p[0], p[1]); x.stroke(); last = p; };
+  cv.onpointerup = cv.onpointercancel = () => { if (pl) pl.up(); dib = false; };
+  const pasos = []; const guardarPaso = () => { try { pasos.push(x.getImageData(0, 0, cv.width, cv.height)); if (pasos.length > 20) pasos.shift(); } catch (e) {} };
+  cv.addEventListener('pointerdown', guardarPaso, {capture: true});
+  $('#fDesh').onclick = () => { const im = pasos.pop(); if (!im) return; x.save(); x.setTransform(1, 0, 0, 1, 0, 0); x.putImageData(im, 0, 0); x.restore(); if (!pasos.length) hay = false; };
+  c.querySelectorAll('[data-anc]').forEach(b => b.onclick = () => { anc = +b.dataset.anc; c.querySelectorAll('[data-anc]').forEach(y => y.style.boxShadow = 'inset 0 0 0 2px ' + (y === b ? 'var(--ac)' : 'var(--line)')); });
   c.querySelectorAll('[data-col]').forEach(b => b.onclick = () => { x.strokeStyle = b.dataset.col; c.querySelectorAll('[data-col]').forEach(y => y.classList.toggle('on', y === b)); });
-  $('#fBorrar').onclick = () => { x.clearRect(0, 0, cv.width, cv.height); hay = false; };
+  $('#fBorrar').onclick = () => { guardarPaso(); x.clearRect(0, 0, cv.width, cv.height); hay = false; };
   $('#fNo').onclick = cerrarCapa;
   $('#fOk').onclick = async () => {
     if (!hay) { $('#fErr').innerHTML = `<p class="err">${t('Primero firmá con el dedo en el recuadro blanco.')}</p>`; return; }

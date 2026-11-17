@@ -159,6 +159,8 @@
     ["Escribí tu nombre y mirá cómo te acompaña Flashy en la fiesta.", "Type your name and see how Flashy helps you at the party.", "Escreva seu nome e veja como o Flashy te acompanha na festa.", "Scrivi il tuo nome e guarda come Flashy ti accompagna alla festa.", "Écris ton prénom et regarde comment Flashy t'accompagne à la fête.", "Gib deinen Namen ein und sieh, wie Flashy dich auf der Party begleitet.", "输入你的名字，看看Flashy如何在派对上陪伴你。", "名前を入力して、Flashyがパーティーでどう案内するか見てみよう。"],
     ["Tu nombre", "Your name", "Seu nome", "Il tuo nome", "Ton prénom", "Dein Name", "你的名字", "あなたの名前"],
     ["🎉 Entrar a la fiesta", "🎉 Enter the party", "🎉 Entrar na festa", "🎉 Entra nella festa", "🎉 Entrer dans la fête", "🎉 Zur Party", "🎉 进入派对", "🎉 パーティーに入る"],
+    ["Deshacer", "Undo", "Desfazer", "Annulla", "Annuler", "Rückgängig", "撤销", "元に戻す"],
+    ["Consejo: firmá despacio. Con un lápiz táctil sale todavía mejor.", "Tip: sign slowly. A stylus works even better.", "Dica: assine devagar. Com uma caneta touch fica ainda melhor.", "Consiglio: firma lentamente. Con una penna touch viene ancora meglio.", "Astuce : signe lentement. Avec un stylet, c'est encore mieux.", "Tipp: Langsam unterschreiben. Mit einem Eingabestift geht es noch besser.", "提示：慢慢签。用触控笔效果更好。", "コツ：ゆっくり書いてね。タッチペンだともっときれい。"],
     ["1 opinión", "1 review", "1 avaliação", "1 recensione", "1 avis", "1 Bewertung", "1 条评价", "1件のレビュー"],
     ["Regalo", "Gift", "Presente", "Regalo", "Cadeau", "Geschenk", "礼物", "プレゼント"],
     ["📋 Copiar", "📋 Copy", "📋 Copiar", "📋 Copia", "📋 Copier", "📋 Kopieren", "📋 复制", "📋 コピー"],
