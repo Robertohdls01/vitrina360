@@ -324,7 +324,8 @@ function momentos() { // cada momento del cronograma con su hora real (los de de
   return F.crono.map(x => { let m = minDe(x.h); if (m < h0) m += 1440; const ts = base + m * 60e3 + at; return {h: x.h, nombre: x.t, a: x.a, ts, aviso: ts - (x.m || 0) * 60e3}; }).sort((a, b) => a.ts - b.ts);
 }
 const hhmm = t => new Date(t).toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Argentina/Buenos_Aires'});
-const EST = p => p.estado === 'entregado' ? t('✅ Entregado') : p.estado === 'cancelado' ? t('❌ Cancelado') : p.estado === 'camino' ? t('🚶 Ya va {m} a tu mesa', {m: p.moza ? esc(p.moza) : t('la moza')}) : p.moza ? t('👩 {m} te lo va a llevar', {m: esc(p.moza)}) : t('📝 Recibido: enseguida te avisamos quién te lo trae');
+const AYUDA = '🆘 Ayuda urgente', esAyuda = p => (p.items || []).some(x => x.n === AYUDA);
+const EST = p => esAyuda(p) ? (p.estado === 'nuevo' ? t('🆘 Pedido de ayuda enviado. Ya lo están viendo.') : p.estado === 'camino' ? t('🚑 Ya van para donde estás') : p.estado === 'entregado' ? t('✅ Atendido') : t('❌ Cancelado')) : p.estado === 'entregado' ? t('✅ Entregado') : p.estado === 'cancelado' ? t('❌ Cancelado') : p.estado === 'camino' ? t('🚶 Ya va {m} a tu mesa', {m: p.moza ? esc(p.moza) : t('la moza')}) : p.moza ? t('👩 {m} te lo va a llevar', {m: esc(p.moza)}) : t('📝 Recibido: enseguida te avisamos quién te lo trae');
 let progAbierto = false;
 document.addEventListener('toggle', e => { if (e.target.classList && e.target.classList.contains('prog')) progAbierto = e.target.open; }, true);
 function pVivo() {
@@ -346,12 +347,64 @@ function pVivo() {
       <input id="pnota" maxlength="140" placeholder="${t('¿Algo más? (opcional)')}" style="width:100%;margin-top:10px;font:16px var(--sans);padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)">
       <button class="btn big2" id="pedir" style="margin-top:10px">${t('🛎 Pedir a mi mesa')}</button><div id="pmsg"></div>` : ''}
     ${peds.length ? `<p style="font-weight:700;margin:14px 0 2px">${t('Tus pedidos')}</p>${peds.map(p => `<div class="ped"><div class="est">${EST(p)}</div><div>${p.items.map(x => (x.c > 1 ? x.c + ' × ' : '') + esc(tc(x.n)) + (x.p && x.p !== 'vos' ? ' (' + t('para {p}', {p: esc(x.p)}) + ')' : '')).join(', ')} · <span style="color:var(--soft)">${hhmm(Date.parse(p.t))}</span></div></div>`).join('')}` : ''}
+    ${F.autos ? autoHTML() : ''}
+    <button class="btn" id="bAyuda" style="margin-top:14px;width:100%;background:#dc2626;color:#fff">${t('🆘 Necesito ayuda')}</button>
     ${'Notification' in window && Notification.permission === 'default' ? `<button class="btn alt" id="permiso" style="margin-top:12px">${t('🔔 Activar avisos de la fiesta')}</button>` : ''}`;
   el.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { const x = carta[+b.dataset.q]; CANT[x.n] = Math.max(0, Math.min(10, (CANT[x.n] || 0) + +b.dataset.d)); $('#q' + b.dataset.q).textContent = CANT[x.n]; });
   const pb = $('#pedir'); if (pb) pb.onclick = pedir;
   const af = $('#aFlashy'); if (af) af.onclick = () => { flVoz = true; flDecir(t('¿Qué te traemos? Decímelo con el 🎤 o escribilo 🙂'), flOpsPedir(), true); };
   const pm = $('#permiso'); if (pm) pm.onclick = async () => { try { await Notification.requestPermission(); } catch (e) {} pVivo(); };
+  $('#bAyuda').onclick = abrirAyuda; const ao = $('#aOk'); if (ao) ao.onclick = anotarAuto; const ap = $('#aPreg'); if (ap) ap.onclick = preguntarAuto; const ac = $('#aCambiar'); if (ac) ac.onclick = () => { autoEditar = true; pVivo(); };
 }
+// ===== Mi auto: lo anota el invitado, lo cuida el personal de autos =====
+let autoEditar = false;
+const autoPend = a => a && a.pregunta && (!a.resp_t || Date.parse(a.resp_t) < Date.parse(a.pregunta));
+function autoHTML() {
+  const a = VIVO && VIVO.auto, inp = 'font:16px var(--sans);padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)';
+  if (!a || autoEditar) return `<p style="font-weight:700;margin:16px 0 2px">${t('🚗 Mi auto')}</p><p style="font-size:15px;margin:2px 0 8px">${t('¿Viniste en auto? Anotalo y el que cuida los autos te avisa que está todo bien.')}</p>
+    <div style="display:flex;gap:6px"><input id="aPat" maxlength="12" placeholder="${t('Patente')}" value="${esc(a && a.patente || '')}" style="${inp};width:40%;text-transform:uppercase"><input id="aDes" maxlength="60" placeholder="${t('Ej: Gol gris')}" value="${esc(a && a.descr || '')}" style="${inp};flex:1"></div>
+    <button class="btn alt" id="aOk" style="margin-top:8px;width:100%">${t('🚗 Anotar mi auto')}</button><div id="aMsg"></div>`;
+  return `<div class="ped" style="margin-top:14px"><div class="est">🚗 ${a.patente ? '<b>' + esc(a.patente) + '</b> ' : ''}${esc(a.descr || '')}</div>
+    <div>${a.cuida ? t('🛡 Lo cuida {n}', {n: esc(a.cuida)}) : t('Anotado. Cuando lo vea el que cuida los autos, te avisamos.')}</div>
+    ${a.resp && !autoPend(a) ? `<div style="font-size:14px;color:var(--soft)">${a.resp === 'ok' ? t('✅ Última respuesta: todo bien') : t('🙋 Te pidieron que vayas a ver tu auto')} · ${hhmm(Date.parse(a.resp_t))}</div>` : ''}
+    ${autoPend(a) ? `<div style="font-weight:700">${t('⏳ Ya le preguntamos. Enseguida te responde.')}</div>` : `<button class="btn alt" id="aPreg" style="margin-top:6px">${t('🚗 ¿Cómo está mi auto?')}</button>`} <button class="btn no" id="aCambiar" style="margin-top:6px">${t('✏️ Cambiar')}</button></div>`;
+}
+async function anotarAuto() {
+  const patente = ($('#aPat').value || '').trim(), descr = ($('#aDes').value || '').trim();
+  try { const r = await fetch('/api/fiesta?accion=auto', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, patente, descr})}); const j = await r.json(); if (!r.ok) throw new Error(j.error || t('No se pudo guardar'));
+    autoEditar = false; await vivoTick(); if (FL) flDecir(t('¡Listo! 🚗 Tu auto quedó anotado. Si querés saber cómo está, preguntame cuando quieras.'), [{t: t('👍 Gracias'), alt: true, f: () => $('#flb').classList.remove('on')}]);
+  } catch (e) { $('#aMsg').innerHTML = `<p class="err">${esc(e.message)}</p>`; }
+}
+async function preguntarAuto() {
+  try { const r = await fetch('/api/fiesta?accion=autoPregunta', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK})}); const j = await r.json(); if (!r.ok) throw new Error(j.error || t('No se pudo'));
+    await vivoTick(); if (FL) flDecir(t('Ya le pregunté al que cuida los autos 🚗. Te aviso apenas responda.'), []);
+  } catch (e) { toast(e.message); }
+}
+// ===== Ayuda urgente: botiquín, me siento mal, emergencia =====
+function abrirAyuda() {
+  const c = $('#capa'); const tel = F.saludTel ? String(F.saludTel).replace(/[^\d+]/g, '') : '';
+  c.innerHTML = `<div style="max-width:520px;margin:0 auto"><h2 style="font:800 28px var(--sans);color:#b91c1c;margin:8px 0">${t('🆘 Necesito ayuda')}</h2>
+    <p>${t('Le avisamos ya mismo al personal{s}. Decinos qué pasa y dónde estás.', {s: F.salud && F.saludNom ? ' ' + t('y a {n}', {n: esc(F.saludNom)}) : ''})}</p>
+    <div style="display:grid;gap:8px">${[['mal', t('🤢 Me siento mal')], ['botiquin', t('🩹 Necesito el botiquín')], ['emergencia', t('🚑 Es una emergencia')], ['otro', t('🙋 Otra cosa')]].map(([k, l]) => `<button class="btn alt" data-ay="${k}" style="text-align:left">${l}</button>`).join('')}</div>
+    <label style="display:block;margin-top:12px;font-weight:700">${t('¿Dónde estás? (ej: en el medio de la pista, en el baño)')}</label>
+    <input id="ayDonde" maxlength="100" style="width:100%;font:17px var(--sans);padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)" value="${INV && INV.mesa ? esc(t('Mesa {m}', {m: INV.mesa})) : ''}">
+    <button class="btn big2" id="ayOk" style="margin-top:12px;background:#dc2626">${t('🆘 Pedir ayuda ahora')}</button>
+    ${tel ? `<a class="btn alt" href="tel:${esc(tel)}" style="display:block;text-align:center;margin-top:8px">${t('📞 Llamar a {n}', {n: esc(F.saludNom || t('Servicio médico'))})}</a>` : ''}
+    <p style="font-size:14px;color:var(--soft);margin-top:10px">${t('Si es grave, llamá también al número de emergencias de tu país.')}</p>
+    <button class="btn no" id="ayNo">${t('Cancelar')}</button><div id="ayMsg"></div></div>`;
+  c.classList.add('on'); document.body.style.overflow = 'hidden'; let tipo = 'mal';
+  c.querySelectorAll('[data-ay]').forEach(b => b.onclick = () => { tipo = b.dataset.ay; c.querySelectorAll('[data-ay]').forEach(y => y.style.boxShadow = y === b ? '0 0 0 3px #dc2626' : ''); });
+  c.querySelector('[data-ay="mal"]').style.boxShadow = '0 0 0 3px #dc2626';
+  $('#ayNo').onclick = cerrarCapa;
+  $('#ayOk').onclick = async () => { const b = $('#ayOk'); b.disabled = true;
+    const que = {mal: 'Se siente mal', botiquin: 'Necesita el botiquín', emergencia: 'EMERGENCIA', otro: 'Necesita ayuda'}[tipo];
+    try { const r = await fetch('/api/fiesta?accion=pedir', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, mesa: MESA, items: [{n: AYUDA, c: 1}], nota: que + ' · ' + ($('#ayDonde').value || '').trim()})}); const j = await r.json();
+      if (!r.ok) throw new Error(j.error || t('No se pudo'));
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]); cerrarCapa(); await vivoTick();
+      const tx = t('🆘 Ya avisamos. Quedate donde estás, ya van para ahí.'); toast(tx, nomFiesta(F), true, !!FL); if (FL) flDecir(tx, []);
+    } catch (e) { $('#ayMsg').innerHTML = `<p class="err">${esc(e.message)}</p>`; b.disabled = false; } };
+}
+
 async function pedir() {
   const items = Object.entries(CANT).filter(([n, c]) => c > 0).map(([n, c]) => ({n, c}));
   const msg = $('#pmsg'); if (!items.length) { msg.innerHTML = `<p class="err">${t('Elegí algo con el botón +')}</p>`; return; }
@@ -378,7 +431,7 @@ function toast(t, sub, fuerte, sinVoz) {
     if (navigator.serviceWorker && navigator.serviceWorker.ready) navigator.serviceWorker.ready.then(r => r.showNotification(t, opt)).catch(() => { try { new Notification(t, opt); } catch (e) {} }); else try { new Notification(t, opt); } catch (e) {}
   }
 }
-let estadoAnt = {};
+let estadoAnt = {}, autoAnt = null;
 async function vivoTick() {
   if (!F || !F.vivo || !F.hoy || !INV) return;
   try { const r = await fetch('/api/fiesta?accion=vivo&f=' + CODE + '&i=' + encodeURIComponent(TOK)); const j = await r.json(); if (!r.ok || !j.vivo) return; VIVO = j; F.atraso = j.atraso || 0;
@@ -389,13 +442,18 @@ async function vivoTick() {
         else if (p.estado === 'entregado') { if (FL) flDecir(t('¡Que lo disfrutes! 🥂 ¿Necesitás algo más?'), [{t: t('🥤 Pedir algo'), f: () => flDecir(t('¿Qué te traemos?'), flOpsPedir(), true)}, {t: t('No, gracias'), alt: true, f: () => $('#flb').classList.remove('on')}]); }
         else if (p.estado === 'nuevo' && p.moza && !ant.endsWith('|' + p.moza)) toast(t('👩 {m} va a llevarte {q}', {m: p.moza, q: que}), nomFiesta(F)); }
       estadoAnt[p.id] = k; });
+    const au = j.auto, ka = au ? (au.cuida || '') + '|' + (au.resp_t || '') : '';
+    if (au && autoAnt != null && ka !== autoAnt) { const [c0] = autoAnt.split('|');
+      const tx = au.resp_t && !autoAnt.endsWith(au.resp_t) ? (au.resp === 'ok' ? t('🚗 {n}: tu auto está bien, quedate tranquilo 👍', {n: au.cuida || t('El cuidador')}) : t('🚗 {n} te pide que vayas a ver tu auto', {n: au.cuida || t('El cuidador')})) : au.cuida && au.cuida !== c0 ? t('🛡 {n} está cuidando tu auto', {n: au.cuida}) : '';
+      if (tx) { toast(tx, nomFiesta(F), au.resp === 'ven', !!FL); if (FL) flDecir(tx, []); } }
+    autoAnt = ka;
   } catch (e) {}
   // aviso previo: 30 minutos antes de cada momento (si el aviso principal es más cerca), para que se vaya preparando
   momentos().forEach(m => { if (!m.a || (m.ts - m.aviso) >= 25 * 60e3 || /recepci|fin de fiesta/i.test(m.nombre)) return; const k = 'p' + m.h + m.nombre, pre = m.ts - 30 * 60e3;
     if (!vistos[k] && Date.now() >= pre && Date.now() < m.aviso) { marcarVisto(k); const tx = conNombre(t('⏰ En media hora llega el momento: {m}. ¡Andá preparándote!', {m: tc(m.nombre)})); toast(tx, nomFiesta(F), false, true); if (FL) flDecir(tx, [{t: t('📋 Ver el programa'), alt: true, f: () => { $('#flb').classList.remove('on'); progAbierto = true; pVivo(); }}, {t: t('👍 Dale'), alt: true, f: () => $('#flb').classList.remove('on')}]); }
     else if (!vistos[k] && Date.now() >= m.aviso) marcarVisto(k); });
   momentos().forEach((m, i, M) => { const k = 'c' + m.h + m.nombre; if (!vistos[k] && Date.now() >= m.aviso && Date.now() - m.aviso < 30 * 60e3) { marcarVisto(k); if (m.a) { escena(m.nombre + ' ' + m.a); const tx = conNombre(tc(m.a)); toast(tx, nomFiesta(F), true, true); const sig = M[i + 1]; if (FL) flDecir(tx + (sig ? t(' Después, a las {h}: {m}', {h: hhmm(sig.ts), m: tc(sig.nombre)}) + (/[.!?！。]$/.test(tc(sig.nombre)) ? '' : '.') : ''), [{t: t('🥤 Pedir algo'), f: () => flDecir(t('¿Qué te traemos?'), flOpsPedir(), true)}, {t: t('👍 Dale'), alt: true, f: () => $('#flb').classList.remove('on')}]); } } else if (!vistos[k] && Date.now() - m.aviso >= 30 * 60e3) marcarVisto(k); });
-  const ae = document.activeElement; if (!(ae && (ae.id === 'pnota'))) pVivo();
+  const ae = document.activeElement; if (!(ae && ['pnota', 'aPat', 'aDes'].includes(ae.id))) pVivo();
 }
 // ===== Escenas de cada momento (brindis, torta, mesa dulce, vals…) =====
 const ESCENAS = [[/brindis/i, '🥂', ['🥂', '✨', '🎉', '🍾']], [/torta/i, '🎂', ['🎂', '🕯', '✨', '🎉']], [/mesa dulce|dulces/i, '🍰', ['🍰', '🧁', '🍩', '🍬', '🍫', '🍭', '🍪']], [/karaoke|cantar/i, '🎤', ['🎤', '🎶', '🎵', '⭐']], [/vals/i, '💃', ['💃', '🕺', '🎶', '✨']], [/a bailar|baile|pista|bailar/i, '🪩', ['🪩', '💃', '🕺', '🎶', '✨']], [/carioca|cotill|disfraz|robot/i, '🎭', ['🎭', '🎉', '🎊', '🕶']], [/foto/i, '📸', ['📸', '✨', '😁']], [/vela/i, '🕯', ['🕯', '✨', '💫']], [/entrada de|entra la|quincea|novios/i, '👑', ['👑', '✨', '💖']], [/plato|entrada \(|entrada\b|comida|cena|sale la/i, '🍽', ['🍽', '😋', '✨']], [/souvenir|fin de fiesta/i, '🎁', ['🎁', '💖', '👋']], [/recepci|bienvenid/i, '🎉', ['🎉', '🥳', '✨']]];
@@ -452,21 +510,23 @@ function flOpsPedir() {
   const carta = (F.carta || []).filter(x => !(x.alc && INV.menor)).slice(0, 6);
   return carta.map(x => ({t: tc(x.n), f: () => flConfirmar([{n: x.n, c: 1}])})).concat([{t: t('Ver todo'), alt: true, f: () => { $('#flb').classList.remove('on'); const v = $('#vivo'); if (v) v.scrollIntoView({behavior: 'smooth'}); }}]);
 }
-const ICONO_LUGAR = n => /regal/i.test(n) ? '🎁' : /ba[ñn]o/i.test(n) ? '🚻' : /barra|trago/i.test(n) ? '🍹' : /foto/i.test(n) ? '📸' : /guardarropa|abrigo|campera/i.test(n) ? '🧥' : /salida|puerta/i.test(n) ? '🚪' : /terraza|rooftop/i.test(n) ? '🌇' : /cochera|estacion|parking/i.test(n) ? '🚗' : /fum|patio|jard/i.test(n) ? '🌙' : /pista|dj/i.test(n) ? '🪩' : '📍';
+const ICONO_LUGAR = n => /desfibril|\bdea\b/i.test(n) ? '❤️‍🩹' : /emergencia/i.test(n) ? '🚨' : /matafuego|extintor/i.test(n) ? '🧯' : /auxilio|botiqu|enfermer/i.test(n) ? '🩹' : /regal/i.test(n) ? '🎁' : /ba[ñn]o/i.test(n) ? '🚻' : /barra|trago/i.test(n) ? '🍹' : /foto/i.test(n) ? '📸' : /guardarropa|abrigo|campera/i.test(n) ? '🧥' : /salida|puerta/i.test(n) ? '🚪' : /terraza|rooftop/i.test(n) ? '🌇' : /cochera|estacion|parking/i.test(n) ? '🚗' : /fum|patio|jard/i.test(n) ? '🌙' : /pista|dj/i.test(n) ? '🪩' : '📍';
 function lugarDe(t) { const L = F.lugares || [], tn = norm(t); if (!L.length) return null;
-  const claves = [[/regal|gift|present|cadeau|geschenk|礼物|プレゼント/, /regal/], [/bano|toilet|toalet|bathroom|restroom|banheiro|bagno|wc|厕所|洗手间|トイレ/, /bano|toilet/], [/barra|trago|\bbar\b|吧台|バー/, /barra/], [/foto|photo|照|写真/, /foto/], [/abrigo|campera|saco|guardarropa|coat|cloak|chapelaria|guardaroba|vestiaire|garderobe|衣帽|クローク/, /guardarropa|abrigo/], [/salida|irme|puerta|exit|saida|uscita|sortie|ausgang|出口/, /salida|puerta/], [/fumar|fumo|cigarr|patio|smok|fumare|fumer|rauch|吸烟|タバコ/, /fum|patio/], [/pista|dj|dance|tanz|舞池|ダンス/, /pista|dj/], [/terraza|terrace|rooftop|terrazza|terrasse|露台|テラス/, /terraza/], [/patio|jardin|garden|jardim|giardino|garten|庭|花园/, /patio|jardin/], [/cochera|estacionamiento|auto|parking|car\b|estacionamento|parcheggio|parkplatz|停车|駐車/, /cochera|estacion/]];
+  const claves = [[/desfibril|\bdea\b|defibrill|desfibril|defibrillat|défibrill|defibrillator|除颤|AED/i, /desfibril|dea/], [/emergencia|emergency|emergencia|urgence|notausgang|uscita di sicurezza|紧急|非常口/, /emergencia/], [/matafuego|extintor|extinguisher|extintor|estintore|extincteur|feuerlöscher|feuerloscher|灭火|消火/, /matafuego|extintor/], [/auxilio|botiquin|first aid|medic|doctor|soccorso|secours|erste hilfe|急救|救急/, /auxilio|botiqu/], [/regal|gift|present|cadeau|geschenk|礼物|プレゼント/, /regal/], [/bano|toilet|toalet|bathroom|restroom|banheiro|bagno|wc|厕所|洗手间|トイレ/, /bano|toilet/], [/barra|trago|\bbar\b|吧台|バー/, /barra/], [/foto|photo|照|写真/, /foto/], [/abrigo|campera|saco|guardarropa|coat|cloak|chapelaria|guardaroba|vestiaire|garderobe|衣帽|クローク/, /guardarropa|abrigo/], [/salida|irme|puerta|exit|saida|uscita|sortie|ausgang|出口/, /salida|puerta/], [/fumar|fumo|cigarr|patio|smok|fumare|fumer|rauch|吸烟|タバコ/, /fum|patio/], [/pista|dj|dance|tanz|舞池|ダンス/, /pista|dj/], [/terraza|terrace|rooftop|terrazza|terrasse|露台|テラス/, /terraza/], [/patio|jardin|garden|jardim|giardino|garten|庭|花园/, /patio|jardin/], [/cochera|estacionamiento|auto|parking|car\b|estacionamento|parcheggio|parkplatz|停车|駐車/, /cochera|estacion/]];
   for (const [q, l] of claves) if (q.test(tn)) { const x = L.find(y => l.test(norm(y.n))); if (x) return x; }
   return L.find(y => norm(y.n).split(' ').some(w => w.length > 3 && tn.includes(w.replace(/s$/, '')))) || null; }
 function flLugares() { const L = F.lugares || []; if (!L.length) return flDecir(t('La familia todavía no cargó los lugares del salón. Preguntale a una moza 🙂'), []);
   flDecir(t('¿Qué estás buscando?'), L.map(x => ({t: ICONO_LUGAR(x.n) + ' ' + tc(x.n), f: () => flDecir(`${ICONO_LUGAR(x.n)} ${tc(x.n)}: ${x.d}.`, [{t: t('📍 Otro lugar'), alt: true, f: flLugares}, {t: t('👍 Gracias'), alt: true, f: () => $('#flb').classList.remove('on')}])})), true); }
 function flEntendi(q) { // q = lo que dijo el invitado
+  if (/ayuda|me siento mal|descompu|desmay|botiquin|botiquín|ambulancia|enfermer|medico|médico|\bhelp\b|ajuda|aiuto|\baide\b|hilfe|救命|助けて/i.test(q)) return flDecir(t('¿Necesitás ayuda? Toco el botón y les aviso ya mismo 🆘'), [{t: t('🆘 Necesito ayuda'), f: () => { $('#flb').classList.remove('on'); abrirAyuda(); }}, {t: t('No, estoy bien'), alt: true, f: () => $('#flb').classList.remove('on')}]);
+  if (F.autos && /mi auto|mi coche|mi carro|my car|meu carro|la mia auto|ma voiture|mein auto|我的车|車/i.test(q)) { const a = VIVO && VIVO.auto; if (a) { preguntarAuto(); return; } $('#flb').classList.remove('on'); const b = $('#aPat'); if (b) { b.scrollIntoView({behavior: 'smooth', block: 'center'}); b.focus(); } return; }
   if (ESTAC.test(q)) return flEstaciona();
   if (/\bpara\b/i.test(q) && !/d[oó]nde/i.test(q)) { const it = entender(q); if (it.avisoMenor && !it.length) return flDecir(t('Para los chicos te puedo pedir algo sin alcohol 🧃. ¿Qué les traemos?'), flOpsPedir(), true); if (it.length) { if (it.avisoMenor) flPend = null; return flConfirmar(it, it.avisoMenor); } }
   if (DONDE.test(q)) { const x = lugarDe(q); if (x) return flDecir(`${ICONO_LUGAR(x.n)} ${tc(x.n)}: ${x.d}.`, [{t: I18N.t('📍 Otro lugar'), alt: true, f: flLugares}, {t: t('👍 Gracias'), alt: true, f: () => $('#flb').classList.remove('on')}]); if (DONDE_Q.test(q)) return flLugares(); } const it = entender(q); if (!it.length) return flDecir(I18N.t('Mmm, no lo encontré en la carta 🤔. Tocá una opción o probá con otras palabras.'), flOpsPedir(), true); flConfirmar(it); }
 const ESTAC = /cochera|estacion|parking|aparcar|estacionamento|parcheggio|parkplatz|parken|stationn|停车|駐車/i;
 function flEstaciona() { const dir = [F.direccion, F.salon].filter(Boolean).join(', '), url = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(t('estacionamiento') + ' ' + dir), tel = String(F.estaciona || '').match(/\+?\d[\d\s-]{6,}\d/);
   flDecir(F.estaciona ? '🚗 ' + F.estaciona : t('La familia no cargó datos del estacionamiento. Te muestro los que hay cerca en el mapa 🗺'), [{t: t('🗺 Ver en el mapa'), f: () => open(url, '_blank')}].concat(tel ? [{t: t('📞 Llamar'), alt: true, f: () => { location.href = 'tel:' + tel[0].replace(/[^\d+]/g, ''); }}] : []).concat([{t: t('👍 Gracias'), alt: true, f: () => $('#flb').classList.remove('on')}])); }
-const DONDE_Q = /d[oó]nde|where|onde|dove|\bo[uù]\b|\bwo\b|哪|どこ/i, DONDE = new RegExp(DONDE_Q.source + '|ba[ñn]o|regalo|guardarropa|salida|fumar|abrigo|bathroom|restroom|toilet|banheiro|bagno|\\bwc\\b|厕所|洗手间|トイレ|gift|present|cadeau|geschenk|礼物|プレゼント|exit|coat|terraza|terrace|patio|garden|cochera|estacionamiento|parking|停车|駐車|テラス', 'i');
+const DONDE_Q = /d[oó]nde|where|onde|dove|\bo[uù]\b|\bwo\b|哪|どこ/i, DONDE = new RegExp(DONDE_Q.source + '|ba[ñn]o|regalo|guardarropa|salida|fumar|abrigo|bathroom|restroom|toilet|banheiro|bagno|\\bwc\\b|厕所|洗手间|トイレ|gift|present|cadeau|geschenk|礼物|プレゼント|exit|coat|emergencia|emergency|matafuego|extintor|extinguisher|auxilio|botiquin|first aid|feuerl|非常口|消火|急救|terraza|terrace|patio|garden|cochera|estacionamiento|parking|停车|駐車|テラス', 'i');
 const listaPed = p => { const it = p.items || []; return it.length === 1 ? t('tu {x}', {x: (it[0].c > 1 ? it[0].c + ' ' : '') + tc(it[0].n)}) : t('tu pedido ({x})', {x: it.map(x => (x.c > 1 ? x.c + ' ' : '') + tc(x.n)).join(', ')}); };
 const listaTx = it => { const quienes = new Set(it.map(x => x.p || '')); return it.map(x => x.c + ' ' + tc(x.n) + (quienes.size > 1 || x.p && x.p !== 'vos' ? ' ' + t('para {p}', {p: x.p || 'vos'}) : '')).join(', ').replace(/, ([^,]*)$/, ' ' + t('y') + ' $1'); };
 function flConfirmar(it, menor) { flPend = it; flDecir(`${menor ? t('Lo que tiene alcohol no se lo puedo pedir a los chicos 🧃. ') : ''}${t('¿Te pido {x}?', {x: listaTx(it)})}`, [{t: t('✅ Sí, pedir'), f: flPedir}, {t: t('✏️ Cambiar'), alt: true, f: () => flDecir(t('Decime qué querés 🙂'), flOpsPedir(), true)}]); }
@@ -481,7 +541,7 @@ const LSI = () => 'fiestaInter:' + CODE;
 const marcaInter = () => { try { localStorage.setItem(LSI(), String(Date.now())); } catch (e) {} };
 function flMenu() { const nom = INV.nombre.split(' ')[0], mesa = INV.mesa || MESA;
   const reg = (F.lugares || []).find(x => /regal/i.test(x.n));
-  flDecir(`${t('¡Hola {n}! ', {n: nom})}${mesa ? t('Estás en la mesa {m}. ', {m: mesa}) : ''}${reg && reg.d && !yaSaludo() ? t('Si traés regalo, la mesa de regalos está {d} 🎁. ', {d: reg.d}) : ''}${t('¿Querés que te traigan algo para tomar?')}`, [{t: t('🥤 Sí, pedir algo'), f: () => flDecir(t('¿Qué te traemos?'), flOpsPedir(), true)}, {t: t('⏰ ¿Qué viene?'), alt: true, f: flQueViene}, {t: t('📋 Todo el programa'), alt: true, f: () => { $('#flb').classList.remove('on'); progAbierto = true; pVivo(); const d = document.querySelector('.prog'); if (d) d.scrollIntoView({behavior: 'smooth', block: 'center'}); }}].concat((F.lugares || []).length ? [{t: t('📍 ¿Dónde está…?'), alt: true, f: flLugares}] : []).concat(F.estaciona ? [{t: t('🚗 Estacionamiento'), alt: true, f: flEstaciona}] : []).concat([{t: t('✍️ Firmar la foto'), alt: true, f: () => { $('#flb').classList.remove('on'); abrirFirma(); }}]).concat([{t: t('Ahora no'), alt: true, f: () => { marcaInter(); $('#flb').classList.remove('on'); }}]), true); try { localStorage.setItem('fiestaSaludo:' + CODE, '1'); } catch (e) {} }
+  flDecir(`${t('¡Hola {n}! ', {n: nom})}${mesa ? t('Estás en la mesa {m}. ', {m: mesa}) : ''}${reg && reg.d && !yaSaludo() ? t('Si traés regalo, la mesa de regalos está {d} 🎁. ', {d: reg.d}) : ''}${t('¿Querés que te traigan algo para tomar?')}`, [{t: t('🥤 Sí, pedir algo'), f: () => flDecir(t('¿Qué te traemos?'), flOpsPedir(), true)}, {t: t('⏰ ¿Qué viene?'), alt: true, f: flQueViene}, {t: t('📋 Todo el programa'), alt: true, f: () => { $('#flb').classList.remove('on'); progAbierto = true; pVivo(); const d = document.querySelector('.prog'); if (d) d.scrollIntoView({behavior: 'smooth', block: 'center'}); }}].concat((F.lugares || []).length ? [{t: t('📍 ¿Dónde está…?'), alt: true, f: flLugares}] : []).concat(F.estaciona ? [{t: t('🚗 Estacionamiento'), alt: true, f: flEstaciona}] : []).concat(F.autos ? [{t: t('🚗 Mi auto'), alt: true, f: () => flEntendi('mi auto')}] : []).concat([{t: t('✍️ Firmar la foto'), alt: true, f: () => { $('#flb').classList.remove('on'); abrirFirma(); }}]).concat([{t: t('Ahora no'), alt: true, f: () => { marcaInter(); $('#flb').classList.remove('on'); }}]), true); try { localStorage.setItem('fiestaSaludo:' + CODE, '1'); } catch (e) {} }
 const yaSaludo = () => { try { return !!localStorage.getItem('fiestaSaludo:' + CODE); } catch (e) { return false; } };
 function flPasoDeVez() { // cada tanto, sin molestar: "¿te falta algo en la mesa?"
   if (!FL || $('#flb').classList.contains('on') || document.hidden) return;

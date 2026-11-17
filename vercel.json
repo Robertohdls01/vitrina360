@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/fiesta-autos",
+      "destination": "/fiesta-autos.html"
+    },
+    {
       "source": "/fiesta-personal",
       "destination": "/fiesta-personal.html"
     },

@@ -19,6 +19,9 @@ const DEMO = 'DEMO15';
 const corto = (v, n) => String(v == null ? '' : v).replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, n);
 const largo = (v, n) => String(v == null ? '' : v).replace(/[\u0000-\u0009\u000b-\u001f]/g, ' ').trim().slice(0, n);
 const hash = s => crypto.createHash('sha256').update('fiesta:' + String(s)).digest('hex');
+const AYUDA = '🆘 Ayuda urgente';
+const skDe = e => e && e.pk ? hash(e.pk + ':salud').slice(0, 14) : ''; // link del servicio médico (solo ve los pedidos de ayuda)
+const akDe = e => e && e.pk ? hash(e.pk + ':autos').slice(0, 14) : ''; // link del personal que cuida los autos (no ve los pedidos)
 const okCode = c => /^[A-Z0-9]{4,12}$/.test(String(c || ''));
 const azar = (n, abc) => { const b = crypto.randomBytes(n); let s = ''; for (let i = 0; i < n; i++) s += abc[b[i] % abc.length]; return s; };
 const sinTildes = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -80,7 +83,7 @@ const demoData = () => ({
   titulo: 'Mis 15', nombre: 'Julieta', frase: 'Hay momentos que no se olvidan. Quiero compartir este con vos.',
   fecha: proxSabado(), hora: '21:30', salon: 'Salón de ejemplo', direccion: 'Mar del Plata',
   vestimenta: 'Elegante sport', estaciona: 'El salón tiene estacionamiento propio sin cargo. Si se llena, hay una cochera a media cuadra.', regalo: 'Lluvia de sobres o alias: JULI.15.FIESTA', mostrarMesa: true, pedirMenu: true,
-  catering: 'Catering de ejemplo', mozas: ['Karina', 'Sofía', 'Lucía'], modoP: 'encargada', pk: 'demo', paquete: 'recuerdos', pagado: true,
+  catering: 'Catering de ejemplo', mozas: ['Karina', 'Sofía', 'Lucía'], autos: true, salud: true, saludNom: 'Ambulancia de ejemplo', modoP: 'encargada', pk: 'demo', paquete: 'recuerdos', pagado: true,
   carta: CARTA_BASE(), crono: CRONO_BASE('21:30'), lugares: [{ n: 'Mesa de regalos', d: 'entrando, a la izquierda, al lado del cuadro de firmas' }, { n: 'Baños', d: 'al fondo del salón, pasando la pista a la derecha' }, { n: 'Barra', d: 'al lado de la pista, frente al DJ' }, { n: 'Rincón de fotos', d: 'junto a la entrada, con las luces' }],
   foto: '', invitados: [
     { id: 'g1', nombre: 'Roberto Hernández', mesa: '2', menor: false, cupo: 1, tok: 'demoroberto' },
@@ -105,7 +108,7 @@ function limpiar(d, prev) {
     titulo: corto(d.titulo, 40) || 'Mis 15', nombre: corto(d.nombre, 40), frase: largo(d.frase, 220),
     fecha: /^\d{4}-\d{2}-\d{2}$/.test(String(d.fecha || '')) ? d.fecha : '', hora: /^\d{2}:\d{2}$/.test(String(d.hora || '')) ? d.hora : '',
     salon: corto(d.salon, 80), direccion: corto(d.direccion, 120), vestimenta: corto(d.vestimenta, 80), regalo: largo(d.regalo, 200), estaciona: largo(d.estaciona, 240),
-    mostrarMesa: !!d.mostrarMesa, pedirMenu: d.pedirMenu !== false, organiza: corto(d.organiza, 60),
+    mostrarMesa: !!d.mostrarMesa, pedirMenu: d.pedirMenu !== false, autos: !!d.autos, salud: !!d.salud, saludNom: corto(d.saludNom, 50), saludTel: corto(d.saludTel, 30), organiza: corto(d.organiza, 60),
     // catering y mozas: se usan el día de la fiesta ("Ya va Karina a tu mesa")
     catering: corto(d.catering, 60), cateringTel: corto(d.cateringTel, 20).replace(/[^\d+]/g, ''),
     mozas: (Array.isArray(d.mozas) ? d.mozas : []).map(x => corto(x, 30)).filter(Boolean).slice(0, 40),
@@ -134,7 +137,7 @@ function limpiar(d, prev) {
 }
 // Lo que puede ver cualquiera con el link de la fiesta (sin la lista de invitados ni claves).
 function publica(e) {
-  const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'organiza'].forEach(k => { o[k] = e[k]; });
+  const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'organiza', 'autos', 'salud', 'saludNom', 'saludTel'].forEach(k => { o[k] = e[k]; });
   o.total = (e.invitados || []).length; o.vivo = vivoOk(e); o.hoy = enDia(e) || !!e.demo;
   if (o.vivo) { o.lugares = e.lugares || []; o.flLook = e.flLook || LOOK_DE[e.tipo] || 'traje'; o.carta = e.carta || []; o.crono = e.crono || []; o.atraso = e.atraso || 0; o.avisos = (e.avisos || []).slice(-15); }
   return o;
@@ -215,7 +218,7 @@ module.exports = async (req, res) => {
 
     if (req.method === 'GET' && acc === 'panel') {
       if (esDemo) {
-        const d = Object.assign(demoData(), { pagado: true, paquete: 'invitacion' }); return res.status(200).json({ ok: true, demo: true, paquetes: PAQ(), extra150: EXTRA150(), fiesta: d,
+        const d = Object.assign(demoData(), { pagado: true, paquete: 'invitacion' }); d.ak = akDe(d); d.sk = skDe(d); return res.status(200).json({ ok: true, demo: true, paquetes: PAQ(), extra150: EXTRA150(), fiesta: d,
           resp: [{ gid: 'g1', va: true, cuantos: 2, menu: '', nota: '¡Ahí estaremos!', t: new Date().toISOString() }, { gid: 'g3', va: true, cuantos: 1, menu: 'sin TACC', nota: '', t: new Date().toISOString() }, { gid: 'g4', va: false, cuantos: 0, menu: '', nota: 'Estoy de viaje, ¡felicidades!', t: new Date().toISOString() }] });
       }
       const e = await leer(code); if (!e) return res.status(404).json({ error: 'No existe esa fiesta.' });
@@ -224,7 +227,7 @@ module.exports = async (req, res) => {
       if (!e.pagado && e.pagoRef && await revisarPago(e)) cambio = true;
       if (!e.pk) { e.pk = azarK(); cambio = true; }
       if (cambio) await guardarObj(code, e);
-      const f = Object.assign({}, e); delete f.clave; delete f.pagoRef;
+      const f = Object.assign({}, e); delete f.clave; delete f.pagoRef; f.ak = akDe(e); f.sk = skDe(e);
       res.setHeader('Cache-Control', 'no-store');
       return res.status(200).json({ ok: true, fiesta: f, vivo: vivoOk(e), resp: await respuestas(code), paquetes: PAQ(), extra150: EXTRA150(), pedidos: vivoOk(e) ? (await pedidosDe(code)).length : 0 });
     }
@@ -320,7 +323,33 @@ module.exports = async (req, res) => {
       const g = (e.invitados || []).find(x => x.tok === String(q.i || ''));
       const L = g ? await pedidosDe(code, '&gid=eq.' + encodeURIComponent(g.id)) : [];
       res.setHeader('Cache-Control', 'no-store');
-      return res.status(200).json({ ok: true, vivo: true, atraso: e.atraso || 0, avisos: (e.avisos || []).slice(-15), pedidos: L.slice(0, 12).map(x => ({ id: x.id, items: x.items, estado: x.estado, moza: x.moza, t: x.t })) });
+      const au = g ? ((await rest('GET', 'fiesta_autos?code=eq.' + code + '&gid=eq.' + encodeURIComponent(g.id) + '&select=patente,descr,cuida,pregunta,resp,resp_t').catch(() => [])) || [])[0] || null : null;
+      return res.status(200).json({ ok: true, vivo: true, atraso: e.atraso || 0, avisos: (e.avisos || []).slice(-15), pedidos: L.slice(0, 12).map(x => ({ id: x.id, items: x.items, estado: x.estado, moza: x.moza, t: x.t })), auto: au });
+    }
+    // ===== Autos: el invitado anota su auto y el que lo cuida le responde =====
+    if (req.method === 'POST' && (acc === 'auto' || acc === 'autoPregunta')) {
+      const b = cuerpo(req), g = (e.invitados || []).find(x => x.tok === String(b.i || ''));
+      if (!g) return res.status(403).json({ error: 'Primero decinos quién sos.' });
+      if (acc === 'auto') {
+        const fila = { code, gid: g.id, nombre: g.nombre, mesa: String(g.mesa || ''), patente: corto(String(b.patente || '').toUpperCase(), 12), descr: corto(b.descr, 60), t: new Date().toISOString() };
+        if (!fila.patente && !fila.descr) return res.status(400).json({ error: 'Poné la patente o cómo es tu auto.' });
+        await rest('POST', 'fiesta_autos?on_conflict=code,gid', fila, 'resolution=merge-duplicates,return=minimal');
+        return res.status(200).json({ ok: true });
+      }
+      await rest('PATCH', 'fiesta_autos?code=eq.' + code + '&gid=eq.' + encodeURIComponent(g.id), { pregunta: new Date().toISOString(), resp: null, resp_t: null }, 'return=minimal');
+      return res.status(200).json({ ok: true });
+    }
+    if (acc === 'autos' || acc === 'autoEstado') {
+      const b = req.method === 'POST' ? cuerpo(req) : q, ak = akDe(e);
+      if (!ak || String(b.a || '') !== ak) return res.status(403).json({ error: 'Este link no es válido. Pedile el QR a la familia.' });
+      if (req.method === 'GET') {
+        const L = (await rest('GET', 'fiesta_autos?code=eq.' + code + '&select=gid,nombre,mesa,patente,descr,cuida,pregunta,resp,resp_t,t&order=t.asc').catch(() => [])) || [];
+        res.setHeader('Cache-Control', 'no-store');
+        return res.status(200).json({ ok: true, fiesta: { nombre: e.nombre, tipo: e.tipo, salon: e.salon }, autos: L });
+      }
+      const c = {}; if (b.cuida != null) c.cuida = corto(b.cuida, 30); if (b.resp != null) { c.resp = corto(b.resp, 40); c.resp_t = new Date().toISOString(); }
+      await rest('PATCH', 'fiesta_autos?code=eq.' + code + '&gid=eq.' + encodeURIComponent(String(b.gid || '')), c, 'return=minimal');
+      return res.status(200).json({ ok: true });
     }
     if (req.method === 'POST' && acc === 'pedir') {
       if (!vivoOk(e)) return res.status(403).json({ error: 'Los pedidos todavía no están activos en esta fiesta.' });
@@ -329,26 +358,31 @@ module.exports = async (req, res) => {
       if (!g && !prueba) return res.status(403).json({ error: 'Primero decinos quién sos, así te lo llevamos a tu mesa.' });
       const carta = {}; (e.carta || []).forEach(x => { carta[x.n] = x; });
       const items = (Array.isArray(b.items) ? b.items : []).slice(0, 20).map(x => Object.assign({ n: String(x && x.n || ''), c: Math.max(1, Math.min(10, parseInt(x && x.c, 10) || 1)) }, x && x.p ? { p: corto(x.p, 30) } : {}))
-        .filter(x => carta[x.n] && !(carta[x.n].alc && g && g.menor));
+        .filter(x => x.n === AYUDA || (carta[x.n] && !(carta[x.n].alc && g && g.menor)));
+      const esAyuda = items.some(x => x.n === AYUDA);
       if (!items.length) return res.status(400).json({ error: 'Elegí algo de la lista.' });
-      if (g) { const ult = await pedidosDe(code, '&gid=eq.' + g.id + '&estado=in.(nuevo,camino)'); if (ult.length >= 4) return res.status(429).json({ error: 'Ya tenés pedidos en camino. Esperá que te lleguen 🙂' }); }
+      if (g && !esAyuda) { const ult = await pedidosDe(code, '&gid=eq.' + g.id + '&estado=in.(nuevo,camino)'); if (ult.length >= 4) return res.status(429).json({ error: 'Ya tenés pedidos en camino. Esperá que te lleguen 🙂' }); }
       const mesaP = corto(g ? (g.mesa || b.mesa) : (b.mesa || 'Prueba'), 12);
-      const fila = { code, gid: g ? g.id : 'prueba', nombre: g ? g.nombre : 'Pedido de prueba', mesa: mesaP, items, nota: largo(b.nota, 140), estado: 'nuevo', moza: g ? mozaDeMesa(e, mesaP) : '', prueba: !g };
+      const fila = { code, gid: g ? g.id : 'prueba', nombre: g ? g.nombre : 'Pedido de prueba', mesa: mesaP, items, nota: largo(b.nota, 140), estado: 'nuevo', moza: g && !esAyuda ? mozaDeMesa(e, mesaP) : '', prueba: !g };
       const r = await rest('POST', 'fiesta_pedidos', fila, 'return=representation');
       return res.status(200).json({ ok: true, id: r && r[0] && r[0].id, moza: fila.moza });
     }
     // El personal (encargada o mozas): todos los pedidos de la noche
     if (req.method === 'GET' && acc === 'personal') {
-      if (!esPersonal(q.p) && !esFamilia(q.k)) return res.status(403).json({ error: 'El link del personal no es correcto. Pedíselo a la familia.' });
+      const esSalud = q.s && skDe(e) && String(q.s) === skDe(e);
+      if (!esPersonal(q.p) && !esFamilia(q.k) && !esSalud) return res.status(403).json({ error: 'El link del personal no es correcto. Pedíselo a la familia.' });
+      if (esSalud) { res.setHeader('Cache-Control', 'no-store'); return res.status(200).json({ ok: true, fiesta: { nombre: e.nombre, tipo: e.tipo, modoP: 'salud', mozas: [], salon: e.salon, saludNom: e.saludNom || '' }, pedidos: (await pedidosDe(code)).filter(p => (p.items || []).some(x => x.n === AYUDA)) }); }
       if (!vivoOk(e)) return res.status(403).json({ error: 'La fiesta en vivo no está activa todavía.' });
       res.setHeader('Cache-Control', 'no-store');
       return res.status(200).json({ ok: true, fiesta: { nombre: e.nombre, tipo: e.tipo, fecha: e.fecha, hora: e.hora, mozas: e.mozas || [], modoP: e.modoP || 'encargada', crono: e.crono || [], carta: e.carta || [], atraso: e.atraso || 0, catering: e.catering || '', listo: e.listo || '' }, pedidos: await pedidosDe(code), avisos: (e.avisos || []).slice(-15), llegaron: (await respuestas(code)).filter(x => x.va).length, invitados: (e.invitados || []).length });
     }
     if (req.method === 'POST' && ['estado', 'avisar', 'atrasar', 'listo'].includes(acc)) {
       const b = cuerpo(req);
-      if (!esPersonal(b.p) && !esFamilia(b.k)) return res.status(403).json({ error: 'No tenés permiso.' });
+      const esSalud = b.s && skDe(e) && String(b.s) === skDe(e) && acc === 'estado';
+      if (!esPersonal(b.p) && !esFamilia(b.k) && !esSalud) return res.status(403).json({ error: 'No tenés permiso.' });
       if (!vivoOk(e)) return res.status(403).json({ error: 'La fiesta en vivo no está activa todavía.' });
       if (acc === 'estado') {
+        if (esSalud) { const pid = parseInt(b.id, 10), p = (await pedidosDe(code)).find(x => x.id === pid); if (!p || !(p.items || []).some(x => x.n === AYUDA)) return res.status(403).json({ error: 'No tenés permiso.' }); }
         const id = parseInt(b.id, 10); if (!id) return res.status(400).json({ error: 'Pedido inválido.' });
         const cambio = { tu: new Date().toISOString() };
         if (['nuevo', 'camino', 'entregado', 'cancelado'].includes(b.estado)) cambio.estado = b.estado;

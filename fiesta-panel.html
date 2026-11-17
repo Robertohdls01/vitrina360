@@ -183,6 +183,11 @@ function imprimir(nMesas) {
     setTimeout(() => w.print(), 600); };
   w.document.head.appendChild(s);
 }
+function qrAutos() { const u = location.origin + '/fiesta-autos?f=' + CODE + '&a=' + (D.ak || ''); const w = window.open('', '_blank'); if (!w) return alert('Permití las ventanas emergentes para imprimir.');
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>QR cuidado de autos</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:20mm}svg{width:110mm;height:110mm}h1{font-size:30pt;margin:0}</style></head><body></body></html>`); w.document.close();
+  const s = w.document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
+  s.onload = () => { const q = w.qrcode(0, 'M'); q.addData(u); q.make(); w.document.body.innerHTML = `<h1>🚗 Cuidado de autos</h1><p style="font-size:16pt">${esc(D.nombre ? (D.tipo === '15' ? 'Los 15 de ' : 'La fiesta de ') + D.nombre : '')}</p>${q.createSvgTag({cellSize: 4, margin: 1, scalable: true})}<p style="font-size:15pt"><b>Escaneá, poné tu nombre y listo.</b><br>Ves los autos anotados y te suena si un invitado pregunta por el suyo.</p><p style="color:#777">ShopEventos · Pro Video JSRHG</p>`; setTimeout(() => w.print(), 500); };
+  w.document.head.appendChild(s); }
 function pFiesta() {
   if (!CODE) { $('#main').innerHTML = '<div class="box"><p>Primero guardá tu fiesta (botón Guardar, abajo).</p></div>'; return; }
   if (!VIVO) { $('#main').innerHTML = `<div class="box">${activarHTML(true) || ''}<div class="sec"><h3>🎉 La fiesta en vivo</h3><p>Con la <b>fiesta completa</b>, tus invitados piden desde su mesa (los menores no ven alcohol), la encargada o las mozas reciben los pedidos en el celular y a todos les llegan los avisos de la comida, el vals y la torta.</p><p class="muted">Se activa con el paquete Fiesta completa o Fiesta completa + recuerdos.</p></div></div>`; enganchePago(); return; }
@@ -212,6 +217,16 @@ function pFiesta() {
     <div class="sec"><h3>🖨 QR de la entrada y cartelitos de mesa</h3><p class="muted">Una hoja grande para la entrada y un cartelito por mesa${mesas.length ? ' (' + mesas.length + ' mesas, según tu lista de invitados)' : ''}. Imprimilos, plastificalos y listo.</p>
       ${mesas.length ? '' : '<label>¿Cuántas mesas?</label><input type="number" id="nMesas" value="10" min="1" max="80" style="width:110px">'}
       <button class="btn" id="imprimir" style="margin-top:8px">🖨 Imprimir QR y cartelitos</button></div>
+    <div class="sec"><h3>🚑 Ayuda y salud</h3><p class="note">Cada invitado tiene un botón rojo "🆘 Necesito ayuda" (me siento mal, botiquín, emergencia) y puede decir dónde está, aunque sea en el medio de la pista. Le llega al instante a la encargada, en rojo y con alarma.</p>
+      <label class="chk"><input type="checkbox" data-k="salud" ${D.salud ? 'checked' : ''}> Hay servicio médico o ambulancia en la fiesta</label>
+      ${D.salud ? `<div class="row"><div>${campo('saludNom', 'Nombre del servicio', 'Ej: Ambulancia Vida / Enfermería')}</div><div>${campo('saludTel', 'Teléfono (opcional)', 'Ej: 223 555 1234')}</div></div>
+      <p><b>Link para el servicio médico</b> (solo ve los pedidos de ayuda):<br><code>${esc(location.origin + '/fiesta-personal?f=' + CODE + '&s=' + (D.sk || ''))}</code></p>
+      <a class="btn wa" href="${waLink(D.saludTel, '¡Hola! Te paso el link de la fiesta de ' + D.nombre + ' 🚑\nAbrilo el día de la fiesta y dejalo abierto: si un invitado pide ayuda, te suena y te dice dónde está.\n👉 ' + location.origin + '/fiesta-personal?f=' + CODE + '&s=' + (D.sk || ''))}" target="_blank" rel="noopener">📲 Mandárselo por WhatsApp</a> <button class="btn alt" data-copy="${esc(location.origin + '/fiesta-personal?f=' + CODE + '&s=' + (D.sk || ''))}">📋 Copiar link</button>` : ''}
+      <p class="note">Para que el invitado encuentre todo, cargá en "Lugares" la <b>Salida de emergencia</b>, los <b>Matafuegos</b>, <b>Primeros auxilios</b> y el <b>Desfibrilador</b> si hay.</p></div>
+    <div class="sec"><h3>🚗 Cuidado de autos</h3><p class="note">Si afuera hay personal que cuida los autos: el invitado anota su patente en la app y le puede preguntar "¿cómo está mi auto?". El cuidador responde con un toque.</p>
+      <label class="chk"><input type="checkbox" data-k="autos" ${D.autos ? 'checked' : ''}> Hay personal cuidando los autos</label>
+      ${D.autos ? `<p><b>Link para el personal de autos</b> (no ve nada de la fiesta, solo los autos):<br><code>${esc(location.origin + '/fiesta-autos?f=' + CODE + '&a=' + (D.ak || ''))}</code></p>
+      <a class="btn wa" href="${waLink('', '¡Hola! Te paso el link para cuidar los autos en la fiesta de ' + D.nombre + ' 🚗\nAbrilo y poné tu nombre: ahí ves los autos anotados y, si un invitado pregunta por el suyo, te suena.\n👉 ' + location.origin + '/fiesta-autos?f=' + CODE + '&a=' + (D.ak || ''))}" target="_blank" rel="noopener">📲 Mandárselo por WhatsApp</a> <button class="btn alt" id="qrAutos">🖨 Imprimir su QR</button>` : ''}</div>
     <div class="sec"><h3>✍️ Cuadro de firmas</h3><p class="note">Cada invitado firma la foto de ${esc(D.nombre || 'la cumpleañera')} desde su invitación (subí una foto en el paso 1). Acá ves todas las firmas y descargás el cuadro para imprimirlo.</p><a class="btn" target="_blank" rel="noopener" href="/fiesta/${CODE}?firmas=1&k=${encodeURIComponent(K)}">🖼 Ver y descargar el cuadro de firmas</a></div>
     <div class="sec"><h3>📢 Durante la fiesta</h3>
       <div class="row"><div><label>Mandar un aviso a todos los invitados</label><input id="aviso" maxlength="160" placeholder="Ej: 🎂 En 5 minutos cortamos la torta"></div><div style="display:flex;align-items:flex-end"><button class="btn" id="mandarAviso">📢 Mandar</button></div></div>
@@ -228,12 +243,14 @@ function pFiesta() {
   $$('[data-lc]').forEach(el => el.addEventListener('input', () => { D.lugares[+el.dataset.li][el.dataset.lc] = el.value; cambio(); }));
   $$('[data-ldel]').forEach(b => b.onclick = () => { D.lugares.splice(+b.dataset.ldel, 1); re(); });
   $('#lAdd').onclick = () => { D.lugares = (D.lugares || []).concat([{n: '', d: ''}]); re(); };
-  const lb = $('#lBase'); if (lb) lb.onclick = () => { D.lugares = ['Mesa de regalos', 'Baños', 'Barra', 'Pista de baile', 'Guardarropa', 'Rincón de fotos', 'Terraza', 'Patio interno', 'Patio externo', 'Zona de fumadores', 'Cochera', 'Salida'].map(n => ({n, d: ''})); re(); };
+  const lb = $('#lBase'); if (lb) lb.onclick = () => { D.lugares = ['Mesa de regalos', 'Baños', 'Barra', 'Pista de baile', 'Guardarropa', 'Rincón de fotos', 'Terraza', 'Patio interno', 'Patio externo', 'Zona de fumadores', 'Cochera', 'Salida', 'Salida de emergencia', 'Matafuegos', 'Primeros auxilios', 'Desfibrilador'].map(n => ({n, d: ''})); re(); };
   $$('[data-look]').forEach(b => b.onclick = () => { lookTocado = true; D.flLook = b.dataset.look; cambio(); pFiesta(); });
   $$('[name=modoP]').forEach(r => r.onchange = () => { D.modoP = r.value; cambio(); });
   $$('[name=rota]').forEach(r => r.onchange = () => { D.rotan = r.value === 'rotan'; if (D.rotan) D.zonas = {}; cambio(); pFiesta(); });
   $$('[data-zona]').forEach(el => el.addEventListener('input', () => { D.zonas = Object.assign({}, D.zonas || {}); if (el.value.trim()) D.zonas[el.dataset.zona] = el.value.trim(); else delete D.zonas[el.dataset.zona]; cambio(); }));
   $('#imprimir').onclick = () => imprimir(+(($('#nMesas') || {}).value) || 10);
+  const qa = $('#qrAutos'); if (qa) qa.onclick = qrAutos;
+  ['salud', 'autos', 'saludNom', 'saludTel'].forEach(k => { const el = document.querySelector('[data-k="' + k + '"]'); if (!el) return; if (el.type === 'checkbox') el.onchange = () => { D[k] = el.checked; cambio(); pFiesta(); }; else el.oninput = () => { D[k] = el.value; cambio(); }; });
   $('#mandarAviso').onclick = async () => { const t = $('#aviso').value.trim(); if (!t) return; try { await accionVivo('avisar', {txt: t}); $('#aviso').value = ''; $('#vivoMsg').innerHTML = '<span class="ok">✅ Aviso enviado a todos</span>'; } catch (e) { $('#vivoMsg').textContent = '⚠️ ' + e.message; } };
   $$('[data-atr]').forEach(b => b.onclick = async () => { try { const j = await accionVivo('atrasar', {min: +b.dataset.atr}); D.atraso = j.atraso; $('#atrasoTx').textContent = 'Atraso actual: ' + j.atraso + ' min'; } catch (e) { $('#vivoMsg').textContent = '⚠️ ' + e.message; } });
   if (DEMO) $$('#main input,#main select,#cAdd,#cBase,#rAdd,#rBase,[data-cdel],[data-rdel],#mandarAviso,[data-atr]').forEach(x => x && (x.disabled = true));

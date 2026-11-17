@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cuidado de autos · ShopEventos</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/icons/fiesta-192.png">
+<style>
+:root{--ac:#2563eb;--bg:#f3f6fb;--ink:#1f2937;--soft:#4b5563;--line:#dbe3ef}
+*{box-sizing:border-box}body{margin:0;font:18px/1.45 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:#fff;border-bottom:1px solid var(--line);padding:12px 14px;position:sticky;top:0;z-index:5}
+header b{font-size:19px;display:block}header small{color:var(--soft)}
+main{padding:10px 12px 40px;max-width:720px;margin:0 auto}
+.a{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0;box-shadow:0 4px 12px rgba(0,0,0,.04)}
+.a.preg{border:3px solid #f59e0b;background:#fffbeb}
+.pat{font:800 26px/1 ui-monospace,Menlo,monospace;letter-spacing:.06em;background:#111827;color:#fff;border-radius:8px;padding:6px 10px;display:inline-block}
+.q{color:var(--soft);font-size:16px;margin-top:6px}
+.btn{border:0;border-radius:12px;padding:13px 16px;font:800 17px system-ui,sans-serif;cursor:pointer;background:var(--ac);color:#fff;margin:8px 6px 0 0}
+.btn.ok{background:#16a34a}.btn.alt{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 2px var(--line)}
+.alerta{font-weight:800;color:#b45309;margin-top:8px}
+.vacio{text-align:center;color:var(--soft);padding:40px 10px}
+input{width:100%;font:18px system-ui,sans-serif;padding:13px;border-radius:12px;border:2px solid var(--line)}
+.pie{text-align:center;color:var(--soft);font-size:12px;margin-top:20px}
+</style>
+</head>
+<body>
+<header><b id="tit">🚗 Cuidado de autos</b><small id="sub">Cargando…</small></header>
+<main id="main"></main>
+<script>
+const $ = s => document.querySelector(s), esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const P = new URLSearchParams(location.search), CODE = (P.get('f') || '').toUpperCase(), AK = P.get('a') || '';
+let yo = ''; try { yo = localStorage.getItem('fiestaCuida:' + CODE) || ''; } catch (e) {}
+let A = [], vistos = null;
+function sonar() { if (navigator.vibrate) navigator.vibrate([300, 120, 300]); try { const c = new (window.AudioContext || window.webkitAudioContext)(); [0, .25].forEach(d => { const o = c.createOscillator(), g = c.createGain(); o.frequency.value = 880; g.gain.value = .14; o.connect(g); g.connect(c.destination); o.start(c.currentTime + d); o.stop(c.currentTime + d + .18); }); } catch (e) {} }
+const hace = t => { const m = Math.floor((Date.now() - Date.parse(t)) / 60000); return m < 1 ? 'recién' : 'hace ' + m + ' min'; };
+async function api(body) { const r = await fetch('/api/fiesta?accion=autoEstado', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(Object.assign({f: CODE, a: AK}, body))}); const j = await r.json(); if (!r.ok) throw new Error(j.error || 'No se pudo'); return j; }
+const pendiente = x => x.pregunta && (!x.resp_t || Date.parse(x.resp_t) < Date.parse(x.pregunta));
+async function cargar() {
+  try { const r = await fetch('/api/fiesta?accion=autos&f=' + encodeURIComponent(CODE) + '&a=' + encodeURIComponent(AK)); const j = await r.json(); if (!r.ok) throw new Error(j.error || 'No se pudo abrir');
+    A = j.autos || []; $('#tit').textContent = '🚗 ' + (j.fiesta.tipo === '15' ? 'Los 15 de ' : 'La fiesta de ') + j.fiesta.nombre;
+    const preg = A.filter(pendiente).map(x => x.gid + x.pregunta);
+    if (vistos && preg.some(k => !vistos.has(k))) { sonar(); document.title = '🔔 Te preguntan por un auto'; setTimeout(() => document.title = 'Cuidado de autos · ShopEventos', 5000); }
+    vistos = new Set(preg); pintar();
+  } catch (e) { $('#main').innerHTML = `<div class="vacio">😕 ${esc(e.message)}</div>`; $('#sub').textContent = ''; }
+}
+function pintar() {
+  if (!yo) { $('#sub').textContent = 'Primero decinos tu nombre';
+    $('#main').innerHTML = `<div class="a"><h2 style="margin-top:0">👋 ¿Cómo te llamás?</h2><p>Los invitados van a ver que vos cuidás su auto, y te pueden preguntar si está todo bien.</p><input id="nom" placeholder="Ej: Carlos"><button class="btn" id="okNom">Empezar</button></div>`;
+    $('#okNom').onclick = () => { const v = $('#nom').value.trim(); if (!v) return; yo = v.slice(0, 30); try { localStorage.setItem('fiestaCuida:' + CODE, yo); } catch (e) {} pintar(); }; return; }
+  const p = A.filter(pendiente);
+  $('#sub').textContent = `Sos ${yo} · ${A.length} autos anotados${p.length ? ' · ' + p.length + ' preguntas' : ''}`;
+  const orden = A.slice().sort((a, b) => (pendiente(b) ? 1 : 0) - (pendiente(a) ? 1 : 0));
+  $('#main').innerHTML = (orden.length ? orden.map(x => `<div class="a ${pendiente(x) ? 'preg' : ''}">
+      ${x.patente ? `<span class="pat">${esc(x.patente)}</span> ` : ''}<b>${esc(x.descr || '')}</b>
+      <div class="q">👤 ${esc(x.nombre)}${x.mesa ? ' · Mesa ' + esc(x.mesa) : ''} · ${x.cuida ? '🛡 Lo cuida ' + esc(x.cuida) : 'Sin anotar quién lo cuida'}</div>
+      ${pendiente(x) ? `<div class="alerta">🔔 Pregunta cómo está su auto (${hace(x.pregunta)})</div><button class="btn ok" data-r="${esc(x.gid)}" data-t="ok">✅ Todo bien</button><button class="btn alt" data-r="${esc(x.gid)}" data-t="ven">🙋 Que venga a verlo</button>` : x.resp ? `<div class="q">Última respuesta: ${x.resp === 'ok' ? '✅ Todo bien' : '🙋 Que venga a verlo'} · ${hace(x.resp_t)}</div>` : ''}
+      ${x.cuida !== yo ? `<button class="btn" data-c="${esc(x.gid)}">🛡 Lo cuido yo</button>` : ''}
+    </div>`).join('') : `<div class="vacio">🚗 Todavía no hay autos anotados.<br>Cuando un invitado anote su auto en la app, aparece acá. Si te preguntan algo, suena y vibra.</div>`) +
+    `<div class="pie">Sos <b>${esc(yo)}</b> · <a href="#" id="cambiar">Cambiar</a><br>ShopEventos · Pro Video JSRHG</div>`;
+  document.querySelectorAll('[data-c]').forEach(b => b.onclick = async () => { try { await api({gid: b.dataset.c, cuida: yo}); } catch (e) { alert(e.message); } cargar(); });
+  document.querySelectorAll('[data-r]').forEach(b => b.onclick = async () => { try { const x = A.find(y => y.gid === b.dataset.r); await api(Object.assign({gid: b.dataset.r, resp: b.dataset.t}, x && !x.cuida ? {cuida: yo} : {})); } catch (e) { alert(e.message); } cargar(); });
+  $('#cambiar').onclick = e => { e.preventDefault(); yo = ''; try { localStorage.removeItem('fiestaCuida:' + CODE); } catch (er) {} pintar(); };
+}
+async function despierta() { try { if ('wakeLock' in navigator) await navigator.wakeLock.request('screen'); } catch (e) {} }
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { despierta(); cargar(); } });
+if (!CODE || !AK) $('#main').innerHTML = '<div class="vacio">Falta el link. Pedile el QR a la familia.</div>';
+else { cargar(); setInterval(cargar, 6000); despierta(); }
+</script>
+</body>
+</html>
