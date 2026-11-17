@@ -81,8 +81,9 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .vit.mini .base{width:110px;height:14px;margin-left:-55px}
 .alr{position:relative;width:min(96vw,400px);height:min(96vw,400px);margin:0 auto 10px}
 .alr .foto{position:absolute;left:50%;top:50%;width:40%;height:auto;aspect-ratio:1;transform:translate(-50%,-50%);margin:0;z-index:2}
-.alr .orb{position:absolute;inset:0}
-.alr .pos{position:absolute;width:118px;height:112px;margin:-56px 0 0 -59px}
+.alr .orb{position:absolute;inset:0;z-index:3;pointer-events:none}
+.alr .pos{position:absolute;width:118px;height:126px;margin:-63px 0 0 -59px}
+.vnom{display:block;font:700 11px/1.1 var(--sans);color:var(--ac);margin-top:-2px;text-shadow:0 1px 0 #fff,0 0 6px #fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .alr.gira .orb{animation:orbita 70s linear infinite}
 .alr.gira .pos{animation:orbita 70s linear infinite reverse}
 @keyframes orbita{to{transform:rotate(360deg)}}
@@ -237,9 +238,10 @@ function render() {
   let VE = f.vitEstilo || 'arriba'; if (f.demo) { const q = new URLSearchParams(location.search).get('vit'); if (['arriba', 'alrededor', 'gira'].includes(q)) VE = q; }
   if (HI && VE !== 'arriba') {
     // 4 vitrinas alrededor de la foto (arriba, derecha, abajo, izquierda); con "gira" dan vueltas alrededor.
-    const g = [0, 1, 2, 3].map(j => { const x = HI.filter((_, i) => i % 4 === j); return x.length >= 2 ? x : [0, 1, 2].map(n => HI[(j + n * 2) % HI.length]); });
-    const P = ['left:50%;top:58px', 'left:calc(100% - 59px);top:50%', 'left:50%;top:calc(100% - 58px)', 'left:59px;top:50%'];
-    h += `<div class="alr${VE === 'gira' ? ' gira' : ''}"><div class="brillos">${Array.from({length: 16}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 94 + 2}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div><div class="orb">${g.map((x, j) => `<div class="pos" style="${P[j]}">${vitrina(x, j % 2 === 1, true)}</div>`).join('')}</div>${f.foto ? `<img class="foto" src="${esc(f.foto)}" alt="">` : ''}</div>`;
+    const conG = HI.some(x => x.g != null), NOM = f.vitNom || [];
+    const g = [0, 1, 2, 3].map(j => { const x = HI.filter((y, i) => conG ? y.g === j : i % 4 === j); return x.length >= 1 && conG ? x : x.length >= 2 ? x : x.length >= 2 ? x : [0, 1, 2].map(n => HI[(j + n * 2) % HI.length]); });
+    const P = ['left:50%;top:64px', 'left:calc(100% - 59px);top:50%', 'left:50%;top:calc(100% - 64px)', 'left:59px;top:50%'];
+    h += `<div class="alr${VE === 'gira' ? ' gira' : ''}"><div class="brillos">${Array.from({length: 16}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 94 + 2}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div><div class="orb">${g.map((x, j) => `<div class="pos" style="${P[j]}">${vitrina(x, j % 2 === 1, true)}${NOM[j] ? `<b class="vnom">${esc(NOM[j])}</b>` : ''}</div>`).join('')}</div>${f.foto ? `<img class="foto" src="${esc(f.foto)}" alt="">` : ''}</div>`;
   }
   else if (HI) { const mitad = Math.ceil(HI.length / 2); h += vitrina(HI.slice(0, mitad), false) + `<div class="brillos">${Array.from({length: 14}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 90 + 3}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div>`; }
   if (m === 'especial' && f.foto && !(HI && VE !== 'arriba')) h += `<img class="foto" src="${esc(f.foto)}" alt=""${HI ? ' style="margin-bottom:6px"' : ''}>`;

@@ -102,7 +102,7 @@ const demoData = () => ({
   vestimenta: 'Elegante sport', estaciona: 'El salón tiene estacionamiento propio sin cargo. Si se llena, hay una cochera a media cuadra.', regalo: 'Lluvia de sobres o alias: JULI.15.FIESTA', mostrarMesa: true, pedirMenu: true,
   catering: 'Catering de ejemplo', mozas: ['Karina', 'Sofía', 'Lucía'], autos: true, salud: true, saludNom: 'Ambulancia de ejemplo', modoP: 'encargada', pk: 'demo', paquete: 'recuerdos', pagado: true,
   carta: CARTA_BASE(), crono: CRONO_BASE('21:30'), lugares: [{ n: 'Mesa de regalos', d: 'entrando, a la izquierda, al lado del cuadro de firmas' }, { n: 'Baños', d: 'al fondo del salón, pasando la pista a la derecha' }, { n: 'Barra', d: 'al lado de la pista, frente al DJ' }, { n: 'Rincón de fotos', d: 'junto a la entrada, con las luces' }],
-  foto: FOTO_DEMO(), historia: HIST_DEMO(), invitados: [
+  foto: FOTO_DEMO(), historia: HIST_DEMO(), vitNom: ['Mi familia', 'Mis amigas', 'Mis abuelos', 'Yo'], invitados: [
     { id: 'g1', nombre: 'Roberto Hernández', mesa: '2', menor: false, cupo: 1, tok: 'demoroberto' },
     { id: 'g2', nombre: 'Marta Gómez', mesa: '2', menor: false, cupo: 0, tok: 'demomarta' },
     { id: 'g3', nombre: 'Sofía Pérez', mesa: '7', menor: true, cupo: 0, tok: 'demosofia' },
@@ -110,7 +110,7 @@ const demoData = () => ({
   ]
 });
 // Fotos de ejemplo para la vitrina de la muestra (dibujos, sin personas reales).
-const HIST_DEMO = () => [['👶', '1 añito', '#f9d5e0', '#f3a6bf'], ['🧸', 'Mis 3 años', '#fde7c2', '#f5c06b'], ['🎒', 'Primer día de clases', '#d7ecfb', '#8cc3ec'], ['🩰', 'Danza, a los 8', '#e9e0fb', '#b9a3ef'], ['🎂', 'Mis 12', '#fbe3d1', '#efa77c'], ['👭', 'Con mis amigas', '#dff4e6', '#93d4a8'], ['📸', 'La sesión de fotos', '#f6eccd', '#d9b65b'], ['👑', 'Hoy, mis 15 ✨', '#fbe2ea', '#e58fae']].map(([em, txt, c1, c2]) => ({ txt, img: 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><rect width="200" height="240" fill="url(#g)"/><circle cx="160" cy="40" r="26" fill="#fff" opacity=".35"/><circle cx="30" cy="200" r="40" fill="#fff" opacity=".25"/><text x="100" y="140" font-size="90" text-anchor="middle">${em}</text></svg>`) }));
+const HIST_DEMO = () => [['👶', '1 añito', '#f9d5e0', '#f3a6bf', 3], ['👨‍👩‍👧', 'Con mamá y papá', '#fde7c2', '#f5c06b', 0], ['🎒', 'Primer día de clases', '#d7ecfb', '#8cc3ec', 1], ['👵', 'Con la abuela', '#e9e0fb', '#b9a3ef', 2], ['🩰', 'Danza, a los 8', '#fbe3d1', '#efa77c', 3], ['🏡', 'En casa', '#f6eccd', '#d9b65b', 0], ['👭', 'Con mis amigas', '#dff4e6', '#93d4a8', 1], ['👴', 'Con el abuelo', '#e3ecf7', '#9db8dc', 2], ['👑', 'Hoy, mis 15 ✨', '#fbe2ea', '#e58fae', 3]].map(([em, txt, c1, c2, g]) => ({ txt, g, img: 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><rect width="200" height="240" fill="url(#g)"/><circle cx="160" cy="40" r="26" fill="#fff" opacity=".35"/><circle cx="30" cy="200" r="40" fill="#fff" opacity=".25"/><text x="100" y="140" font-size="90" text-anchor="middle">${em}</text></svg>`) }));
 const FOTO_DEMO = () => 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"><defs><radialGradient id="r" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#fff6e3"/><stop offset="1" stop-color="#e9c97a"/></radialGradient></defs><rect width="300" height="300" fill="url(#r)"/><text x="150" y="190" font-family="Georgia,serif" font-size="150" text-anchor="middle" fill="#a8822a">J</text><text x="150" y="250" font-family="Georgia,serif" font-size="30" text-anchor="middle" fill="#a8822a">✦ 15 ✦</text></svg>');
 const CARTA_BASE = () => ['Coca-Cola', 'Coca-Cola Zero', 'Sprite', 'Agua sin gas', 'Agua con gas', 'Jugo de naranja', 'Trago sin alcohol', 'Fernet con coca*', 'Cerveza*', 'Vino tinto*', 'Vino blanco*', 'Champagne*', 'Hielo', 'Pan', 'Servilletas', 'Que limpien la mesa'].map(n => ({ n: n.replace('*', ''), alc: n.endsWith('*') }));
 const CRONO_BASE = h0 => { const [H, M] = String(h0 || '21:30').split(':').map(Number), at = mins => { const t = (H * 60 + M + mins) % 1440; return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
@@ -145,8 +145,9 @@ function limpiar(d, prev) {
   } else o.foto = prev.foto || '';
   // Vitrina de fotos: la historia de la protagonista (de bebé a hoy), hasta 10 fotos chicas.
   if (Array.isArray(d.historia)) {
-    o.historia = d.historia.slice(0, 10).filter(x => x && typeof x.img === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(x.img) && x.img.length <= 200000).map(x => ({ img: x.img, txt: corto(x.txt, 40) }));
+    o.historia = d.historia.slice(0, 12).filter(x => x && typeof x.img === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(x.img) && x.img.length <= 200000).map(x => ({ img: x.img, txt: corto(x.txt, 40), g: [0, 1, 2, 3].includes(x.g) ? x.g : null }));
   } else o.historia = prev.historia || [];
+  o.vitNom = Array.isArray(d.vitNom) ? [0, 1, 2, 3].map(i => corto(d.vitNom[i], 22)) : (prev.vitNom || []);
   o.vitEstilo = ['arriba', 'alrededor', 'gira'].includes(d.vitEstilo) ? d.vitEstilo : (prev.vitEstilo || 'arriba');
   // Video de la protagonista: link de YouTube (no listado). Guardamos solo el id; lo sirve YouTube, no nosotros.
   if (typeof d.video === 'string') {
@@ -173,7 +174,7 @@ function limpiar(d, prev) {
 const VITS = ['arriba', 'alrededor', 'gira'];
 // Lo que puede ver cualquiera con el link de la fiesta (sin la lista de invitados ni claves).
 function publica(e) {
-  const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'historia', 'video', 'vitEstilo', 'organiza', 'autos', 'salud', 'saludNom', 'saludTel', 'seguridad', 'seguNom'].forEach(k => { o[k] = e[k]; });
+  const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'historia', 'video', 'vitEstilo', 'vitNom', 'organiza', 'autos', 'salud', 'saludNom', 'saludTel', 'seguridad', 'seguNom'].forEach(k => { o[k] = e[k]; });
   if (e.vitMax && e.paquete === 'invitacion' && VITS.indexOf(o.vitEstilo) > VITS.indexOf(e.vitMax)) o.vitEstilo = e.vitMax; // no muestra más de lo que compró
   o.total = (e.invitados || []).length; o.vivo = vivoOk(e); o.hoy = enDia(e) || !!e.demo || esAbierto(e);
   if (esAbierto(e)) { o.abierto = true; o.fecha = nocheDe(); }
