@@ -48,7 +48,9 @@ const PIE = `<div class="pie">ShopVida · QR de emergencia<br>Pro Video JSRHG</d
 // ===== Lo que ve quien escanea =====
 function verFicha(f) {
   const nene = f.tipo === 'nene', c = f.contactos || [];
-  let h = `<div class="emer">${nene ? '<h1>🧒 ¿Me perdí? Ayudame a encontrar a mi familia</h1>' : '<h1>🚑 Información de emergencia</h1>'}<div class="nom">${f.nombre ? esc(f.nombre) : nene ? '' : '👤 Persona'}</div>${f.edad ? `<div>${esc(f.edad)}</div>` : ''}</div>`;
+  const cuid = f.tipo === 'cuidado';
+  let h = `<div class="emer">${nene ? '<h1>🧒 ¿Me perdí? Ayudame a encontrar a mi familia</h1>' : cuid ? '<h1>🧭 Me puedo desorientar. Ayudame a volver con mi familia</h1>' : '<h1>🚑 Información de emergencia</h1>'}<div class="nom">${f.nombre ? esc(f.nombre) : nene ? '' : '👤 Persona'}</div>${f.edad ? `<div>${esc(f.edad)}</div>` : ''}</div>`;
+  if (cuid) h += `<div class="aviso" style="margin-top:12px">Esta persona puede estar confundida o no recordar cómo volver. <b>Hablale con calma${f.nombre ? ', llamala por su nombre' : ''}</b>, no la dejes sola y <b>llamá a su familia</b> con los botones de abajo. Si podés, tocá “Avisar dónde está” para mandarles tu ubicación.</div>`;
   if (nene) h += `<div class="aviso" style="margin-top:12px">Si encontraste a este chico/a solo o perdido (en la playa, en la calle, en un evento), <b>llamá a su familia</b> con los botones de abajo y quedate con él/ella en un lugar seguro y a la vista, por ejemplo junto al guardavidas o a un policía.</div>`;
   if (c.length) h += `<div class="card"><h2>📞 Llamá a su familia</h2>${c.map(x => `<div style="margin:8px 0"><b>${esc(x.n)}</b>${x.rel ? ' · ' + esc(x.rel) : ''}<br>${x.tel ? `<a class="btn rojo" href="tel:${esc(tel(x.tel))}">📞 Llamar</a><a class="btn wa" href="#" data-wa="${esc(x.tel)}">📍 Avisar dónde está</a>` : ''}</div>`).join('')}</div>`;
   h += `<div class="card">`;
@@ -71,7 +73,8 @@ function form(editando) {
   $('#app').innerHTML = `<h1>🚑 ${editando ? 'Tu QR de emergencia' : 'Creá tu QR de emergencia'}</h1>
     <p class="note">Lo pegás en el celular, la billetera, el casco o la mochila. Si te pasa algo, quien lo escanea ve tus datos importantes y llama a tu familia. Lo podés cambiar cuando quieras sin reimprimir.</p>
     ${editando ? `<div class="ok">✅ Guardá este link para editarlo después (no lo compartas):<br><code>${esc(location.origin + '/vida/' + CODE + '?k=' + K)}</code><br><a class="btn alt" href="/vida/${CODE}" target="_blank">👀 Ver lo que ve quien lo escanea</a> <button class="btn" id="imp">🖨 Imprimir los stickers</button></div>` : ''}
-    <div class="card"><div class="tabs"><button data-t="adulto" class="${nene ? '' : 'on'}">👤 Para mí (adulto)</button><button data-t="nene" class="${nene ? 'on' : ''}">🧒 Para un chico/a</button></div>
+    <div class="card"><div class="tabs" style="flex-wrap:wrap"><button data-t="adulto" class="${D.tipo === 'adulto' ? 'on' : ''}">👤 Para mí</button><button data-t="nene" class="${nene ? 'on' : ''}">🧒 Un chico/a</button><button data-t="cuidado" class="${D.tipo === 'cuidado' ? 'on' : ''}">🧭 Alguien que se puede perder</button></div>
+      ${D.tipo === 'cuidado' ? '<p class="note">Para personas con Alzheimer, demencia, autismo u otra condición que las pueda desorientar. Pegá el QR en la ropa, la billetera o una pulsera: quien la encuentre sabe cómo ayudarla y llama a la familia.</p>' : ''}
       <label>Nombre</label><input id="f_nombre" maxlength="60" value="${esc(D.nombre || '')}" placeholder="${nene ? 'Ej: Juli' : 'Ej: Roberto Hernández'}">
       <label class="chk"><input type="checkbox" id="f_mostrarNombre" ${(nene ? D.mostrarNombre === true : D.mostrarNombre !== false) ? 'checked' : ''}> Mostrar el nombre a quien escanea el QR</label>
       ${nene ? '<p class="aviso">Para chicos recomendamos <b>no</b> mostrar el nombre: así un desconocido no puede llamarlo por su nombre para engañarlo. Igual se ven sus alergias y los botones para llamar a la familia.</p>' : ''}
@@ -81,7 +84,7 @@ function form(editando) {
       <label>Enfermedades</label><input id="f_enfermedades" maxlength="200" value="${esc(D.enfermedades || '')}" placeholder="Ej: diabetes, asma, epilepsia">
       <label>Remedios que toma</label><input id="f_remedios" maxlength="200" value="${esc(D.remedios || '')}" placeholder="Ej: insulina, inhalador">
       <label class="chk"><input type="checkbox" id="f_mostrarSalud" ${D.mostrarSalud !== false ? 'checked' : ''}> Mostrar enfermedades, remedios y médico a quien escanea</label>
-      <label>Qué hacer en una emergencia</label><textarea id="f_indicaciones" maxlength="300" placeholder="Ej: tiene el inhalador en el bolsillo de la mochila. Si se descompensa, darle azúcar.">${esc(D.indicaciones || '')}</textarea>
+      <label>Qué hacer en una emergencia</label><textarea id="f_indicaciones" maxlength="300" placeholder="${D.tipo === 'cuidado' ? 'Ej: tiene Alzheimer. Puede no saber dónde vive. Hablale tranquilo y no lo dejes solo.' : 'Ej: tiene el inhalador en el bolsillo de la mochila. Si se descompensa, darle azúcar.'}">${esc(D.indicaciones || '')}</textarea>
       <h2 style="margin-top:16px">📞 A quién llamar</h2>${c.map((x, i) => `<div class="row" style="grid-template-columns:1fr 1fr 1.2fr"><input data-c="${i}" data-k="n" maxlength="40" value="${esc(x.n)}" placeholder="Nombre"><input data-c="${i}" data-k="rel" maxlength="30" value="${esc(x.rel)}" placeholder="${nene ? 'Mamá' : 'Hermano'}"><input data-c="${i}" data-k="tel" maxlength="25" inputmode="tel" value="${esc(x.tel)}" placeholder="223 555 1234"></div>`).join('<div style="height:6px"></div>')}
       ${c.length < 3 ? '<button class="btn alt" id="masC">➕ Otro contacto</button>' : ''}
       <div class="row"><div><label>Médico (opcional)</label><input id="f_medico" maxlength="60" value="${esc(D.medico || '')}"></div><div><label>Teléfono del médico</label><input id="f_medicoTel" maxlength="25" inputmode="tel" value="${esc(D.medicoTel || '')}"></div></div>

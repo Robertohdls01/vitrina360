@@ -36,7 +36,7 @@ function limpiar(d) {
   d = d || {};
   const nene = d.tipo === 'nene';
   return {
-    tipo: nene ? 'nene' : 'adulto',
+    tipo: nene ? 'nene' : d.tipo === 'cuidado' ? 'cuidado' : 'adulto',
     nombre: corto(d.nombre, 60),
     // En los chicos el nombre NO se muestra por defecto: un desconocido no tiene que poder llamarlo por su nombre.
     mostrarNombre: nene ? d.mostrarNombre === true : d.mostrarNombre !== false,
