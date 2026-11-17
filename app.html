@@ -2532,7 +2532,8 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
       </label>
       <button class="matbtn" type="button" id="revQrTog" aria-pressed="false" style="justify-self:start">📱 Opiniones con QR, sin compra online</button>
       <span class="note" style="margin:0">Ideal si vendés en la calle, en un puesto o en tu local: imprimí el cartel, pegalo a la vista y tus clientes escanean y te dejan sus estrellas. Sin chip ni nada: es tu app. Queda marcado “Opinó desde el QR del local”.</span>
-      <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn" type="button" id="revCartel">🖨 Cartel grande (A4)</button><button class="btn" type="button" id="revCartelChico">🔲 Cartelito 10×10</button><button class="btn" type="button" id="revCartel8">🔳 Cartelito 8×8</button></div>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn" type="button" id="revCartel">🖨 Cartel grande (A4)</button><button class="btn" type="button" id="revCartelChico">🔲 Cartelito 10×10</button><button class="btn" type="button" id="revCartel8">🔳 Cartelito 8×8</button><button class="btn" type="button" id="cartelAuto">🚗 Cartel para el auto (A4)</button></div>
+      <span class="note" style="margin:0">El cartel del auto lleva tu oficio y tu teléfono en letras grandes (para el que lo ve de lejos) y un QR grande que abre tu página. Ponelo en la luneta trasera o pedí un imán para la puerta en una imprenta.</span>
       <div id="revAdmin" class="revadmin"></div>
     </div>
     <div class="presets" id="hoyBox" hidden>
@@ -8171,6 +8172,19 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
 .q svg{width:95mm;height:95mm}p{font-size:19px;margin:8px 0}.by{font-size:12px;color:#888;margin-top:10px}</style></head><body><div class="c"><h1>${esc(storeName())}</h1><h2>¿Te gustó? ¡Dejanos tus estrellas!</h2><div class="st">★★★★★</div>
 <div class="q">${q.createSvgTag({cellSize: 6, margin: 2, scalable: true})}</div><p>📲 Escaneá con la cámara del celular y opiná en 10 segundos.</p>${gLink() ? '<p>⭐ También podés dejar tu reseña en Google.</p>' : ''}<div class="by">Pro Video JSRHG · ShopFlash</div></div><script>setTimeout(()=>print(),400)<\/script></body></html>`);
         w.document.close(); };
+    // cartel para el auto (luneta o imán): oficio y teléfono gigantes + QR grande a la tienda
+    window.v360CartelAuto = async () => {
+        const sl = (window.VITRINA_ME && window.VITRINA_ME.slug) || window.VITRINA_SLUG || ''; if(!sl){ alert('Primero guardá tu tienda.'); return; }
+        const w = open('', '_blank'); if(!w){ alert('Permití las ventanas emergentes para imprimir el cartel.'); return; }
+        try{ if(!window.qrcode) await new Promise((ok, ko) => { const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'; sc.onload = ok; sc.onerror = ko; document.head.appendChild(sc); }); }catch(e){ w.close(); alert('No se pudo armar el QR. Revisá internet.'); return; }
+        const q = window.qrcode(0, 'M'); q.addData(location.origin + '/t/' + sl); q.make();
+        const ofi = String(brand.oficio || '').trim(), tel = String(brand.wa || '').trim(), nom = storeName();
+        w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Cartel para el auto · ${esc(nom)}</title><style>@page{size:A4 landscape;margin:8mm}html,body{margin:0}body{font-family:system-ui,Arial,sans-serif;color:#111}
+.c{height:190mm;display:flex;align-items:center;gap:10mm;border:4mm solid #111;border-radius:10mm;padding:8mm;box-sizing:border-box}.q svg{width:135mm;height:135mm;display:block}.t{flex:1;display:flex;flex-direction:column;gap:5mm}
+.o{font-size:${ofi.length > 12 ? 62 : 80}px;font-weight:900;line-height:1;text-transform:uppercase}.n{font-size:40px;font-weight:700}.tel{font-size:50px;font-weight:900;white-space:nowrap}.e{font-size:26px}.by{font-size:13px;color:#666}</style></head><body><div class="c"><div class="q">${q.createSvgTag({cellSize: 6, margin: 2, scalable: true})}</div>
+<div class="t">${ofi ? `<div class="o">${esc(ofi)}</div>` : ''}<div class="n">${esc(nom)}</div>${tel ? `<div class="tel">📞 ${esc(tel)}</div>` : ''}<div class="e">📲 Escaneá y pedí presupuesto con una foto</div><div class="e">⭐ Mirá mis trabajos y opiniones</div><div class="by">Pro Video JSRHG · ShopFlash</div></div></div><script>setTimeout(()=>print(),600)<\/script></body></html>`);
+        w.document.close();
+    };
     // link público para imprimir el cartelito de una tienda: /t/su-tienda?cartel=1 (10x10), ?cartel=8 (8x8) o ?cartel=a4
     if(PUBLIC){ let cq = ''; try{ cq = new URLSearchParams(location.search).get('cartel') || ''; }catch(e){} if(cq){ window.V360_CARTEL = true; setTimeout(() => window.v360Cartel(cq === 'a4' ? false : cq === '8' ? 8 : 10, window.VITRINA_SLUG, window), 1500); } }
     // ---- Panel del comercio ----
@@ -8178,7 +8192,7 @@ function cartTotal(items){ let t = 0, unpriced = 0; items.forEach(it => { const 
       const gi = $('b-greview'), tg = $('revTog'), adm = $('revAdmin'), tq = $('revQrTog');
       const mark = () => { tg.setAttribute('aria-pressed', String(!brand.revOff)); gi.value = brand.googleReview || ''; tq.setAttribute('aria-pressed', String(qrOk())); };
       tq.onclick = () => { if(qrOk()) brand.revQrNo = true; else delete brand.revQrNo; save(); mark(); };
-      $('revCartel').onclick = () => { if(!qrOk()){ delete brand.revQrNo; save(); mark(); } window.v360Cartel(false); }; $('revCartelChico').onclick = () => { if(!qrOk()){ delete brand.revQrNo; save(); mark(); } window.v360Cartel(10); }; $('revCartel8').onclick = () => { if(!qrOk()){ delete brand.revQrNo; save(); mark(); } window.v360Cartel(8); };
+      $('cartelAuto').onclick = () => window.v360CartelAuto(); $('revCartel').onclick = () => { if(!qrOk()){ delete brand.revQrNo; save(); mark(); } window.v360Cartel(false); }; $('revCartelChico').onclick = () => { if(!qrOk()){ delete brand.revQrNo; save(); mark(); } window.v360Cartel(10); }; $('revCartel8').onclick = () => { if(!qrOk()){ delete brand.revQrNo; save(); mark(); } window.v360Cartel(8); };
       const hb = $('hoyBox'), hoyMark = () => { hb.hidden = brand.preset !== 'informal'; const h = brand.hoy; $('hoyTx').value = h && Date.now() - h.t < 864e5 ? h.tx || '' : ''; $('hoyMsg').textContent = h && Date.now() - h.t < 864e5 ? '✅ Tus clientes ven: “' + (h.tx || 'Hoy estoy acá') + '”' + (h.lat ? ' con el mapa' : '') : ''; };
       $('hoyTx').addEventListener('change', e => { const v = e.target.value.trim(); brand.hoy = Object.assign({}, brand.hoy || {}, {tx: v.slice(0, 120), t: Date.now()}); if(!v && !(brand.hoy || {}).lat) delete brand.hoy; save(); hoyMark(); });
       $('hoyOff').onclick = () => { delete brand.hoy; save(); hoyMark(); $('hoyMsg').textContent = 'Listo: hoy no aparece ningún lugar.'; };
