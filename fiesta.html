@@ -718,11 +718,20 @@ function entrarAbierto(nombre) { nombre = String(nombre || '').trim().slice(0, 4
 function ofrecerLogo() { const c = $('#capa'); c.innerHTML = `<div style="max-width:460px;margin:12vh auto 0;background:var(--card);border-radius:22px;padding:22px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.25)"><div style="font-size:52px">📲</div><h2>${t('¿Querés guardar {n} en tu celular?', {n: esc(F.nombre || '')})}</h2><p>${t('Te queda el logo en la pantalla: la próxima vez lo abrís directo para pedir a la barra y ver tus recuerdos.')}</p><button class="btn big2" id="olSi">${t('📲 Sí, guardar')}</button><br><button class="btn no" id="olNo">${t('Ahora no')}</button></div>`; c.classList.add('on');
   $('#olSi').onclick = () => { cerrarCapa(); instalar(); }; $('#olNo').onclick = () => { cerrarCapa(); if (FL) flMenu(); }; }
 const numP = p => '#' + (p.id % 1000);
+// Muestra: el que entra desde una publicación prueba la fiesta con su propio nombre.
+function nombreDemo() {
+  const c = $('#capa'); c.innerHTML = `<div style="max-width:440px;margin:14vh auto 0;background:var(--card);border-radius:22px;padding:22px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.25)"><div style="font-size:48px">👋</div><h2 style="margin:6px 0">${t('Probá la fiesta como invitado')}</h2><p>${t('Escribí tu nombre y mirá cómo te acompaña Flashy en la fiesta.')}</p><input id="dnIn" maxlength="30" placeholder="${t('Tu nombre')}" style="width:100%;box-sizing:border-box;font:18px var(--sans);padding:12px;border-radius:12px;border:1.5px solid var(--line);margin:6px 0 10px"><button class="btn big2" id="dnOk">${t('🎉 Entrar a la fiesta')}</button></div>`;
+  c.classList.add('on'); setTimeout(() => { const i = $('#dnIn'); if (i) i.focus(); }, 100);
+  const ok = () => { const n = ($('#dnIn').value || '').trim().replace(/\s+/g, ' ').slice(0, 30) || 'Roberto'; try { localStorage.setItem('demoNom', n); } catch (e) {} INV.nombre = n; cerrarCapa(); render(); arrancarVivo(); };
+  $('#dnOk').onclick = ok; $('#dnIn').onkeydown = e => { if (e.key === 'Enter') ok(); };
+}
 async function cargar() {
   try {
     const r = await fetch('/api/fiesta?accion=ver&f=' + encodeURIComponent(CODE) + (TOK ? '&i=' + encodeURIComponent(TOK) : ''));
     const j = await r.json(); if (!r.ok) throw new Error(j.error || t('No encontramos esta fiesta.'));
-    F = j.fiesta; INV = j.inv || null; if (F.abierto && !INV) cliAbierto(); render(); arrancarVivo();
+    F = j.fiesta; INV = j.inv || null; if (F.abierto && !INV) cliAbierto();
+    if (CODE === 'DEMO15' && TOK === 'demoroberto' && INV) { let dn = ''; try { dn = localStorage.getItem('demoNom') || ''; } catch (e) {} if (dn) INV.nombre = dn; else { render(); return nombreDemo(); } }
+    render(); arrancarVivo();
     if (P.get('album') === '1') verAlbum(P.get('k') ? '&k=' + encodeURIComponent(P.get('k')) : P.get('p') ? '&p=' + encodeURIComponent(P.get('p')) : null);
     if (P.get('firmas') === '1') verCuadro(false, P.get('k') ? '&k=' + encodeURIComponent(P.get('k')) : P.get('p') ? '&p=' + encodeURIComponent(P.get('p')) : null);
   } catch (e) { $('#app').innerHTML = `<div class="carga">😕 ${esc(e.message)}</div>`; }
