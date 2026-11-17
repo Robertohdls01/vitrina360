@@ -147,6 +147,7 @@ function limpiar(d, prev) {
   if (Array.isArray(d.historia)) {
     o.historia = d.historia.slice(0, 10).filter(x => x && typeof x.img === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(x.img) && x.img.length <= 200000).map(x => ({ img: x.img, txt: corto(x.txt, 40) }));
   } else o.historia = prev.historia || [];
+  o.vitEstilo = ['arriba', 'alrededor', 'gira'].includes(d.vitEstilo) ? d.vitEstilo : (prev.vitEstilo || 'arriba');
   // Video de la protagonista: link de YouTube (no listado). Guardamos solo el id; lo sirve YouTube, no nosotros.
   if (typeof d.video === 'string') {
     const u = d.video.trim();
@@ -169,9 +170,11 @@ function limpiar(d, prev) {
   o.ultimo = n;
   return o;
 }
+const VITS = ['arriba', 'alrededor', 'gira'];
 // Lo que puede ver cualquiera con el link de la fiesta (sin la lista de invitados ni claves).
 function publica(e) {
-  const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'historia', 'video', 'organiza', 'autos', 'salud', 'saludNom', 'saludTel', 'seguridad', 'seguNom'].forEach(k => { o[k] = e[k]; });
+  const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'historia', 'video', 'vitEstilo', 'organiza', 'autos', 'salud', 'saludNom', 'saludTel', 'seguridad', 'seguNom'].forEach(k => { o[k] = e[k]; });
+  if (e.vitMax && e.paquete === 'invitacion' && VITS.indexOf(o.vitEstilo) > VITS.indexOf(e.vitMax)) o.vitEstilo = e.vitMax; // no muestra más de lo que compró
   o.total = (e.invitados || []).length; o.vivo = vivoOk(e); o.hoy = enDia(e) || !!e.demo || esAbierto(e);
   if (esAbierto(e)) { o.abierto = true; o.fecha = nocheDe(); }
   o.album = !!(e.demo || (e.pagado && e.paquete === 'recuerdos'));
@@ -293,8 +296,9 @@ module.exports = async (req, res) => {
       const b = cuerpo(req), paq = PAQ()[b.paquete] ? b.paquete : 'invitacion', n = Math.max(1, Math.min(20, parseInt(b.n, 10) || 1));
       const AB = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', gen = () => 'ML-' + [0, 1].map(() => Array.from(crypto.randomBytes(4), x => AB[x % AB.length]).join('')).join('-');
       const L = Array.from({ length: n }, gen);
-      await rest('POST', 'fiesta_codigos', L.map(codigo => ({ codigo, paquete: paq })), 'return=minimal');
-      return res.status(200).json({ ok: true, codigos: L, paquete: paq });
+      const vit = paq === 'invitacion' && VITS.includes(b.vit) ? b.vit : null; // nivel de vitrina vendido en ML
+      await rest('POST', 'fiesta_codigos', L.map(codigo => ({ codigo, paquete: paq, vit })), 'return=minimal');
+      return res.status(200).json({ ok: true, codigos: L, paquete: paq, vit });
     }
     const code = String(q.f || cuerpo(req).f || '').toUpperCase();
     if (!okCode(code)) return res.status(400).json({ error: 'Fiesta inválida.' });
@@ -305,7 +309,7 @@ module.exports = async (req, res) => {
       if (esDemo) return res.status(403).json({ error: 'La fiesta de muestra no se puede cambiar. Creá la tuya.' });
       const e = await leer(code); if (!e) return res.status(404).json({ error: 'No existe esa fiesta.' });
       if (hash(String(b.k || '')) !== e.clave) return res.status(403).json({ error: 'La clave del panel no es correcta.' });
-      const n = Object.assign(limpiar(b.datos, e), { code, clave: e.clave, creado: e.creado, cambiado: new Date().toISOString(), pagado: e.pagado, paquete: e.paquete, pagos: e.pagos, pagoRef: e.pagoRef, pk: e.pk, avisos: e.avisos, atraso: e.atraso, listo: e.listo, musica: e.musica });
+      const n = Object.assign(limpiar(b.datos, e), { code, clave: e.clave, creado: e.creado, cambiado: new Date().toISOString(), pagado: e.pagado, paquete: e.paquete, pagos: e.pagos, pagoRef: e.pagoRef, pk: e.pk, avisos: e.avisos, atraso: e.atraso, listo: e.listo, musica: e.musica, vitMax: e.vitMax });
       await guardarObj(code, n);
       return res.status(200).json({ ok: true, invitados: n.invitados });
     }
@@ -332,13 +336,13 @@ module.exports = async (req, res) => {
       if (hash(String(b.k || '')) !== e2.clave) return res.status(403).json({ error: 'La clave del panel no es correcta.' });
       const cod = String(b.codigo || '').toUpperCase().replace(/\s+/g, '').slice(0, 20);
       if (!/^ML-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(cod)) return res.status(400).json({ error: 'El código no es válido. Tiene la forma ML-XXXX-XXXX.' });
-      const fila = ((await rest('GET', 'fiesta_codigos?codigo=eq.' + cod + '&select=codigo,paquete,usado_por').catch(() => [])) || [])[0];
+      const fila = ((await rest('GET', 'fiesta_codigos?codigo=eq.' + cod + '&select=codigo,paquete,usado_por,vit').catch(() => [])) || [])[0];
       if (!fila) return res.status(404).json({ error: 'No encontramos ese código. Revisá que esté bien escrito.' });
       if (fila.usado_por && fila.usado_por !== code) return res.status(409).json({ error: 'Ese código ya se usó en otra fiesta.' });
       await rest('PATCH', 'fiesta_codigos?codigo=eq.' + cod + '&usado_por=is.null', { usado_por: code, usado_at: new Date().toISOString() });
       const ok = ((await rest('GET', 'fiesta_codigos?codigo=eq.' + cod + '&select=usado_por').catch(() => [])) || [])[0];
       if (!ok || ok.usado_por !== code) return res.status(409).json({ error: 'Ese código ya se usó en otra fiesta.' });
-      if (!(e2.pagado && (e2.paquete === fila.paquete || e2.paquete === 'recuerdos' || (e2.paquete === 'completa' && fila.paquete === 'invitacion')))) { marcarPago(e2, fila.paquete, 'ml:' + cod, 0, false); await guardarObj(code, e2); }
+      if (!(e2.pagado && (e2.paquete === fila.paquete || e2.paquete === 'recuerdos' || (e2.paquete === 'completa' && fila.paquete === 'invitacion')))) { marcarPago(e2, fila.paquete, 'ml:' + cod, 0, false); e2.vitMax = fila.paquete === 'invitacion' ? (fila.vit || 'gira') : null; await guardarObj(code, e2); }
       return res.status(200).json({ ok: true, pagado: true, paquete: fila.paquete });
     }
     if (req.method === 'POST' && (acc === 'pagar' || acc === 'regalar')) {

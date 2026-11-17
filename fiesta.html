@@ -73,6 +73,20 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .vit .cara img{width:100%;height:118px;object-fit:cover;display:block}
 .vit .cara span{display:block;font:600 11.5px/1.15 var(--sans);color:#3a3226;padding:4px 4px 0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vit .base{position:absolute;left:50%;bottom:0;width:230px;height:22px;margin-left:-115px;border-radius:50%;background:radial-gradient(ellipse,color-mix(in srgb,var(--ac) 55%,transparent),transparent 70%);filter:blur(2px)}
+.vit.mini{height:112px;margin:0;max-width:none}
+.vit.mini .anillo{width:64px;height:94px;margin-left:-32px;top:4px}
+.vit.mini .cara{border-width:2px;border-radius:9px}
+.vit.mini .cara img{height:70px}
+.vit.mini .cara span{font-size:9.5px;padding:2px 2px 0}
+.vit.mini .base{width:110px;height:14px;margin-left:-55px}
+.alr{position:relative;width:min(96vw,400px);height:min(96vw,400px);margin:0 auto 10px}
+.alr .foto{position:absolute;left:50%;top:50%;width:40%;height:auto;aspect-ratio:1;transform:translate(-50%,-50%);margin:0;z-index:2}
+.alr .orb{position:absolute;inset:0}
+.alr .pos{position:absolute;width:118px;height:112px;margin:-56px 0 0 -59px}
+.alr.gira .orb{animation:orbita 70s linear infinite}
+.alr.gira .pos{animation:orbita 70s linear infinite reverse}
+@keyframes orbita{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.alr.gira .orb,.alr.gira .pos{animation:none}}
 @keyframes giro{from{transform:rotateY(0)}to{transform:rotateY(-360deg)}}
 .vbox{position:relative;width:min(88%,380px);aspect-ratio:16/9;margin:8px auto 12px;border-radius:16px;overflow:hidden;border:3px solid var(--ac);box-shadow:0 0 22px -4px var(--ac);background:#000;cursor:pointer}
 .vbox.vert{width:min(62%,230px);aspect-ratio:9/16}
@@ -187,10 +201,10 @@ const agenda = f => { const d = cuando(f); if (!d) return ''; const fm = x => ne
   return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(nomFiesta(f)) + '&dates=' + fm(d) + '/' + fm(fin) + '&ctz=America/Argentina/Buenos_Aires&location=' + encodeURIComponent([f.salon, f.direccion].filter(Boolean).join(', ')) + '&details=' + encodeURIComponent(t('Tu invitación') + ': ' + location.origin + '/fiesta/' + CODE); };
 
 // Vitrina que gira con fotos: la historia de la protagonista (de bebé a hoy).
-function vitrina(L, rev) {
+function vitrina(L, rev, mini) {
   const k = Math.max(L.length, 4), fotos = Array.from({length: k}, (_, i) => L[i % L.length]);
-  const R = Math.round((104 / 2) / Math.tan(Math.PI / k) + 14);
-  return `<div class="vit${rev ? ' rev' : ''}" style="--dur:${k * 3.2}s"><div class="anillo">${fotos.map((x, i) => `<div class="cara" style="transform:rotateY(${i * 360 / k}deg) translateZ(${R}px)"><img src="${esc(x.img)}" alt="" loading="lazy">${x.txt ? `<span>${esc(x.txt)}</span>` : ''}</div>`).join('')}</div><div class="base"></div></div>`;
+  const R = mini ? Math.round(32 / Math.tan(Math.PI / k) + 8) : Math.round((104 / 2) / Math.tan(Math.PI / k) + 14);
+  return `<div class="vit${rev ? ' rev' : ''}${mini ? ' mini' : ''}" style="--dur:${k * 3.2}s"><div class="anillo">${fotos.map((x, i) => `<div class="cara" style="transform:rotateY(${i * 360 / k}deg) translateZ(${R}px)"><img src="${esc(x.img)}" alt="" loading="lazy">${x.txt ? `<span>${esc(x.txt)}</span>` : ''}</div>`).join('')}</div><div class="base"></div></div>`;
 }
 // Video: se carga recién al tocarlo (así no gasta datos) y pausa la música.
 document.addEventListener('click', e => {
@@ -220,9 +234,16 @@ function render() {
   if (m !== 'link') h += `<div class="deco">${(DECO[tp] || DECO.elegante)(f.color || '#c9a227')}</div>`;
   h += `<div class="hero">`;
   const HI = m === 'especial' && Array.isArray(f.historia) && f.historia.length >= 2 ? f.historia : null;
-  if (HI) { const mitad = Math.ceil(HI.length / 2); h += vitrina(HI.slice(0, mitad), false) + `<div class="brillos">${Array.from({length: 14}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 90 + 3}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div>`; }
-  if (m === 'especial' && f.foto) h += `<img class="foto" src="${esc(f.foto)}" alt=""${HI ? ' style="margin-bottom:6px"' : ''}>`;
-  if (HI) { const mitad = Math.ceil(HI.length / 2), abajo = HI.slice(mitad); h += vitrina(abajo.length >= 2 ? abajo : HI, true); }
+  let VE = f.vitEstilo || 'arriba'; if (f.demo) { const q = new URLSearchParams(location.search).get('vit'); if (['arriba', 'alrededor', 'gira'].includes(q)) VE = q; }
+  if (HI && VE !== 'arriba') {
+    // 4 vitrinas alrededor de la foto (arriba, derecha, abajo, izquierda); con "gira" dan vueltas alrededor.
+    const g = [0, 1, 2, 3].map(j => { const x = HI.filter((_, i) => i % 4 === j); return x.length >= 2 ? x : [0, 1, 2].map(n => HI[(j + n * 2) % HI.length]); });
+    const P = ['left:50%;top:58px', 'left:calc(100% - 59px);top:50%', 'left:50%;top:calc(100% - 58px)', 'left:59px;top:50%'];
+    h += `<div class="alr${VE === 'gira' ? ' gira' : ''}"><div class="brillos">${Array.from({length: 16}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 94 + 2}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div><div class="orb">${g.map((x, j) => `<div class="pos" style="${P[j]}">${vitrina(x, j % 2 === 1, true)}</div>`).join('')}</div>${f.foto ? `<img class="foto" src="${esc(f.foto)}" alt="">` : ''}</div>`;
+  }
+  else if (HI) { const mitad = Math.ceil(HI.length / 2); h += vitrina(HI.slice(0, mitad), false) + `<div class="brillos">${Array.from({length: 14}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 90 + 3}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div>`; }
+  if (m === 'especial' && f.foto && !(HI && VE !== 'arriba')) h += `<img class="foto" src="${esc(f.foto)}" alt=""${HI ? ' style="margin-bottom:6px"' : ''}>`;
+  if (HI && VE === 'arriba') { const mitad = Math.ceil(HI.length / 2), abajo = HI.slice(mitad); h += vitrina(abajo.length >= 2 ? abajo : HI, true); }
   if (m === 'especial' && f.video && f.video.id && /^[A-Za-z0-9_-]{11}$/.test(f.video.id)) h += `<div class="vbox${f.video.vert ? ' vert' : ''}" id="vbox" data-v="${f.video.id}"><img src="https://i.ytimg.com/vi/${f.video.id}/hqdefault.jpg" alt=""><span class="play">▶</span><div class="brillos">${Array.from({length: 8}, (_, i) => `<i style="left:${(i * 41) % 92 + 3}%;top:${(i * 29) % 88 + 4}%;animation-delay:${(i * .53) % 3.2}s"></i>`).join('')}</div></div>`;
   if (f.musica && f.musica.url && m !== 'link' && !f.abierto) h += `<button type="button" class="btn alt" id="musBtn" style="margin:4px auto 10px;display:inline-flex">🎵 ${t('Escuchar la música')}</button>`;
   h += `<div class="tit">${esc(f.titulo || '')}</div><div class="nom">${esc(f.nombre || t('Tu nombre'))}</div>`;
