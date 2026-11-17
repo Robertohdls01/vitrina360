@@ -2,6 +2,8 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<meta name="color-scheme" content="light only">
+<style>:root{color-scheme:light only}</style>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Tenés una invitación 💌</title>
 <meta name="description" content="Abrí tu invitación, confirmá si vas y guardá la fiesta en tu celular.">
@@ -714,11 +716,13 @@ function entender(texto) { // "para mí un fernet y para mi señora una coca" ->
   });
   const r = Object.entries(out).map(([k, c]) => { const [n, p] = k.split('|'); return p ? {n, c, p} : {n, c}; }); r.avisoMenor = avisoMenor; return r;
 }
-function flVozDe() { const vs = speechSynthesis.getVoices(), L = I18N.VOZ, p = L.slice(0, 2); return vs.find(v => v.lang.replace('_', '-').toLowerCase() === L.toLowerCase()) || vs.find(v => v.lang.toLowerCase().startsWith(p) && /google|natural/i.test(v.name)) || vs.find(v => v.lang.toLowerCase().startsWith(p)); }
+function flVozDe() { const vs = speechSynthesis.getVoices(), L = I18N.VOZ.toLowerCase(), p = L.slice(0, 2), lg = v => v.lang.replace('_', '-').toLowerCase(), buena = v => /google|natural|premium|enhanced/i.test(v.name);
+  return vs.find(v => lg(v) === L && buena(v)) || vs.find(v => lg(v).startsWith(p) && buena(v)) || vs.find(v => lg(v) === L && v.localService) || vs.find(v => lg(v) === L) || vs.find(v => lg(v).startsWith(p)); }
 function flHablar(t) {
   if (!flVoz || document.hidden || !('speechSynthesis' in window)) return;
-  try { const ya = speechSynthesis.speaking || speechSynthesis.pending; if (ya) speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(String(t).replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu, '').slice(0, 200)); u.lang = I18N.VOZ; const v = flVozDe(); if (v) u.voice = v; u.rate = 1.12; u.pitch = 1.25;
-    u.onstart = () => $('#fl').classList.add('habla'); u.onend = u.onerror = () => $('#fl').classList.remove('habla'); if (ya) setTimeout(() => speechSynthesis.speak(u), 120); else speechSynthesis.speak(u); } catch (e) {}
+  try { const ya = speechSynthesis.speaking || speechSynthesis.pending; if (ya) speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(String(t).replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu, '').slice(0, 200)); u.lang = I18N.VOZ; const v = flVozDe(); if (v) u.voice = v; u.rate = 1.2; u.pitch = 1.05; u.volume = .85;
+    // mientras Flashy habla, la música baja para que no se sature el parlante
+    u.onstart = () => { $('#fl').classList.add('habla'); if (MUS && !MUS.paused) MUS.volume = .15; }; u.onend = u.onerror = () => { $('#fl').classList.remove('habla'); if (MUS) MUS.volume = .7; }; if (ya) setTimeout(() => speechSynthesis.speak(u), 120); else speechSynthesis.speak(u); } catch (e) {}
 }
 function flDecir(texto, ops, conEscribir) {
   if (!FL) return; const b = $('#flb');
