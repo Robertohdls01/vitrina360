@@ -155,6 +155,7 @@ function publica(e) {
   const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'organiza', 'autos', 'salud', 'saludNom', 'saludTel'].forEach(k => { o[k] = e[k]; });
   o.total = (e.invitados || []).length; o.vivo = vivoOk(e); o.hoy = enDia(e) || !!e.demo || esAbierto(e);
   if (esAbierto(e)) { o.abierto = true; o.fecha = nocheDe(); }
+  o.album = !!(e.demo || (e.pagado && e.paquete === 'recuerdos'));
   if (o.vivo) { o.lugares = e.lugares || []; o.flLook = e.flLook || LOOK_DE[e.tipo] || 'traje'; o.carta = e.carta || []; o.crono = e.crono || []; o.atraso = e.atraso || 0; o.avisos = (e.avisos || []).slice(-15); }
   return o;
 }
@@ -281,7 +282,7 @@ module.exports = async (req, res) => {
 
     const e = esDemo ? demoDe(code) : await leer(code);
     if (!e) return res.status(404).json({ error: 'No encontramos esta fiesta. Revisá el link.' });
-    if (!esDemo && !e.pagado && ['ver', 'buscar', 'responder', 'firmar', 'firmas'].includes(acc)) return res.status(402).json({ error: 'Esta invitación todavía no está activa. La familia la está terminando de preparar.' });
+    if (!esDemo && !e.pagado && ['ver', 'buscar', 'responder', 'firmar', 'firmas', 'albumSubir', 'albumListo', 'album'].includes(acc)) return res.status(402).json({ error: 'Esta invitación todavía no está activa. La familia la está terminando de preparar.' });
 
     if (req.method === 'GET' && acc === 'ver') {
       const out = { ok: true, fiesta: publica(e) };
@@ -310,6 +311,39 @@ module.exports = async (req, res) => {
         menu: MENUS.includes(b.menu) ? b.menu : '', nota: largo(b.nota, 300), t: new Date().toISOString() };
       if (!esDemo) await rest('POST', 'fiesta_resp?on_conflict=code,gid', fila, 'resolution=merge-duplicates,return=minimal');
       return res.status(200).json({ ok: true, demo: esDemo, resp: fila, mesa: e.mostrarMesa ? g.mesa : '' });
+    }
+
+    // ===== Álbum de la fiesta: fotos y videos de hasta 30 s que suben los invitados (paquete con recuerdos) =====
+    // El archivo va directo del celular al almacenamiento con un link firmado (no pasa por acá, así aguanta videos).
+    const albumOk = e.demo || (e.pagado && e.paquete === 'recuerdos');
+    if (req.method === 'POST' && (acc === 'albumSubir' || acc === 'albumListo')) {
+      const b = cuerpo(req), g = invDe(e, b.i, b.nombre);
+      if (!g) return res.status(403).json({ error: 'Primero decinos quién sos.' });
+      if (!albumOk) return res.status(403).json({ error: 'El álbum viene en el paquete con recuerdos.' });
+      if (esDemo) return res.status(200).json({ demo: true });
+      const tipo = b.tipo === 'video' ? 'video' : 'foto';
+      if (acc === 'albumSubir') {
+        const mios = (await rest('GET', 'fiesta_album?code=eq.' + code + '&gid=eq.' + encodeURIComponent(g.id) + '&select=tipo').catch(() => [])) || [];
+        if (mios.filter(x => x.tipo === tipo).length >= (tipo === 'video' ? 5 : 40)) return res.status(429).json({ error: tipo === 'video' ? 'Ya subiste 5 videos. ¡Gracias!' : 'Ya subiste 40 fotos. ¡Gracias!' });
+        const ext = tipo === 'video' ? (/^(mp4|mov|webm)$/.test(String(b.ext)) ? b.ext : 'mp4') : 'jpg';
+        const path = 'album/' + code + '/' + g.id + '-' + Date.now().toString(36) + crypto.randomBytes(3).toString('hex') + '.' + ext;
+        const r = await fetch(ST() + '/object/upload/sign/' + B + '/' + path, { method: 'POST', headers: stHeaders({ 'Content-Type': 'application/json' }) });
+        const j = await r.json().catch(() => ({})); if (!r.ok || !j.url) return res.status(500).json({ error: 'No se pudo preparar la subida.' });
+        return res.status(200).json({ path, url: ST() + j.url });
+      }
+      const path = String(b.path || ''); if (!path.startsWith('album/' + code + '/' + g.id + '-')) return res.status(400).json({ error: 'Archivo inválido.' });
+      await rest('POST', 'fiesta_album', { code, gid: g.id, nombre: g.nombre, tipo, path }, 'return=minimal');
+      return res.status(200).json({ ok: true });
+    }
+    if (req.method === 'GET' && acc === 'album') {
+      const g = q.i && invDe(e, q.i), fam = q.k && hash(String(q.k)) === e.clave;
+      if (!g && !fam && !(q.p && e.pk && String(q.p) === e.pk)) return res.status(403).json({ error: 'No tenés permiso para ver el álbum.' });
+      if (!albumOk) return res.status(200).json({ ok: true, activo: false, items: [] });
+      const L = esDemo ? [] : ((await rest('GET', 'fiesta_album?code=eq.' + code + '&select=id,gid,nombre,tipo,path,t&order=t.desc&limit=600').catch(() => [])) || []);
+      let urls = {}; if (L.length) { const r = await fetch(ST() + '/object/sign/' + B, { method: 'POST', headers: stHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ expiresIn: 6 * 3600, paths: L.map(x => x.path) }) }); const j = await r.json().catch(() => []);
+        (Array.isArray(j) ? j : []).forEach(x => { if (x && x.signedURL) urls[x.path] = ST() + x.signedURL; }); }
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).json({ ok: true, activo: true, items: L.filter(x => urls[x.path]).map(x => ({ id: x.id, nombre: x.nombre, tipo: x.tipo, url: urls[x.path], t: x.t, yo: !!(g && x.gid === g.id) })) });
     }
 
     // ===== Cuadro de firmas: cada invitado firma la foto de la cumpleañera =====
@@ -415,7 +449,7 @@ module.exports = async (req, res) => {
     }
 
     return res.status(400).json({ error: 'Acción desconocida.' });
-  } catch (err) {
+  } catch (err) { if (process.env.DEBUG_FIESTA) console.error(err);
     return res.status(err.st || 500).json({ error: err.st ? err.message : 'Algo falló. Probá de nuevo en un momento.' });
   }
 };

@@ -114,7 +114,8 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .colores{display:flex;gap:10px;align-items:center;margin:10px 0}.colores button{width:34px;height:34px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px var(--line);cursor:pointer}.colores button.on{box-shadow:0 0 0 3px var(--ink)}
 .firmas{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:14px}
 .firmas div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:6px;text-align:center;color:#1f2937;font-size:13px}.firmas img{width:100%;height:80px;object-fit:contain}.firmas div.yo{box-shadow:0 0 0 2px var(--ac)}
-.cuadroF{text-align:center}.cuadroF .fgr{width:70%;max-width:340px;margin:8px auto 0;display:block}
+.cuadroF{text-align:center}
+.alb{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:6px;margin-top:12px}.alb div{position:relative;border-radius:10px;overflow:hidden;background:#000;aspect-ratio:1}.alb img,.alb video{width:100%;height:100%;object-fit:cover;display:block}.alb small{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);color:#fff;font-size:11px;padding:2px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cuadroF .fgr{width:70%;max-width:340px;margin:8px auto 0;display:block}
 </style>
 </head>
 <body>
@@ -192,11 +193,12 @@ function render() {
   if (F.vivo && !PREV) h += `<div class="card vivo" id="vivo"></div>`;
   h += `<div class="card rsvp" id="rsvp"></div>`;
   if (!f.abierto) h += `<div class="card" id="firmasCard"></div>`;
+  if (f.album && !f.abierto) h += `<div class="card" id="albumCard"></div>`;
   h += `<div class="card" id="guardar"></div>`;
   h += `<div class="pie">${t('Invitación y fiesta organizadas con')} <b>ShopFiesta</b><br>Pro Video JSRHG · <a href="https://wa.me/5492235814437?text=${encodeURIComponent('Hola, vi la invitación de ShopFiesta y quiero una para mi fiesta')}" target="_blank" rel="noopener">${t('¿Querés una para tu fiesta?')}</a></div>`;
   $('#app').innerHTML = h;
   if (F.vivo && F.hoy && !PREV) { const v = $('#vivo'), hero = $('.hero'); if (v && hero) hero.after(v); }
-  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas();
+  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas(); tarjAlbum();
 }
 function cuenta() {
   clearInterval(timer); const d = cuando(F); if (!d || !$('#cuenta')) return;
@@ -319,6 +321,50 @@ async function descargarCuadro() {
     try { const im = await cargaImg(f.img); x.drawImage(im, cx + 10, cy, lado - 20, (lado - 20) * im.height / im.width); } catch (e) {}
     x.font = '600 24px Figtree, sans-serif'; x.fillStyle = '#6b5b45'; x.fillText(f.nombre, cx + lado / 2, cy + lado * .62 + 20); }
   try { const a = document.createElement('a'); a.download = 'cuadro-de-firmas-' + (F.nombre || 'fiesta') + '.png'; a.href = cv.toDataURL('image/png'); a.click(); } catch (e) { alert(t('No se pudo descargar la imagen.')); }
+}
+// ===== Álbum de la fiesta: cada invitado sube sus fotos y videos (hasta 30 s) =====
+function tarjAlbum() {
+  const el = $('#albumCard'); if (!el) return;
+  if (!INV && !PREV) { el.style.display = 'none'; return; } el.style.display = '';
+  el.innerHTML = `<h3>${t('📸 Álbum de la fiesta')}</h3><p>${t('Durante la fiesta sacá fotos y videos cortos (hasta 30 segundos) de todos los momentos y subilos acá. Así le quedan de recuerdo a la familia, y todos los pueden ver.')}</p>
+    <input type="file" id="albF" accept="image/*" multiple hidden><input type="file" id="albV" accept="video/*" hidden>
+    <button class="btn big2" id="albBF">${t('📸 Subir fotos')}</button><br><button class="btn alt" id="albBV">${t('🎬 Subir un video (hasta 30 segundos)')}</button><br><button class="btn alt" id="albVer">${t('🖼 Ver el álbum')}</button><div id="albMsg"></div>`;
+  if (PREV) return;
+  $('#albBF').onclick = () => $('#albF').click(); $('#albBV').onclick = () => $('#albV').click(); $('#albVer').onclick = () => verAlbum();
+  $('#albF').onchange = e => subirAlbum([...e.target.files], 'foto'); $('#albV').onchange = e => subirAlbum([...e.target.files], 'video');
+}
+const achicar = f => new Promise((ok, mal) => { const u = URL.createObjectURL(f), im = new Image(); im.onload = () => { const k = Math.min(1, 1600 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u); c.toBlob(b => b ? ok(b) : mal(), 'image/jpeg', .82); }; im.onerror = mal; im.src = u; });
+const duracion = f => new Promise(ok => { const v = document.createElement('video'), u = URL.createObjectURL(f); v.preload = 'metadata'; v.onloadedmetadata = () => { URL.revokeObjectURL(u); ok(v.duration || 0); }; v.onerror = () => ok(0); v.src = u; });
+async function subirAlbum(files, tipo) {
+  const m = $('#albMsg'); if (!files.length) return; let ok = 0;
+  for (const [n, f] of files.slice(0, 20).entries()) {
+    m.innerHTML = `<p>${t('Subiendo {n} de {t}…', {n: n + 1, t: Math.min(files.length, 20)})}</p>`;
+    try {
+      let blob = f, ext = 'jpg';
+      if (tipo === 'foto') blob = await achicar(f);
+      else { const d = await duracion(f); if (d > 31) throw new Error(t('El video dura más de 30 segundos. Recortalo y probá de nuevo.')); if (f.size > 45e6) throw new Error(t('El video es muy pesado. Probá con uno más corto.')); ext = (f.name.split('.').pop() || 'mp4').toLowerCase(); }
+      const post = (acc, b) => fetch('/api/fiesta?accion=' + acc, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(Object.assign({f: CODE, i: TOK, nombre: INV && INV.nombre, tipo}, b))}).then(async r => { const j = await r.json(); if (!r.ok) throw new Error(j.error || t('No se pudo')); return j; });
+      const s1 = await post('albumSubir', {ext}); if (s1.demo) { ok++; continue; }
+      const fd = new FormData(); fd.append('cacheControl', '3600'); fd.append('', blob);
+      const up = await fetch(s1.url, {method: 'PUT', body: fd, headers: {'x-upsert': 'false'}}); if (!up.ok) throw new Error(t('No se pudo subir. Revisá internet.'));
+      await post('albumListo', {path: s1.path}); ok++;
+    } catch (e) { m.innerHTML = `<p class="err">${esc(e.message)}</p>`; if (/30 seg|pesado|subiste/.test(e.message)) return; }
+  }
+  m.innerHTML = `<div class="ok">${t('✅ ¡Listo! Subiste {n}. Gracias por sumar recuerdos 💖', {n: ok})}</div>`; if (FL && ok) flDecir(t('✅ ¡Listo! Subiste {n}. Gracias por sumar recuerdos 💖', {n: ok}), []);
+}
+async function verAlbum(auth) {
+  const c = $('#capa'); c.innerHTML = `<div class="carga">…</div>`; c.classList.add('on'); document.body.style.overflow = 'hidden';
+  let j; try { const r = await fetch('/api/fiesta?accion=album&f=' + CODE + (auth || ('&i=' + encodeURIComponent(TOK)))); j = await r.json(); if (!r.ok) throw new Error(j.error || t('No se pudo abrir')); }
+  catch (e) { c.innerHTML = `<div class="carga">😕 ${esc(e.message)}</div><div style="text-align:center"><button class="btn" onclick="cerrarCapa()">${t('Cerrar')}</button></div>`; return; }
+  const L = j.items || [];
+  c.innerHTML = `<div style="max-width:900px;margin:0 auto"><h2>${t('📸 Álbum de la fiesta')}</h2><p style="color:var(--soft)">${t('{n} fotos y videos', {n: L.length})}</p>
+    <div class="alb">${L.map((x, i) => `<div>${x.tipo === 'video' ? `<video src="${esc(x.url)}" controls playsinline preload="metadata"></video>` : `<img src="${esc(x.url)}" alt="" loading="lazy" data-i="${i}">`}<small>${esc(x.nombre || '')}</small></div>`).join('') || `<p style="grid-column:1/-1;color:var(--soft)">${t('Todavía no hay fotos. ¡Subí la primera! 📸')}</p>`}</div>
+    <div style="margin-top:14px">${L.length ? `<button class="btn" id="albTodo">${t('⬇️ Descargar todo')}</button> ` : ''}<button class="btn no" id="albCerrar">${t('Cerrar')}</button></div><div id="albD"></div></div>`;
+  $('#albCerrar').onclick = cerrarCapa;
+  c.querySelectorAll('img[data-i]').forEach(im => im.onclick = () => open(L[+im.dataset.i].url, '_blank'));
+  const td = $('#albTodo'); if (td) td.onclick = async () => { td.disabled = true; let n = 0;
+    for (const x of L) { try { const b = await (await fetch(x.url)).blob(), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'fiesta-' + (n + 1) + (x.tipo === 'video' ? '.mp4' : '.jpg'); a.click(); n++; $('#albD').textContent = t('Descargando {n} de {t}…', {n, t: L.length}); await new Promise(r => setTimeout(r, 350)); } catch (e) {} }
+    $('#albD').textContent = t('✅ Listo: {n} archivos descargados.', {n}); td.disabled = false; };
 }
 // ===== Fiesta en vivo =====
 const minDe = h => { const [a, b] = String(h).split(':').map(Number); return a * 60 + b; };
@@ -553,7 +599,7 @@ function flPasoDeVez() { // cada tanto, sin molestar: "¿te falta algo en la mes
   let ult = 0; try { ult = +localStorage.getItem(LSI()) || 0; } catch (e) {}
   if (Date.now() - ult < 30 * 60e3) return; marcaInter();
   const extras = (F.carta || []).filter(x => /pan|hielo|servillet|agua/i.test(x.n)).slice(0, 4);
-  const frases = [t('¿Te falta algo en la mesa? 🙂'), t('¿Te traigo algo más para tomar? 🥤'), t('¿Necesitás más pan, hielo o servilletas?')];
+  const frases = [...(F.album ? [t('📸 ¿Sacaste fotos o videos? Subilos al álbum de la fiesta: quedan de recuerdo para la familia.')] : []), t('¿Te falta algo en la mesa? 🙂'), t('¿Te traigo algo más para tomar? 🥤'), t('¿Necesitás más pan, hielo o servilletas?')];
   flDecir(frases[Math.floor(Math.random() * frases.length)], extras.map(x => ({t: tc(x.n), f: () => flConfirmar([{n: x.n, c: 1}])})).concat([{t: t('🥤 Otra cosa'), f: () => flDecir(t('¿Qué te traemos?'), flOpsPedir(), true)}, {t: t('No, gracias'), alt: true, f: () => $('#flb').classList.remove('on')}]));
 }
 // El celular solo deja hablar después de un toque: con el primer toque en cualquier parte, Flashy queda habilitado para hablar.
@@ -598,6 +644,7 @@ async function cargar() {
     const r = await fetch('/api/fiesta?accion=ver&f=' + encodeURIComponent(CODE) + (TOK ? '&i=' + encodeURIComponent(TOK) : ''));
     const j = await r.json(); if (!r.ok) throw new Error(j.error || t('No encontramos esta fiesta.'));
     F = j.fiesta; INV = j.inv || null; if (F.abierto && !INV) cliAbierto(); render(); arrancarVivo();
+    if (P.get('album') === '1') verAlbum(P.get('k') ? '&k=' + encodeURIComponent(P.get('k')) : P.get('p') ? '&p=' + encodeURIComponent(P.get('p')) : null);
     if (P.get('firmas') === '1') verCuadro(false, P.get('k') ? '&k=' + encodeURIComponent(P.get('k')) : P.get('p') ? '&p=' + encodeURIComponent(P.get('p')) : null);
   } catch (e) { $('#app').innerHTML = `<div class="carga">😕 ${esc(e.message)}</div>`; }
 }
