@@ -146,13 +146,13 @@ function firmar(){
       <div class="card noprint"><h2>Datos</h2><div class="row">${campos().map(input).join('')}</div></div>
       <div class="card doc" id="doc">${docHTML(doc, d)}</div>
       <div class="card noprint"><h2>✍️ Firma del cliente</h2><canvas class="pad" id="pc"></canvas><div class="padbar"><span class="note">Firmá con el dedo dentro del recuadro</span><button type="button" data-clr="c">Borrar</button></div>
-        <h2>✍️ Firma de Pro Video <span class="note">(el vendedor, si está presente)</span></h2><label style="margin-top:0">Nombre del vendedor<input id="ven" value="${esc(Q.get('vendedor') || '')}"></label><canvas class="pad" id="pv"></canvas><div class="padbar"><span class="note">Opcional</span><button type="button" data-clr="v">Borrar</button></div>
+        <p class="note" style="margin:10px 0 0">✅ La firma de Pro Video JSRHG ya está puesta en el documento. Solo firma el cliente.</p><label>Vendedor (opcional, para tu comisión)<input id="ven" value="${esc(Q.get('vendedor') || '')}"></label>
         <label class="chk" style="margin-top:14px"><input type="checkbox" id="acepto"> Leí el documento y estoy de acuerdo.</label>
         <p class="msg" id="msg"></p><button class="btn pri" id="go" style="width:100%">✅ Firmar</button></div>`;
-    const PC = pad($('#pc')), PVp = pad($('#pv'));
+    const PC = pad($('#pc'));
     app.querySelectorAll('[data-doc]').forEach(b => b.onclick = () => { doc = b.dataset.doc; render(); });
     app.querySelectorAll('[data-k]').forEach(el => el.addEventListener('input', () => { d[el.dataset.k] = el.value.trim(); $('#doc').innerHTML = docHTML(doc, d); }));
-    app.querySelectorAll('[data-clr]').forEach(b => b.onclick = () => (b.dataset.clr === 'c' ? PC : PVp).clear());
+    app.querySelectorAll('[data-clr]').forEach(b => b.onclick = () => PC.clear());
     $('#go').onclick = async () => {
       const m = $('#msg'); m.textContent = '';
       if(!d.negocio || !d.responsable) return m.textContent = 'Completá el negocio y el nombre del responsable.';
@@ -161,7 +161,7 @@ function firmar(){
       $('#go').disabled = true; $('#go').textContent = 'Firmando…';
       try{
         const tx = $('#doc').innerText;
-        const j = await api('/api/menu?accion=firma', {doc, datos: d, firmaCli: PC.png(), firmaVen: PVp.empty() ? '' : PVp.png(), vendedor: $('#ven').value.trim(), acepto: true, version: VERSION, texto: tx});
+        const j = await api('/api/menu?accion=firma', {doc, datos: d, firmaCli: PC.png(), vendedor: $('#ven').value.trim(), acepto: true, version: VERSION, texto: tx});
         const url = `${location.origin}/firmar?ver=${j.id}&k=${j.k}`;
         try{ localStorage.setItem('pv-firma-' + j.id, url); }catch(e){}
         app.innerHTML = `<div class="card ok"><div class="big">✅</div><h1>¡Firmado!</h1><p>El documento quedó firmado y guardado. Pro Video tiene su copia.</p>
@@ -193,11 +193,15 @@ async function ver(){
 async function admin(){
   let A = ''; try{ A = localStorage.getItem('shopmenu-admin') || ''; }catch(e){}
   const pedir = (msg) => { app.innerHTML = `<div class="card"><h1>Firmas de Pro Video</h1><p class="note">Entrá con tu clave (la misma de "Mis pruebas" de ShopMenu).</p><label>Clave<input id="cl" type="password"></label><p class="msg">${esc(msg || '')}</p><button class="btn pri" id="en">Entrar</button></div>`;
-    $('#en').onclick = () => { A = $('#cl').value; try{ localStorage.setItem('shopmenu-admin', A); }catch(e){} cargar(); }; };
+    $('#en').onclick = () => { A = $('#cl').value; try{ localStorage.setItem('shopmenu-admin', A); }catch(e){} cargarTodo(); }; };
   const cargar = async () => { let j; try{ j = await api('/api/menu?accion=firmas', {admin: A}); }catch(e){ return pedir(e.message); }
-    app.innerHTML = `<div class="card"><h1>Firmas de Pro Video</h1><p class="note">${j.items.length} documentos firmados.</p><a class="btn sec" href="/firmar">✍️ Firmar uno nuevo</a>
+    let fpv = ''; try{ fpv = (await api('/api/menu?accion=firmaPV')).img; }catch(e){}
+    app.innerHTML = `<div class="card"><h1>✍️ La firma de Pro Video</h1><p class="note">Firmá una sola vez: esta firma sale puesta en todos los acuerdos y constancias, así el cliente firma solo él.</p>${fpv ? `<img src="${fpv}" alt="Firma actual" style="max-height:90px;display:block;margin:6px 0">` : '<p class="msg">Todavía no cargaste tu firma.</p>'}<canvas class="pad" id="fpv"></canvas><div class="padbar"><span class="note">Firmá con el dedo</span><button type="button" id="fpvClr">Borrar</button></div><button class="btn pri" id="fpvOk">💾 Guardar la firma de Pro Video</button><p class="note" id="fpvMsg"></p></div>
+    <div class="card"><h1>Firmas de Pro Video</h1><p class="note">${j.items.length} documentos firmados.</p><a class="btn sec" href="/firmar">✍️ Firmar uno nuevo</a>
       <table class="l" style="margin-top:12px"><tr><th>Fecha</th><th>Documento</th><th>Negocio</th><th>Vendedor</th><th></th></tr>${j.items.map(x => `<tr><td>${new Date(x.fecha).toLocaleDateString('es-AR')}</td><td>${x.doc === 'galeria' ? '🏢 Galería' : x.doc === 'prueba' ? '🧪 Prueba' : '🤝 Acuerdo'}</td><td><b>${esc(x.negocio)}</b><br><small>${esc(x.responsable)} · ${esc(x.producto)}</small></td><td>${esc(x.vendedor || '')}</td><td><a href="/firmar?ver=${x.id}&k=${x.k}" target="_blank">Ver</a></td></tr>`).join('')}</table></div>`; };
-  if(A) cargar(); else pedir('');
+  const cargar0 = cargar; const cargarTodo = async () => { await cargar0(); const c = $('#fpv'); if(!c) return; const P = pad(c); $('#fpvClr').onclick = () => P.clear();
+    $('#fpvOk').onclick = async () => { if(P.empty()) return $('#fpvMsg').textContent = 'Firmá en el recuadro.'; try{ await api('/api/menu?accion=firmaPV', {admin: A, img: P.png()}); $('#fpvMsg').textContent = '✅ Guardada. Desde ahora sale en todos los documentos.'; }catch(e){ $('#fpvMsg').textContent = e.message; } }; };
+  if(A) cargarTodo(); else pedir('');
 }
 
 if(Q.get('ver')) ver(); else if(Q.has('admin')) admin(); else firmar();
