@@ -81,13 +81,11 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .vit.mini .cara img{height:78px}
 .vit.mini .cara span{font-size:9.5px;padding:2px 2px 0}
 .vit.mini .base{width:110px;height:14px;margin-left:-55px}
-.alr{position:relative;width:min(100vw,420px);height:calc(min(100vw,420px) + 26px);overflow:hidden;margin:0 0 10px;left:50%;transform:translateX(-50%)}
+.alr{position:relative;width:min(100vw,420px);height:calc(min(100vw,420px) + 160px);overflow:hidden;margin:0 0 10px;left:50%;transform:translateX(-50%)}
 .alr .foto{position:absolute;left:50%;top:50%;width:33.5%;height:auto;aspect-ratio:1;transform:translate(-50%,-50%);margin:0;z-index:2}
 .alr .orb{position:absolute;inset:0;z-index:3;pointer-events:none}
 .alr .pos{position:absolute;width:124px;height:138px;margin:-69px 0 0 -62px}
 .vnom{display:block;font:700 11px/1.1 var(--sans);color:var(--ac);margin-top:-2px;text-shadow:0 1px 0 #fff,0 0 6px #fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.alr.gira .orb{animation:orbita 70s linear infinite}
-.alr.gira .pos{animation:orbita 70s linear infinite reverse}
 @keyframes orbita{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.alr.gira .orb,.alr.gira .pos{animation:none}}
 .pm{position:absolute;pointer-events:none;z-index:4;border-radius:50%;animation:pm var(--t,1.8s) ease-out forwards}
@@ -213,6 +211,17 @@ function vitrina(L, rev, mini) {
   const R = mini ? Math.round(36 / Math.tan(Math.PI / k) + 3) : Math.round((104 / 2) / Math.tan(Math.PI / k) + 14);
   return `<div class="vit${rev ? ' rev' : ''}${mini ? ' mini' : ''}" style="--dur:${k * 3.2}s"><div class="anillo">${fotos.map((x, i) => `<div class="cara" style="transform:rotateY(${i * 360 / k}deg) translateZ(${R}px)"><img src="${esc(x.img)}" alt="" loading="lazy">${x.txt ? `<span>${esc(x.txt)}</span>` : ''}</div>`).join('')}</div><div class="base"></div></div>`;
 }
+// Vitrinas girando alrededor de la foto: van por un óvalo (más alto que ancho) para no chocar nunca la foto del medio.
+function orbita() {
+  cancelAnimationFrame(orbita.r); const A = document.querySelector('.alr.gira'); if (!A || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const P = [...A.querySelectorAll('.pos')], t0 = performance.now();
+  const paso = now => {
+    if (!document.body.contains(A)) return; orbita.r = requestAnimationFrame(paso); if (document.hidden) return;
+    const W = A.clientWidth, H = A.clientHeight, a = W / 2 - 52, b = H / 2 - 66, g = (now - t0) / 70000 * Math.PI * 2;
+    P.forEach((p, j) => { const th = -Math.PI / 2 + j * Math.PI / 2 + g; p.style.left = (W / 2 + a * Math.cos(th)) + 'px'; p.style.top = (H / 2 + b * Math.sin(th)) + 'px'; });
+  };
+  orbita.r = requestAnimationFrame(paso);
+}
 // Polvo mágico: chispitas doradas que se desprenden de las vitrinas mientras giran.
 function polvo() {
   clearInterval(polvo.t); const hero = document.querySelector('.hero');
@@ -266,7 +275,7 @@ function render() {
     // 4 vitrinas alrededor de la foto (arriba, derecha, abajo, izquierda); con "gira" dan vueltas alrededor.
     const conG = HI.some(x => x.g != null), NOM = f.vitNom || [];
     const g = [0, 1, 2, 3].map(j => { const x = HI.filter((y, i) => conG ? y.g === j : i % 4 === j); return x.length >= 1 && conG ? x : x.length >= 2 ? x : x.length >= 2 ? x : [0, 1, 2].map(n => HI[(j + n * 2) % HI.length]); });
-    const P = ['left:50%;top:69px', 'left:calc(100% - 62px);top:50%', 'left:50%;top:calc(100% - 69px)', 'left:62px;top:50%'];
+    const P = ['left:50%;top:69px', 'left:calc(100% - 55px);top:50%', 'left:50%;top:calc(100% - 69px)', 'left:55px;top:50%'];
     h += `<div class="alr${VE === 'gira' ? ' gira' : ''}"><div class="brillos">${Array.from({length: 16}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 94 + 2}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div><div class="orb">${g.map((x, j) => `<div class="pos" style="${P[j]}">${vitrina(x, j % 2 === 1, true)}${NOM[j] ? `<b class="vnom">${esc(NOM[j])}</b>` : ''}</div>`).join('')}</div>${f.foto ? `<img class="foto" src="${esc(f.foto)}" alt="">` : ''}</div>`;
   }
   else if (HI) { const mitad = Math.ceil(HI.length / 2); h += vitrina(HI.slice(0, mitad), false) + `<div class="brillos">${Array.from({length: 14}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 90 + 3}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div>`; }
@@ -297,7 +306,7 @@ function render() {
   h += `<div class="pie">${t('Invitación y fiesta organizadas con')} <b>ShopFiesta</b><br>Pro Video JSRHG · <a href="https://wa.me/5492235814437?text=${encodeURIComponent('Hola, vi la invitación de ShopFiesta y quiero una para mi fiesta')}" target="_blank" rel="noopener">${t('¿Querés una para tu fiesta?')}</a></div>`;
   $('#app').innerHTML = h;
   if (F.vivo && F.hoy && !PREV) { const v = $('#vivo'), hero = $('.hero'); if (v && hero) hero.after(v); }
-  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas(); tarjAlbum(); tarjRecuerdos(); tarjPush(); tarjResena(); musica(); polvo();
+  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas(); tarjAlbum(); tarjRecuerdos(); tarjPush(); tarjResena(); musica(); polvo(); orbita();
 }
 function cuenta() {
   clearInterval(timer); const d = cuando(F); if (!d || !$('#cuenta')) return;
