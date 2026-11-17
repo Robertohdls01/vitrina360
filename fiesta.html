@@ -739,10 +739,13 @@ function entender(texto) { // "para mí un fernet y para mi señora una coca" ->
   const r = Object.entries(out).map(([k, c]) => { const [n, p] = k.split('|'); return p ? {n, c, p} : {n, c}; }); r.avisoMenor = avisoMenor; return r;
 }
 function flVozDe() { const vs = speechSynthesis.getVoices(), L = I18N.VOZ.toLowerCase(), p = L.slice(0, 2), lg = v => v.lang.replace('_', '-').toLowerCase(), buena = v => /google|natural|premium|enhanced/i.test(v.name);
+  // Flashy es varón (traje, moño): primero una voz de hombre del idioma, si el celular tiene
+  const VARON = /\bmale\b|hombre|mascul|jorge|diego|pablo|juan|carlos|enrique|alvaro|álvaro|raul|raúl|tomas|tomás|andres|andrés|jose|josé|daniel|david|mark|alex|felipe|antonio|miguel|thomas|luca|reed|eddy|rocko/i;
+  const h = vs.find(v => lg(v).startsWith(p) && VARON.test(v.name) && buena(v)) || vs.find(v => lg(v).startsWith(p) && VARON.test(v.name)); if (h) return h;
   return vs.find(v => lg(v) === L && buena(v)) || vs.find(v => lg(v).startsWith(p) && buena(v)) || vs.find(v => lg(v) === L && v.localService) || vs.find(v => lg(v) === L) || vs.find(v => lg(v).startsWith(p)); }
 function flHablar(t) {
   if (!flVoz || document.hidden || !('speechSynthesis' in window)) return;
-  try { const ya = speechSynthesis.speaking || speechSynthesis.pending; if (ya) speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(String(t).replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu, '').slice(0, 200)); u.lang = I18N.VOZ; const v = flVozDe(); if (v) u.voice = v; u.rate = 1.05; u.pitch = 1.08; u.volume = .85;
+  try { const ya = speechSynthesis.speaking || speechSynthesis.pending; if (ya) speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(String(t).replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu, '').slice(0, 200)); u.lang = I18N.VOZ; const v = flVozDe(); if (v) u.voice = v; u.rate = 1.05; u.pitch = v && /\bmale\b|hombre|jorge|diego|pablo|juan|carlos|enrique|raul|raúl|andres|andrés|jose|josé|daniel|felipe|antonio|miguel|reed|eddy|rocko/i.test(v.name) ? 1.05 : 0.85; u.volume = .85;
     // mientras Flashy habla, la música baja para que no se sature el parlante
     u.onstart = () => { $('#fl').classList.add('habla'); if (MUS && !MUS.paused) MUS.volume = .15; }; u.onend = u.onerror = () => { $('#fl').classList.remove('habla'); if (MUS) MUS.volume = .7; }; if (ya) setTimeout(() => speechSynthesis.speak(u), 120); else speechSynthesis.speak(u); } catch (e) {}
 }
