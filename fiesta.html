@@ -66,6 +66,19 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .err{color:#b91c1c;font-weight:600;margin-top:8px}
 .carga{text-align:center;padding:90px 20px;color:#6b5b45}
 .linkmode .hero{padding-top:18px}
+.vit{perspective:900px;height:178px;margin:6px auto 4px;position:relative;width:100%;max-width:420px}
+.vit .anillo{position:absolute;left:50%;top:6px;width:104px;height:150px;margin-left:-52px;transform-style:preserve-3d;animation:giro var(--dur,22s) linear infinite}
+.vit.rev .anillo{animation-direction:reverse}
+.vit .cara{position:absolute;inset:0;border-radius:12px;overflow:hidden;background:#fff;border:3px solid var(--ac);box-shadow:0 8px 20px rgba(0,0,0,.18),0 0 14px color-mix(in srgb,var(--ac) 45%,transparent);backface-visibility:hidden}
+.vit .cara img{width:100%;height:118px;object-fit:cover;display:block}
+.vit .cara span{display:block;font:600 11.5px/1.15 var(--sans);color:#3a3226;padding:4px 4px 0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vit .base{position:absolute;left:50%;bottom:0;width:230px;height:22px;margin-left:-115px;border-radius:50%;background:radial-gradient(ellipse,color-mix(in srgb,var(--ac) 55%,transparent),transparent 70%);filter:blur(2px)}
+@keyframes giro{from{transform:rotateY(0)}to{transform:rotateY(-360deg)}}
+.brillos{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.brillos i{position:absolute;width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 8px 2px var(--ac);opacity:0;animation:brillo 3.2s ease-in-out infinite}
+@keyframes brillo{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:.95;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.vit .anillo,.brillos i{animation:none}}
+
 .vivo{text-align:left}.vivo h3{text-align:center}
 .mesaG{text-align:center;margin:4px 0 10px}.mesaG .mesa{font-size:30px;padding:10px 26px}
 .item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:18px}
@@ -169,6 +182,23 @@ const mapa = f => 'https://www.google.com/maps/search/?api=1&query=' + encodeURI
 const agenda = f => { const d = cuando(f); if (!d) return ''; const fm = x => new Date(x.getTime() - 3 * 3600e3).toISOString().replace(/[-:]/g, '').slice(0, 15); const fin = new Date(d.getTime() + 6 * 3600e3);
   return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(nomFiesta(f)) + '&dates=' + fm(d) + '/' + fm(fin) + '&ctz=America/Argentina/Buenos_Aires&location=' + encodeURIComponent([f.salon, f.direccion].filter(Boolean).join(', ')) + '&details=' + encodeURIComponent(t('Tu invitación') + ': ' + location.origin + '/fiesta/' + CODE); };
 
+// Vitrina que gira con fotos: la historia de la protagonista (de bebé a hoy).
+function vitrina(L, rev) {
+  const k = Math.max(L.length, 4), fotos = Array.from({length: k}, (_, i) => L[i % L.length]);
+  const R = Math.round((104 / 2) / Math.tan(Math.PI / k) + 14);
+  return `<div class="vit${rev ? ' rev' : ''}" style="--dur:${k * 3.2}s"><div class="anillo">${fotos.map((x, i) => `<div class="cara" style="transform:rotateY(${i * 360 / k}deg) translateZ(${R}px)"><img src="${esc(x.img)}" alt="" loading="lazy">${x.txt ? `<span>${esc(x.txt)}</span>` : ''}</div>`).join('')}</div><div class="base"></div></div>`;
+}
+// Música de la invitación: suena en loop desde el primer toque (los celulares no dejan que arranque sola).
+let MUS = null;
+function musica() {
+  if (!F || !F.musica || !F.musica.url || PREV) return;
+  if (!MUS) { MUS = new Audio(F.musica.url); MUS.loop = true; MUS.volume = .7; }
+  const b = document.getElementById('musBtn');
+  const pintar = () => { const x = document.getElementById('musBtn'); if (x) x.innerHTML = MUS.paused ? '🎵 ' + t('Escuchar la música') : '🔇 ' + t('Pausar la música'); };
+  if (b) b.onclick = e => { e.stopPropagation(); if (MUS.paused) MUS.play().catch(() => {}); else MUS.pause(); setTimeout(pintar, 120); };
+  if (!musica.una) { musica.una = true; const arr = () => { if (MUS && MUS.paused && !musica.parada) MUS.play().then(pintar).catch(() => {}); document.removeEventListener('pointerdown', arr, true); }; document.addEventListener('pointerdown', arr, true); }
+  pintar();
+}
 function render() {
   const f = F, m = f.modo || 'especial', tp = f.plantilla || 'elegante';
   document.body.className = 't-' + tp + (m === 'link' ? ' linkmode' : '');
@@ -179,7 +209,11 @@ function render() {
   if (f.demo && !PREV) h += f.abierto ? `<div class="banner">👀 ${t('Bar de muestra: así lo ven tus clientes. Pedí algo y mirá cómo llega a la barra.')}</div>` : `<div class="banner">👀 ${t('Invitación de muestra: así la reciben tus invitados.')} <a href="/fiesta-panel">${t('Armá la tuya →')}</a></div>`;
   if (m !== 'link') h += `<div class="deco">${(DECO[tp] || DECO.elegante)(f.color || '#c9a227')}</div>`;
   h += `<div class="hero">`;
-  if (m === 'especial' && f.foto) h += `<img class="foto" src="${esc(f.foto)}" alt="">`;
+  const HI = m === 'especial' && Array.isArray(f.historia) && f.historia.length >= 2 ? f.historia : null;
+  if (HI) { const mitad = Math.ceil(HI.length / 2); h += vitrina(HI.slice(0, mitad), false) + `<div class="brillos">${Array.from({length: 14}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 90 + 3}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div>`; }
+  if (m === 'especial' && f.foto) h += `<img class="foto" src="${esc(f.foto)}" alt=""${HI ? ' style="margin-bottom:6px"' : ''}>`;
+  if (HI) { const mitad = Math.ceil(HI.length / 2), abajo = HI.slice(mitad); h += vitrina(abajo.length >= 2 ? abajo : HI, true); }
+  if (f.musica && f.musica.url && m !== 'link' && !f.abierto) h += `<button type="button" class="btn alt" id="musBtn" style="margin:4px auto 10px;display:inline-flex">🎵 ${t('Escuchar la música')}</button>`;
   h += `<div class="tit">${esc(f.titulo || '')}</div><div class="nom">${esc(f.nombre || t('Tu nombre'))}</div>`;
   if (m !== 'link' && f.frase) h += `<p class="frase">${esc(f.frase)}</p>`;
   if (m === 'link') h += `<p class="frase">${esc(fechaLarga(f))}${f.hora ? ' · ' + esc(f.hora) + ' h' : ''}${f.salon ? '<br>' + esc(f.salon) : ''}</p>`;
@@ -203,7 +237,7 @@ function render() {
   h += `<div class="pie">${t('Invitación y fiesta organizadas con')} <b>ShopFiesta</b><br>Pro Video JSRHG · <a href="https://wa.me/5492235814437?text=${encodeURIComponent('Hola, vi la invitación de ShopFiesta y quiero una para mi fiesta')}" target="_blank" rel="noopener">${t('¿Querés una para tu fiesta?')}</a></div>`;
   $('#app').innerHTML = h;
   if (F.vivo && F.hoy && !PREV) { const v = $('#vivo'), hero = $('.hero'); if (v && hero) hero.after(v); }
-  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas(); tarjAlbum(); tarjRecuerdos(); tarjPush(); tarjResena();
+  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas(); tarjAlbum(); tarjRecuerdos(); tarjPush(); tarjResena(); musica();
 }
 function cuenta() {
   clearInterval(timer); const d = cuando(F); if (!d || !$('#cuenta')) return;

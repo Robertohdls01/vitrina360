@@ -102,13 +102,16 @@ const demoData = () => ({
   vestimenta: 'Elegante sport', estaciona: 'El salón tiene estacionamiento propio sin cargo. Si se llena, hay una cochera a media cuadra.', regalo: 'Lluvia de sobres o alias: JULI.15.FIESTA', mostrarMesa: true, pedirMenu: true,
   catering: 'Catering de ejemplo', mozas: ['Karina', 'Sofía', 'Lucía'], autos: true, salud: true, saludNom: 'Ambulancia de ejemplo', modoP: 'encargada', pk: 'demo', paquete: 'recuerdos', pagado: true,
   carta: CARTA_BASE(), crono: CRONO_BASE('21:30'), lugares: [{ n: 'Mesa de regalos', d: 'entrando, a la izquierda, al lado del cuadro de firmas' }, { n: 'Baños', d: 'al fondo del salón, pasando la pista a la derecha' }, { n: 'Barra', d: 'al lado de la pista, frente al DJ' }, { n: 'Rincón de fotos', d: 'junto a la entrada, con las luces' }],
-  foto: '', invitados: [
+  foto: FOTO_DEMO(), historia: HIST_DEMO(), invitados: [
     { id: 'g1', nombre: 'Roberto Hernández', mesa: '2', menor: false, cupo: 1, tok: 'demoroberto' },
     { id: 'g2', nombre: 'Marta Gómez', mesa: '2', menor: false, cupo: 0, tok: 'demomarta' },
     { id: 'g3', nombre: 'Sofía Pérez', mesa: '7', menor: true, cupo: 0, tok: 'demosofia' },
     { id: 'g4', nombre: 'José Martínez', mesa: '3', menor: false, cupo: 2, tok: 'demojose' }
   ]
 });
+// Fotos de ejemplo para la vitrina de la muestra (dibujos, sin personas reales).
+const HIST_DEMO = () => [['👶', '1 añito', '#f9d5e0', '#f3a6bf'], ['🧸', 'Mis 3 años', '#fde7c2', '#f5c06b'], ['🎒', 'Primer día de clases', '#d7ecfb', '#8cc3ec'], ['🩰', 'Danza, a los 8', '#e9e0fb', '#b9a3ef'], ['🎂', 'Mis 12', '#fbe3d1', '#efa77c'], ['👭', 'Con mis amigas', '#dff4e6', '#93d4a8'], ['📸', 'La sesión de fotos', '#f6eccd', '#d9b65b'], ['👑', 'Hoy, mis 15 ✨', '#fbe2ea', '#e58fae']].map(([em, txt, c1, c2]) => ({ txt, img: 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><rect width="200" height="240" fill="url(#g)"/><circle cx="160" cy="40" r="26" fill="#fff" opacity=".35"/><circle cx="30" cy="200" r="40" fill="#fff" opacity=".25"/><text x="100" y="140" font-size="90" text-anchor="middle">${em}</text></svg>`) }));
+const FOTO_DEMO = () => 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"><defs><radialGradient id="r" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#fff6e3"/><stop offset="1" stop-color="#e9c97a"/></radialGradient></defs><rect width="300" height="300" fill="url(#r)"/><text x="150" y="190" font-family="Georgia,serif" font-size="150" text-anchor="middle" fill="#a8822a">J</text><text x="150" y="250" font-family="Georgia,serif" font-size="30" text-anchor="middle" fill="#a8822a">✦ 15 ✦</text></svg>');
 const CARTA_BASE = () => ['Coca-Cola', 'Coca-Cola Zero', 'Sprite', 'Agua sin gas', 'Agua con gas', 'Jugo de naranja', 'Trago sin alcohol', 'Fernet con coca*', 'Cerveza*', 'Vino tinto*', 'Vino blanco*', 'Champagne*', 'Hielo', 'Pan', 'Servilletas', 'Que limpien la mesa'].map(n => ({ n: n.replace('*', ''), alc: n.endsWith('*') }));
 const CRONO_BASE = h0 => { const [H, M] = String(h0 || '21:30').split(':').map(Number), at = mins => { const t = (H * 60 + M + mins) % 1440; return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
   return [[0, 'Recepción', 'Bienvenidos 🎉 Buscá tu mesa y pedí lo que quieras desde acá.', 0], [45, 'Entrada de la quinceañera', '✨ En 15 minutos entra la quinceañera. ¡Vení al salón!', 15], [60, 'Entrada (comida)', '🍽 Ya sale la entrada. Volvé a tu mesa.', 5], [120, 'Plato principal', '🍽 En 10 minutos sale el plato principal. Volvé a tu mesa.', 10], [180, 'Vals', '💃 En 15 minutos empieza el vals. ¡No te lo pierdas!', 15], [200, '¡A bailar!', '🪩 ¡A bailar! Se abre la pista para todos.', 0], [240, 'Ceremonia de velas', '🕯 En 15 minutos es la ceremonia de velas.', 15], [260, 'Brindis', '🥂 Se viene el brindis. ¡Llená tu copa!', 10], [270, 'Torta y mesa dulce', '🎂 Se acerca la hora de cortar la torta, y abre la mesa dulce. ¡Vení!', 0], [420, 'Fin de fiesta y souvenirs', '🎁 Antes de irte, retirá tu souvenir. ¡Gracias por venir!', 0]].map(([d, t, a, m]) => ({ h: at(d), t, a, m })); };
@@ -140,6 +143,10 @@ function limpiar(d, prev) {
     if (d.foto.length > 900000) throw Object.assign(new Error('La foto es muy pesada. Probá con otra.'), { st: 400 });
     o.foto = d.foto;
   } else o.foto = prev.foto || '';
+  // Vitrina de fotos: la historia de la protagonista (de bebé a hoy), hasta 10 fotos chicas.
+  if (Array.isArray(d.historia)) {
+    o.historia = d.historia.slice(0, 10).filter(x => x && typeof x.img === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(x.img) && x.img.length <= 200000).map(x => ({ img: x.img, txt: corto(x.txt, 40) }));
+  } else o.historia = prev.historia || [];
   const viejos = {}; (prev.invitados || []).forEach(g => { viejos[g.id] = g; });
   const lista = Array.isArray(d.invitados) ? d.invitados.slice(0, 600) : (prev.invitados || []);
   let n = (prev.ultimo || 0);
@@ -154,7 +161,7 @@ function limpiar(d, prev) {
 }
 // Lo que puede ver cualquiera con el link de la fiesta (sin la lista de invitados ni claves).
 function publica(e) {
-  const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'organiza', 'autos', 'salud', 'saludNom', 'saludTel', 'seguridad', 'seguNom'].forEach(k => { o[k] = e[k]; });
+  const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'historia', 'organiza', 'autos', 'salud', 'saludNom', 'saludTel', 'seguridad', 'seguNom'].forEach(k => { o[k] = e[k]; });
   o.total = (e.invitados || []).length; o.vivo = vivoOk(e); o.hoy = enDia(e) || !!e.demo || esAbierto(e);
   if (esAbierto(e)) { o.abierto = true; o.fecha = nocheDe(); }
   o.album = !!(e.demo || (e.pagado && e.paquete === 'recuerdos'));
@@ -270,6 +277,15 @@ module.exports = async (req, res) => {
       let n = 0; for (const nov of L) n += await enviarNovedad(nov);
       return res.status(200).json({ ok: true, avisos: L.length, celulares: n });
     }
+    if (req.method === 'POST' && acc === 'codigoNuevo') { // el dueño de Pro Video genera códigos para vender en Mercado Libre
+      const u = await usuario(req);
+      if (!u || !ADMINS().includes(String(u.email).toLowerCase())) return res.status(403).json({ error: 'Solo el dueño de Pro Video.' });
+      const b = cuerpo(req), paq = PAQ()[b.paquete] ? b.paquete : 'invitacion', n = Math.max(1, Math.min(20, parseInt(b.n, 10) || 1));
+      const AB = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', gen = () => 'ML-' + [0, 1].map(() => Array.from(crypto.randomBytes(4), x => AB[x % AB.length]).join('')).join('-');
+      const L = Array.from({ length: n }, gen);
+      await rest('POST', 'fiesta_codigos', L.map(codigo => ({ codigo, paquete: paq })), 'return=minimal');
+      return res.status(200).json({ ok: true, codigos: L, paquete: paq });
+    }
     const code = String(q.f || cuerpo(req).f || '').toUpperCase();
     if (!okCode(code)) return res.status(400).json({ error: 'Fiesta inválida.' });
     const esDemo = code === DEMO || code === DEMOBAR;
@@ -279,7 +295,7 @@ module.exports = async (req, res) => {
       if (esDemo) return res.status(403).json({ error: 'La fiesta de muestra no se puede cambiar. Creá la tuya.' });
       const e = await leer(code); if (!e) return res.status(404).json({ error: 'No existe esa fiesta.' });
       if (hash(String(b.k || '')) !== e.clave) return res.status(403).json({ error: 'La clave del panel no es correcta.' });
-      const n = Object.assign(limpiar(b.datos, e), { code, clave: e.clave, creado: e.creado, cambiado: new Date().toISOString(), pagado: e.pagado, paquete: e.paquete, pagos: e.pagos, pagoRef: e.pagoRef, pk: e.pk, avisos: e.avisos, atraso: e.atraso, listo: e.listo });
+      const n = Object.assign(limpiar(b.datos, e), { code, clave: e.clave, creado: e.creado, cambiado: new Date().toISOString(), pagado: e.pagado, paquete: e.paquete, pagos: e.pagos, pagoRef: e.pagoRef, pk: e.pk, avisos: e.avisos, atraso: e.atraso, listo: e.listo, musica: e.musica });
       await guardarObj(code, n);
       return res.status(200).json({ ok: true, invitados: n.invitados });
     }
@@ -300,6 +316,21 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, fiesta: f, vivo: vivoOk(e), resp: await respuestas(code), paquetes: PAQ(), extra150: EXTRA150(), pedidos: vivoOk(e) ? (await pedidosDe(code)).length : 0 });
     }
 
+    if (req.method === 'POST' && acc === 'canjear') {
+      if (esDemo) return res.status(403).json({ error: 'Esto es una muestra. Creá tu fiesta para activarla.' });
+      const b = cuerpo(req), e2 = await leer(code); if (!e2) return res.status(404).json({ error: 'No existe esa fiesta.' });
+      if (hash(String(b.k || '')) !== e2.clave) return res.status(403).json({ error: 'La clave del panel no es correcta.' });
+      const cod = String(b.codigo || '').toUpperCase().replace(/\s+/g, '').slice(0, 20);
+      if (!/^ML-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(cod)) return res.status(400).json({ error: 'El código no es válido. Tiene la forma ML-XXXX-XXXX.' });
+      const fila = ((await rest('GET', 'fiesta_codigos?codigo=eq.' + cod + '&select=codigo,paquete,usado_por').catch(() => [])) || [])[0];
+      if (!fila) return res.status(404).json({ error: 'No encontramos ese código. Revisá que esté bien escrito.' });
+      if (fila.usado_por && fila.usado_por !== code) return res.status(409).json({ error: 'Ese código ya se usó en otra fiesta.' });
+      await rest('PATCH', 'fiesta_codigos?codigo=eq.' + cod + '&usado_por=is.null', { usado_por: code, usado_at: new Date().toISOString() });
+      const ok = ((await rest('GET', 'fiesta_codigos?codigo=eq.' + cod + '&select=usado_por').catch(() => [])) || [])[0];
+      if (!ok || ok.usado_por !== code) return res.status(409).json({ error: 'Ese código ya se usó en otra fiesta.' });
+      if (!(e2.pagado && (e2.paquete === fila.paquete || e2.paquete === 'recuerdos' || (e2.paquete === 'completa' && fila.paquete === 'invitacion')))) { marcarPago(e2, fila.paquete, 'ml:' + cod, 0, false); await guardarObj(code, e2); }
+      return res.status(200).json({ ok: true, pagado: true, paquete: fila.paquete });
+    }
     if (req.method === 'POST' && (acc === 'pagar' || acc === 'regalar')) {
       const b = cuerpo(req), paq = String(b.paquete || 'invitacion'), P = PAQ()[paq];
       if (esDemo) return res.status(403).json({ error: 'Esto es una muestra. Creá tu fiesta para activarla.' });
@@ -391,8 +422,25 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, promedio: prom, cantidad: L.length, mia: g ? (L.find(x => x.cid === g.id && x.noche === noche) || null) : null,
         items: L.filter(x => dueno || x.texto).slice(0, dueno ? 100 : 10).map(x => ({ nombre: x.nombre, estrellas: x.estrellas, texto: x.texto, noche: x.noche })) });
     }
+    // Música de la invitación: la familia sube un MP3 (o M4A) que suena mientras gira la vitrina.
+    if (req.method === 'POST' && ['musicaSubir', 'musicaListo', 'musicaQuitar'].includes(acc)) {
+      const b = cuerpo(req); if (esDemo) return res.status(403).json({ error: 'Esto es una muestra.' });
+      if (hash(String(b.k || '')) !== e.clave) return res.status(403).json({ error: 'La clave del panel no es correcta.' });
+      if (acc === 'musicaSubir') {
+        const ext = /^(mp3|m4a|aac|ogg)$/.test(String(b.ext)) ? b.ext : 'mp3';
+        const path = 'musica/' + code + '-' + Date.now().toString(36) + crypto.randomBytes(3).toString('hex') + '.' + ext;
+        const r = await fetch(ST() + '/object/upload/sign/' + B + '/' + path, { method: 'POST', headers: stHeaders({ 'Content-Type': 'application/json' }) });
+        const j = await r.json().catch(() => ({})); if (!r.ok || !j.url) return res.status(500).json({ error: 'No se pudo preparar la subida.' });
+        return res.status(200).json({ path, url: ST() + j.url });
+      }
+      if (acc === 'musicaListo') { const p = String(b.path || ''); if (!p.startsWith('musica/' + code + '-')) return res.status(400).json({ error: 'Archivo inválido.' }); e.musica = { path: p, nombre: corto(b.nombre, 60) }; }
+      else delete e.musica;
+      await guardarObj(code, e); return res.status(200).json({ ok: true });
+    }
     if (req.method === 'GET' && acc === 'ver') {
       const out = { ok: true, fiesta: publica(e) };
+      if (e.musica && e.musica.path) { try { const r = await fetch(ST() + '/object/sign/' + B + '/' + e.musica.path, { method: 'POST', headers: stHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ expiresIn: 172800 }) }); const j = await r.json(); if (j.signedURL) out.fiesta.musica = { url: ST() + j.signedURL, nombre: e.musica.nombre || '' }; } catch (x) {} }
+      else if (esDemo && code === DEMO) out.fiesta.musica = { url: '/musica-demo.mp3', nombre: 'Música de ejemplo' };
       const g = q.i && (e.invitados || []).find(x => x.tok === String(q.i));
       if (g) {
         const r = esDemo ? null : ((await rest('GET', 'fiesta_resp?code=eq.' + code + '&gid=eq.' + encodeURIComponent(g.id) + '&select=va,cuantos,menu,nota').catch(() => [])) || [])[0];

@@ -161,6 +161,8 @@
     ["🎉 Entrar a la fiesta", "🎉 Enter the party", "🎉 Entrar na festa", "🎉 Entra nella festa", "🎉 Entrer dans la fête", "🎉 Zur Party", "🎉 进入派对", "🎉 パーティーに入る"],
     ["Deshacer", "Undo", "Desfazer", "Annulla", "Annuler", "Rückgängig", "撤销", "元に戻す"],
     ["Consejo: firmá despacio. Con un lápiz táctil sale todavía mejor.", "Tip: sign slowly. A stylus works even better.", "Dica: assine devagar. Com uma caneta touch fica ainda melhor.", "Consiglio: firma lentamente. Con una penna touch viene ancora meglio.", "Astuce : signe lentement. Avec un stylet, c'est encore mieux.", "Tipp: Langsam unterschreiben. Mit einem Eingabestift geht es noch besser.", "提示：慢慢签。用触控笔效果更好。", "コツ：ゆっくり書いてね。タッチペンだともっときれい。"],
+    ["Escuchar la música", "Play the music", "Ouvir a música", "Ascolta la musica", "Écouter la musique", "Musik abspielen", "播放音乐", "音楽を再生"],
+    ["Pausar la música", "Pause the music", "Pausar a música", "Metti in pausa la musica", "Mettre la musique en pause", "Musik pausieren", "暂停音乐", "音楽を一時停止"],
     ["1 opinión", "1 review", "1 avaliação", "1 recensione", "1 avis", "1 Bewertung", "1 条评价", "1件のレビュー"],
     ["Regalo", "Gift", "Presente", "Regalo", "Cadeau", "Geschenk", "礼物", "プレゼント"],
     ["📋 Copiar", "📋 Copy", "📋 Copiar", "📋 Copia", "📋 Copier", "📋 Kopieren", "📋 复制", "📋 コピー"],

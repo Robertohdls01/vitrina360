@@ -114,9 +114,11 @@ function inicio() {
     $('#raiz').innerHTML = `<div class="hero"><h1>La invitación y la app de tu fiesta 💌</h1><p>Elegí un diseño, cargá tus invitados y mandales su invitación por WhatsApp. Cada uno confirma, y vos ves quién viene y quién no.</p>
       <button class="btn" id="empezar" style="font-size:18px;padding:14px 22px">✨ Armar mi invitación</button>
       <p style="margin-top:18px"><a href="/fiesta/DEMO15" target="_blank">👀 Ver una invitación de muestra</a></p>
+      ${sesionDueno() ? `<div class="box" style="text-align:left;margin-top:18px;border-radius:16px"><h3 style="margin-top:0">🎟 Códigos para Mercado Libre (solo Pro Video)</h3><p class="muted">Cuando alguien compra en Mercado Libre, generá un código y mandáselo por la mensajería de la venta, con el link vitrina360app.com.ar/fiestas.</p><select id="cPaq" style="max-width:260px"><option value="invitacion">Invitación (con vitrina y música)</option><option value="completa">Fiesta completa</option><option value="recuerdos">Completa + recuerdos</option></select> <button class="btn" id="cGen">Generar código</button><p id="cOut" style="font-size:20px;font-weight:800"></p></div>` : ''}
       ${l.length ? `<div class="box" style="text-align:left;margin-top:24px;border-radius:16px"><h3 style="margin-top:0">Mis fiestas</h3><ul class="lista">${l.map(x => `<li><a href="/fiesta-panel?f=${esc(x.code)}&k=${esc(x.k)}">${esc(x.nombre || x.code)}</a></li>`).join('')}</ul></div>` : ''}</div>
       <div class="pie">ShopFiesta · Pro Video JSRHG</div>`;
     $('#empezar').onclick = () => { D = nuevo(); pintar(); };
+    const cg = $('#cGen'); if (cg) cg.onclick = async () => { const r = await fetch('/api/fiesta?accion=codigoNuevo', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + sesionDueno()}, body: JSON.stringify({paquete: $('#cPaq').value, n: 1})}); const j = await r.json(); $('#cOut').textContent = r.ok ? j.codigos.join(' ') : '⚠️ ' + (j.error || 'No se pudo'); };
     return;
   }
   cargar();
@@ -126,7 +128,7 @@ async function cargar() {
   try {
     const r = await fetch('/api/fiesta?accion=panel&f=' + encodeURIComponent(CODE) + '&k=' + encodeURIComponent(K)); const j = await r.json();
     if (!r.ok) throw new Error(j.error || 'No se pudo abrir');
-    D = Object.assign(nuevo(), j.fiesta); RESP = j.resp || []; DEMO = !!j.demo; PAQS = j.paquetes || null; EXTRA = j.extra150 || EXTRA; VIVO = !!j.vivo; PEDN = j.pedidos || 0; tituloTocado = true; lookTocado = !!j.fiesta.flLook; guardarMis(); pintar(); vueltaPago();
+    D = Object.assign(nuevo(), j.fiesta); D.musicaNom = D.musica ? (D.musica.nombre || 'Canción') : ''; RESP = j.resp || []; DEMO = !!j.demo; PAQS = j.paquetes || null; EXTRA = j.extra150 || EXTRA; VIVO = !!j.vivo; PEDN = j.pedidos || 0; tituloTocado = true; lookTocado = !!j.fiesta.flLook; guardarMis(); pintar(); vueltaPago();
   } catch (e) { $('#raiz').innerHTML = `<div class="hero"><h1>😕 ${esc(e.message)}</h1><p><a href="/fiesta-panel">Volver</a></p></div>`; }
 }
 const pesos = n => '$' + Number(n || 0).toLocaleString('es-AR');
@@ -141,7 +143,8 @@ function activarHTML(subir) {
     <div class="opts">${L.map(([k, p]) => { const extra = p.vivo && n > 150 ? EXTRA : 0; return `<button class="opt ${paqElegido === k && p.disponible ? 'on' : ''}" data-paq="${k}" ${p.disponible || sesionDueno() ? '' : 'disabled style="opacity:.6"'}><b>${esc(p.nombre)}</b><span style="font-size:20px;font-weight:800">${pesos(p.precio + extra)}</span><br><small>${esc(p.incluye || '')}${extra ? ' · incluye ' + pesos(extra) + ' por más de 150 invitados' : ''}${p.disponible ? '' : '<br><b>Próximamente</b>'}</small></button>`; }).join('')}</div>
     <button class="btn" id="pagar" style="margin-top:12px;font-size:17px">💳 Pagar con Mercado Pago</button>
     ${sesionDueno() ? '<button class="btn alt sm" id="regalar" style="margin-left:8px">🎁 Activar gratis (dueño)</button>' : ''}
-    <p class="muted" id="pagoMsg" style="margin-bottom:0">Pagás con tarjeta, débito, dinero en cuenta o efectivo. Pago único, sin suscripción.</p></div>`;
+    <p class="muted" id="pagoMsg" style="margin-bottom:0">Pagás con tarjeta, débito, dinero en cuenta o efectivo. Pago único, sin suscripción.</p>
+    <p style="margin:12px 0 4px"><b>🎟 ¿La compraste en Mercado Libre?</b> Escribí el código que te mandamos:</p><div style="display:flex;gap:8px"><input id="mlCod" placeholder="ML-XXXX-XXXX" style="max-width:200px;text-transform:uppercase"><button class="btn alt" id="mlOk">Activar</button></div><p class="muted" id="mlMsg"></p></div>`;
 }
 function enganchePago() {
   $$('[data-paq]').forEach(b => b.onclick = () => { if (b.disabled) return; paqElegido = b.dataset.paq; $$('[data-paq]').forEach(x => x.classList.toggle('on', x === b)); });
@@ -151,6 +154,8 @@ function enganchePago() {
     try { const r = await fetch('/api/fiesta?accion=pagar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, k: K, paquete: paqElegido})}); const j = await r.json();
       if (j.pagado) return cargar(); if (!r.ok || !j.url) throw new Error(j.error || 'No se pudo abrir el pago'); location.href = j.url;
     } catch (e) { $('#pagoMsg').textContent = '⚠️ ' + e.message; pb.disabled = false; } };
+  const mo = $('#mlOk'); if (mo) mo.onclick = async () => { if (sucio) { await guardar(); if (sucio) return; } const m = $('#mlMsg'); m.textContent = 'Revisando el código…';
+    try { const r = await fetch('/api/fiesta?accion=canjear', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, k: K, codigo: $('#mlCod').value})}); const j = await r.json(); if (!r.ok) throw new Error(j.error || 'No se pudo'); cargar(); } catch (e) { m.textContent = '⚠️ ' + e.message; } };
   const rb = $('#regalar'); if (rb) rb.onclick = async () => {
     if (!confirm('¿Activar esta fiesta gratis (paquete ' + paqElegido + ')?')) return;
     const r = await fetch('/api/fiesta?accion=regalar', {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + sesionDueno()}, body: JSON.stringify({f: CODE, paquete: paqElegido})}); const j = await r.json();
@@ -307,6 +312,11 @@ function pInv() {
     ${D.modo !== 'link' ? `<div class="sec"><h3>Diseño</h3><div class="chips">${PLANT.map(([v, t, bg]) => `<button class="chip ${D.plantilla === v ? 'on' : ''}" data-plant="${v}"><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${bg};border:1px solid #ccc;vertical-align:-2px;margin-right:6px"></span>${t}</button>`).join('')}</div>
       <label>Color principal</label><div class="chips" style="align-items:center">${COLORES.map(c => `<button class="sw ${D.color === c ? 'on' : ''}" data-color="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')}<input type="color" data-k="color" value="${esc(D.color)}" style="width:52px;height:40px;padding:2px"></div>
       ${D.modo === 'especial' ? `<label>Foto</label><input type="file" accept="image/*" id="foto"><div class="fotoprev">${D.foto ? `<img src="${esc(D.foto)}" alt=""><button class="btn alt sm" id="sinFoto">Quitar foto</button>` : '<span class="muted">Elegí una foto linda, de frente. Se recorta en círculo.</span>'}</div>` : ''}</div>` : ''}
+    ${D.modo === 'especial' ? `<div class="sec"><h3>✨ Vitrina de fotos: la historia de ${esc(D.nombre || 'la protagonista')}</h3><p class="muted">Subí de 4 a 10 fotos en orden, de bebé hasta hoy. Giran en una vitrina arriba y otra abajo de la foto principal. Podés ponerle una frase corta a cada una ("1 añito", "Mi primer día de clases", "Hoy, mis 15 ✨").</p>
+      <div id="histL">${(D.historia || []).map((x, i) => `<div class="row" style="grid-template-columns:64px 1fr auto;align-items:center;margin:6px 0"><img src="${esc(x.img)}" style="width:56px;height:68px;object-fit:cover;border-radius:8px;border:2px solid ${esc(D.color)}"><input data-hi="${i}" value="${esc(x.txt || '')}" maxlength="40" placeholder="Frase (opcional)"><span style="white-space:nowrap"><button class="btn alt sm" data-hup="${i}" ${i ? '' : 'disabled'}>↑</button> <button class="btn alt sm" data-hdel="${i}">🗑</button></span></div>`).join('')}</div>
+      ${(D.historia || []).length < 10 ? '<input type="file" accept="image/*" multiple id="histF" style="margin-top:6px">' : '<p class="muted">Ya tenés 10 fotos (el máximo).</p>'}</div>
+    <div class="sec"><h3>🎵 Música de la invitación</h3><p class="muted">Una canción que suena mientras gira la vitrina (MP3, hasta 8 MB). Los invitados la escuchan al tocar la invitación. Usá una canción que puedas compartir.</p>
+      ${!CODE ? '<p class="muted">Primero guardá la invitación.</p>' : D.musicaNom ? `<p>🎶 <b>${esc(D.musicaNom)}</b> <button class="btn alt sm" id="musQ">Quitar</button></p>` : '<input type="file" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,.mp3,.m4a" id="musF">'}<p class="muted" id="musMsg"></p></div>` : ''}
     <div class="sec"><h3>Opciones</h3>
       <label class="chk"><input type="checkbox" data-k="pedirMenu" ${D.pedirMenu ? 'checked' : ''}> Preguntar si necesitan menú especial (vegetariano, sin TACC, infantil…)</label>
       <label class="chk"><input type="checkbox" data-k="mostrarMesa" ${D.mostrarMesa ? 'checked' : ''}> Mostrar a cada invitado su número de mesa</label></div>
@@ -328,12 +338,24 @@ function pInv() {
   $('#mozas').addEventListener('input', e => { D.mozas = e.target.value.split('\n').map(s => s.trim()).filter(Boolean); cambio(); });
   const fi = $('#foto'); if (fi) fi.onchange = async () => { const f = fi.files[0]; if (!f) return; try { D.foto = await achicar(f); cambio(); pInv(); } catch (e) { alert('No pudimos leer esa foto. Probá con otra.'); } };
   const sf = $('#sinFoto'); if (sf) sf.onclick = () => { D.foto = ''; cambio(); pInv(); };
+  $$('[data-hi]').forEach(el => el.addEventListener('input', () => { D.historia[+el.dataset.hi].txt = el.value; cambio(); }));
+  $$('[data-hup]').forEach(b => b.onclick = () => { const i = +b.dataset.hup, H = D.historia; [H[i - 1], H[i]] = [H[i], H[i - 1]]; cambio(); pInv(); });
+  $$('[data-hdel]').forEach(b => b.onclick = () => { D.historia.splice(+b.dataset.hdel, 1); cambio(); pInv(); });
+  const hf = $('#histF'); if (hf) hf.onchange = async () => { D.historia = D.historia || []; for (const f of [...hf.files].slice(0, 10 - D.historia.length)) { try { D.historia.push({img: await achicar(f, 520, 150000), txt: ''}); } catch (e) {} } cambio(); pInv(); };
+  const mf = $('#musF'); if (mf) mf.onchange = async () => { const f = mf.files[0]; if (!f) return; const msg = $('#musMsg');
+    if (f.size > 8e6) return (msg.textContent = '⚠️ La canción pesa más de 8 MB. Probá con otra.');
+    try { msg.textContent = 'Subiendo la canción…'; const ext = (f.name.split('.').pop() || 'mp3').toLowerCase();
+      const a = await accionVivo('musicaSubir', {ext}); const fd = new FormData(); fd.append('cacheControl', '3600'); fd.append('', f);
+      const up = await fetch(a.url, {method: 'PUT', body: fd}); if (!up.ok) throw new Error('No se pudo subir');
+      await accionVivo('musicaListo', {path: a.path, nombre: f.name.replace(/\.[^.]+$/, '')}); D.musicaNom = f.name.replace(/\.[^.]+$/, ''); pInv();
+    } catch (e) { msg.textContent = '⚠️ ' + e.message; } };
+  const mq = $('#musQ'); if (mq) mq.onclick = async () => { try { await accionVivo('musicaQuitar', {}); D.musicaNom = ''; pInv(); } catch (e) { alert(e.message); } };
   if (DEMO) $$('#main input,#main select,#main textarea,#main button').forEach(x => x.disabled = true);
   enganchePago(); setTimeout(prev, 300);
 }
-function achicar(file) {
-  return new Promise((ok, ko) => { const img = new Image(); img.onload = () => { const max = 1000, s = Math.min(1, max / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
-    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); let q = .85, u = c.toDataURL('image/jpeg', q); while (u.length > 600000 && q > .4) { q -= .1; u = c.toDataURL('image/jpeg', q); } URL.revokeObjectURL(img.src); ok(u); }; img.onerror = ko; img.src = URL.createObjectURL(file); });
+function achicar(file, max = 1000, tope = 600000) {
+  return new Promise((ok, ko) => { const img = new Image(); img.onload = () => { const s = Math.min(1, max / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); let q = .85, u = c.toDataURL('image/jpeg', q); while (u.length > tope && q > .3) { q -= .1; u = c.toDataURL('image/jpeg', q); } URL.revokeObjectURL(img.src); ok(u); }; img.onerror = ko; img.src = URL.createObjectURL(file); });
 }
 
 function parsear(txt) {
