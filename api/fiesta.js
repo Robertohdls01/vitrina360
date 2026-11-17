@@ -20,15 +20,20 @@ const corto = (v, n) => String(v == null ? '' : v).replace(/[\u0000-\u001f]/g, '
 const largo = (v, n) => String(v == null ? '' : v).replace(/[\u0000-\u0009\u000b-\u001f]/g, ' ').trim().slice(0, n);
 const hash = s => crypto.createHash('sha256').update('fiesta:' + String(s)).digest('hex');
 const AYUDA = '🆘 Ayuda urgente';
+// Boliche / bar / peña: evento abierto todas las noches, sin lista de invitados (cualquiera escanea, pone su nombre y pide a la barra)
+const esAbierto = e => !!(e && e.tipo === 'boliche');
+const nocheDe = () => new Date(Date.now() - 3 * 3600e3 - 12 * 3600e3).toISOString().slice(0, 10); // la noche empieza el día anterior si son las 2 de la mañana
+const invDe = (e, tok, nom, mesa) => { tok = String(tok || ''); const g = (e.invitados || []).find(x => x.tok === tok); if (g) return g;
+  const m = tok.match(/^c:([a-z0-9]{10,24})$/); return esAbierto(e) && m ? { id: 'c_' + m[1], nombre: corto(nom, 40) || 'Cliente', mesa: corto(mesa, 12), anon: true } : null; };
 const skDe = e => e && e.pk ? hash(e.pk + ':salud').slice(0, 14) : ''; // link del servicio médico (solo ve los pedidos de ayuda)
 const akDe = e => e && e.pk ? hash(e.pk + ':autos').slice(0, 14) : ''; // link del personal que cuida los autos (no ve los pedidos)
 const okCode = c => /^[A-Z0-9]{4,12}$/.test(String(c || ''));
 const azar = (n, abc) => { const b = crypto.randomBytes(n); let s = ''; for (let i = 0; i < n; i++) s += abc[b[i] % abc.length]; return s; };
 const sinTildes = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-const LOOK_DE = {'15': 'traje', casamiento: 'claro', cumple: 'fiesta', bautismo: 'claro', egresados: 'fiesta', otro: 'traje'};
+const LOOK_DE = {'15': 'traje', casamiento: 'claro', cumple: 'fiesta', bautismo: 'claro', egresados: 'fiesta', boliche: 'fiesta', otro: 'traje'};
 const PLANTILLAS = ['elegante', 'flores', 'brillos', 'moderna', 'mariposas', 'luna'];
 const MODOS = ['especial', 'comun', 'link'];
-const TIPOS = ['15', 'casamiento', 'cumple', 'bautismo', 'egresados', 'otro'];
+const TIPOS = ['15', 'casamiento', 'cumple', 'bautismo', 'egresados', 'boliche', 'otro'];
 const MENUS = ['', 'vegetariano', 'vegano', 'sin TACC', 'infantil', 'otro'];
 const ADMINS = () => String(process.env.ADMIN_EMAILS || process.env.IA_SIN_LIMITE || '').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
 const EN_VIVO = () => process.env.FIESTA_EN_VIVO === '1'; // los paquetes con la fiesta en vivo se venden cuando esté lista
@@ -113,7 +118,7 @@ function limpiar(d, prev) {
     catering: corto(d.catering, 60), cateringTel: corto(d.cateringTel, 20).replace(/[^\d+]/g, ''),
     mozas: (Array.isArray(d.mozas) ? d.mozas : []).map(x => corto(x, 30)).filter(Boolean).slice(0, 40),
     // fiesta en vivo: lo que se puede pedir a la mesa, el cronograma de la noche y cómo trabaja el personal
-    carta: (Array.isArray(d.carta) ? d.carta : []).slice(0, 80).map(x => ({ n: corto(x && x.n, 40), alc: !!(x && x.alc) })).filter(x => x.n),
+    carta: (Array.isArray(d.carta) ? d.carta : []).slice(0, 80).map(x => Object.assign({ n: corto(x && x.n, 40), alc: !!(x && x.alc) }, x && x.p ? { p: corto(x.p, 16) } : {})).filter(x => x.n),
     crono: (Array.isArray(d.crono) ? d.crono : []).slice(0, 30).map(x => ({ h: /^\d{2}:\d{2}$/.test(String(x && x.h)) ? x.h : '', t: corto(x && x.t, 60), a: corto(x && x.a, 140), m: [0, 5, 10, 15, 30, 60].includes(+(x && x.m)) ? +x.m : 10 })).filter(x => x.h && x.t),
     lugares: (Array.isArray(d.lugares) ? d.lugares : []).slice(0, 20).map(x => ({ n: corto(x && x.n, 40), d: corto(x && x.d, 120) })).filter(x => x.n && x.d),
     modoP: d.modoP === 'mozas' ? 'mozas' : 'encargada', flLook: ['normal', 'traje', 'camisa', 'fiesta', 'claro'].includes(d.flLook) ? d.flLook : (LOOK_DE[d.tipo] || 'traje'),
@@ -138,7 +143,8 @@ function limpiar(d, prev) {
 // Lo que puede ver cualquiera con el link de la fiesta (sin la lista de invitados ni claves).
 function publica(e) {
   const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'organiza', 'autos', 'salud', 'saludNom', 'saludTel'].forEach(k => { o[k] = e[k]; });
-  o.total = (e.invitados || []).length; o.vivo = vivoOk(e); o.hoy = enDia(e) || !!e.demo;
+  o.total = (e.invitados || []).length; o.vivo = vivoOk(e); o.hoy = enDia(e) || !!e.demo || esAbierto(e);
+  if (esAbierto(e)) { o.abierto = true; o.fecha = nocheDe(); }
   if (o.vivo) { o.lugares = e.lugares || []; o.flLook = e.flLook || LOOK_DE[e.tipo] || 'traje'; o.carta = e.carta || []; o.crono = e.crono || []; o.atraso = e.atraso || 0; o.avisos = (e.avisos || []).slice(-15); }
   return o;
 }
@@ -154,7 +160,7 @@ function mozaDeMesa(e, mesa) {
 const vivoOk = e => !!(e && (e.demo || (e.pagado && ['completa', 'recuerdos'].includes(e.paquete))));
 const azarK = () => azar(10, 'abcdefghijkmnpqrstuvwxyz23456789');
 async function pedidosDe(code, extra) {
-  const desde = new Date(Date.now() - (code === DEMO ? 3 : 36) * 3600e3).toISOString();
+  const desde = new Date(Date.now() - (code === DEMO ? 3 : (extra && extra.includes('&_noche') ? 14 : 36)) * 3600e3).toISOString(); extra = (extra || '').replace('&_noche', '');
   try { return await rest('GET', 'fiesta_pedidos?code=eq.' + code + '&t=gte.' + encodeURIComponent(desde) + (extra || '') + '&order=t.desc&limit=400&select=id,gid,nombre,mesa,items,nota,estado,moza,prueba,t,tu'); } catch (e) { return []; }
 }
 async function respuestas(code) {
@@ -320,7 +326,7 @@ module.exports = async (req, res) => {
     // El invitado: sus pedidos y los avisos (la app lo consulta cada pocos segundos)
     if (req.method === 'GET' && acc === 'vivo') {
       if (!vivoOk(e)) return res.status(200).json({ ok: true, vivo: false });
-      const g = (e.invitados || []).find(x => x.tok === String(q.i || ''));
+      const g = invDe(e, q.i);
       const L = g ? await pedidosDe(code, '&gid=eq.' + encodeURIComponent(g.id)) : [];
       res.setHeader('Cache-Control', 'no-store');
       const au = g ? ((await rest('GET', 'fiesta_autos?code=eq.' + code + '&gid=eq.' + encodeURIComponent(g.id) + '&select=patente,descr,cuida,pregunta,resp,resp_t').catch(() => [])) || [])[0] || null : null;
@@ -328,7 +334,7 @@ module.exports = async (req, res) => {
     }
     // ===== Autos: el invitado anota su auto y el que lo cuida le responde =====
     if (req.method === 'POST' && (acc === 'auto' || acc === 'autoPregunta')) {
-      const b = cuerpo(req), g = (e.invitados || []).find(x => x.tok === String(b.i || ''));
+      const b = cuerpo(req), g = invDe(e, b.i, b.nombre, b.mesa);
       if (!g) return res.status(403).json({ error: 'Primero decinos quién sos.' });
       if (acc === 'auto') {
         const fila = { code, gid: g.id, nombre: g.nombre, mesa: String(g.mesa || ''), patente: corto(String(b.patente || '').toUpperCase(), 12), descr: corto(b.descr, 60), t: new Date().toISOString() };
@@ -354,7 +360,7 @@ module.exports = async (req, res) => {
     if (req.method === 'POST' && acc === 'pedir') {
       if (!vivoOk(e)) return res.status(403).json({ error: 'Los pedidos todavía no están activos en esta fiesta.' });
       const b = cuerpo(req), prueba = esPersonal(b.p) || esFamilia(b.k);
-      const g = (e.invitados || []).find(x => x.tok === String(b.i || ''));
+      const g = invDe(e, b.i, b.nombre, b.mesa);
       if (!g && !prueba) return res.status(403).json({ error: 'Primero decinos quién sos, así te lo llevamos a tu mesa.' });
       const carta = {}; (e.carta || []).forEach(x => { carta[x.n] = x; });
       const items = (Array.isArray(b.items) ? b.items : []).slice(0, 20).map(x => Object.assign({ n: String(x && x.n || ''), c: Math.max(1, Math.min(10, parseInt(x && x.c, 10) || 1)) }, x && x.p ? { p: corto(x.p, 30) } : {}))
@@ -374,7 +380,7 @@ module.exports = async (req, res) => {
       if (esSalud) { res.setHeader('Cache-Control', 'no-store'); return res.status(200).json({ ok: true, fiesta: { nombre: e.nombre, tipo: e.tipo, modoP: 'salud', mozas: [], salon: e.salon, saludNom: e.saludNom || '' }, pedidos: (await pedidosDe(code)).filter(p => (p.items || []).some(x => x.n === AYUDA)) }); }
       if (!vivoOk(e)) return res.status(403).json({ error: 'La fiesta en vivo no está activa todavía.' });
       res.setHeader('Cache-Control', 'no-store');
-      return res.status(200).json({ ok: true, fiesta: { nombre: e.nombre, tipo: e.tipo, fecha: e.fecha, hora: e.hora, mozas: e.mozas || [], modoP: e.modoP || 'encargada', crono: e.crono || [], carta: e.carta || [], atraso: e.atraso || 0, catering: e.catering || '', listo: e.listo || '' }, pedidos: await pedidosDe(code), avisos: (e.avisos || []).slice(-15), llegaron: (await respuestas(code)).filter(x => x.va).length, invitados: (e.invitados || []).length });
+      return res.status(200).json({ ok: true, fiesta: { nombre: e.nombre, tipo: e.tipo, fecha: e.fecha, hora: e.hora, mozas: e.mozas || [], modoP: esAbierto(e) ? 'barra' : (e.modoP || 'encargada'), abierto: esAbierto(e), crono: e.crono || [], carta: e.carta || [], atraso: e.atraso || 0, catering: e.catering || '', listo: e.listo || '' }, pedidos: await pedidosDe(code, esAbierto(e) ? '&_noche' : ''), avisos: (e.avisos || []).slice(-15), llegaron: (await respuestas(code)).filter(x => x.va).length, invitados: (e.invitados || []).length });
     }
     if (req.method === 'POST' && ['estado', 'avisar', 'atrasar', 'listo'].includes(acc)) {
       const b = cuerpo(req);

@@ -65,6 +65,7 @@ async function cargar() {
     conocidos = new Set(PED.map(p => p.id));
     $('#tit').textContent = '🎉 ' + t(F.tipo === '15' ? 'Los 15 de {n}' : F.tipo === 'casamiento' ? 'El casamiento de {n}' : F.tipo === 'egresados' ? 'La fiesta de egresados de {n}' : 'La fiesta de {n}', {n: F.nombre});
     if (F.modoP === 'salud') { $('#tit').textContent = '🚑 ' + (F.saludNom || t('Servicio médico')) + ' · ' + F.nombre; $('#sub').textContent = t('{n} pedidos de ayuda', {n: PED.filter(p => p.estado === 'nuevo').length}); pintar(); return; }
+    if (F.modoP === 'barra') { $('#tit').textContent = '🍹 ' + t('Barra') + ' · ' + F.nombre; $('#sub').textContent = t('{n} pedidos para preparar', {n: PED.filter(p => p.estado === 'nuevo' && !esAyuda(p)).length}); pintar(); return; }
     $('#sub').textContent = t(F.modoP === 'mozas' ? 'Modo mozas' : 'Modo encargada') + (F.catering ? ' · ' + F.catering : '') + ' · ' + t('{n} pedidos para atender', {n: PED.filter(p => p.estado === 'nuevo').length});
     pintar();
   } catch (e) { $('#main').innerHTML = `<div class="vacio">😕 ${esc(e.message)}</div>`; $('#sub').textContent = ''; }
@@ -72,7 +73,8 @@ async function cargar() {
 function tarjeta(p) {
   const mz = F.mozas || [], esMozas = F.modoP === 'mozas', ay = esAyuda(p);
   let b = '';
-  if (ay || F.modoP === 'salud') { if (p.estado === 'nuevo') b = `<button class="btn azul" data-cam="${p.id}">${t('🚑 Voy para allá')}</button>`; if (p.estado === 'camino') b = `<button class="btn ok" data-ent="${p.id}">${t('✅ Atendido')}</button>`; }
+  if (F.modoP === 'barra' && !ay) { if (p.estado === 'nuevo') b = `<button class="btn azul" data-cam="${p.id}">${t('✅ Listo para retirar')}</button>`; if (p.estado === 'camino') b = `<button class="btn ok" data-ent="${p.id}">${t('🤝 Ya lo retiró')}</button>`; }
+  else if (ay || F.modoP === 'salud') { if (p.estado === 'nuevo') b = `<button class="btn azul" data-cam="${p.id}">${t('🚑 Voy para allá')}</button>`; if (p.estado === 'camino') b = `<button class="btn ok" data-ent="${p.id}">${t('✅ Atendido')}</button>`; }
   else {
   if (p.estado === 'nuevo') {
     if (esMozas) b = `<button class="btn azul" data-llevo="${p.id}">${t('🚶 Lo llevo yo')}</button>`;
@@ -80,7 +82,7 @@ function tarjeta(p) {
   }
   if (p.estado === 'camino') b = `<button class="btn ok" data-ent="${p.id}">${t('✅ Entregado')}</button>` + (!esMozas && mz.length > 1 ? `<details style="width:100%"><summary style="font-size:14px;color:var(--soft)">${t('Cambiar quién lo lleva')}</summary>${mz.filter(m => m !== p.moza).map(m => `<button class="chip" data-moza="${esc(m)}" data-id="${p.id}">${esc(m)}</button>`).join(' ')}</details>` : '');
   }
-  return `<div class="p ${p.estado} ${ay ? 'ayuda' : ''}"><span class="hace ${tarde(p) ? 'tarde' : ''}">${hace(p.t)}${tarde(p) ? ' ⚠️' : ''}</span><div class="mesa">${t('Mesa {m}', {m: esc(p.mesa || '?')})}</div><div class="quien">${esc(p.nombre)}${p.prueba ? ' · ' + t('🧪 prueba') : ''}${p.moza ? ' · ' + t('lleva {m}', {m: esc(p.moza)}) : ''}</div>
+  return `<div class="p ${p.estado} ${ay ? 'ayuda' : ''}"><span class="hace ${tarde(p) ? 'tarde' : ''}">${hace(p.t)}${tarde(p) ? ' ⚠️' : ''}</span><div class="mesa">${F.modoP === 'barra' && !ay ? '#' + (p.id % 1000) + (p.mesa ? ' · ' + esc(p.mesa) : '') : t('Mesa {m}', {m: esc(p.mesa || '?')})}</div><div class="quien">${esc(p.nombre)}${p.prueba ? ' · ' + t('🧪 prueba') : ''}${p.moza ? ' · ' + t('lleva {m}', {m: esc(p.moza)}) : ''}</div>
     <div class="its">${p.items.map(x => (x.c > 1 ? x.c + ' × ' : '') + esc(tc(x.n)) + (x.p ? ` <span style="font-size:15px;font-weight:600;color:var(--soft)">· ${t('para {p}', {p: esc(x.p === 'vos' ? 'él/ella' : x.p.replace(/^tu /, 'su '))})}</span>` : '')).join('<br>')}</div>${p.nota ? `<div class="nota">📝 ${esc(p.nota)}</div>` : ''}
     <div class="btns">${b}${p.estado !== 'entregado' ? `<button class="btn alt sm" data-can="${p.id}">${t('Cancelar')}</button>` : ''}</div></div>`;
 }
@@ -95,7 +97,7 @@ function pintar() {
   }
   const L = {nuevo: PED.filter(p => p.estado === 'nuevo'), camino: PED.filter(p => p.estado === 'camino' && (!esMozas || !yo || p.moza === yo)), entregado: PED.filter(p => p.estado === 'entregado')};
   L.nuevo.sort((a, b) => (esAyuda(b) ? 1 : 0) - (esAyuda(a) ? 1 : 0) || Date.parse(a.t) - Date.parse(b.t)); L.camino.sort((a, b) => Date.parse(a.t) - Date.parse(b.t));
-  $('#tabs').innerHTML = [['nuevo', t('🔔 Para atender'), L.nuevo.length], ['camino', t(esMozas ? '🚶 Los míos' : '🚶 En camino'), L.camino.length], ['entregado', t('✅ Entregados'), L.entregado.length], ['herr', t('⚙️ Herramientas'), '']].filter(x => !sal || x[0] !== 'herr').map(([k, tt, n]) => `<button data-tab="${k}" class="${tab === k ? 'on' : ''}">${tt}${n !== '' ? ' (' + n + ')' : ''}</button>`).join('');
+  $('#tabs').innerHTML = [['nuevo', t('🔔 Para atender'), L.nuevo.length], ['camino', t(F.modoP === 'barra' ? '🍹 Listos para retirar' : esMozas ? '🚶 Los míos' : '🚶 En camino'), L.camino.length], ['entregado', t('✅ Entregados'), L.entregado.length], ['herr', t('⚙️ Herramientas'), '']].filter(x => !sal || x[0] !== 'herr').map(([k, tt, n]) => `<button data-tab="${k}" class="${tab === k ? 'on' : ''}">${tt}${n !== '' ? ' (' + n + ')' : ''}</button>`).join('');
   $$('[data-tab]').forEach(b => b.onclick = () => { tab = b.dataset.tab; pintar(); });
   $('#barra').innerHTML = esMozas && yo ? `<span style="align-self:center">${t('Sos {n}', {n: '<b>' + esc(yo) + '</b>'})}</span><button class="btn alt sm" id="cambiarYo">${t('Cambiar')}</button>` : '';
   const cy = $('#cambiarYo'); if (cy) cy.onclick = () => { yo = ''; try { localStorage.removeItem('fiestaYo:' + CODE); } catch (e) {} pintar(); };
@@ -103,7 +105,7 @@ function pintar() {
   const lista = L[tab] || [];
   $('#main').innerHTML = lista.length ? lista.map(tarjeta).join('') : `<div class="vacio">${tab === 'nuevo' ? t('🙌 No hay pedidos para atender.<br>Cuando llegue uno, suena y vibra.') : t('Nada por acá.')}</div>`;
   $$('[data-moza]').forEach(b => b.onclick = () => cambiar(b.dataset.id, {moza: b.dataset.moza, estado: 'camino'}));
-  $$('[data-cam]').forEach(b => b.onclick = () => { const p = PED.find(x => String(x.id) === b.dataset.cam); if ((F.mozas || []).length && !p.moza && !esAyuda(p)) return alert(t('Primero tocá el nombre de la moza que lo lleva.')); cambiar(b.dataset.cam, {estado: 'camino'}); });
+  $$('[data-cam]').forEach(b => b.onclick = () => { const p = PED.find(x => String(x.id) === b.dataset.cam); if (F.modoP !== 'barra' && (F.mozas || []).length && !p.moza && !esAyuda(p)) return alert(t('Primero tocá el nombre de la moza que lo lleva.')); cambiar(b.dataset.cam, {estado: 'camino'}); });
   $$('[data-llevo]').forEach(b => b.onclick = () => cambiar(b.dataset.llevo, {estado: 'camino', moza: yo}));
   $$('[data-ent]').forEach(b => b.onclick = () => cambiar(b.dataset.ent, {estado: 'entregado'}));
   $$('[data-can]').forEach(b => b.onclick = () => { if (confirm(t('¿Cancelar este pedido?'))) cambiar(b.dataset.can, {estado: 'cancelado'}); });
