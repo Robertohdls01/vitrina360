@@ -109,7 +109,7 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .cine .foto{margin:0}
 .cine .fx{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);border-radius:50%;object-fit:cover;opacity:0;transition:opacity .7s ease}
 .cine .fx.on{opacity:1}
-.aro{position:relative;width:min(100vw,560px);height:360px;margin-top:-40px!important;left:50%;transform:translateX(-50%);margin:0 0 6px}
+.aro{position:relative;width:min(100vw,560px);height:250px;margin-top:-6px!important;left:50%;transform:translateX(-50%);margin:0 0 6px}
 .aro .ac{position:absolute;left:50%;top:50%;width:86px;height:108px;margin:-54px 0 0 -43px;border-radius:12px;overflow:hidden;background:#fff;border:3px solid var(--ac);box-shadow:0 8px 20px rgba(0,0,0,.18);will-change:transform}
 .aro .ac img{width:100%;height:80px;object-fit:cover;display:block}
 .aro .ac span{display:block;font:700 10px/1.15 var(--sans);color:#3a3226;padding:3px 3px 0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -254,7 +254,7 @@ function orbita() {
 }
 // Película: la foto del medio va pasando de bebé a grande, se queda en la foto principal y vuelve a empezar.
 function crece() {
-  clearTimeout(crece.t); const fx = document.getElementById('fx'); if (!fx || !F || !Array.isArray(F.historia) || F.historia.length < 2) return;
+  clearTimeout(crece.t); const fx = document.getElementById('fx'); if (document.querySelector('.aro') || !fx || !F || !Array.isArray(F.historia) || F.historia.length < 2) return;
   const H = F.historia, L = H.map(x => x.img), A = document.getElementById('fxa'); L.forEach(u => { const i = new Image(); i.src = u; });
   let i = 0;
   const paso = () => {
@@ -265,16 +265,24 @@ function crece() {
   };
   crece.t = setTimeout(paso, 2500);
 }
-// Aro: las fotos sueltas dan vueltas alrededor de la foto, por detrás (chicas) y por delante (grandes).
+// Aro: las fotos sueltas dan vueltas alrededor de la foto, siempre por DETRÁS de ella. Cuando una pasa por el medio
+// "se funde" en la foto principal (que va creciendo de bebé a grande) y sale por el otro lado. Después queda la foto de hoy.
 function aro() {
-  cancelAnimationFrame(aro.r); const A = document.querySelector('.aro'); if (!A) return;
-  const C = [...A.querySelectorAll('.ac')], n = C.length, t0 = performance.now(), quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  cancelAnimationFrame(aro.r); clearTimeout(aro.t); const A = document.querySelector('.aro'); if (!A) return;
+  const C = [...A.querySelectorAll('.ac')], n = C.length, H = F.historia || [], N = H.length, t0 = performance.now(), quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fx = document.getElementById('fx'), fa = document.getElementById('fxa'), W2 = fx && fx.parentNode, PER = Math.max(24000, n * 3200);
+  let ult = -1;
+  const fundir = i => { if (!fx || !H[i]) return; clearTimeout(aro.t);
+    W2.style.transform = `scale(${(.58 + .42 * i / Math.max(1, N - 1)).toFixed(3)})`; fx.src = H[i].img; fx.classList.add('on');
+    if (fa) { fa.textContent = H[i].txt || ''; fa.classList.toggle('on', !!H[i].txt); }
+    if (i === N - 1) aro.t = setTimeout(() => { fx.classList.remove('on'); if (fa) fa.classList.remove('on'); W2.style.transform = 'scale(1)'; }, PER / n * .8); };
   const paso = now => {
     if (!document.body.contains(A)) return; if (!quieto) aro.r = requestAnimationFrame(paso); if (document.hidden) return;
-    const W = A.clientWidth, R = Math.min(W / 2 - 46, 180), g = (now - t0) / 26000 * Math.PI * 2;
-    C.forEach((c, i) => { const th = g + i * 2 * Math.PI / n, d = Math.sin(th), k = (d + 1) / 2;
-      c.style.transform = `translate(${(R * Math.cos(th)).toFixed(1)}px,${(100 * d + 12).toFixed(1)}px) scale(${(.55 + .48 * k).toFixed(3)})`;
-      c.style.zIndex = d > 0 ? 60 + Math.round(d * 10) : 10 + Math.round(k * 10); c.style.opacity = (.55 + .45 * k).toFixed(2); });
+    const W = A.clientWidth, R = Math.min(W / 2 - 46, 180), g = (now - t0) / PER * Math.PI * 2;
+    C.forEach((c, i) => { const th = g - i * 2 * Math.PI / n, d = Math.sin(th), k = (d + 1) / 2;
+      c.style.transform = `translate(${(R * Math.cos(th)).toFixed(1)}px,${(22 * d).toFixed(1)}px) scale(${(.55 + .4 * k).toFixed(3)})`;
+      c.style.zIndex = 10 + Math.round(k * 30); c.style.opacity = (.5 + .5 * k).toFixed(2);
+      if (d > 0 && Math.abs(Math.cos(th)) < .12 && c !== C[ult]) { ult = i; fundir(+c.dataset.i); } });
   };
   aro.r = requestAnimationFrame(paso);
 }
@@ -338,7 +346,7 @@ function render() {
   if (HI && VE === 'aro') {
     // Fotos sueltas que giran en círculo alrededor de la foto: pasan por detrás y vuelven por delante.
     const L = HI.length < 6 ? HI.concat(HI) : HI, mitad = Math.ceil(HI.length / 2);
-    h += vitrina(HI.slice(0, mitad), false) + `<div class="aro"><div class="brillos">${Array.from({length: 14}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 90 + 3}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div>${L.map(x => `<div class="ac"><img src="${esc(x.img)}" alt="" loading="lazy">${x.txt ? `<span>${esc(x.txt)}</span>` : ''}</div>`).join('')}${f.foto ? `<div class="fwrap"><img class="foto" src="${esc(f.foto)}" alt=""><img class="fx" id="fx" alt=""><b class="fxa" id="fxa"></b></div>` : ''}</div>` + vitrina(HI.slice(mitad).length >= 2 ? HI.slice(mitad) : HI, true);
+    h += vitrina(HI.slice(0, mitad), false) + `<div class="aro"><div class="brillos">${Array.from({length: 14}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 90 + 3}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div>${L.map(x => `<div class="ac" data-i="${HI.indexOf(x)}"><img src="${esc(x.img)}" alt="" loading="lazy">${x.txt ? `<span>${esc(x.txt)}</span>` : ''}</div>`).join('')}${f.foto ? `<div class="fwrap"><img class="foto" src="${esc(f.foto)}" alt=""><img class="fx" id="fx" alt=""><b class="fxa" id="fxa"></b></div>` : ''}</div>` + vitrina(HI.slice(mitad).length >= 2 ? HI.slice(mitad) : HI, true);
   }
   else if (HI && !DOS) {
     // 4 vitrinas alrededor de la foto (arriba, derecha, abajo, izquierda); con "gira" dan vueltas alrededor.
