@@ -271,21 +271,25 @@ function crece() {
 // "se funde" en la foto principal (que va creciendo de bebé a grande) y sale por el otro lado. Después queda la foto de hoy.
 function aro() {
   cancelAnimationFrame(aro.r); clearTimeout(aro.t); const A = document.querySelector('.aro'); if (!A) return;
-  const C = [...A.querySelectorAll('.ac')], n = C.length, H = F.historia || [], N = H.length, t0 = performance.now(), quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const fx = document.getElementById('fx'), fa = document.getElementById('fxa'), W2 = fx && fx.parentNode, PER = Math.max(24000, n * 3200);
-  let ult = -1, quieta = 0;
-  const fundir = i => { if (!fx || !H[i] || performance.now() < quieta) return; clearTimeout(aro.t);
+  const C = [...A.querySelectorAll('.ac')], n = C.length, H = F.historia || [], N = H.length, quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fx = document.getElementById('fx'), fa = document.getElementById('fxa'), W2 = fx && fx.parentNode, PER = Math.max(24000, n * 3200), PASO = PER / n;
+  // El aro arranca con la foto de bebé adelante y avanza de a una, en orden. Al llegar a hoy se frena unos segundos.
+  let t = 0, prev = null, ult = -1, frenado = 0;
+  const fundir = i => { if (!fx || !H[i]) return; clearTimeout(aro.t);
     W2.style.transform = `scale(${(.58 + .42 * i / Math.max(1, N - 1)).toFixed(3)})`; fx.src = H[i].img; fx.classList.add('on');
     if (fa) { fa.textContent = H[i].txt || ''; fa.classList.toggle('on', !!H[i].txt); }
     if (i < N - 1) setTimeout(() => corazones(W2, .12 + .4 * i / Math.max(1, N - 1)), 500);
-    else aro.t = setTimeout(() => { fx.classList.remove('on'); if (fa) fa.classList.remove('on'); W2.style.transform = 'scale(1)'; quieta = performance.now() + 7000; setTimeout(() => corazones(W2, 1), 900); }, PER / n * .8); };
+    else aro.t = setTimeout(() => { fx.classList.remove('on'); if (fa) fa.classList.remove('on'); W2.style.transform = 'scale(1)'; frenado = 7000; setTimeout(() => corazones(W2, 1), 900); }, PASO * .8); };
   const paso = now => {
-    if (!document.body.contains(A)) return; if (!quieto) aro.r = requestAnimationFrame(paso); if (document.hidden) return;
-    const W = A.clientWidth, R = Math.min(W / 2 - 46, 180), g = (now - t0) / PER * Math.PI * 2;
-    C.forEach((c, i) => { const th = g - i * 2 * Math.PI / n, d = Math.sin(th), k = (d + 1) / 2;
+    if (!document.body.contains(A)) return; if (!quieto) aro.r = requestAnimationFrame(paso);
+    const dt = prev == null ? 0 : Math.min(100, now - prev); prev = now; if (document.hidden) return;
+    if (frenado > 0) frenado -= dt; else t += dt;
+    const W = A.clientWidth, R = Math.min(W / 2 - 46, 180), g = t / PER * Math.PI * 2;
+    C.forEach((c, i) => { const th = Math.PI / 2 + g - i * 2 * Math.PI / n, d = Math.sin(th), k = (d + 1) / 2;
       c.style.transform = `translate(${(R * Math.cos(th)).toFixed(1)}px,${(22 * d).toFixed(1)}px) scale(${(.55 + .4 * k).toFixed(3)})`;
-      c.style.zIndex = 10 + Math.round(k * 30); c.style.opacity = (.5 + .5 * k).toFixed(2);
-      if (d > 0 && Math.abs(Math.cos(th)) < .12 && c !== C[ult]) { ult = i; fundir(+c.dataset.i); } });
+      c.style.zIndex = 10 + Math.round(k * 30); c.style.opacity = (.5 + .5 * k).toFixed(2); });
+    const ade = Math.round(t / PASO) % n; // la foto que está pasando justo por detrás de la principal
+    if (ade !== ult) { ult = ade; fundir(+C[ade].dataset.i); }
   };
   aro.r = requestAnimationFrame(paso);
 }
