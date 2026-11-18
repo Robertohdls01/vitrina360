@@ -150,6 +150,7 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 #fl.on{display:flex}
 #fl.corazon #flav{animation:flcalma 4s ease-in-out infinite}
 @keyframes flcalma{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.flsaluda{transform-origin:7px 60px;animation:flsal 1.4s ease-in-out infinite alternate}@keyframes flsal{from{transform:rotate(-18deg)}to{transform:rotate(22deg)}}
 .flparpa{transform-origin:40px 59px;animation:parpa 4.5s ease-in-out infinite}
 @keyframes parpa{0%,90%,100%{transform:scaleY(1)}93%,96%{transform:scaleY(.1)}}
 #flav{width:74px;height:96px;cursor:pointer;filter:drop-shadow(0 6px 10px rgba(0,0,0,.25));animation:flvive 2s ease-in-out infinite}
@@ -214,9 +215,14 @@ const FL_LOOKS = {
 const FL_BASE = '<svg viewBox="0 0 80 110" aria-hidden="true" class="flsvg"><ellipse cx="40" cy="106" rx="20" ry="4" fill="rgba(0,0,0,.18)"/><defs><radialGradient id="flhg" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fde68a"/><stop offset=".6" stop-color="#facc15"/><stop offset="1" stop-color="#eab308"/></radialGradient></defs><path d="M42 4 31 24h10l-5 13 15-20H40l7-13z" fill="#16a34a" stroke="#14532d" stroke-width="2" stroke-linejoin="round"/><circle cx="40" cy="64" r="32" fill="url(#flhg)" stroke="#ca8a04" stroke-width="2.5"/><g class="heyes"><ellipse cx="29" cy="59" rx="5.5" ry="7.5" fill="#1f2937"/><ellipse cx="51" cy="59" rx="5.5" ry="7.5" fill="#1f2937"/><circle cx="31" cy="56" r="2.2" fill="#fff"/><circle cx="53" cy="56" r="2.2" fill="#fff"/></g><circle cx="20" cy="72" r="5" fill="#fb7185" opacity=".55"/><circle cx="60" cy="72" r="5" fill="#fb7185" opacity=".55"/><g class="hmouth" style="transform-origin:40px 76px"><path d="M30 74q10 11 20 0" fill="#7f1d1d" stroke="#1f2937" stroke-width="2.4" stroke-linecap="round"/><path d="M34 78q6 3.5 12 0" fill="#fb7185"/></g><path d="M10 70q-8-6-4-16" stroke="#ca8a04" stroke-width="4" fill="none" stroke-linecap="round" class="flwave"/>';
 const flSVG = look => FL_BASE + (FL_LOOKS[look] || '') + '</svg>';
 // Flashy corazón: tierno y tranquilo (no saluda, parpadea despacito), para no robarle la escena a la protagonista.
-const flSVGc = look => flSVG(look)
-  .replace(/<circle cx="40" cy="64" r="32" fill="url\(#flhg\)" stroke="#ca8a04" stroke-width="2.5"\/>/, '<defs><radialGradient id="flhc" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="#ffd1e0"/><stop offset=".6" stop-color="#f5a3c0"/><stop offset="1" stop-color="#e984a8"/></radialGradient></defs><path d="M40 99C17 82 6 71 6 55 6 43 15 34 26 34c6 0 11 3 14 8 3-5 8-8 14-8 11 0 20 9 20 21 0 16-11 27-34 44z" fill="url(#flhc)" stroke="#d9729a" stroke-width="2.5"/>')
-  .replace('class="flwave"', 'class="flquieto"').replace('<g class="heyes">', '<g class="heyes flparpa">');
+const flSVGc = () => '<svg viewBox="-12 0 94 110" aria-hidden="true"><defs><radialGradient id="crz" cx="38%" cy="32%" r="80%"><stop offset="0" stop-color="#ff7a8a"/><stop offset=".55" stop-color="#ef2b4a"/><stop offset="1" stop-color="#c8102e"/></radialGradient></defs>'
+  + '<ellipse cx="40" cy="106" rx="18" ry="3.5" fill="rgba(0,0,0,.15)"/>'
+  + '<path d="M40 100C14 82 4 70 4 52 4 38 14 28 27 28c6 0 10 3 13 8 3-5 7-8 13-8 13 0 23 10 23 24 0 18-10 30-36 48z" fill="url(#crz)" stroke="#b80f2b" stroke-width="2"/>'
+  + '<ellipse cx="20" cy="42" rx="7" ry="4.5" fill="#fff" opacity=".45" transform="rotate(-30 20 42)"/>'
+  + '<g class="flsaluda"><path d="M7 60q-10-2-13-15" stroke="#c8102e" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="-6.5" cy="43" r="4.2" fill="#ef2b4a" stroke="#b80f2b" stroke-width="1.5"/></g>'
+  + '<g class="flparpa"><ellipse cx="29" cy="59" rx="5.2" ry="6.8" fill="#3b0a14"/><ellipse cx="51" cy="59" rx="5.2" ry="6.8" fill="#3b0a14"/><circle cx="31" cy="56" r="2.2" fill="#fff"/><circle cx="53" cy="56" r="2.2" fill="#fff"/><circle cx="27.5" cy="62" r="1" fill="#fff"/><circle cx="49.5" cy="62" r="1" fill="#fff"/></g>'
+  + '<circle cx="19" cy="70" r="5" fill="#ffc2cf" opacity=".75"/><circle cx="61" cy="70" r="5" fill="#ffc2cf" opacity=".75"/>'
+  + '<path d="M31 71q9 10 18 0" fill="#7f1d1d" stroke="#5b0a1a" stroke-width="2.4" stroke-linecap="round"/><path d="M35 75q5 3 10 0" fill="#ff8fa3"/></svg>';
 // En la parte de la invitación (la historia con las fotos) Flashy es un corazón tierno; cuando el invitado baja a la fiesta, vuelve a ser Flashy.
 function flForma() {
   try { if (flForma.o) flForma.o.disconnect(); const fl = document.getElementById('fl'), av = document.getElementById('flav'), h = document.querySelector('.hero'); if (!fl || !av) return;
