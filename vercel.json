@@ -101,5 +101,16 @@
       "path": "/api/fiesta?accion=programados",
       "schedule": "0 22 * * *"
     }
+  ],
+  "headers": [
+    {
+      "source": "/ml-fotos/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    }
   ]
 }
