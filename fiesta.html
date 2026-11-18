@@ -95,6 +95,37 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 #abrirInv>div{text-align:center;display:grid;gap:8px;animation:late2 2.2s ease-in-out infinite}
 #abrirInv b{font:600 34px/1.1 Georgia,serif;color:var(--ac)}#abrirInv span{font:600 16px var(--sans);color:#6b5b45}
 #abrirInv.fuera{opacity:0;pointer-events:none}
+#fondo{position:fixed;inset:0;z-index:-1;background:center/cover no-repeat;pointer-events:none}
+#fondo:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(250,249,246,.55),rgba(250,249,246,.78) 45%,rgba(250,249,246,.88))}
+body.confondo{background:transparent}
+#sobre{position:fixed;inset:0;z-index:95;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:radial-gradient(120% 90% at 50% 30%,#f7f6f3 0%,#e6e4df 60%,#d6d3cd 100%);cursor:pointer;overflow:hidden;transition:opacity .8s}
+#sobre.fuera{opacity:0;pointer-events:none}
+#sobre .sb{position:relative;width:min(78vw,330px);aspect-ratio:1.45;perspective:900px;filter:drop-shadow(0 18px 26px rgba(70,62,48,.28));animation:sbFlota 3.4s ease-in-out infinite}
+@keyframes sbFlota{50%{transform:translateY(-6px)}}
+#sobre .sbc,#sobre .sbf,#sobre .sbt{position:absolute;left:0;right:0}
+#sobre .sbc{bottom:0;top:0;border-radius:10px;background:linear-gradient(140deg,#f1dc9f 0%,#d4b065 38%,#b8913f 70%,#e2c57d 100%)}
+#sobre .sbc:after{content:"";position:absolute;inset:0;border-radius:10px;background:linear-gradient(to top right,transparent 49.6%,rgba(120,90,30,.25) 50%,transparent 50.4%),linear-gradient(to top left,transparent 49.6%,rgba(120,90,30,.25) 50%,transparent 50.4%);z-index:3}
+#sobre .sbt{left:7%;right:7%;top:8%;height:84%;background:#fffdf8;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px solid #e7d6a8;z-index:1;transition:transform 1s cubic-bezier(.2,.8,.2,1) .55s}
+#sobre .sbt i{font:italic 13px Georgia,serif;color:#8a7a5c;letter-spacing:.06em}#sobre .sbt b{font:400 clamp(24px,7vw,32px)/1.1 Georgia,serif;color:#5c5f66}
+#sobre .sbcf{position:absolute;inset:0;border-radius:10px;z-index:2;background:linear-gradient(140deg,#f1dc9f 0%,#d4b065 38%,#b8913f 70%,#e2c57d 100%);clip-path:polygon(0 0,50% 52%,100% 0,100% 100%,0 100%)}
+#sobre .sbf{top:0;height:62%;z-index:4;transform-origin:50% 0;transition:transform .8s ease-in-out,z-index 0s .4s;background:linear-gradient(170deg,#f6e6b4,#d3ae5f 70%,#bf9746);clip-path:polygon(0 0,100% 0,50% 100%);border-radius:10px 10px 0 0}
+#sobre .sello{position:absolute;left:50%;top:62%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;z-index:5;display:flex;align-items:center;justify-content:center;font:600 20px Georgia,serif;color:#f3dea4;background:radial-gradient(circle at 35% 30%,#a9adb4,#7c8088 55%,#5f636a);box-shadow:0 3px 8px rgba(0,0,0,.3),inset 0 0 0 3px rgba(243,222,164,.55);transition:opacity .4s,transform .4s;animation:selloL 2.2s ease-in-out infinite}
+@keyframes selloL{50%{transform:scale(1.07)}}
+#sobre .sbx{font:500 15px var(--sans);color:#6d6f75;letter-spacing:.04em;text-align:center}#sobre .sbx b{display:block;font:400 26px Georgia,serif;color:#a8822f;margin-bottom:4px}
+#sobre.abre .sello{opacity:0;transform:scale(.6)}
+#sobre.abre .sbf{transform:rotateX(180deg);z-index:0}
+#sobre.abre .sbt{transform:translateY(-62%);z-index:3}
+#sobre.abre .sb{animation:none}
+.globos{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+#sobre .globos{z-index:0}#sobre .sb,#sobre .sbx{z-index:1}
+.globo{position:absolute;bottom:-90px;width:var(--w,42px);animation:gSube var(--d,16s) linear var(--r,0s) infinite;opacity:.9}
+.globo svg{display:block;width:100%;height:auto;animation:gVaiv 4s ease-in-out infinite}
+@keyframes gSube{0%{transform:translateY(0)}100%{transform:translateY(calc(-100vh - 140px))}}
+@keyframes gVaiv{50%{transform:translateX(9px) rotate(4deg)}}
+.hero .globos{bottom:auto;height:100%}.hero .globo{animation-name:gSubeH}
+@keyframes gSubeH{0%{transform:translateY(0);opacity:0}8%{opacity:.85}85%{opacity:.85}100%{transform:translateY(-520px);opacity:0}}
+.hero>*:not(.globos){position:relative;z-index:1}
+@media (prefers-reduced-motion: reduce){.globo{display:none}}
 @keyframes late2{50%{transform:scale(1.05)}}
 .cine{--film:var(--ac);position:relative;width:min(100vw,560px);left:50%;transform:translateX(-50%);overflow:hidden;margin:4px 0 6px;padding:8px 0}
 .cine .film{position:absolute;left:0;right:0;top:50%;height:124px;margin-top:-62px;overflow:hidden;filter:drop-shadow(0 6px 12px rgba(0,0,0,.15))}
@@ -120,6 +151,7 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .aro .fxa{position:absolute;left:50%;top:-8px;transform:translateX(-50%);z-index:3;background:var(--ac);color:#fff;font:800 15px/1 var(--sans);padding:7px 14px;border-radius:999px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2);opacity:0;transition:opacity .5s}
 .aro .fxa.on{opacity:1}
 .cz{position:fixed;z-index:70;pointer-events:none;transform:translate(-50%,-50%) scale(.3);opacity:0;animation:cz var(--t,1.8s) cubic-bezier(.2,.8,.3,1) forwards}
+.cz.cnf{width:7px;height:13px;border-radius:2px;background:var(--cg);rotate:var(--r,30deg);box-shadow:0 1px 2px rgba(0,0,0,.18)}.cz.cnf.o{width:9px;height:9px;border-radius:50%}
 .cz.arz{width:6px;height:13px;border-radius:50%;background:#fffdf6;box-shadow:0 0 0 1px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.15);rotate:var(--r,30deg)}
 @keyframes cz{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.25)}}
 @keyframes cinta{to{transform:translateX(-50%)}}
@@ -318,6 +350,7 @@ function aro() {
   aro.r = requestAnimationFrame(paso);
 }
 // Explosión de corazones: chiquita con la foto de bebé, cada vez más grande, y una súper explosión por toda la pantalla al llegar a hoy.
+const efT = () => F && (F.efTipo || ({casamiento: 'boda', '15': 'oroplata'})[F.tipo] || 'corazones');
 function corazones(el, f) {
   if (f == null) f = 1;
   if (!el || document.hidden || (F && F.sinCor) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -325,9 +358,11 @@ function corazones(el, f) {
   const n = Math.round((8 + 52 * f) * (F && (F.efTipo || (F.tipo === 'casamiento' ? 'boda' : '')) === 'boda' ? 1.6 : 1)), lejos = 50 + f * Math.max(innerWidth, innerHeight) * .62;
   for (let k = 0; k < n; k++) { const a = k / n * Math.PI * 2 + Math.random() * .4, d = lejos * (.55 + Math.random() * .45), sp = document.createElement('span');
     const arroz = F && (F.efTipo || (F.tipo === 'casamiento' ? 'boda' : '')) === 'boda' && k % 5 < 3; // granitos de arroz
-    sp.className = 'cz' + (arroz ? ' arz' : ''); sp.textContent = arroz ? '' : E[k % E.length];
+    const brillo = F && efT() === 'oroplata' && k % 6 !== 5; // papelitos dorados y plateados
+    sp.className = 'cz' + (arroz ? ' arz' : brillo ? ' cnf' + (k % 3 === 0 ? ' o' : '') : ''); sp.textContent = arroz || brillo ? '' : (efT() === 'oroplata' ? '✨' : E[k % E.length]);
+    const cg = brillo && (k % 2 ? 'linear-gradient(135deg,#fbefc4,#d4ad55 55%,#a97f2e)' : 'linear-gradient(135deg,#ffffff,#c6c9cf 55%,#8d9198)');
     sp.style.cssText = `--r:${Math.round(Math.random() * 180)}deg;left:${cx}px;top:${cy}px;font-size:${(13 + f * 16 + Math.random() * 10).toFixed(0)}px;--dx:${(Math.cos(a) * d).toFixed(0)}px;--dy:${(Math.sin(a) * d - 20).toFixed(0)}px;--t:${(1.3 + f * 1.2).toFixed(2)}s;animation-delay:${(Math.random() * .2).toFixed(2)}s`;
-    document.body.appendChild(sp); setTimeout(() => sp.remove(), 3200); }
+    if (cg) sp.style.setProperty('--cg', cg); document.body.appendChild(sp); setTimeout(() => sp.remove(), 3200); }
 }
 // Mientras se ve la historia (vitrinas, película, aro), Flashy se corre para no robarle la escena; vuelve al bajar.
 function flEscena() {
@@ -364,6 +399,51 @@ document.addEventListener('click', e => {
 });
 // Música de la invitación: suena en loop desde el primer toque (los celulares no dejan que arranque sola).
 let MUS = null;
+// Fondo de la invitación: liso (colores de siempre), la foto principal en grande, u otra foto (paisaje, salón…).
+function fondo() {
+  let u = F && F.fondo; if (F && F.demo) { const q = new URLSearchParams(location.search).get('fondo'); if (q === 'foto') u = 'foto'; }
+  if (u === 'foto') u = F.foto; let d = document.getElementById('fondo');
+  if (!u) { if (d) d.remove(); document.body.classList.remove('confondo'); return; }
+  if (!d) { d = document.createElement('div'); d.id = 'fondo'; document.body.prepend(d); }
+  d.style.backgroundImage = `url("${String(u).replace(/"/g, '')}")`; document.body.classList.add('confondo');
+}
+// Globos elegantes grises y dorados (opcionales: F.sinGlobos)
+function globoSVG(oro, k) {
+  const g = oro ? ['#f6e3a6', '#d6b25e', '#a9823a'] : ['#e3e5e8', '#a7abb2', '#6f737a'];
+  return `<svg viewBox="0 0 40 74"><defs><radialGradient id="gb${k}" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="${g[0]}"/><stop offset=".55" stop-color="${g[1]}"/><stop offset="1" stop-color="${g[2]}"/></radialGradient></defs><ellipse cx="20" cy="21" rx="17" ry="20" fill="url(#gb${k})"/><ellipse cx="13" cy="12" rx="4" ry="6.5" fill="#fff" opacity=".45" transform="rotate(-25 13 12)"/><path d="M17 40.5h6l-3 4z" fill="${g[2]}"/><path d="M20 44.5c-3 6 3 10 0 16s3 9 0 13" stroke="${oro ? '#b8954a' : '#9a9da3'}" stroke-width=".8" fill="none"/></svg>`;
+}
+function globos(cant, k0) {
+  let h = '<div class="globos" aria-hidden="true">';
+  for (let i = 0; i < cant; i++) {
+    const izq = i % 2 === 0, x = izq ? 1 + (i * 7) % 16 : 82 + (i * 5) % 14;
+    h += `<div class="globo" style="left:${x}%;--w:${30 + (i * 11) % 22}px;--d:${13 + (i * 3) % 8}s;--r:-${(i * 2.7).toFixed(1)}s">${globoSVG(i % 3 !== 1, (k0 || 0) + i)}</div>`;
+  }
+  return h + '</div>';
+}
+function ponerGlobos() {
+  const hero = document.querySelector('.hero');
+  if (!hero || !F || F.sinGlobos || hero.querySelector('.globos')) return;
+  hero.insertAdjacentHTML('afterbegin', globos(6, 100));
+}
+// Sobre dorado cerrado: el invitado toca el sello, se abre y sale la tarjeta (opcional: F.sinSobre)
+function sobre() {
+  if (sobre.una || !F || PREV || F.sinSobre || (F.hoy && !F.demo) || !document.querySelector('.hero')) return;
+  if (F.demo && !localStorage.getItem('demoNom')) return;
+  try { if (sessionStorage.getItem('sobre_' + CODE)) return; } catch (e) {}
+  sobre.una = true;
+  const nom = F.nombre || '', ini = F.tipo === '15' ? '15' : (nom.trim()[0] || '♥').toUpperCase();
+  const o = document.createElement('div'); o.id = 'sobre';
+  o.innerHTML = (F.sinGlobos ? '' : globos(10, 0)) + `<div class="sb"><div class="sbc"></div><div class="sbt"><i>${esc(t('Estás invitado'))}</i><b>${esc(nom)}</b></div><div class="sbcf"></div><div class="sbf"></div><div class="sello">${esc(ini)}</div></div><div class="sbx"><b>${esc(nom)}</b>${esc(t('Tocá el sello para abrir tu invitación'))}</div>`;
+  document.body.appendChild(o); document.body.style.overflow = 'hidden';
+  o.onclick = () => {
+    if (o.classList.contains('abre')) return;
+    o.classList.add('abre');
+    try { sessionStorage.setItem('sobre_' + CODE, '1'); } catch (e) {}
+    if (MUS && MUS.paused && !musica.parada) MUS.play().catch(() => {});
+    setTimeout(() => { o.classList.add('fuera'); document.body.style.overflow = ''; const h = document.querySelector('.hero .foto, .hero'); if (h && !F.sinCor && typeof corazones === 'function') try { corazones(h, .35); } catch (e) {} }, 1900);
+    setTimeout(() => o.remove(), 2800);
+  };
+}
 function musica() {
   if (!F || !F.musica || !F.musica.url || PREV) return;
   if (!MUS) { MUS = new Audio(F.musica.url); MUS.loop = true; MUS.volume = .7; }
@@ -372,7 +452,7 @@ function musica() {
   if (b) b.onclick = e => { e.stopPropagation(); if (MUS.paused) MUS.play().catch(() => {}); else MUS.pause(); setTimeout(pintar, 120); };
   // Intenta arrancar sola; si el celular no deja, muestra "Tocá para abrir tu invitación" y arranca con ese toque.
   if (!musica.una && !musica.parada) MUS.play().then(pintar).catch(() => {
-    if (document.getElementById('abrirInv') || (F.demo && !localStorage.getItem('demoNom'))) return;
+    if (document.getElementById('abrirInv') || document.getElementById('sobre') || (F.demo && !localStorage.getItem('demoNom'))) return;
     const o = document.createElement('div'); o.id = 'abrirInv';
     o.innerHTML = `<div><div style="font-size:54px">💌</div><b>${esc(F.nombre || '')}</b><span>${t('Tocá para abrir tu invitación')} 🎵</span></div>`;
     document.body.appendChild(o); o.onclick = () => { o.classList.add('fuera'); setTimeout(() => o.remove(), 600); };
@@ -406,7 +486,7 @@ function render() {
     h += `<div class="alr${VE === 'gira' ? ' gira' : ''}"><div class="brillos">${Array.from({length: 16}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 94 + 2}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div><div class="orb">${g.map((x, j) => `<div class="pos" style="${P[j]}">${vitrina(x, j % 2 === 1, true)}${NOM[j] ? `<b class="vnom">${esc(NOM[j])}</b>` : ''}</div>`).join('')}</div>${f.foto ? `<img class="foto" src="${esc(f.foto)}" alt="">` : ''}</div>`;
   }
   else if (HI) { const mitad = Math.ceil(HI.length / 2); h += vitrina(HI.slice(0, mitad), false) + `<div class="brillos">${Array.from({length: 14}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 90 + 3}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div>`; }
-  if (m === 'especial' && f.foto && HI && VE === 'pelicula') { const L = HI.concat(HI.length < 6 ? HI : []); h += `<div class="cine"${f.demo ? ' style="--film:#e0629a"' : ''}><div class="film"><div class="cinta" style="--dur:${L.length * 4}s">${L.concat(L).map(x => `<div class="fr"><img src="${esc(x.img)}" alt="" loading="lazy">${x.txt ? `<span>${esc(x.txt)}</span>` : ''}</div>`).join('')}</div></div><div class="fwrap"><img class="foto" src="${esc(f.foto)}" alt=""><img class="fx" id="fx" alt=""><b class="fxa" id="fxa"></b></div></div>`; }
+  if (m === 'especial' && f.foto && HI && VE === 'pelicula') { const L = HI.concat(HI.length < 6 ? HI : []); h += `<div class="cine"${f.demo ? ' style="--film:#9ea3ab"' : ''}><div class="film"><div class="cinta" style="--dur:${L.length * 4}s">${L.concat(L).map(x => `<div class="fr"><img src="${esc(x.img)}" alt="" loading="lazy">${x.txt ? `<span>${esc(x.txt)}</span>` : ''}</div>`).join('')}</div></div><div class="fwrap"><img class="foto" src="${esc(f.foto)}" alt=""><img class="fx" id="fx" alt=""><b class="fxa" id="fxa"></b></div></div>`; }
   else if (m === 'especial' && f.foto && !(HI && !DOS) && !(HI && VE === 'aro')) h += `<img class="foto" src="${esc(f.foto)}" alt=""${HI ? ' style="margin-bottom:6px"' : ''}>`;
   if (HI && DOS) { const mitad = Math.ceil(HI.length / 2), abajo = HI.slice(mitad); h += vitrina(abajo.length >= 2 ? abajo : HI, true); }
   if (m === 'especial' && f.video && f.video.id && /^[A-Za-z0-9_-]{11}$/.test(f.video.id)) h += `<div class="vbox${f.video.vert ? ' vert' : ''}" id="vbox" data-v="${f.video.id}"><img src="https://i.ytimg.com/vi/${f.video.id}/hqdefault.jpg" alt=""><span class="play">▶</span><div class="brillos">${Array.from({length: 8}, (_, i) => `<i style="left:${(i * 41) % 92 + 3}%;top:${(i * 29) % 88 + 4}%;animation-delay:${(i * .53) % 3.2}s"></i>`).join('')}</div></div>`;
@@ -434,7 +514,7 @@ function render() {
   h += `<div class="pie">${t('Invitación y fiesta organizadas con')} <b>ShopFiesta</b><br>Pro Video JSRHG · <a href="https://wa.me/5492235814437?text=${encodeURIComponent('Hola, vi la invitación de ShopFiesta y quiero una para mi fiesta')}" target="_blank" rel="noopener">${t('¿Querés una para tu fiesta?')}</a></div>`;
   $('#app').innerHTML = h;
   if (F.vivo && F.hoy && !PREV) { const v = $('#vivo'), hero = $('.hero'); if (v && hero) hero.after(v); }
-  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas(); tarjAlbum(); tarjRecuerdos(); tarjPush(); tarjResena(); musica(); polvo(); orbita(); crece(); aro(); if (FL) flForma();
+  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas(); tarjAlbum(); tarjRecuerdos(); tarjPush(); tarjResena(); sobre(); musica(); ponerGlobos(); fondo(); polvo(); orbita(); crece(); aro(); if (FL) flForma();
 }
 function cuenta() {
   clearInterval(timer); const d = cuando(F); if (!d || !$('#cuenta')) return;
