@@ -116,6 +116,36 @@ body.confondo{background:transparent}
 #sobre.abre .sbf{transform:rotateX(180deg);z-index:0}
 #sobre.abre .sbt{transform:translateY(-62%);z-index:3}
 #sobre.abre .sb{animation:none}
+#sobre .cf{position:relative;width:min(70vw,280px);aspect-ratio:1.15;perspective:700px;z-index:1;animation:sbFlota 3.4s ease-in-out infinite;filter:drop-shadow(0 20px 26px rgba(60,50,30,.35))}
+#sobre .cfl{position:absolute;left:0;right:0;top:4%;height:40%;transform-origin:50% 100%;transition:transform .9s cubic-bezier(.3,1.4,.5,1);z-index:3}
+#sobre .cfb{position:absolute;left:0;right:0;bottom:0;height:58%;z-index:2}
+#sobre .cf svg{width:100%;height:100%;display:block;overflow:visible}
+#sobre .cfluz{position:absolute;left:12%;right:12%;top:30%;height:30%;border-radius:50%;background:radial-gradient(closest-side,rgba(255,246,200,.95),rgba(255,226,140,.5) 50%,transparent);opacity:0;transform:scale(.4);transition:opacity .6s .3s,transform 1.2s .3s;z-index:1}
+#sobre .cfrayos{position:absolute;left:50%;top:40%;width:420px;height:420px;margin:-210px 0 0 -210px;background:repeating-conic-gradient(from 0deg,rgba(255,236,170,.0) 0 8deg,rgba(255,236,170,.45) 10deg 13deg,rgba(255,236,170,0) 15deg 22deg);border-radius:50%;-webkit-mask:radial-gradient(closest-side,#000 30%,transparent);mask:radial-gradient(closest-side,#000 30%,transparent);opacity:0;transform:scale(.3) rotate(0);transition:opacity .8s .35s,transform 2.4s .35s;z-index:0}
+#sobre .cfft{position:absolute;left:50%;top:44%;width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;overflow:hidden;border:4px solid #e9cf8a;box-shadow:0 0 0 2px #fff8e6,0 0 30px rgba(255,220,130,.9);opacity:0;transform:translateY(40px) scale(.2);transition:transform 1.3s cubic-bezier(.2,.9,.25,1.1) 3s,opacity .6s 3s;z-index:4;background:#f6efe2}
+#sobre .cfft img{width:100%;height:100%;object-fit:cover}
+#sobre.plata .cfft{border-color:#d4d7dc;box-shadow:0 0 0 2px #fff,0 0 30px rgba(220,230,255,.9)}
+#sobre.abre .cfl{transform:rotateX(-115deg)}
+#sobre.abre .cfluz{opacity:1;transform:scale(1.6)}
+#sobre.abre .cfrayos{opacity:1;transform:scale(1.3) rotate(40deg)}
+#sobre.abre .cfft{opacity:1;transform:translateY(-150px) scale(1.15)}
+#sobre.abre .cf{animation:none}
+#sobre .cfn{position:relative;z-index:5}
+#sobre .cfn i{font-style:normal;transition:opacity .4s}#sobre.abre .cfn i{opacity:0}
+#sobre.cofre{background:linear-gradient(135deg,#d9dbdf 0%,#f6f6f7 22%,#b9bcc2 45%,#eceef0 62%,#c4c7cc 80%,#f3f3f4 100%)}
+#sobre.cofre:before{content:"";position:absolute;inset:-50%;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.75) 48%,rgba(255,236,170,.55) 51%,transparent 58%);animation:cfBrillo 4.5s ease-in-out infinite;z-index:0;pointer-events:none}
+#sobre.cofre:after{content:"";position:absolute;left:50%;top:44%;width:120vmax;height:120vmax;margin:-60vmax 0 0 -60vmax;background:radial-gradient(closest-side,rgba(255,228,140,.75),rgba(255,214,110,.35) 22%,rgba(255,255,255,.12) 45%,transparent 70%);animation:cfSol 3.2s ease-in-out infinite;z-index:0;pointer-events:none}
+@keyframes cfBrillo{0%{transform:translateX(-35%)}60%,100%{transform:translateX(35%)}}
+@keyframes cfSol{50%{transform:scale(1.08);opacity:.85}}
+#sobre.cofre .cf,#sobre.cofre .sbx,#sobre.cofre .globos{position:relative;z-index:1}#sobre.cofre .globos{position:absolute}
+#sobre .sbx b{text-shadow:0 1px 0 #fff}
+.cfmini{position:fixed;z-index:97;width:84px;height:100px;border-radius:8px;border:3px solid #fff;box-shadow:0 6px 16px rgba(0,0,0,.25),0 0 0 1px #d8b25c;background:#f6efe2 center/cover;transform:translate(-50%,-50%) scale(.15) rotate(0);opacity:0;transition:transform 1s cubic-bezier(.2,.9,.25,1.15),opacity .5s}
+.cfmini b{position:absolute;left:0;right:0;bottom:-20px;font:600 11px var(--sans);color:#6b5b45;text-align:center;white-space:nowrap}
+
+.gema{position:fixed;z-index:96;pointer-events:none;width:var(--s,18px);height:var(--s,18px);transform:translate(-50%,-50%) scale(.3);opacity:0;animation:gema var(--t,1.8s) cubic-bezier(.15,.8,.3,1) forwards;filter:drop-shadow(0 0 6px var(--g,#fff))}
+.gema svg{width:100%;height:100%;display:block}
+@keyframes gema{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}12%{opacity:1}75%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1) rotate(var(--r,180deg))}}
+
 .globos{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
 #sobre .globos{z-index:0}#sobre .sb,#sobre .sbx{z-index:1}
 .globo{position:absolute;bottom:-90px;width:var(--w,42px);animation:gSube var(--d,16s) linear var(--r,0s) infinite;opacity:.9}
@@ -431,13 +461,62 @@ function ponerGlobos() {
   hero.insertAdjacentHTML('afterbegin', globos(6, 100));
 }
 // Sobre dorado cerrado: el invitado toca el sello, se abre y sale la tarjeta (opcional: F.sinSobre)
+// Cofre (opcional, en lugar del sobre): dorado o plateado; se abre, salen piedras preciosas y sube la foto de ella.
+function cofreSVG(plata) {
+  const c = plata ? ['#ffffff', '#c9ccd2', '#8c9097', '#5f636a'] : ['#fbefc4', '#d8b25c', '#a9802f', '#7a5a1c'];
+  const g = `<linearGradient id="cfm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c[0]}"/><stop offset=".45" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[2]}"/></linearGradient>`;
+  const tapa = `<svg viewBox="0 0 200 80" preserveAspectRatio="none"><defs>${g}</defs><path d="M6 80V44Q6 4 100 4T194 44v36z" fill="url(#cfm)" stroke="${c[3]}" stroke-width="2"/><path d="M40 80V22M160 80V22" stroke="${c[3]}" stroke-width="7" opacity=".55"/><path d="M14 72h172" stroke="${c[0]}" stroke-width="3" opacity=".8"/><circle cx="70" cy="40" r="4" fill="#3fbf8f"/><circle cx="100" cy="30" r="5" fill="#e0465e"/><circle cx="130" cy="40" r="4" fill="#4a7de0"/></svg>`;
+  const caja = `<svg viewBox="0 0 200 110" preserveAspectRatio="none"><defs>${g}</defs><rect x="6" y="0" width="188" height="108" rx="6" fill="url(#cfm)" stroke="${c[3]}" stroke-width="2"/><path d="M40 0v108M160 0v108" stroke="${c[3]}" stroke-width="7" opacity=".55"/><path d="M6 10h188" stroke="${c[0]}" stroke-width="3" opacity=".8"/><rect x="84" y="14" width="32" height="40" rx="6" fill="${c[3]}"/><rect x="88" y="18" width="24" height="32" rx="4" fill="url(#cfm)"/><circle cx="100" cy="31" r="4" fill="${c[3]}"/><path d="M98 33h4l1 10h-6z" fill="${c[3]}"/></svg>`;
+  return {tapa, caja};
+}
+function gemas(el, n) {
+  if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height * .45;
+  const P = [['#f4fbff', '#bfe3ff', '#7fb6e8'], ['#c9ffe6', '#2fbf83', '#127a4f'], ['#ffd2da', '#e0465e', '#8e1730'], ['#d6e4ff', '#4a7de0', '#1d3f8f'], ['#f1dcff', '#9a5ad6', '#5a2a8a'], ['#fff3c4', '#f0c040', '#a77a10']];
+  for (let k = 0; k < n; k++) {
+    const p = P[k % P.length], a = -Math.PI / 2 + (Math.random() - .5) * 2.6, d = 120 + Math.random() * Math.max(innerWidth, innerHeight) * .5, sp = document.createElement('div');
+    sp.className = 'gema';
+    sp.innerHTML = k % 2 ? `<svg viewBox="0 0 20 20"><path d="M4 2h12l4 6-10 11L0 8z" fill="${p[1]}"/><path d="M4 2l3 6h6l3-6zM0 8h20L10 19z" fill="${p[0]}" opacity=".55"/><path d="M7 8l3 11 3-11z" fill="${p[2]}" opacity=".5"/></svg>` : `<svg viewBox="0 0 20 20"><path d="M10 0l7 5v10l-7 5-7-5V5z" fill="${p[1]}"/><path d="M10 0l7 5-7 5-7-5z" fill="${p[0]}" opacity=".6"/><path d="M10 10v10l7-5V5z" fill="${p[2]}" opacity=".5"/></svg>`;
+    sp.style.cssText = `left:${cx}px;top:${cy}px;--s:${(12 + Math.random() * 16).toFixed(0)}px;--dx:${(Math.cos(a) * d).toFixed(0)}px;--dy:${(Math.sin(a) * d * .9).toFixed(0)}px;--r:${Math.round(Math.random() * 540 - 270)}deg;--t:${(1.6 + Math.random() * 1).toFixed(2)}s;--g:${p[1]};animation-delay:${(Math.random() * .5).toFixed(2)}s`;
+    document.body.appendChild(sp); setTimeout(() => sp.remove(), 3400);
+  }
+}
 function sobre() {
   if (sobre.una || !F || PREV || F.sinSobre || (F.hoy && !F.demo) || !document.querySelector('.hero')) return;
   if (F.demo && !localStorage.getItem('demoNom')) return;
   try { if (sessionStorage.getItem('sobre_' + CODE)) return; } catch (e) {}
   sobre.una = true;
   const nom = F.nombre || '', ini = F.tipo === '15' ? '15' : (nom.trim()[0] || '♥').toUpperCase();
+  let ab = F.abre || 'sobre'; if (F.demo) { const q = new URLSearchParams(location.search).get('abre'); if (['sobre', 'cofre', 'cofreplata'].includes(q)) ab = q; }
   const o = document.createElement('div'); o.id = 'sobre';
+  if (ab !== 'sobre') {
+    const plata = ab === 'cofreplata', C = cofreSVG(plata), ft = F.foto || '';
+    o.classList.add('cofre'); if (plata) o.classList.add('plata');
+    o.innerHTML = (F.sinGlobos ? '' : globos(10, 0)) + `<div class="cf"><div class="cfrayos"></div><div class="cfluz"></div>${ft ? `<div class="cfft"><img src="${esc(ft)}" alt=""></div>` : ''}<div class="cfl">${C.tapa}</div><div class="cfb">${C.caja}</div></div><div class="sbx cfn"><b>${esc(nom)}</b><i>${esc(t('Tocá el cofre para abrir tu invitación'))}</i></div>`;
+    document.body.appendChild(o); document.body.style.overflow = 'hidden';
+    o.onclick = () => {
+      if (o.classList.contains('abre')) return; o.classList.add('abre');
+      try { sessionStorage.setItem('sobre_' + CODE, '1'); } catch (e) {}
+      if (MUS && MUS.paused && !musica.parada) MUS.play().catch(() => {});
+      const cf = o.querySelector('.cf'); setTimeout(() => gemas(cf, 46), 350); setTimeout(() => gemas(cf, 24), 1100); setTimeout(() => gemas(cf, 40), 3100);
+      // Salen del cofre 4 o 5 fotos de cuando era chica, en abanico; después sube la foto grande de hoy.
+      const H = (F.historia || []).filter(x => x && x.img), N = H.length, el = [];
+      const pick = N <= 5 ? H.slice(0, Math.max(0, N - 1)) : [0, 1, 2, 3, 4].map(k => H[Math.round(k * (N - 2) / 4)]);
+      const r = cf.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height * .45, W = Math.min(innerWidth, 440);
+      pick.forEach((h, k) => setTimeout(() => {
+        const m = document.createElement('div'); m.className = 'cfmini'; m.style.backgroundImage = `url("${String(h.img).replace(/"/g, '')}")`; m.style.left = cx + 'px'; m.style.top = cy + 'px';
+        if (h.txt) { const b = document.createElement('b'); b.textContent = String(h.txt).split('·')[0].trim(); m.appendChild(b); }
+        document.body.appendChild(m); el.push(m);
+        const n = pick.length, a = n > 1 ? k / (n - 1) : .5, x = (a - .5) * W * .72, y = -170 - Math.sin(a * Math.PI) * 70;
+        requestAnimationFrame(() => requestAnimationFrame(() => { m.style.opacity = 1; m.style.transform = `translate(calc(-50% + ${x.toFixed(0)}px),calc(-50% + ${y.toFixed(0)}px)) scale(1) rotate(${((a - .5) * 22).toFixed(1)}deg)`; }));
+      }, 550 + k * 330));
+      setTimeout(() => el.forEach(m => { m.style.opacity = 0; m.style.transform += ' scale(.6)'; }), 3000);
+      setTimeout(() => el.forEach(m => m.remove()), 3800);
+      setTimeout(() => { o.classList.add('fuera'); document.body.style.overflow = ''; }, 5600);
+      setTimeout(() => o.remove(), 6500);
+    };
+    return;
+  }
   o.innerHTML = (F.sinGlobos ? '' : globos(10, 0)) + `<div class="sb"><div class="sbc"></div><div class="sbt"><i>${esc(t('Estás invitado'))}</i><b>${esc(nom)}</b></div><div class="sbcf"></div><div class="sbf"></div><div class="sello">${esc(ini)}</div></div><div class="sbx"><b>${esc(nom)}</b>${esc(t('Tocá el sello para abrir tu invitación'))}</div>`;
   document.body.appendChild(o); document.body.style.overflow = 'hidden';
   o.onclick = () => {
