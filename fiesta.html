@@ -1013,7 +1013,24 @@ function flashy() {
   setInterval(flPasoDeVez, 60e3);
   if ('speechSynthesis' in window) speechSynthesis.getVoices();
 }
-function arrancarVivo() { flashy(); clearInterval(vivoTimer); if (F && F.vivo && F.hoy && INV && !PREV) { vivoTick(); vivoTimer = setInterval(vivoTick, 7000); } }
+// Invitación sola (sin el paquete de la fiesta): Flashy-corazón saluda y solo cuenta lo de la tarjeta.
+function flInvitacion() {
+  if (FL || !F || F.vivo || PREV || !document.querySelector('.hero')) return; FL = true;
+  $('#flav').innerHTML = flCorazon() ? flSVGc() : flSVG(F.flLook || 'traje'); $('#fl').classList.add('on');
+  const info = () => {
+    const n = INV && INV.nombre && !INV.anon ? ' ' + String(INV.nombre).split(' ')[0] : '';
+    let x = t('¡Hola{n}! Te cuento de la invitación:', {n}) + ' ' + nomFiesta(F) + (F.fecha ? ', ' + fechaLarga(F) : '') + (F.hora ? ' · ' + F.hora + ' h' : '') + (F.salon ? ', ' + F.salon : '') + '.';
+    if (F.vestimenta) x += ' ' + t('Vestimenta') + ': ' + F.vestimenta + '.';
+    const ops = [{t: '✅ ' + t('Confirmar asistencia'), f: () => { $('#flb').classList.remove('on'); const r = document.getElementById('rsvp'); if (r) r.scrollIntoView({behavior: 'smooth', block: 'center'}); }}];
+    if (F.salon || F.direccion) ops.push({t: '📍 ' + t('Cómo llegar'), alt: true, f: () => window.open(mapa(F), '_blank')});
+    if (F.regalo) ops.push({t: '🎁 ' + t('Regalo'), alt: true, f: () => flDecir(F.regalo, [{t: '✅ ' + t('Confirmar asistencia'), f: ops[0].f}])});
+    flDecir(x, ops);
+  };
+  $('#flav').onclick = () => { flVoz = true; $('#flb').classList.contains('on') ? $('#flb').classList.remove('on') : info(); };
+  let visto = 0; try { visto = +localStorage.getItem('flinv_' + CODE) || 0; localStorage.setItem('flinv_' + CODE, '1'); } catch (e) {}
+  if (!visto) setTimeout(() => { if (!document.getElementById('sobre')) info(); }, 4000);
+}
+function arrancarVivo() { flashy(); flInvitacion(); clearInterval(vivoTimer); if (F && F.vivo && F.hoy && INV && !PREV) { vivoTick(); vivoTimer = setInterval(vivoTick, 7000); } }
 const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const instalada = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone;
 function guardar() {
