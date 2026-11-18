@@ -148,6 +148,10 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .toast.on{display:block;animation:baja .35s ease}.toast small{display:block;font:500 14px var(--sans);opacity:.9;margin-top:6px}
 #fl{position:fixed;right:10px;bottom:12px;z-index:15;display:none;flex-direction:column;align-items:flex-end;gap:8px;max-width:calc(100vw - 20px)}
 #fl.on{display:flex}
+#fl.corazon #flav{animation:flcalma 4s ease-in-out infinite}
+@keyframes flcalma{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.flparpa{transform-origin:40px 59px;animation:parpa 4.5s ease-in-out infinite}
+@keyframes parpa{0%,90%,100%{transform:scaleY(1)}93%,96%{transform:scaleY(.1)}}
 #flav{width:74px;height:96px;cursor:pointer;filter:drop-shadow(0 6px 10px rgba(0,0,0,.25));animation:flvive 2s ease-in-out infinite}
 #flav svg{width:100%;height:100%}#fl.habla #flav{animation:flhabla .25s ease-in-out infinite alternate}
 @keyframes flvive{0%,100%{transform:translateY(0)}30%{transform:translateY(-8px)}60%{transform:translateY(0)}80%{transform:translateY(-4px)}}
@@ -209,6 +213,19 @@ const FL_LOOKS = {
 };
 const FL_BASE = '<svg viewBox="0 0 80 110" aria-hidden="true" class="flsvg"><ellipse cx="40" cy="106" rx="20" ry="4" fill="rgba(0,0,0,.18)"/><defs><radialGradient id="flhg" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fde68a"/><stop offset=".6" stop-color="#facc15"/><stop offset="1" stop-color="#eab308"/></radialGradient></defs><path d="M42 4 31 24h10l-5 13 15-20H40l7-13z" fill="#16a34a" stroke="#14532d" stroke-width="2" stroke-linejoin="round"/><circle cx="40" cy="64" r="32" fill="url(#flhg)" stroke="#ca8a04" stroke-width="2.5"/><g class="heyes"><ellipse cx="29" cy="59" rx="5.5" ry="7.5" fill="#1f2937"/><ellipse cx="51" cy="59" rx="5.5" ry="7.5" fill="#1f2937"/><circle cx="31" cy="56" r="2.2" fill="#fff"/><circle cx="53" cy="56" r="2.2" fill="#fff"/></g><circle cx="20" cy="72" r="5" fill="#fb7185" opacity=".55"/><circle cx="60" cy="72" r="5" fill="#fb7185" opacity=".55"/><g class="hmouth" style="transform-origin:40px 76px"><path d="M30 74q10 11 20 0" fill="#7f1d1d" stroke="#1f2937" stroke-width="2.4" stroke-linecap="round"/><path d="M34 78q6 3.5 12 0" fill="#fb7185"/></g><path d="M10 70q-8-6-4-16" stroke="#ca8a04" stroke-width="4" fill="none" stroke-linecap="round" class="flwave"/>';
 const flSVG = look => FL_BASE + (FL_LOOKS[look] || '') + '</svg>';
+// Flashy corazón: tierno y tranquilo (no saluda, parpadea despacito), para no robarle la escena a la protagonista.
+const flSVGc = look => flSVG(look)
+  .replace(/<circle cx="40" cy="64" r="32" fill="url\(#flhg\)" stroke="#ca8a04" stroke-width="2.5"\/>/, '<defs><radialGradient id="flhc" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="#ffd1e0"/><stop offset=".6" stop-color="#f5a3c0"/><stop offset="1" stop-color="#e984a8"/></radialGradient></defs><path d="M40 99C17 82 6 71 6 55 6 43 15 34 26 34c6 0 11 3 14 8 3-5 8-8 14-8 11 0 20 9 20 21 0 16-11 27-34 44z" fill="url(#flhc)" stroke="#d9729a" stroke-width="2.5"/>')
+  .replace('class="flwave"', 'class="flquieto"').replace('<g class="heyes">', '<g class="heyes flparpa">');
+// En la parte de la invitación (la historia con las fotos) Flashy es un corazón tierno; cuando el invitado baja a la fiesta, vuelve a ser Flashy.
+function flForma() {
+  try { if (flForma.o) flForma.o.disconnect(); const fl = document.getElementById('fl'), av = document.getElementById('flav'), h = document.querySelector('.hero'); if (!fl || !av) return;
+    const poner = c => { if (fl.classList.contains('corazon') === c && av.innerHTML) return; fl.classList.toggle('corazon', c); av.innerHTML = (c ? flSVGc : flSVG)(F.flLook || 'traje'); av.animate([{transform: 'scale(.6)'}, {transform: 'scale(1.12)'}, {transform: 'scale(1)'}], {duration: 450}); };
+    if (!flCorazon() || !h) { poner(false); return; }
+    flForma.o = new IntersectionObserver(([e]) => poner(e.intersectionRatio > .3), {threshold: [0, .3, .6]}); flForma.o.observe(h);
+  } catch (e) {}
+}
+const flCorazon = () => F && (F.flForma ? F.flForma === 'corazon' : ['15', 'casamiento', 'bautismo', 'comunion'].includes(F.tipo));
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const P = new URLSearchParams(location.search);
@@ -305,6 +322,13 @@ function corazones(el, f) {
     sp.className = 'cz' + (arroz ? ' arz' : ''); sp.textContent = arroz ? '' : E[k % E.length];
     sp.style.cssText = `--r:${Math.round(Math.random() * 180)}deg;left:${cx}px;top:${cy}px;font-size:${(13 + f * 16 + Math.random() * 10).toFixed(0)}px;--dx:${(Math.cos(a) * d).toFixed(0)}px;--dy:${(Math.sin(a) * d - 20).toFixed(0)}px;--t:${(1.3 + f * 1.2).toFixed(2)}s;animation-delay:${(Math.random() * .2).toFixed(2)}s`;
     document.body.appendChild(sp); setTimeout(() => sp.remove(), 3200); }
+}
+// Mientras se ve la historia (vitrinas, película, aro), Flashy se corre para no robarle la escena; vuelve al bajar.
+function flEscena() {
+  try { if (flEscena.o) flEscena.o.disconnect(); const h = document.querySelector('.hero'), fl = document.getElementById('fl');
+    if (!h || !fl || !document.querySelector('.hero .vit, .hero .aro, .hero .cine')) { if (fl) fl.classList.remove('tapa'); return; }
+    flEscena.o = new IntersectionObserver(([e]) => fl.classList.toggle('tapa', e.intersectionRatio > .35 && !document.querySelector('#flb.on .esc input:focus')), {threshold: [0, .35, .6, 1]});
+    flEscena.o.observe(h); } catch (e) {}
 }
 // Polvo mágico: chispitas doradas que se desprenden de las vitrinas mientras giran.
 function polvo() {
@@ -404,7 +428,7 @@ function render() {
   h += `<div class="pie">${t('Invitación y fiesta organizadas con')} <b>ShopFiesta</b><br>Pro Video JSRHG · <a href="https://wa.me/5492235814437?text=${encodeURIComponent('Hola, vi la invitación de ShopFiesta y quiero una para mi fiesta')}" target="_blank" rel="noopener">${t('¿Querés una para tu fiesta?')}</a></div>`;
   $('#app').innerHTML = h;
   if (F.vivo && F.hoy && !PREV) { const v = $('#vivo'), hero = $('.hero'); if (v && hero) hero.after(v); }
-  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas(); tarjAlbum(); tarjRecuerdos(); tarjPush(); tarjResena(); musica(); polvo(); orbita(); crece(); aro();
+  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas(); tarjAlbum(); tarjRecuerdos(); tarjPush(); tarjResena(); musica(); polvo(); orbita(); crece(); aro(); if (FL) flForma();
 }
 function cuenta() {
   clearInterval(timer); const d = cuando(F); if (!d || !$('#cuenta')) return;
@@ -896,7 +920,7 @@ function flPasoDeVez() { // cada tanto, sin molestar: "¿te falta algo en la mes
 function flDesbloquear() { if (flVoz) return; flVoz = true; try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch (e) {} }
 ['pointerdown', 'touchstart', 'keydown'].forEach(ev => document.addEventListener(ev, flDesbloquear, {passive: true}));
 function flashy() {
-  if (FL || !F || !F.vivo || !F.hoy || !INV || PREV) return; FL = true; $('#flav').innerHTML = flSVG(F.flLook || 'traje'); $('#fl').classList.add('on');
+  if (FL || !F || !F.vivo || !F.hoy || !INV || PREV) return; FL = true; $('#flav').innerHTML = flSVG(F.flLook || 'traje'); flForma(); $('#fl').classList.add('on');
   $('#flav').onclick = () => { flVoz = true; $('#flb').classList.contains('on') ? $('#flb').classList.remove('on') : flMenu(); };
   let ult = 0; try { ult = +localStorage.getItem(LSI()) || 0; } catch (e) {}
   if (!ult) { setTimeout(flMenu, 1200); marcaInter(); }
