@@ -345,7 +345,7 @@ module.exports = async (req, res) => {
       await rest('PATCH', 'fiesta_codigos?codigo=eq.' + cod + '&usado_por=is.null', { usado_por: code, usado_at: new Date().toISOString() });
       const ok = ((await rest('GET', 'fiesta_codigos?codigo=eq.' + cod + '&select=usado_por').catch(() => [])) || [])[0];
       if (!ok || ok.usado_por !== code) return res.status(409).json({ error: 'Ese código ya se usó en otra fiesta.' });
-      if (!(e2.pagado && (e2.paquete === fila.paquete || e2.paquete === 'recuerdos' || (e2.paquete === 'completa' && fila.paquete === 'invitacion')))) { marcarPago(e2, fila.paquete, 'ml:' + cod, 0, false); e2.vitMax = fila.paquete === 'invitacion' ? (fila.vit || 'gira') : null; await guardarObj(code, e2); }
+      if (!(e2.pagado && (e2.paquete === fila.paquete || e2.paquete === 'recuerdos' || (e2.paquete === 'completa' && fila.paquete === 'invitacion')))) { marcarPago(e2, fila.paquete, 'ml:' + cod, 0, false); e2.vitMax = fila.paquete === 'invitacion' ? (fila.vit || 'aro') : null; await guardarObj(code, e2); }
       return res.status(200).json({ ok: true, pagado: true, paquete: fila.paquete });
     }
     if (req.method === 'POST' && (acc === 'pagar' || acc === 'regalar')) {
