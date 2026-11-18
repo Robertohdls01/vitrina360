@@ -102,6 +102,9 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .cine .film::before{top:6px}.cine .film::after{bottom:6px}
 .cine .cinta{position:absolute;top:20px;left:0;display:flex;gap:8px;width:max-content;animation:cinta var(--dur,32s) linear infinite}
 .cine .cinta img{height:84px;width:112px;object-fit:cover;border-radius:3px;display:block}
+.cine .fr{position:relative}.cine .fr span{position:absolute;left:0;right:0;bottom:0;padding:10px 4px 3px;border-radius:0 0 3px 3px;background:linear-gradient(transparent,rgba(0,0,0,.6));color:#fff;font:700 11px/1.1 var(--sans);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cine .fxa{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);z-index:3;background:var(--ac);color:#fff;font:800 15px/1 var(--sans);padding:7px 14px;border-radius:999px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2);opacity:0;transition:opacity .5s}
+.cine .fxa.on{opacity:1}
 .cine .fwrap{position:relative;z-index:2;width:210px;height:210px;margin:0 auto}
 .cine .foto{margin:0}
 .cine .fx{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);border-radius:50%;object-fit:cover;opacity:0;transition:opacity .7s ease}
@@ -242,12 +245,12 @@ function orbita() {
 // Película: la foto del medio va pasando de bebé a grande, se queda en la foto principal y vuelve a empezar.
 function crece() {
   clearTimeout(crece.t); const fx = document.getElementById('fx'); if (!fx || !F || !Array.isArray(F.historia) || F.historia.length < 2) return;
-  const L = F.historia.map(x => x.img); L.forEach(u => { const i = new Image(); i.src = u; });
+  const H = F.historia, L = H.map(x => x.img), A = document.getElementById('fxa'); L.forEach(u => { const i = new Image(); i.src = u; });
   let i = 0;
   const paso = () => {
     if (!document.body.contains(fx)) return;
-    if (i < L.length) { fx.src = L[i++]; fx.classList.add('on'); crece.t = setTimeout(paso, 1500); }
-    else { fx.classList.remove('on'); i = 0; crece.t = setTimeout(paso, 7000); }
+    if (i < L.length) { fx.src = L[i]; if (A) { A.textContent = H[i].txt || ''; A.classList.toggle('on', !!H[i].txt); } i++; fx.classList.add('on'); crece.t = setTimeout(paso, 1700); }
+    else { fx.classList.remove('on'); if (A) A.classList.remove('on'); i = 0; crece.t = setTimeout(paso, 7000); }
   };
   crece.t = setTimeout(paso, 2500);
 }
@@ -316,7 +319,7 @@ function render() {
     h += `<div class="alr${VE === 'gira' ? ' gira' : ''}"><div class="brillos">${Array.from({length: 16}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 94 + 2}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div><div class="orb">${g.map((x, j) => `<div class="pos" style="${P[j]}">${vitrina(x, j % 2 === 1, true)}${NOM[j] ? `<b class="vnom">${esc(NOM[j])}</b>` : ''}</div>`).join('')}</div>${f.foto ? `<img class="foto" src="${esc(f.foto)}" alt="">` : ''}</div>`;
   }
   else if (HI) { const mitad = Math.ceil(HI.length / 2); h += vitrina(HI.slice(0, mitad), false) + `<div class="brillos">${Array.from({length: 14}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 90 + 3}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div>`; }
-  if (m === 'especial' && f.foto && HI && VE === 'pelicula') { const L = HI.concat(HI.length < 6 ? HI : []); h += `<div class="cine"><div class="film"><div class="cinta" style="--dur:${L.length * 4}s">${L.concat(L).map(x => `<img src="${esc(x.img)}" alt="" loading="lazy">`).join('')}</div></div><div class="fwrap"><img class="foto" src="${esc(f.foto)}" alt=""><img class="fx" id="fx" alt=""></div></div>`; }
+  if (m === 'especial' && f.foto && HI && VE === 'pelicula') { const L = HI.concat(HI.length < 6 ? HI : []); h += `<div class="cine"><div class="film"><div class="cinta" style="--dur:${L.length * 4}s">${L.concat(L).map(x => `<div class="fr"><img src="${esc(x.img)}" alt="" loading="lazy">${x.txt ? `<span>${esc(x.txt)}</span>` : ''}</div>`).join('')}</div></div><div class="fwrap"><img class="foto" src="${esc(f.foto)}" alt=""><img class="fx" id="fx" alt=""><b class="fxa" id="fxa"></b></div></div>`; }
   else if (m === 'especial' && f.foto && !(HI && !DOS)) h += `<img class="foto" src="${esc(f.foto)}" alt=""${HI ? ' style="margin-bottom:6px"' : ''}>`;
   if (HI && DOS) { const mitad = Math.ceil(HI.length / 2), abajo = HI.slice(mitad); h += vitrina(abajo.length >= 2 ? abajo : HI, true); }
   if (m === 'especial' && f.video && f.video.id && /^[A-Za-z0-9_-]{11}$/.test(f.video.id)) h += `<div class="vbox${f.video.vert ? ' vert' : ''}" id="vbox" data-v="${f.video.id}"><img src="https://i.ytimg.com/vi/${f.video.id}/hqdefault.jpg" alt=""><span class="play">▶</span><div class="brillos">${Array.from({length: 8}, (_, i) => `<i style="left:${(i * 41) % 92 + 3}%;top:${(i * 29) % 88 + 4}%;animation-delay:${(i * .53) % 3.2}s"></i>`).join('')}</div></div>`;
