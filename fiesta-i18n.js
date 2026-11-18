@@ -175,6 +175,7 @@
     ["Tocá el cofre para abrir tu invitación", "Tap the chest to open your invitation", "Toque no baú para abrir seu convite", "Tocca lo scrigno per aprire il tuo invito", "Touchez le coffret pour ouvrir votre invitation", "Tippe auf die Schatztruhe, um deine Einladung zu öffnen", "点击宝箱打开您的邀请函", "宝箱をタップして招待状を開いてください"],
     ["Una noche soñada", "A dream night", "Uma noite de sonho", "Una notte da sogno", "Une nuit de rêve", "Eine Traumnacht", "梦幻之夜", "夢のような夜"],
     ["Tocá para comenzar", "Tap to begin", "Toque para começar", "Tocca per iniziare", "Touchez pour commencer", "Tippe, um zu beginnen", "点击开始", "タップして始める"],
+    ["Tocá el corazón para abrir tu invitación", "Tap the heart to open your invitation", "Toque no coração para abrir seu convite", "Tocca il cuore per aprire il tuo invito", "Touchez le cœur pour ouvrir votre invitation", "Tippe auf das Herz, um deine Einladung zu öffnen", "点击爱心打开您的邀请函", "ハートをタップして招待状を開いてください"],
     ["1 opinión", "1 review", "1 avaliação", "1 recensione", "1 avis", "1 Bewertung", "1 条评价", "1件のレビュー"],
     ["Regalo", "Gift", "Presente", "Regalo", "Cadeau", "Geschenk", "礼物", "プレゼント"],
     ["📋 Copiar", "📋 Copy", "📋 Copiar", "📋 Copia", "📋 Copier", "📋 Kopieren", "📋 复制", "📋 コピー"],
