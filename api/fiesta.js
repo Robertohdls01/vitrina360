@@ -147,7 +147,7 @@ function limpiar(d, prev) {
   if (Array.isArray(d.historia)) {
     o.historia = d.historia.slice(0, 12).filter(x => x && typeof x.img === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(x.img) && x.img.length <= 200000).map(x => ({ img: x.img, txt: corto(x.txt, 40), g: [0, 1, 2, 3].includes(x.g) ? x.g : null }));
   } else o.historia = prev.historia || [];
-  o.efTipo = ['corazones', 'flores', 'estrellas', 'mariposas', 'mezcla'].includes(d.efTipo) ? d.efTipo : (prev.efTipo || 'corazones');
+  o.efTipo = ['corazones', 'flores', 'estrellas', 'mariposas', 'mezcla', 'boda'].includes(d.efTipo) ? d.efTipo : (prev.efTipo || 'corazones');
   ['sinCor', 'sinPolvo'].forEach(k => { o[k] = typeof d[k] === 'boolean' ? d[k] : !!prev[k]; }); // efectos opcionales (vienen prendidos)
   o.vitNom = Array.isArray(d.vitNom) ? [0, 1, 2, 3].map(i => corto(d.vitNom[i], 22)) : (prev.vitNom || []);
   o.vitEstilo = ['arriba', 'pelicula', 'aro', 'alrededor', 'gira'].includes(d.vitEstilo) ? d.vitEstilo : (prev.vitEstilo || 'arriba');

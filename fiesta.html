@@ -120,6 +120,7 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .aro .fxa{position:absolute;left:50%;top:-8px;transform:translateX(-50%);z-index:3;background:var(--ac);color:#fff;font:800 15px/1 var(--sans);padding:7px 14px;border-radius:999px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2);opacity:0;transition:opacity .5s}
 .aro .fxa.on{opacity:1}
 .cz{position:fixed;z-index:70;pointer-events:none;transform:translate(-50%,-50%) scale(.3);opacity:0;animation:cz var(--t,1.8s) cubic-bezier(.2,.8,.3,1) forwards}
+.cz.arz{width:6px;height:13px;border-radius:50%;background:#fffdf6;box-shadow:0 0 0 1px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.15);rotate:var(--r,30deg)}
 @keyframes cz{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.25)}}
 @keyframes cinta{to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){.cine .cinta{animation:none}}
@@ -297,11 +298,12 @@ function aro() {
 function corazones(el, f) {
   if (f == null) f = 1;
   if (!el || document.hidden || (F && F.sinCor) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, E = ({flores: ['🌹', '🌸', '🌷', '💐', '🌺', '✨'], estrellas: ['⭐', '🌟', '✨', '💫'], mariposas: ['🦋', '🦋', '✨', '🌸'], mezcla: ['💖', '🌹', '🌸', '✨', '🦋', '💕', '🌷']})[F && F.efTipo] || ['💖', '💕', '❤️', '💗', '✨', '💓'];
-  const n = Math.round(8 + 52 * f), lejos = 50 + f * Math.max(innerWidth, innerHeight) * .62;
+  const r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, E = ({flores: ['🌹', '🌸', '🌷', '💐', '🌺', '✨'], estrellas: ['⭐', '🌟', '✨', '💫'], mariposas: ['🦋', '🦋', '✨', '🌸'], mezcla: ['💖', '🌹', '🌸', '✨', '🦋', '💕', '🌷'], boda: ['💖', '🌹', '💕', '🌹', '❤️']})[F && (F.efTipo || (F.tipo === 'casamiento' ? 'boda' : ''))] || ['💖', '💕', '❤️', '💗', '✨', '💓'];
+  const n = Math.round((8 + 52 * f) * (F && (F.efTipo || (F.tipo === 'casamiento' ? 'boda' : '')) === 'boda' ? 1.6 : 1)), lejos = 50 + f * Math.max(innerWidth, innerHeight) * .62;
   for (let k = 0; k < n; k++) { const a = k / n * Math.PI * 2 + Math.random() * .4, d = lejos * (.55 + Math.random() * .45), sp = document.createElement('span');
-    sp.className = 'cz'; sp.textContent = E[k % E.length];
-    sp.style.cssText = `left:${cx}px;top:${cy}px;font-size:${(13 + f * 16 + Math.random() * 10).toFixed(0)}px;--dx:${(Math.cos(a) * d).toFixed(0)}px;--dy:${(Math.sin(a) * d - 20).toFixed(0)}px;--t:${(1.3 + f * 1.2).toFixed(2)}s;animation-delay:${(Math.random() * .2).toFixed(2)}s`;
+    const arroz = F && (F.efTipo || (F.tipo === 'casamiento' ? 'boda' : '')) === 'boda' && k % 5 < 3; // granitos de arroz
+    sp.className = 'cz' + (arroz ? ' arz' : ''); sp.textContent = arroz ? '' : E[k % E.length];
+    sp.style.cssText = `--r:${Math.round(Math.random() * 180)}deg;left:${cx}px;top:${cy}px;font-size:${(13 + f * 16 + Math.random() * 10).toFixed(0)}px;--dx:${(Math.cos(a) * d).toFixed(0)}px;--dy:${(Math.sin(a) * d - 20).toFixed(0)}px;--t:${(1.3 + f * 1.2).toFixed(2)}s;animation-delay:${(Math.random() * .2).toFixed(2)}s`;
     document.body.appendChild(sp); setTimeout(() => sp.remove(), 3200); }
 }
 // Polvo mágico: chispitas doradas que se desprenden de las vitrinas mientras giran.
