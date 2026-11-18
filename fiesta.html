@@ -180,6 +180,7 @@ body.confondo{background:transparent}
 .toast.on{display:block;animation:baja .35s ease}.toast small{display:block;font:500 14px var(--sans);opacity:.9;margin-top:6px}
 #fl{position:fixed;right:10px;bottom:12px;z-index:15;display:none;flex-direction:column;align-items:flex-end;gap:8px;max-width:calc(100vw - 20px)}
 #fl.on{display:flex}
+#fl{transition:opacity .5s,transform .5s}#fl.tapa{opacity:0;transform:translateY(40px);pointer-events:none}
 #fl.corazon #flav{animation:flcalma 4s ease-in-out infinite}
 @keyframes flcalma{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 .flsaluda{transform-origin:7px 60px;animation:flsal 1.4s ease-in-out infinite alternate}@keyframes flsal{from{transform:rotate(-18deg)}to{transform:rotate(22deg)}}
@@ -366,11 +367,15 @@ function corazones(el, f) {
 }
 // Mientras se ve la historia (vitrinas, película, aro), Flashy se corre para no robarle la escena; vuelve al bajar.
 function flEscena() {
-  try { if (flEscena.o) flEscena.o.disconnect(); const h = document.querySelector('.hero'), fl = document.getElementById('fl');
-    if (!h || !fl || !document.querySelector('.hero .vit, .hero .aro, .hero .cine')) { if (fl) fl.classList.remove('tapa'); return; }
-    flEscena.o = new IntersectionObserver(([e]) => fl.classList.toggle('tapa', e.intersectionRatio > .35 && !document.querySelector('#flb.on .esc input:focus')), {threshold: [0, .35, .6, 1]});
-    flEscena.o.observe(h); } catch (e) {}
+  // La entrada elegante (foto, vitrinas, película, aro) se ve limpia: Flashy aparece recién cuando termina y empieza la parte de la fiesta.
+  try { if (flEscena.o) flEscena.o.disconnect(); const h = document.querySelector('.hero'), fl = document.getElementById('fl'); if (!fl) return;
+    const ver = v => { fl.classList.toggle('tapa', !v); if (!v) { const b = document.getElementById('flb'); if (b && !b.querySelector('.esc input:focus')) b.classList.remove('on'); } else if (flEscena.cola) { const f = flEscena.cola; flEscena.cola = null; f(); } };
+    if (!h) { ver(true); return; }
+    flEscena.o = new IntersectionObserver(([e]) => ver(e.intersectionRatio < .15), {threshold: [0, .15, .4]}); flEscena.o.observe(h);
+  } catch (e) {}
 }
+// Lo que Flashy tiene para decir apenas aparece (si todavía se está viendo la entrada, espera a que termine).
+function flLuego(f) { const fl = document.getElementById('fl'); if (fl && !fl.classList.contains('tapa') && document.querySelector('.hero') && flEscena.o) f(); else flEscena.cola = f; }
 // Polvo mágico: chispitas doradas que se desprenden de las vitrinas mientras giran.
 function polvo() {
   clearInterval(polvo.t); const hero = document.querySelector('.hero');
@@ -514,7 +519,7 @@ function render() {
   h += `<div class="pie">${t('Invitación y fiesta organizadas con')} <b>ShopFiesta</b><br>Pro Video JSRHG · <a href="https://wa.me/5492235814437?text=${encodeURIComponent('Hola, vi la invitación de ShopFiesta y quiero una para mi fiesta')}" target="_blank" rel="noopener">${t('¿Querés una para tu fiesta?')}</a></div>`;
   $('#app').innerHTML = h;
   if (F.vivo && F.hoy && !PREV) { const v = $('#vivo'), hero = $('.hero'); if (v && hero) hero.after(v); }
-  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas(); tarjAlbum(); tarjRecuerdos(); tarjPush(); tarjResena(); sobre(); musica(); ponerGlobos(); fondo(); polvo(); orbita(); crece(); aro(); if (FL) flForma();
+  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas(); tarjAlbum(); tarjRecuerdos(); tarjPush(); tarjResena(); sobre(); musica(); ponerGlobos(); fondo(); polvo(); orbita(); crece(); aro(); if (FL) { flForma(); flEscena(); }
 }
 function cuenta() {
   clearInterval(timer); const d = cuando(F); if (!d || !$('#cuenta')) return;
@@ -992,7 +997,7 @@ const LSI = () => 'fiestaInter:' + CODE;
 const marcaInter = () => { try { localStorage.setItem(LSI(), String(Date.now())); } catch (e) {} };
 function flMenu() { const nom = INV.nombre.split(' ')[0], mesa = INV.mesa || MESA;
   const reg = (F.lugares || []).find(x => /regal/i.test(x.n));
-  flDecir(`${t('¡Hola {n}! ', {n: nom})}${mesa ? t('Estás en la mesa {m}. ', {m: mesa}) : ''}${reg && reg.d && !yaSaludo() ? t('Si traés regalo, la mesa de regalos está {d} 🎁. ', {d: reg.d}) : ''}${F.abierto ? t('¿Qué te pido en la barra? 🍹') : t('¿Querés que te traigan algo para tomar?')}`, [{t: t('🥤 Sí, pedir algo'), f: () => flDecir(t('¿Qué te traemos?'), flOpsPedir(), true)}, {t: t('⏰ ¿Qué viene?'), alt: true, f: flQueViene}, {t: t('📋 Todo el programa'), alt: true, f: () => { $('#flb').classList.remove('on'); progAbierto = true; pVivo(); const d = document.querySelector('.prog'); if (d) d.scrollIntoView({behavior: 'smooth', block: 'center'}); }}].concat((F.lugares || []).length ? [{t: t('📍 ¿Dónde está…?'), alt: true, f: flLugares}] : []).concat(F.estaciona ? [{t: t('🚗 Estacionamiento'), alt: true, f: flEstaciona}] : []).concat(F.autos ? [{t: t('🚗 Mi auto'), alt: true, f: () => flEntendi('mi auto')}] : []).concat([{t: t('✍️ Firmar la foto'), alt: true, f: () => { $('#flb').classList.remove('on'); abrirFirma(); }}]).concat([{t: t('Ahora no'), alt: true, f: () => { marcaInter(); $('#flb').classList.remove('on'); }}]), true); try { localStorage.setItem('fiestaSaludo:' + CODE, '1'); } catch (e) {} }
+  flDecir(`${t('¡Hola {n}! ', {n: nom})}${!yaSaludo() ? t('¿Cómo estás? Yo soy Flashy y te voy a acompañar en toda la fiesta 🎉. ') : ''}${mesa ? t('Estás en la mesa {m}. ', {m: mesa}) : ''}${reg && reg.d && !yaSaludo() ? t('Si traés regalo, la mesa de regalos está {d} 🎁. ', {d: reg.d}) : ''}${F.abierto ? t('¿Qué te pido en la barra? 🍹') : t('¿Querés que te traigan algo para tomar?')}`, [{t: t('🥤 Sí, pedir algo'), f: () => flDecir(t('¿Qué te traemos?'), flOpsPedir(), true)}, {t: t('⏰ ¿Qué viene?'), alt: true, f: flQueViene}, {t: t('📋 Todo el programa'), alt: true, f: () => { $('#flb').classList.remove('on'); progAbierto = true; pVivo(); const d = document.querySelector('.prog'); if (d) d.scrollIntoView({behavior: 'smooth', block: 'center'}); }}].concat((F.lugares || []).length ? [{t: t('📍 ¿Dónde está…?'), alt: true, f: flLugares}] : []).concat(F.estaciona ? [{t: t('🚗 Estacionamiento'), alt: true, f: flEstaciona}] : []).concat(F.autos ? [{t: t('🚗 Mi auto'), alt: true, f: () => flEntendi('mi auto')}] : []).concat([{t: t('✍️ Firmar la foto'), alt: true, f: () => { $('#flb').classList.remove('on'); abrirFirma(); }}]).concat([{t: t('Ahora no'), alt: true, f: () => { marcaInter(); $('#flb').classList.remove('on'); }}]), true); try { localStorage.setItem('fiestaSaludo:' + CODE, '1'); } catch (e) {} }
 const yaSaludo = () => { try { return !!localStorage.getItem('fiestaSaludo:' + CODE); } catch (e) { return false; } };
 function flPasoDeVez() { // cada tanto, sin molestar: "¿te falta algo en la mesa?"
   if (!FL || $('#flb').classList.contains('on') || document.hidden) return;
@@ -1006,17 +1011,17 @@ function flPasoDeVez() { // cada tanto, sin molestar: "¿te falta algo en la mes
 function flDesbloquear() { if (flVoz) return; flVoz = true; try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch (e) {} }
 ['pointerdown', 'touchstart', 'keydown'].forEach(ev => document.addEventListener(ev, flDesbloquear, {passive: true}));
 function flashy() {
-  if (FL || !F || !F.vivo || !F.hoy || !INV || PREV) return; FL = true; $('#flav').innerHTML = flSVG(F.flLook || 'traje'); flForma(); $('#fl').classList.add('on');
+  if (FL || !F || !F.vivo || !F.hoy || !INV || PREV) return; FL = true; $('#flav').innerHTML = flSVG(F.flLook || 'traje'); flForma(); $('#fl').classList.add('on', 'tapa'); flEscena();
   $('#flav').onclick = () => { flVoz = true; $('#flb').classList.contains('on') ? $('#flb').classList.remove('on') : flMenu(); };
   let ult = 0; try { ult = +localStorage.getItem(LSI()) || 0; } catch (e) {}
-  if (!ult) { setTimeout(flMenu, 1200); marcaInter(); }
+  if (!ult) { flLuego(() => setTimeout(flMenu, 700)); marcaInter(); }
   setInterval(flPasoDeVez, 60e3);
   if ('speechSynthesis' in window) speechSynthesis.getVoices();
 }
 // Invitación sola (sin el paquete de la fiesta): Flashy-corazón saluda y solo cuenta lo de la tarjeta.
 function flInvitacion() {
   if (FL || !F || F.vivo || PREV || !document.querySelector('.hero')) return; FL = true;
-  $('#flav').innerHTML = flCorazon() ? flSVGc() : flSVG(F.flLook || 'traje'); $('#fl').classList.add('on');
+  $('#flav').innerHTML = flCorazon() ? flSVGc() : flSVG(F.flLook || 'traje'); $('#fl').classList.add('on', 'tapa'); flEscena();
   const info = () => {
     const n = INV && INV.nombre && !INV.anon ? ' ' + String(INV.nombre).split(' ')[0] : '';
     let x = t('¡Hola{n}! Te cuento de la invitación:', {n}) + ' ' + nomFiesta(F) + (F.fecha ? ', ' + fechaLarga(F) : '') + (F.hora ? ' · ' + F.hora + ' h' : '') + (F.salon ? ', ' + F.salon : '') + '.';
@@ -1028,7 +1033,7 @@ function flInvitacion() {
   };
   $('#flav').onclick = () => { flVoz = true; $('#flb').classList.contains('on') ? $('#flb').classList.remove('on') : info(); };
   let visto = 0; try { visto = +localStorage.getItem('flinv_' + CODE) || 0; localStorage.setItem('flinv_' + CODE, '1'); } catch (e) {}
-  if (!visto) setTimeout(() => { if (!document.getElementById('sobre')) info(); }, 4000);
+  if (!visto) flLuego(() => setTimeout(() => { if (!document.getElementById('sobre')) info(); }, 700));
 }
 function arrancarVivo() { flashy(); flInvitacion(); clearInterval(vivoTimer); if (F && F.vivo && F.hoy && INV && !PREV) { vivoTick(); vivoTimer = setInterval(vivoTick, 7000); } }
 const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
