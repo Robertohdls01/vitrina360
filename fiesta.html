@@ -102,7 +102,10 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .cine .film::before{top:6px}.cine .film::after{bottom:6px}
 .cine .cinta{position:absolute;top:20px;left:0;display:flex;gap:8px;width:max-content;animation:cinta var(--dur,32s) linear infinite}
 .cine .cinta img{height:84px;width:112px;object-fit:cover;border-radius:3px;display:block}
-.cine .foto{position:relative;z-index:2;margin:0 auto}
+.cine .fwrap{position:relative;z-index:2;width:210px;height:210px;margin:0 auto}
+.cine .foto{margin:0}
+.cine .fx{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);border-radius:50%;object-fit:cover;opacity:0;transition:opacity .7s ease}
+.cine .fx.on{opacity:1}
 @keyframes cinta{to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){.cine .cinta{animation:none}}
 @keyframes giro{from{transform:rotateY(0)}to{transform:rotateY(-360deg)}}
@@ -236,6 +239,18 @@ function orbita() {
   };
   orbita.r = requestAnimationFrame(paso);
 }
+// Película: la foto del medio va pasando de bebé a grande, se queda en la foto principal y vuelve a empezar.
+function crece() {
+  clearTimeout(crece.t); const fx = document.getElementById('fx'); if (!fx || !F || !Array.isArray(F.historia) || F.historia.length < 2) return;
+  const L = F.historia.map(x => x.img); L.forEach(u => { const i = new Image(); i.src = u; });
+  let i = 0;
+  const paso = () => {
+    if (!document.body.contains(fx)) return;
+    if (i < L.length) { fx.src = L[i++]; fx.classList.add('on'); crece.t = setTimeout(paso, 1500); }
+    else { fx.classList.remove('on'); i = 0; crece.t = setTimeout(paso, 7000); }
+  };
+  crece.t = setTimeout(paso, 2500);
+}
 // Polvo mágico: chispitas doradas que se desprenden de las vitrinas mientras giran.
 function polvo() {
   clearInterval(polvo.t); const hero = document.querySelector('.hero');
@@ -301,7 +316,7 @@ function render() {
     h += `<div class="alr${VE === 'gira' ? ' gira' : ''}"><div class="brillos">${Array.from({length: 16}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 94 + 2}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div><div class="orb">${g.map((x, j) => `<div class="pos" style="${P[j]}">${vitrina(x, j % 2 === 1, true)}${NOM[j] ? `<b class="vnom">${esc(NOM[j])}</b>` : ''}</div>`).join('')}</div>${f.foto ? `<img class="foto" src="${esc(f.foto)}" alt="">` : ''}</div>`;
   }
   else if (HI) { const mitad = Math.ceil(HI.length / 2); h += vitrina(HI.slice(0, mitad), false) + `<div class="brillos">${Array.from({length: 14}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 90 + 3}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div>`; }
-  if (m === 'especial' && f.foto && HI && VE === 'pelicula') { const L = HI.concat(HI.length < 6 ? HI : []); h += `<div class="cine"><div class="film"><div class="cinta" style="--dur:${L.length * 4}s">${L.concat(L).map(x => `<img src="${esc(x.img)}" alt="" loading="lazy">`).join('')}</div></div><img class="foto" src="${esc(f.foto)}" alt=""></div>`; }
+  if (m === 'especial' && f.foto && HI && VE === 'pelicula') { const L = HI.concat(HI.length < 6 ? HI : []); h += `<div class="cine"><div class="film"><div class="cinta" style="--dur:${L.length * 4}s">${L.concat(L).map(x => `<img src="${esc(x.img)}" alt="" loading="lazy">`).join('')}</div></div><div class="fwrap"><img class="foto" src="${esc(f.foto)}" alt=""><img class="fx" id="fx" alt=""></div></div>`; }
   else if (m === 'especial' && f.foto && !(HI && !DOS)) h += `<img class="foto" src="${esc(f.foto)}" alt=""${HI ? ' style="margin-bottom:6px"' : ''}>`;
   if (HI && DOS) { const mitad = Math.ceil(HI.length / 2), abajo = HI.slice(mitad); h += vitrina(abajo.length >= 2 ? abajo : HI, true); }
   if (m === 'especial' && f.video && f.video.id && /^[A-Za-z0-9_-]{11}$/.test(f.video.id)) h += `<div class="vbox${f.video.vert ? ' vert' : ''}" id="vbox" data-v="${f.video.id}"><img src="https://i.ytimg.com/vi/${f.video.id}/hqdefault.jpg" alt=""><span class="play">▶</span><div class="brillos">${Array.from({length: 8}, (_, i) => `<i style="left:${(i * 41) % 92 + 3}%;top:${(i * 29) % 88 + 4}%;animation-delay:${(i * .53) % 3.2}s"></i>`).join('')}</div></div>`;
@@ -329,7 +344,7 @@ function render() {
   h += `<div class="pie">${t('Invitación y fiesta organizadas con')} <b>ShopFiesta</b><br>Pro Video JSRHG · <a href="https://wa.me/5492235814437?text=${encodeURIComponent('Hola, vi la invitación de ShopFiesta y quiero una para mi fiesta')}" target="_blank" rel="noopener">${t('¿Querés una para tu fiesta?')}</a></div>`;
   $('#app').innerHTML = h;
   if (F.vivo && F.hoy && !PREV) { const v = $('#vivo'), hero = $('.hero'); if (v && hero) hero.after(v); }
-  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas(); tarjAlbum(); tarjRecuerdos(); tarjPush(); tarjResena(); musica(); polvo(); orbita();
+  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas(); tarjAlbum(); tarjRecuerdos(); tarjPush(); tarjResena(); musica(); polvo(); orbita(); crece();
 }
 function cuenta() {
   clearInterval(timer); const d = cuando(F); if (!d || !$('#cuenta')) return;
