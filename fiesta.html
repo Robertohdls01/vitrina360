@@ -119,7 +119,7 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .aro .fx.on{opacity:1}
 .aro .fxa{position:absolute;left:50%;top:-8px;transform:translateX(-50%);z-index:3;background:var(--ac);color:#fff;font:800 15px/1 var(--sans);padding:7px 14px;border-radius:999px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2);opacity:0;transition:opacity .5s}
 .aro .fxa.on{opacity:1}
-.cz{position:absolute;z-index:70;pointer-events:none;transform:translate(-50%,-50%) scale(.3);opacity:0;animation:cz 1.8s cubic-bezier(.2,.8,.3,1) forwards}
+.cz{position:fixed;z-index:70;pointer-events:none;transform:translate(-50%,-50%) scale(.3);opacity:0;animation:cz var(--t,1.8s) cubic-bezier(.2,.8,.3,1) forwards}
 @keyframes cz{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.25)}}
 @keyframes cinta{to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){.cine .cinta{animation:none}}
@@ -262,8 +262,8 @@ function crece() {
   const paso = () => {
     if (!document.body.contains(fx)) return;
     const W = fx.parentNode;
-    if (i < L.length) { W.style.transform = `scale(${(.58 + .42 * i / Math.max(1, L.length - 1)).toFixed(3)})`; fx.src = L[i]; if (A) { A.textContent = H[i].txt || ''; A.classList.toggle('on', !!H[i].txt); } i++; fx.classList.add('on'); crece.t = setTimeout(paso, 1700); }
-    else { W.style.transform = 'scale(1)'; fx.classList.remove('on'); if (A) A.classList.remove('on'); setTimeout(() => corazones(W), 900); i = 0; crece.t = setTimeout(paso, 7000); }
+    if (i < L.length) { W.style.transform = `scale(${(.58 + .42 * i / Math.max(1, L.length - 1)).toFixed(3)})`; { const q = i; setTimeout(() => corazones(W, .12 + .4 * q / Math.max(1, L.length - 1)), 600); } fx.src = L[i]; if (A) { A.textContent = H[i].txt || ''; A.classList.toggle('on', !!H[i].txt); } i++; fx.classList.add('on'); crece.t = setTimeout(paso, 1700); }
+    else { W.style.transform = 'scale(1)'; fx.classList.remove('on'); if (A) A.classList.remove('on'); setTimeout(() => corazones(W, 1), 900); i = 0; crece.t = setTimeout(paso, 7000); }
   };
   crece.t = setTimeout(paso, 2500);
 }
@@ -273,11 +273,12 @@ function aro() {
   cancelAnimationFrame(aro.r); clearTimeout(aro.t); const A = document.querySelector('.aro'); if (!A) return;
   const C = [...A.querySelectorAll('.ac')], n = C.length, H = F.historia || [], N = H.length, t0 = performance.now(), quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fx = document.getElementById('fx'), fa = document.getElementById('fxa'), W2 = fx && fx.parentNode, PER = Math.max(24000, n * 3200);
-  let ult = -1;
-  const fundir = i => { if (!fx || !H[i]) return; clearTimeout(aro.t);
+  let ult = -1, quieta = 0;
+  const fundir = i => { if (!fx || !H[i] || performance.now() < quieta) return; clearTimeout(aro.t);
     W2.style.transform = `scale(${(.58 + .42 * i / Math.max(1, N - 1)).toFixed(3)})`; fx.src = H[i].img; fx.classList.add('on');
     if (fa) { fa.textContent = H[i].txt || ''; fa.classList.toggle('on', !!H[i].txt); }
-    if (i === N - 1) aro.t = setTimeout(() => { fx.classList.remove('on'); if (fa) fa.classList.remove('on'); W2.style.transform = 'scale(1)'; setTimeout(() => corazones(W2), 900); }, PER / n * .8); };
+    if (i < N - 1) setTimeout(() => corazones(W2, .12 + .4 * i / Math.max(1, N - 1)), 500);
+    else aro.t = setTimeout(() => { fx.classList.remove('on'); if (fa) fa.classList.remove('on'); W2.style.transform = 'scale(1)'; quieta = performance.now() + 7000; setTimeout(() => corazones(W2, 1), 900); }, PER / n * .8); };
   const paso = now => {
     if (!document.body.contains(A)) return; if (!quieto) aro.r = requestAnimationFrame(paso); if (document.hidden) return;
     const W = A.clientWidth, R = Math.min(W / 2 - 46, 180), g = (now - t0) / PER * Math.PI * 2;
@@ -288,14 +289,16 @@ function aro() {
   };
   aro.r = requestAnimationFrame(paso);
 }
-// Explosión de corazones cuando la foto llega a hoy (ya grande).
-function corazones(el) {
-  const hero = document.querySelector('.hero'); if (!el || !hero || document.hidden || (F && F.sinCor) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const r = el.getBoundingClientRect(), H = hero.getBoundingClientRect(), cx = r.left - H.left + r.width / 2, cy = r.top - H.top + r.height / 2, E = ['💖', '💕', '❤️', '💗', '✨', '💓'];
-  for (let k = 0; k < 26; k++) { const a = k / 26 * Math.PI * 2 + Math.random() * .3, d = 120 + Math.random() * 90, sp = document.createElement('span');
+// Explosión de corazones: chiquita con la foto de bebé, cada vez más grande, y una súper explosión por toda la pantalla al llegar a hoy.
+function corazones(el, f) {
+  if (f == null) f = 1;
+  if (!el || document.hidden || (F && F.sinCor) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, E = ({flores: ['🌹', '🌸', '🌷', '💐', '🌺', '✨'], estrellas: ['⭐', '🌟', '✨', '💫'], mariposas: ['🦋', '🦋', '✨', '🌸'], mezcla: ['💖', '🌹', '🌸', '✨', '🦋', '💕', '🌷']})[F && F.efTipo] || ['💖', '💕', '❤️', '💗', '✨', '💓'];
+  const n = Math.round(8 + 52 * f), lejos = 50 + f * Math.max(innerWidth, innerHeight) * .62;
+  for (let k = 0; k < n; k++) { const a = k / n * Math.PI * 2 + Math.random() * .4, d = lejos * (.55 + Math.random() * .45), sp = document.createElement('span');
     sp.className = 'cz'; sp.textContent = E[k % E.length];
-    sp.style.cssText = `left:${cx}px;top:${cy}px;font-size:${18 + Math.random() * 16}px;--dx:${(Math.cos(a) * d).toFixed(0)}px;--dy:${(Math.sin(a) * d * .8 - 30).toFixed(0)}px;animation-delay:${(Math.random() * .15).toFixed(2)}s`;
-    hero.appendChild(sp); setTimeout(() => sp.remove(), 2200); }
+    sp.style.cssText = `left:${cx}px;top:${cy}px;font-size:${(13 + f * 16 + Math.random() * 10).toFixed(0)}px;--dx:${(Math.cos(a) * d).toFixed(0)}px;--dy:${(Math.sin(a) * d - 20).toFixed(0)}px;--t:${(1.3 + f * 1.2).toFixed(2)}s;animation-delay:${(Math.random() * .2).toFixed(2)}s`;
+    document.body.appendChild(sp); setTimeout(() => sp.remove(), 3200); }
 }
 // Polvo mágico: chispitas doradas que se desprenden de las vitrinas mientras giran.
 function polvo() {

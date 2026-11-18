@@ -147,6 +147,7 @@ function limpiar(d, prev) {
   if (Array.isArray(d.historia)) {
     o.historia = d.historia.slice(0, 12).filter(x => x && typeof x.img === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(x.img) && x.img.length <= 200000).map(x => ({ img: x.img, txt: corto(x.txt, 40), g: [0, 1, 2, 3].includes(x.g) ? x.g : null }));
   } else o.historia = prev.historia || [];
+  o.efTipo = ['corazones', 'flores', 'estrellas', 'mariposas', 'mezcla'].includes(d.efTipo) ? d.efTipo : (prev.efTipo || 'corazones');
   ['sinCor', 'sinPolvo'].forEach(k => { o[k] = typeof d[k] === 'boolean' ? d[k] : !!prev[k]; }); // efectos opcionales (vienen prendidos)
   o.vitNom = Array.isArray(d.vitNom) ? [0, 1, 2, 3].map(i => corto(d.vitNom[i], 22)) : (prev.vitNom || []);
   o.vitEstilo = ['arriba', 'pelicula', 'aro', 'alrededor', 'gira'].includes(d.vitEstilo) ? d.vitEstilo : (prev.vitEstilo || 'arriba');
@@ -175,7 +176,7 @@ function limpiar(d, prev) {
 const VITS = ['arriba', 'pelicula', 'aro', 'alrededor', 'gira'];
 // Lo que puede ver cualquiera con el link de la fiesta (sin la lista de invitados ni claves).
 function publica(e) {
-  const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'historia', 'video', 'vitEstilo', 'vitNom', 'sinCor', 'sinPolvo', 'organiza', 'autos', 'salud', 'saludNom', 'saludTel', 'seguridad', 'seguNom'].forEach(k => { o[k] = e[k]; });
+  const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'historia', 'video', 'vitEstilo', 'vitNom', 'sinCor', 'sinPolvo', 'efTipo', 'organiza', 'autos', 'salud', 'saludNom', 'saludTel', 'seguridad', 'seguNom'].forEach(k => { o[k] = e[k]; });
   if (e.vitMax && e.paquete === 'invitacion' && VITS.indexOf(o.vitEstilo) > VITS.indexOf(e.vitMax)) o.vitEstilo = e.vitMax; // no muestra más de lo que compró
   o.total = (e.invitados || []).length; o.vivo = vivoOk(e); o.hoy = enDia(e) || !!e.demo || esAbierto(e);
   if (esAbierto(e)) { o.abierto = true; o.fecha = nocheDe(); }
