@@ -109,7 +109,7 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .cine .foto{margin:0}
 .cine .fx{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);border-radius:50%;object-fit:cover;opacity:0;transition:opacity .7s ease}
 .cine .fx.on{opacity:1}
-.aro{position:relative;width:min(100vw,560px);height:400px;left:50%;transform:translateX(-50%);margin:0 0 6px}
+.aro{position:relative;width:min(100vw,560px);height:360px;margin-top:-40px!important;left:50%;transform:translateX(-50%);margin:0 0 6px}
 .aro .ac{position:absolute;left:50%;top:50%;width:86px;height:108px;margin:-54px 0 0 -43px;border-radius:12px;overflow:hidden;background:#fff;border:3px solid var(--ac);box-shadow:0 8px 20px rgba(0,0,0,.18);will-change:transform}
 .aro .ac img{width:100%;height:80px;object-fit:cover;display:block}
 .aro .ac span{display:block;font:700 10px/1.15 var(--sans);color:#3a3226;padding:3px 3px 0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -337,8 +337,8 @@ function render() {
   const DOS = VE === 'arriba' || VE === 'pelicula';
   if (HI && VE === 'aro') {
     // Fotos sueltas que giran en círculo alrededor de la foto: pasan por detrás y vuelven por delante.
-    const L = HI.length < 6 ? HI.concat(HI) : HI;
-    h += `<div class="aro"><div class="brillos">${Array.from({length: 14}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 90 + 3}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div>${L.map(x => `<div class="ac"><img src="${esc(x.img)}" alt="" loading="lazy">${x.txt ? `<span>${esc(x.txt)}</span>` : ''}</div>`).join('')}${f.foto ? `<div class="fwrap"><img class="foto" src="${esc(f.foto)}" alt=""><img class="fx" id="fx" alt=""><b class="fxa" id="fxa"></b></div>` : ''}</div>`;
+    const L = HI.length < 6 ? HI.concat(HI) : HI, mitad = Math.ceil(HI.length / 2);
+    h += vitrina(HI.slice(0, mitad), false) + `<div class="aro"><div class="brillos">${Array.from({length: 14}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 90 + 3}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div>${L.map(x => `<div class="ac"><img src="${esc(x.img)}" alt="" loading="lazy">${x.txt ? `<span>${esc(x.txt)}</span>` : ''}</div>`).join('')}${f.foto ? `<div class="fwrap"><img class="foto" src="${esc(f.foto)}" alt=""><img class="fx" id="fx" alt=""><b class="fxa" id="fxa"></b></div>` : ''}</div>` + vitrina(HI.slice(mitad).length >= 2 ? HI.slice(mitad) : HI, true);
   }
   else if (HI && !DOS) {
     // 4 vitrinas alrededor de la foto (arriba, derecha, abajo, izquierda); con "gira" dan vueltas alrededor.
