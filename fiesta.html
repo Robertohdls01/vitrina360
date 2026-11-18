@@ -350,7 +350,7 @@ function aro() {
   aro.r = requestAnimationFrame(paso);
 }
 // Explosión de corazones: chiquita con la foto de bebé, cada vez más grande, y una súper explosión por toda la pantalla al llegar a hoy.
-const efT = () => F && (F.efTipo || ({casamiento: 'boda', '15': 'oroplata'})[F.tipo] || 'corazones');
+const efT = () => F && (F.efTipo || ({casamiento: 'boda'})[F.tipo] || 'corazones');
 function corazones(el, f) {
   if (f == null) f = 1;
   if (!el || document.hidden || (F && F.sinCor) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -486,7 +486,7 @@ function render() {
     h += `<div class="alr${VE === 'gira' ? ' gira' : ''}"><div class="brillos">${Array.from({length: 16}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 94 + 2}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div><div class="orb">${g.map((x, j) => `<div class="pos" style="${P[j]}">${vitrina(x, j % 2 === 1, true)}${NOM[j] ? `<b class="vnom">${esc(NOM[j])}</b>` : ''}</div>`).join('')}</div>${f.foto ? `<img class="foto" src="${esc(f.foto)}" alt="">` : ''}</div>`;
   }
   else if (HI) { const mitad = Math.ceil(HI.length / 2); h += vitrina(HI.slice(0, mitad), false) + `<div class="brillos">${Array.from({length: 14}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 90 + 3}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div>`; }
-  if (m === 'especial' && f.foto && HI && VE === 'pelicula') { const L = HI.concat(HI.length < 6 ? HI : []); h += `<div class="cine"${f.demo ? ' style="--film:#9ea3ab"' : ''}><div class="film"><div class="cinta" style="--dur:${L.length * 4}s">${L.concat(L).map(x => `<div class="fr"><img src="${esc(x.img)}" alt="" loading="lazy">${x.txt ? `<span>${esc(x.txt)}</span>` : ''}</div>`).join('')}</div></div><div class="fwrap"><img class="foto" src="${esc(f.foto)}" alt=""><img class="fx" id="fx" alt=""><b class="fxa" id="fxa"></b></div></div>`; }
+  if (m === 'especial' && f.foto && HI && VE === 'pelicula') { const L = HI.concat(HI.length < 6 ? HI : []); h += `<div class="cine"${f.demo ? ' style="--film:#e0629a"' : ''}><div class="film"><div class="cinta" style="--dur:${L.length * 4}s">${L.concat(L).map(x => `<div class="fr"><img src="${esc(x.img)}" alt="" loading="lazy">${x.txt ? `<span>${esc(x.txt)}</span>` : ''}</div>`).join('')}</div></div><div class="fwrap"><img class="foto" src="${esc(f.foto)}" alt=""><img class="fx" id="fx" alt=""><b class="fxa" id="fxa"></b></div></div>`; }
   else if (m === 'especial' && f.foto && !(HI && !DOS) && !(HI && VE === 'aro')) h += `<img class="foto" src="${esc(f.foto)}" alt=""${HI ? ' style="margin-bottom:6px"' : ''}>`;
   if (HI && DOS) { const mitad = Math.ceil(HI.length / 2), abajo = HI.slice(mitad); h += vitrina(abajo.length >= 2 ? abajo : HI, true); }
   if (m === 'especial' && f.video && f.video.id && /^[A-Za-z0-9_-]{11}$/.test(f.video.id)) h += `<div class="vbox${f.video.vert ? ' vert' : ''}" id="vbox" data-v="${f.video.id}"><img src="https://i.ytimg.com/vi/${f.video.id}/hqdefault.jpg" alt=""><span class="play">▶</span><div class="brillos">${Array.from({length: 8}, (_, i) => `<i style="left:${(i * 41) % 92 + 3}%;top:${(i * 29) % 88 + 4}%;animation-delay:${(i * .53) % 3.2}s"></i>`).join('')}</div></div>`;
