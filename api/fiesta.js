@@ -32,10 +32,10 @@ const akDe = e => e && e.pk ? hash(e.pk + ':autos').slice(0, 14) : ''; // link d
 const okCode = c => /^[A-Z0-9]{4,12}$/.test(String(c || ''));
 const azar = (n, abc) => { const b = crypto.randomBytes(n); let s = ''; for (let i = 0; i < n; i++) s += abc[b[i] % abc.length]; return s; };
 const sinTildes = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-const LOOK_DE = {'15': 'traje', casamiento: 'claro', cumple: 'fiesta', bautismo: 'claro', egresados: 'fiesta', boliche: 'fiesta', otro: 'traje'};
+const LOOK_DE = {'15': 'traje', casamiento: 'claro', cumple: 'fiesta', bautismo: 'claro', comunion: 'claro', egresados: 'fiesta', boliche: 'fiesta', otro: 'traje'};
 const PLANTILLAS = ['elegante', 'flores', 'brillos', 'moderna', 'mariposas', 'luna'];
 const MODOS = ['especial', 'comun', 'link'];
-const TIPOS = ['15', 'casamiento', 'cumple', 'bautismo', 'egresados', 'boliche', 'otro'];
+const TIPOS = ['15', 'casamiento', 'cumple', 'bautismo', 'comunion', 'egresados', 'boliche', 'otro'];
 const MENUS = ['', 'vegetariano', 'vegano', 'sin TACC', 'infantil', 'otro'];
 const ADMINS = () => String(process.env.ADMIN_EMAILS || process.env.IA_SIN_LIMITE || '').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
 const EN_VIVO = () => process.env.FIESTA_EN_VIVO === '1'; // los paquetes con la fiesta en vivo se venden cuando esté lista

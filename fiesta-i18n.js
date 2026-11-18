@@ -164,6 +164,8 @@
     ["Escuchar la música", "Play the music", "Ouvir a música", "Ascolta la musica", "Écouter la musique", "Musik abspielen", "播放音乐", "音楽を再生"],
     ["Pausar la música", "Pause the music", "Pausar a música", "Metti in pausa la musica", "Mettre la musique en pause", "Musik pausieren", "暂停音乐", "音楽を一時停止"],
     ["Tocá para abrir tu invitación", "Tap to open your invitation", "Toque para abrir seu convite", "Tocca per aprire il tuo invito", "Touchez pour ouvrir votre invitation", "Tippe, um deine Einladung zu öffnen", "点击打开你的邀请函", "タップして招待状を開く"],
+    ["El bautismo de {n}", "{n}'s baptism", "O batizado de {n}", "Il battesimo di {n}", "Le baptême de {n}", "Die Taufe von {n}", "{n}的洗礼", "{n}の洗礼式"],
+    ["La Primera Comunión de {n}", "{n}'s First Communion", "A Primeira Comunhão de {n}", "La Prima Comunione di {n}", "La Première Communion de {n}", "Die Erstkommunion von {n}", "{n}的初领圣体", "{n}の初聖体"],
     ["1 opinión", "1 review", "1 avaliação", "1 recensione", "1 avis", "1 Bewertung", "1 条评价", "1件のレビュー"],
     ["Regalo", "Gift", "Presente", "Regalo", "Cadeau", "Geschenk", "礼物", "プレゼント"],
     ["📋 Copiar", "📋 Copy", "📋 Copiar", "📋 Copia", "📋 Copier", "📋 Kopieren", "📋 复制", "📋 コピー"],

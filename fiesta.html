@@ -231,7 +231,7 @@ const DECO = {
 };
 const fechaLarga = f => { if (!f.fecha) return ''; const d = new Date(f.fecha + 'T12:00:00-03:00'); const s = d.toLocaleDateString(I18N.LOC, {weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Argentina/Buenos_Aires'}); return s.charAt(0).toUpperCase() + s.slice(1); };
 const cuando = f => f.fecha ? new Date(f.fecha + 'T' + (f.hora || '21:00') + ':00-03:00') : null;
-const nomFiesta = f => t(f.tipo === '15' ? 'Los 15 de {n}' : f.tipo === 'casamiento' ? 'El casamiento de {n}' : f.tipo === 'egresados' ? 'La fiesta de egresados de {n}' : 'La fiesta de {n}', {n: f.nombre || ''});
+const nomFiesta = f => t(f.tipo === '15' ? 'Los 15 de {n}' : f.tipo === 'casamiento' ? 'El casamiento de {n}' : f.tipo === 'egresados' ? 'La fiesta de egresados de {n}' : f.tipo === 'bautismo' ? 'El bautismo de {n}' : f.tipo === 'comunion' ? 'La Primera Comunión de {n}' : 'La fiesta de {n}', {n: f.nombre || ''});
 const nomMin = f => { const n = nomFiesta(f); return ['es', 'pt', 'it', 'fr'].includes(LG) ? n.charAt(0).toLowerCase() + n.slice(1) : n; };
 const mapa = f => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent([f.salon, f.direccion].filter(Boolean).join(', '));
 const agenda = f => { const d = cuando(f); if (!d) return ''; const fm = x => new Date(x.getTime() - 3 * 3600e3).toISOString().replace(/[-:]/g, '').slice(0, 15); const fin = new Date(d.getTime() + 6 * 3600e3);
