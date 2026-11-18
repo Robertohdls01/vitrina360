@@ -139,6 +139,27 @@ body.confondo{background:transparent}
 @keyframes cfSol{50%{transform:scale(1.08);opacity:.85}}
 #sobre.cofre .cf,#sobre.cofre .sbx,#sobre.cofre .globos{position:relative;z-index:1}#sobre.cofre .globos{position:absolute}
 #sobre .sbx b{text-shadow:0 1px 0 #fff}
+#sobre.luna{background:#0b1430;flex-direction:row;gap:0}
+#sobre .ln{position:relative;height:100%;aspect-ratio:9/16;flex:none;background:url(/img-fiesta/noche-sonada.jpg) center/cover no-repeat}
+#sobre .lnluz{position:absolute;left:20%;top:11.5%;width:59%;aspect-ratio:1;border-radius:50%;box-shadow:0 0 80px 30px rgba(255,226,140,.35);animation:lnLuz 4s ease-in-out infinite}
+@keyframes lnLuz{50%{box-shadow:0 0 120px 50px rgba(255,226,140,.55)}}
+#sobre .lnst{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;box-shadow:0 0 6px 2px rgba(255,240,200,.9);animation:lnTit var(--d,2.4s) ease-in-out var(--r,0s) infinite}
+@keyframes lnTit{50%{opacity:.15;transform:scale(.5)}}
+#sobre .lnfug{position:absolute;top:var(--y,12%);left:-30%;width:160px;height:2px;background:linear-gradient(90deg,transparent,rgba(255,236,170,.9),#fff);border-radius:2px;filter:drop-shadow(0 0 6px #ffe9a8);transform:rotate(14deg);opacity:0}
+#sobre .lnfug.va{animation:lnFug 1.3s ease-in forwards}
+@keyframes lnFug{0%{opacity:0;left:-30%}10%{opacity:1}85%{opacity:1}100%{opacity:0;left:110%;top:calc(var(--y,12%) + 18%)}}
+#sobre .lnpe{position:absolute;top:-4%;width:9px;height:12px;border-radius:60% 0 60% 0;background:linear-gradient(135deg,#ffe4ea,#f3b4c2);opacity:.85;animation:lnPe var(--d,9s) linear var(--r,0s) infinite}
+@keyframes lnPe{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(var(--x,40px),110vh) rotate(540deg)}}
+#sobre .lnft{position:absolute;left:54%;top:42%;width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;overflow:hidden;border:4px solid #f0d58f;box-shadow:0 0 0 2px #fff8e6,0 0 34px rgba(255,220,130,.95);opacity:0;transform:scale(.1);z-index:3;background:#f6efe2}
+#sobre .lnft img{width:100%;height:100%;object-fit:cover}
+#sobre.abre .lnft{animation:lnBaja 5s cubic-bezier(.45,.05,.35,1) .4s forwards}
+@keyframes lnBaja{0%{opacity:0;left:54%;top:42%;transform:scale(.1)}8%{opacity:1}35%{left:53%;top:55%;transform:scale(.3)}65%{left:63%;top:68%;transform:scale(.58)}100%{opacity:1;left:50%;top:81%;transform:scale(1.05)}}
+#sobre .lntx{position:absolute;left:0;right:0;bottom:4%;text-align:center;z-index:4;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6);transition:opacity .6s}
+#sobre .lntx b{display:block;font:400 34px Georgia,serif;color:#f6e3a6}#sobre .lntx i{font:500 15px var(--sans);font-style:normal;letter-spacing:.04em}
+#sobre.abre .lntx i{opacity:0}
+#sobre .lnnom{position:absolute;left:0;right:0;top:91%;text-align:center;z-index:4;font:400 32px Georgia,serif;color:#f6e3a6;text-shadow:0 2px 12px rgba(0,0,0,.7);opacity:0;transform:translateY(10px);transition:opacity 1s 5.2s,transform 1s 5.2s}
+#sobre.abre .lnnom{opacity:1;transform:none}#sobre.abre .lntx{opacity:0}
+
 .cfmini{position:fixed;z-index:97;width:84px;height:100px;border-radius:8px;border:3px solid #fff;box-shadow:0 6px 16px rgba(0,0,0,.25),0 0 0 1px #d8b25c;background:#f6efe2 center/cover;transform:translate(-50%,-50%) scale(.15) rotate(0);opacity:0;transition:transform 1s cubic-bezier(.2,.9,.25,1.15),opacity .5s}
 .cfmini b{position:absolute;left:0;right:0;bottom:-20px;font:600 11px var(--sans);color:#6b5b45;text-align:center;white-space:nowrap}
 
@@ -487,8 +508,26 @@ function sobre() {
   try { if (sessionStorage.getItem('sobre_' + CODE)) return; } catch (e) {}
   sobre.una = true;
   const nom = F.nombre || '', ini = F.tipo === '15' ? '15' : (nom.trim()[0] || '♥').toUpperCase();
-  let ab = F.abre || 'sobre'; if (F.demo) { const q = new URLSearchParams(location.search).get('abre'); if (['sobre', 'cofre', 'cofreplata'].includes(q)) ab = q; }
+  let ab = F.abre || 'sobre'; if (F.demo) { const q = new URLSearchParams(location.search).get('abre'); if (['sobre', 'cofre', 'cofreplata', 'luna'].includes(q)) ab = q; }
   const o = document.createElement('div'); o.id = 'sobre';
+  if (ab === 'luna') {
+    o.classList.add('luna'); const ft = F.foto || '';
+    let st = ''; for (let k = 0; k < 34; k++) st += `<span class="lnst" style="left:${(k * 37 % 100)}%;top:${(k * 53 % 44)}%;--d:${(1.6 + k % 5 * .5).toFixed(1)}s;--r:-${(k * .37).toFixed(2)}s"></span>`;
+    let pe = ''; for (let k = 0; k < 10; k++) pe += `<span class="lnpe" style="left:${(k * 29 % 100)}%;--d:${8 + k % 4 * 2}s;--r:-${k * 1.3}s;--x:${(k % 2 ? 1 : -1) * (20 + k * 6)}px"></span>`;
+    o.innerHTML = `<div class="ln"><div class="lnluz"></div>${st}<div class="lnfug"></div>${pe}${ft ? `<div class="lnft"><img src="${esc(ft)}" alt=""></div>` : ''}<div class="lnnom">${esc(nom)}</div><div class="lntx"><b>${esc(t('Una noche soñada'))}</b><i>${esc(t('Tocá para comenzar'))}</i></div></div>`;
+    document.body.appendChild(o); document.body.style.overflow = 'hidden';
+    const fug = o.querySelector('.lnfug'), cruza = () => { if (!document.body.contains(o)) return; fug.style.setProperty('--y', (6 + Math.random() * 20).toFixed(0) + '%'); fug.classList.remove('va'); void fug.offsetWidth; fug.classList.add('va'); setTimeout(cruza, 3500 + Math.random() * 3000); };
+    setTimeout(cruza, 1200);
+    o.onclick = () => {
+      if (o.classList.contains('abre')) return; o.classList.add('abre');
+      try { sessionStorage.setItem('sobre_' + CODE, '1'); } catch (e) {}
+      if (MUS && MUS.paused && !musica.parada) MUS.play().catch(() => {});
+      const f = o.querySelector('.lnft'); setTimeout(() => { if (f) gemas(f, 40); }, 5500);
+      setTimeout(() => { o.classList.add('fuera'); document.body.style.overflow = ''; }, 8200);
+      setTimeout(() => o.remove(), 9100);
+    };
+    return;
+  }
   if (ab !== 'sobre') {
     const plata = ab === 'cofreplata', C = cofreSVG(plata), ft = F.foto || '';
     o.classList.add('cofre'); if (plata) o.classList.add('plata');

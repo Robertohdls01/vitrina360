@@ -173,6 +173,8 @@
     ["Cómo llegar", "Directions", "Como chegar", "Come arrivare", "Itinéraire", "Anfahrt", "怎么去", "行き方"],
     ["¿Cómo estás? Yo soy Flashy y te voy a acompañar en toda la fiesta 🎉. ", "How are you? I'm Flashy and I'll be with you all night 🎉. ", "Tudo bem? Eu sou o Flashy e vou te acompanhar a festa toda 🎉. ", "Come stai? Sono Flashy e ti accompagnerò per tutta la festa 🎉. ", "Comment ça va ? Je suis Flashy et je t'accompagne toute la fête 🎉. ", "Wie geht's? Ich bin Flashy und begleite dich die ganze Feier 🎉. ", "你好吗？我是Flashy，整场派对我都会陪着你 🎉。", "元気？ぼくはFlashy、パーティー中ずっと一緒にいるよ 🎉。"],
     ["Tocá el cofre para abrir tu invitación", "Tap the chest to open your invitation", "Toque no baú para abrir seu convite", "Tocca lo scrigno per aprire il tuo invito", "Touchez le coffret pour ouvrir votre invitation", "Tippe auf die Schatztruhe, um deine Einladung zu öffnen", "点击宝箱打开您的邀请函", "宝箱をタップして招待状を開いてください"],
+    ["Una noche soñada", "A dream night", "Uma noite de sonho", "Una notte da sogno", "Une nuit de rêve", "Eine Traumnacht", "梦幻之夜", "夢のような夜"],
+    ["Tocá para comenzar", "Tap to begin", "Toque para começar", "Tocca per iniziare", "Touchez pour commencer", "Tippe, um zu beginnen", "点击开始", "タップして始める"],
     ["1 opinión", "1 review", "1 avaliação", "1 recensione", "1 avis", "1 Bewertung", "1 条评价", "1件のレビュー"],
     ["Regalo", "Gift", "Presente", "Regalo", "Cadeau", "Geschenk", "礼物", "プレゼント"],
     ["📋 Copiar", "📋 Copy", "📋 Copiar", "📋 Copia", "📋 Copier", "📋 Kopieren", "📋 复制", "📋 コピー"],
