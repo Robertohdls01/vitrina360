@@ -148,7 +148,7 @@ function limpiar(d, prev) {
     o.historia = d.historia.slice(0, 12).filter(x => x && typeof x.img === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(x.img) && x.img.length <= 200000).map(x => ({ img: x.img, txt: corto(x.txt, 40), g: [0, 1, 2, 3].includes(x.g) ? x.g : null }));
   } else o.historia = prev.historia || [];
   o.vitNom = Array.isArray(d.vitNom) ? [0, 1, 2, 3].map(i => corto(d.vitNom[i], 22)) : (prev.vitNom || []);
-  o.vitEstilo = ['arriba', 'pelicula', 'alrededor', 'gira'].includes(d.vitEstilo) ? d.vitEstilo : (prev.vitEstilo || 'arriba');
+  o.vitEstilo = ['arriba', 'pelicula', 'aro', 'alrededor', 'gira'].includes(d.vitEstilo) ? d.vitEstilo : (prev.vitEstilo || 'arriba');
   // Video de la protagonista: link de YouTube (no listado). Guardamos solo el id; lo sirve YouTube, no nosotros.
   if (typeof d.video === 'string') {
     const u = d.video.trim();
@@ -171,7 +171,7 @@ function limpiar(d, prev) {
   o.ultimo = n;
   return o;
 }
-const VITS = ['arriba', 'pelicula', 'alrededor', 'gira'];
+const VITS = ['arriba', 'pelicula', 'aro', 'alrededor', 'gira'];
 // Lo que puede ver cualquiera con el link de la fiesta (sin la lista de invitados ni claves).
 function publica(e) {
   const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'historia', 'video', 'vitEstilo', 'vitNom', 'organiza', 'autos', 'salud', 'saludNom', 'saludTel', 'seguridad', 'seguNom'].forEach(k => { o[k] = e[k]; });

@@ -109,6 +109,16 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 .cine .foto{margin:0}
 .cine .fx{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);border-radius:50%;object-fit:cover;opacity:0;transition:opacity .7s ease}
 .cine .fx.on{opacity:1}
+.aro{position:relative;width:min(100vw,560px);height:400px;left:50%;transform:translateX(-50%);margin:0 0 6px}
+.aro .ac{position:absolute;left:50%;top:50%;width:86px;height:108px;margin:-54px 0 0 -43px;border-radius:12px;overflow:hidden;background:#fff;border:3px solid var(--ac);box-shadow:0 8px 20px rgba(0,0,0,.18);will-change:transform}
+.aro .ac img{width:100%;height:80px;object-fit:cover;display:block}
+.aro .ac span{display:block;font:700 10px/1.15 var(--sans);color:#3a3226;padding:3px 3px 0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aro .fwrap{position:absolute;left:50%;top:50%;z-index:50;width:200px;height:200px;margin:-100px 0 0 -100px;transition:transform 1.4s ease}
+.aro .foto{margin:0;width:200px;height:200px}
+.aro .fx,.cine .fx{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);border-radius:50%;object-fit:cover;opacity:0;transition:opacity .7s ease}
+.aro .fx.on{opacity:1}
+.aro .fxa{position:absolute;left:50%;top:-8px;transform:translateX(-50%);z-index:3;background:var(--ac);color:#fff;font:800 15px/1 var(--sans);padding:7px 14px;border-radius:999px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2);opacity:0;transition:opacity .5s}
+.aro .fxa.on{opacity:1}
 @keyframes cinta{to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){.cine .cinta{animation:none}}
 @keyframes giro{from{transform:rotateY(0)}to{transform:rotateY(-360deg)}}
@@ -255,14 +265,27 @@ function crece() {
   };
   crece.t = setTimeout(paso, 2500);
 }
+// Aro: las fotos sueltas dan vueltas alrededor de la foto, por detrás (chicas) y por delante (grandes).
+function aro() {
+  cancelAnimationFrame(aro.r); const A = document.querySelector('.aro'); if (!A) return;
+  const C = [...A.querySelectorAll('.ac')], n = C.length, t0 = performance.now(), quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const paso = now => {
+    if (!document.body.contains(A)) return; if (!quieto) aro.r = requestAnimationFrame(paso); if (document.hidden) return;
+    const W = A.clientWidth, R = Math.min(W / 2 - 46, 180), g = (now - t0) / 26000 * Math.PI * 2;
+    C.forEach((c, i) => { const th = g + i * 2 * Math.PI / n, d = Math.sin(th), k = (d + 1) / 2;
+      c.style.transform = `translate(${(R * Math.cos(th)).toFixed(1)}px,${(100 * d + 12).toFixed(1)}px) scale(${(.55 + .48 * k).toFixed(3)})`;
+      c.style.zIndex = d > 0 ? 60 + Math.round(d * 10) : 10 + Math.round(k * 10); c.style.opacity = (.55 + .45 * k).toFixed(2); });
+  };
+  aro.r = requestAnimationFrame(paso);
+}
 // Polvo mágico: chispitas doradas que se desprenden de las vitrinas mientras giran.
 function polvo() {
   clearInterval(polvo.t); const hero = document.querySelector('.hero');
-  if (!hero || !document.querySelector('.vit') || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (!hero || !document.querySelector('.vit, .aro') || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const C = ['#e8b93a', '#f5d06a', 'var(--ac)', '#d9a520', '#fff', '#eaa0bd'];
   polvo.t = setInterval(() => {
     if (document.hidden) return; const H = hero.getBoundingClientRect(); if (H.bottom < 0 || H.top > innerHeight) return;
-    document.querySelectorAll('.vit .anillo').forEach(a => {
+    document.querySelectorAll('.vit .anillo, .aro .ac').forEach(a => {
       const r = a.getBoundingClientRect(); if (!r.width) return;
       for (let n = 0; n < 3; n++) {
         const p = document.createElement('span'), st = Math.random() < .25, z = 3 + Math.random() * 4.5;
@@ -310,9 +333,14 @@ function render() {
   if (m !== 'link') h += `<div class="deco">${(DECO[tp] || DECO.elegante)(f.color || '#c9a227')}</div>`;
   h += `<div class="hero">`;
   const HI = m === 'especial' && Array.isArray(f.historia) && f.historia.length >= 2 ? f.historia : null;
-  let VE = f.vitEstilo || 'arriba'; if (f.demo) { const q = new URLSearchParams(location.search).get('vit'); if (['arriba', 'pelicula', 'alrededor', 'gira'].includes(q)) VE = q; }
+  let VE = f.vitEstilo || 'arriba'; if (f.demo) { const q = new URLSearchParams(location.search).get('vit'); if (['arriba', 'pelicula', 'aro', 'alrededor', 'gira'].includes(q)) VE = q; }
   const DOS = VE === 'arriba' || VE === 'pelicula';
-  if (HI && !DOS) {
+  if (HI && VE === 'aro') {
+    // Fotos sueltas que giran en círculo alrededor de la foto: pasan por detrás y vuelven por delante.
+    const L = HI.length < 6 ? HI.concat(HI) : HI;
+    h += `<div class="aro"><div class="brillos">${Array.from({length: 14}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 90 + 3}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div>${L.map(x => `<div class="ac"><img src="${esc(x.img)}" alt="" loading="lazy">${x.txt ? `<span>${esc(x.txt)}</span>` : ''}</div>`).join('')}${f.foto ? `<div class="fwrap"><img class="foto" src="${esc(f.foto)}" alt=""><img class="fx" id="fx" alt=""><b class="fxa" id="fxa"></b></div>` : ''}</div>`;
+  }
+  else if (HI && !DOS) {
     // 4 vitrinas alrededor de la foto (arriba, derecha, abajo, izquierda); con "gira" dan vueltas alrededor.
     const conG = HI.some(x => x.g != null), NOM = f.vitNom || [];
     const g = [0, 1, 2, 3].map(j => { const x = HI.filter((y, i) => conG ? y.g === j : i % 4 === j); return x.length >= 1 && conG ? x : x.length >= 2 ? x : x.length >= 2 ? x : [0, 1, 2].map(n => HI[(j + n * 2) % HI.length]); });
@@ -321,7 +349,7 @@ function render() {
   }
   else if (HI) { const mitad = Math.ceil(HI.length / 2); h += vitrina(HI.slice(0, mitad), false) + `<div class="brillos">${Array.from({length: 14}, (_, i) => `<i style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 90 + 3}%;animation-delay:${(i * .41) % 3.2}s"></i>`).join('')}</div>`; }
   if (m === 'especial' && f.foto && HI && VE === 'pelicula') { const L = HI.concat(HI.length < 6 ? HI : []); h += `<div class="cine"${f.demo ? ' style="--film:#e0629a"' : ''}><div class="film"><div class="cinta" style="--dur:${L.length * 4}s">${L.concat(L).map(x => `<div class="fr"><img src="${esc(x.img)}" alt="" loading="lazy">${x.txt ? `<span>${esc(x.txt)}</span>` : ''}</div>`).join('')}</div></div><div class="fwrap"><img class="foto" src="${esc(f.foto)}" alt=""><img class="fx" id="fx" alt=""><b class="fxa" id="fxa"></b></div></div>`; }
-  else if (m === 'especial' && f.foto && !(HI && !DOS)) h += `<img class="foto" src="${esc(f.foto)}" alt=""${HI ? ' style="margin-bottom:6px"' : ''}>`;
+  else if (m === 'especial' && f.foto && !(HI && !DOS) && !(HI && VE === 'aro')) h += `<img class="foto" src="${esc(f.foto)}" alt=""${HI ? ' style="margin-bottom:6px"' : ''}>`;
   if (HI && DOS) { const mitad = Math.ceil(HI.length / 2), abajo = HI.slice(mitad); h += vitrina(abajo.length >= 2 ? abajo : HI, true); }
   if (m === 'especial' && f.video && f.video.id && /^[A-Za-z0-9_-]{11}$/.test(f.video.id)) h += `<div class="vbox${f.video.vert ? ' vert' : ''}" id="vbox" data-v="${f.video.id}"><img src="https://i.ytimg.com/vi/${f.video.id}/hqdefault.jpg" alt=""><span class="play">▶</span><div class="brillos">${Array.from({length: 8}, (_, i) => `<i style="left:${(i * 41) % 92 + 3}%;top:${(i * 29) % 88 + 4}%;animation-delay:${(i * .53) % 3.2}s"></i>`).join('')}</div></div>`;
   if (f.musica && f.musica.url && m !== 'link' && !f.abierto) h += `<button type="button" class="btn alt" id="musBtn" style="margin:4px auto 10px;display:inline-flex">🎵 ${t('Escuchar la música')}</button>`;
@@ -348,7 +376,7 @@ function render() {
   h += `<div class="pie">${t('Invitación y fiesta organizadas con')} <b>ShopFiesta</b><br>Pro Video JSRHG · <a href="https://wa.me/5492235814437?text=${encodeURIComponent('Hola, vi la invitación de ShopFiesta y quiero una para mi fiesta')}" target="_blank" rel="noopener">${t('¿Querés una para tu fiesta?')}</a></div>`;
   $('#app').innerHTML = h;
   if (F.vivo && F.hoy && !PREV) { const v = $('#vivo'), hero = $('.hero'); if (v && hero) hero.after(v); }
-  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas(); tarjAlbum(); tarjRecuerdos(); tarjPush(); tarjResena(); musica(); polvo(); orbita(); crece();
+  rsvp(); guardar(); cuenta(); pVivo(); tarjFirmas(); tarjAlbum(); tarjRecuerdos(); tarjPush(); tarjResena(); musica(); polvo(); orbita(); crece(); aro();
 }
 function cuenta() {
   clearInterval(timer); const d = cuando(F); if (!d || !$('#cuenta')) return;
