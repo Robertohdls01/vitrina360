@@ -648,7 +648,7 @@ function sobre() {
   try { if (sessionStorage.getItem('sobre_' + CODE)) return; } catch (e) {}
   sobre.una = true;
   const nom = F.nombre || '', ini = F.tipo === '15' ? '15' : (nom.trim()[0] || '♥').toUpperCase();
-  let ab = F.abre || 'sobre'; if (F.demo) { const q = new URLSearchParams(location.search).get('abre'); if (['sobre', 'cofre', 'cofreplata', 'luna', 'relicario', 'estrella', 'carroza', 'botella', 'botellawhisky', 'brindis', 'perfume', 'copas', 'brindismar', 'gotaoro', 'gotaplata', 'copasmanos', 'navidad', 'mesa15', 'salon15', 'libro', 'libro15', 'librooro', 'albumhojas', 'albumglobos', 'sobre15'].includes(q)) ab = q; }
+  let ab = F.abre || 'sobre'; if (F.demo) { const q = new URLSearchParams(location.search).get('abre'); if (['sobre', 'cofre', 'cofreplata', 'luna', 'relicario', 'estrella', 'carroza', 'botella', 'botellawhisky', 'brindis', 'perfume', 'copas', 'brindismar', 'gotaoro', 'gotaplata', 'copasmanos', 'navidad', 'mesa15', 'salon15', 'libro', 'libro15', 'librooro', 'albumhojas', 'albumglobos', 'sobre15', 'sobre15rosa'].includes(q)) ab = q; }
   const o = document.createElement('div'); o.id = 'sobre';
   if (ab === 'cofre' || ab === 'cofreplata' || ab === 'relicario') {
     const rel = ab === 'relicario', ft = F.foto || '', V = rel ? 'relicario' : 'cofre';
@@ -816,13 +816,13 @@ function sobre() {
     };
     return;
   }
-  if (ab === 'carroza' || ab === 'brindis' || ab === 'brindismar' || ab === 'copas' || ab === 'gotaoro' || ab === 'gotaplata' || ab === 'copasmanos' || ab === 'navidad' || ab === 'mesa15' || ab === 'salon15' || ab === 'libro' || ab === 'libro15' || ab === 'sobre15') {
-    const CV = ({brindismar: 'brindis-mariposas', gotaoro: 'gota-oro', gotaplata: 'gota-plata', copasmanos: 'copas-manos'})[ab] || ab, CQ = ({brindis: .45, brindismar: .42, copas: .6, gotaoro: .8, gotaplata: .32, copasmanos: .64, navidad: .46, mesa15: .58, salon15: .55, libro: .86, libro15: .84, sobre15: .6})[ab] || .78;
+  if (ab === 'carroza' || ab === 'brindis' || ab === 'brindismar' || ab === 'copas' || ab === 'gotaoro' || ab === 'gotaplata' || ab === 'copasmanos' || ab === 'navidad' || ab === 'mesa15' || ab === 'salon15' || ab === 'libro' || ab === 'libro15' || ab === 'sobre15' || ab === 'sobre15rosa') {
+    const CV = ({sobre15rosa: 'sobre15-rosa', brindismar: 'brindis-mariposas', gotaoro: 'gota-oro', gotaplata: 'gota-plata', copasmanos: 'copas-manos'})[ab] || ab, CQ = ({brindis: .45, brindismar: .42, copas: .6, gotaoro: .8, gotaplata: .32, copasmanos: .64, navidad: .46, mesa15: .58, salon15: .55, libro: .86, libro15: .84, sobre15: .6, sobre15rosa: .6})[ab] || .78;
     // la carroza con caballos alados baja del cielo, abre la puerta y de la luz sale ella
     o.classList.add('estr'); const ft = F.foto || '';
     if (!document.getElementById('fGV')) { const l = document.createElement('link'); l.id = 'fGV'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap'; document.head.appendChild(l); }
-    const num = (ab === 'mesa15' || ab === 'libro15' || ab === 'sobre15') ? '' : ab === 'navidad' ? t('¡Feliz Navidad!') : (F.tipo === '15' ? '15' : (F.edad ? String(F.edad) : ''));
-    o.innerHTML = `<div class="es carz ${ab === 'brindismar' ? 'brindis' : ab}" style="background-image:url(/img-fiesta/${CV}.jpg)"><video class="esv1" src="/img-fiesta/${CV}.mp4" poster="/img-fiesta/${CV}.jpg" muted playsinline preload="auto"></video>${ft ? `<div class="esft"><img src="${esc(ft)}" alt=""></div>` : ''}${num ? `<div class="es15">${esc(num)}</div>` : ''}<div class="esnom">${esc(nom)}</div><div class="estx"><b>${esc(nom)}</b><i>${esc(t('Tocá para comenzar'))}</i></div></div>`;
+    const num = (ab === 'mesa15' || ab === 'libro15' || ab === 'sobre15' || ab === 'sobre15rosa') ? '' : ab === 'navidad' ? t('¡Feliz Navidad!') : (F.tipo === '15' ? '15' : (F.edad ? String(F.edad) : ''));
+    o.innerHTML = `<div class="es carz ${({brindismar: 'brindis', sobre15rosa: 'sobre15'})[ab] || ab}" style="background-image:url(/img-fiesta/${CV}.jpg)"><video class="esv1" src="/img-fiesta/${CV}.mp4" poster="/img-fiesta/${CV}.jpg" muted playsinline preload="auto"></video>${ft ? `<div class="esft"><img src="${esc(ft)}" alt=""></div>` : ''}${num ? `<div class="es15">${esc(num)}</div>` : ''}<div class="esnom">${esc(nom)}</div><div class="estx"><b>${esc(nom)}</b><i>${esc(t('Tocá para comenzar'))}</i></div></div>`;
     document.body.appendChild(o); document.body.style.overflow = 'hidden';
     const v = o.querySelector('video'), f = o.querySelector('.esft'), n = o.querySelector('.es15');
     let ya = false; const fin = () => { o.classList.add('fuera'); document.body.style.overflow = ''; setTimeout(() => o.remove(), 900); };
