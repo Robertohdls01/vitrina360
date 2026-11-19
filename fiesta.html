@@ -190,11 +190,14 @@ body.confondo{background:transparent}
 @keyframes esTi{0%{transform:translate(0,0) rotate(0) scale(1.06)}10%{transform:translate(-22px,14px) rotate(-2.4deg) scale(1.08)}20%{transform:translate(20px,-16px) rotate(2deg) scale(1.07)}30%{transform:translate(-16px,-10px) rotate(-1.6deg)}40%{transform:translate(14px,12px) rotate(1.2deg)}52%{transform:translate(-9px,6px) rotate(-.8deg)}64%{transform:translate(7px,-5px) rotate(.5deg)}78%{transform:translate(-3px,2px) rotate(-.2deg)}100%{transform:none}}
 #sobre .es.carz .esft{left:46%;top:45%;width:66%}
 #sobre .bo{position:relative;height:100%;width:100%;max-width:calc(100vh * 9 / 16);overflow:hidden;background:#04061a url(/img-fiesta/botella.jpg) center/cover}
-#sobre .bo video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;-webkit-mask:radial-gradient(28% 44% at 50% 52%,#000 92%,transparent 100%);mask:radial-gradient(28% 44% at 50% 52%,#000 92%,transparent 100%)}
+#sobre .bo video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;-webkit-mask:radial-gradient(34% 46% at 50% 52%,#000 90%,transparent 100%);mask:radial-gradient(34% 46% at 50% 52%,#000 90%,transparent 100%)}
 #sobre .bo .bofon{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
 #sobre .bof{position:absolute;left:0;top:0;width:var(--w,96px);aspect-ratio:3/4;border-radius:10px;overflow:hidden;border:3px solid #f3d98a;box-shadow:0 0 18px rgba(255,215,130,.75);background:#222 center/cover;opacity:0;transition:opacity .8s;will-change:transform}
 #sobre .bof.ve{opacity:1}
 #sobre .bof b{position:absolute;left:0;right:0;bottom:0;padding:2px 3px;font:700 9px var(--sans);color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.7));text-align:center}
+#sobre .bopico{position:absolute;left:50%;top:8%;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;z-index:6;pointer-events:none;background:radial-gradient(closest-side,#fff,rgba(255,230,160,.8) 40%,transparent);opacity:0;transform:scale(.3)}
+#sobre .bopico.va{animation:boPi 1.4s ease-out forwards}
+@keyframes boPi{15%{opacity:1;transform:scale(2.6)}100%{opacity:0;transform:scale(5)}}
 #sobre .bo .esft{left:50%;top:54%;width:46%;z-index:5}
 #sobre .bo .es15,#sobre .bo .esnom,#sobre .bo .estx{z-index:6}
 #sobre.luna{background:#0b1430;flex-direction:row;gap:0}
@@ -585,7 +588,7 @@ function sobre() {
   try { if (sessionStorage.getItem('sobre_' + CODE)) return; } catch (e) {}
   sobre.una = true;
   const nom = F.nombre || '', ini = F.tipo === '15' ? '15' : (nom.trim()[0] || '♥').toUpperCase();
-  let ab = F.abre || 'sobre'; if (F.demo) { const q = new URLSearchParams(location.search).get('abre'); if (['sobre', 'cofre', 'cofreplata', 'luna', 'relicario', 'estrella', 'carroza', 'botella'].includes(q)) ab = q; }
+  let ab = F.abre || 'sobre'; if (F.demo) { const q = new URLSearchParams(location.search).get('abre'); if (['sobre', 'cofre', 'cofreplata', 'luna', 'relicario', 'estrella', 'carroza', 'botella', 'botellawhisky'].includes(q)) ab = q; }
   const o = document.createElement('div'); o.id = 'sobre';
   if (ab === 'cofre' || ab === 'cofreplata' || ab === 'relicario') {
     const rel = ab === 'relicario', ft = F.foto || '', V = rel ? 'relicario' : 'cofre';
@@ -697,14 +700,15 @@ function sobre() {
     };
     return;
   }
-  if (ab === 'botella') {
+  if (ab === 'botella' || ab === 'botellawhisky') {
+    const BV = ab === 'botellawhisky' ? 'botella-whisky' : 'botella';
     // botella de cristal con Marte adentro; sus fotos giran alrededor en 3D, después aparece ella
     o.classList.add('estr'); const ft = F.foto || '';
     if (!document.getElementById('fGV')) { const l = document.createElement('link'); l.id = 'fGV'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap'; document.head.appendChild(l); }
     const num = F.tipo === '15' ? '15' : (F.edad ? String(F.edad) : '');
     let H = (F.historia || []).filter(x => x && x.img); if (H.length > 8) H = [0, 1, 2, 3, 4, 5, 6, 7].map(k => H[Math.round(k * (H.length - 1) / 7)]);
     if (!H.length && ft) H = [{img: ft}];
-    o.innerHTML = `<div class="bo"><img class="bofon" src="/img-fiesta/botella.jpg" alt=""><video src="/img-fiesta/botella.mp4" muted playsinline autoplay loop preload="auto"></video>${H.map(h => `<div class="bof" style="background-image:url('${String(h.img).replace(/['"()]/g, '')}')">${h.txt ? `<b>${esc(String(h.txt).split('·')[0].trim())}</b>` : ''}</div>`).join('')}${ft ? `<div class="esft"><img src="${esc(ft)}" alt=""></div>` : ''}${num ? `<div class="es15">${esc(num)}</div>` : ''}<div class="esnom">${esc(nom)}</div><div class="estx"><b>${esc(nom)}</b><i>${esc(t('Tocá para comenzar'))}</i></div></div>`;
+    o.innerHTML = `<div class="bo" style="background-image:url(/img-fiesta/${BV}.jpg)"><img class="bofon" src="/img-fiesta/${BV}.jpg" alt=""><video src="/img-fiesta/${BV}.mp4" muted playsinline autoplay loop preload="auto"></video>${H.map(h => `<div class="bof" style="background-image:url('${String(h.img).replace(/['"()]/g, '')}')">${h.txt ? `<b>${esc(String(h.txt).split('·')[0].trim())}</b>` : ''}</div>`).join('')}${ft ? `<div class="esft"><img src="${esc(ft)}" alt=""></div>` : ''}${num ? `<div class="es15">${esc(num)}</div>` : ''}<div class="esnom">${esc(nom)}</div><div class="estx"><b>${esc(nom)}</b><i>${esc(t('Tocá para comenzar'))}</i></div></div>`;
     document.body.appendChild(o); document.body.style.overflow = 'hidden';
     const bo = o.querySelector('.bo'), fs = [...o.querySelectorAll('.bof')], f = o.querySelector('.esft'), n = o.querySelector('.es15');
     let vivo = true, t0 = performance.now(), vel = .35;
@@ -727,6 +731,9 @@ function sobre() {
       try { sessionStorage.setItem('sobre_' + CODE, '1'); } catch (e) {}
       if (MUS && MUS.paused && !musica.parada) MUS.play().catch(() => {});
       const bv = o.querySelector('.bo video'); if (bv && bv.paused) bv.play().catch(() => {});
+      // se destapa: sale una explosión de luz por el pico y vuelan corazones, rosas y cristales
+      const pico = document.createElement('div'); pico.className = 'bopico'; bo.appendChild(pico);
+      setTimeout(() => { pico.classList.add('va'); if (navigator.vibrate) navigator.vibrate(40); gemas(pico, 34, REALES); setTimeout(() => gemas(pico, 24, ['rosa', 'cz-cristal', 'petalo', 'cz-oro']), 500); }, 250);
       let k = 0; const ac = setInterval(() => { vel = Math.min(2.4, vel * 1.25); if (++k > 10) clearInterval(ac); }, 160);
       setTimeout(() => { if (f) { f.classList.add('ve'); gemas(f, 30, REALES); } }, 2200);
       setTimeout(() => { vel = .5; n && n.classList.add('ve'); }, 3000);
