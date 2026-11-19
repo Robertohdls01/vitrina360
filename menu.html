@@ -532,6 +532,11 @@ body:has(.mesa){--v:#3f7a5a;--o:#5aa37c;--p:#8cc9a5;--ink:#2d3a32;--cream:#f6faf
       const score = v => genScore(v, G) + (/natural|neural|online|premium|enhanced|wavenet/i.test(v.name) ? 8 : 0) + (/google/i.test(v.name) ? 4 : 0) + (v.lang.replace('_', '-').toLowerCase() === VL.toLowerCase() ? 3 : 0) + (/es-(ar|us|419|mx)/i.test(v.lang.replace('_', '-')) && LANG === 'es' ? 1 : 0) + (v.localService ? 1 : 0);
       voice = vs.sort((a, b) => score(b) - score(a))[0] || null; };
     if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+    // los precios se leen con el nombre de la moneda (si no, la voz lee "$6.000" como "6000 dólares")
+    const hablarPlata = t => { const L = String(VL || 'es').slice(0, 2).toLowerCase(), m = MON || '$';
+      const N = {'$': {es: 'pesos', en: 'pesos', pt: 'pesos', it: 'pesos', fr: 'pesos', de: 'Pesos'}, 'US$': {es: 'dólares', en: 'dollars', pt: 'dólares', it: 'dollari', fr: 'dollars', de: 'Dollar'}, '€': {es: 'euros', en: 'euros', pt: 'euros', it: 'euro', fr: 'euros', de: 'Euro'}, 'R$': {es: 'reales', en: 'reais', pt: 'reais', it: 'real', fr: 'réaux', de: 'Real'}, 'UYU': {es: 'pesos uruguayos', en: 'Uruguayan pesos', pt: 'pesos uruguaios'}, 'CLP': {es: 'pesos chilenos', en: 'Chilean pesos', pt: 'pesos chilenos'}, 'S/': {es: 'soles', en: 'soles', pt: 'soles'}, '£': {es: 'libras', en: 'pounds', pt: 'libras'}}[m] || {};
+      const w = N[L] || N.es || 'pesos';
+      return String(t).replace(/(?:US\$|R\$|\$U|CLP|S\/|€|£|\$)\s?(\d[\d.,]*)/g, (x, n) => { const v = n.replace(/[.,]$/, ''); return (L === 'en' || L === 'de' ? v.replace(/\./g, '').replace(',', '.') : v.replace(/\.(?=\d{3}\b)/g, '')) + ' ' + w; }); };
     const talk0 = (txt, chips, ask) => {
       talk.ask = !!ask;
       if(talk.pre){ txt = talk.pre + txt; talk.pre = ''; }
@@ -541,7 +546,7 @@ body:has(.mesa){--v:#3f7a5a;--o:#5aa37c;--p:#8cc9a5;--ink:#2d3a32;--cream:#f6faf
       try{ const wasSpeaking = speechSynthesis.speaking || speechSynthesis.pending; speechSynthesis.cancel();
         // de corrido (sin pausas entre frases), algo más rápido y con volumen moderado para que el parlante no sature;
         // solo si el texto es muy largo se parte en 2 o 3 pedazos para que no se trabe
-        const clean = txt.replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF\uFE0F]/gu, '').replace(/\s+/g, ' ').trim();
+        const clean = hablarPlata(txt).replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF\uFE0F]/gu, '').replace(/\s+/g, ' ').trim();
         const parts = []; let cur = '';
         clean.split(/(?<=[.!?])\s+/).forEach(f => { if((cur + ' ' + f).length > 180 && cur){ parts.push(cur); cur = f; } else cur = cur ? cur + ' ' + f : f; });
         if(cur) parts.push(cur);
