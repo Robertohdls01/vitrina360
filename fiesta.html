@@ -278,6 +278,10 @@ body.confondo{background:transparent}
 #sobre .relm .hz.b img.ent{object-fit:cover;object-position:50% 15%;transform:none}
 #sobre .relm .hz.b .vid,#sobre .relm .hz.p .vid{position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,rgba(255,255,255,0) 30%,rgba(255,255,255,.25) 42%,rgba(255,255,255,0) 52%)}
 #sobre .relm.botm{z-index:5}#sobre .bo .esnom{z-index:7;top:88%!important}#sobre .bo .es15{z-index:7}#sobre .relm.botm .rin{transform-origin:50% 62%}#sobre .relm.botm.zoom .rin{transform:scale(1.55)}
+#sobre.nube .es.perf .esft{left:50%!important;top:30%!important;width:52%!important;aspect-ratio:3/5!important;border-radius:0!important;box-shadow:none!important;background:none!important;filter:blur(14px) brightness(1.6)!important;opacity:0;transition:opacity 2.4s ease,filter 3s ease,transform 3s cubic-bezier(.2,.8,.25,1)!important;-webkit-mask:radial-gradient(50% 50% at 50% 50%,#000 55%,transparent 100%);mask:radial-gradient(50% 50% at 50% 50%,#000 55%,transparent 100%)}
+#sobre.nube .es.perf .esft.ve{opacity:1;filter:drop-shadow(0 0 30px rgba(255,220,160,.9)) brightness(1.05)!important}
+#sobre.nube .es.perf .esft img{object-fit:cover;object-position:50% 25%}
+#sobre.nube .es.perf .es15{top:2%!important;opacity:0!important}#sobre.nube .es.perf .esnom{top:50%!important}
 #sobre .relm .mar{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #sobre.estr > .es15,#sobre.estr > .esnom,#sobre.estr > .esmis{z-index:7}
 #sobre.estr > .esnom{top:84%!important}
@@ -685,7 +689,7 @@ function sobre() {
   try { if (sessionStorage.getItem('sobre_' + CODE)) return; } catch (e) {}
   sobre.una = true;
   const nom = F.nombre || '', ini = F.tipo === '15' ? '15' : (nom.trim()[0] || '♥').toUpperCase();
-  let ab = F.abre || 'sobre'; if (F.demo) { const q = new URLSearchParams(location.search).get('abre'); if (['sobre', 'cofre', 'cofreplata', 'luna', 'relicario', 'estrella', 'carroza', 'botella', 'botellawhisky', 'brindis', 'perfume', 'copas', 'brindismar', 'gotaoro', 'gotaplata', 'copasmanos', 'navidad', 'mesa15', 'salon15', 'libro', 'libro15', 'librooro', 'albumhojas', 'albumglobos', 'sobre15', 'sobre15rosa', 'super15', 'llegada15', 'relicariogr', 'cartarelicario'].includes(q)) ab = q; }
+  let ab = F.abre || 'sobre'; if (F.demo) { const q = new URLSearchParams(location.search).get('abre'); if (['sobre', 'cofre', 'cofreplata', 'luna', 'relicario', 'estrella', 'carroza', 'botella', 'botellawhisky', 'brindis', 'perfume', 'copas', 'brindismar', 'gotaoro', 'gotaplata', 'copasmanos', 'navidad', 'mesa15', 'salon15', 'libro', 'libro15', 'librooro', 'albumhojas', 'albumglobos', 'sobre15', 'sobre15rosa', 'super15', 'llegada15', 'relicariogr', 'cartarelicario', 'perfumenube'].includes(q)) ab = q; }
   const o = document.createElement('div'); o.id = 'sobre';
   if (ab === 'cofre' || ab === 'cofreplata' || ab === 'relicario') {
     const rel = ab === 'relicario', ft = F.foto || '', V = rel ? 'relicario' : 'cofre';
@@ -824,7 +828,7 @@ function sobre() {
     };
     return;
   }
-  if (ab === 'perfume') {
+  if (ab === 'perfume' || ab === 'perfumenube') {
     // perfume de lujo girando; al tocar, destello, se destapa, sale la nube y aparece ella
     o.classList.add('estr'); const ft = F.fotoCuerpo || F.foto || ''; if (F.fotoCuerpo) { o.classList.add('cuerpo'); setTimeout(() => { const e = o.querySelector('.es'), n = o.querySelector('.es15'); if (!e || !n) return; const m = document.createElement('div'); m.className = 'esmis'; m.textContent = F.tipo === '15' ? t('Mis 15 años') : (F.nombre || ''); e.appendChild(m); new MutationObserver(() => { if (n.classList.contains('ve')) m.classList.add('ve'); }).observe(n, {attributes: true}); }, 0); }
     if (!document.getElementById('fGV')) { const l = document.createElement('link'); l.id = 'fGV'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap'; document.head.appendChild(l); }
@@ -836,7 +840,8 @@ function sobre() {
     let ya = false; const fin = () => { o.classList.add('fuera'); document.body.style.overflow = ''; setTimeout(() => o.remove(), 900); };
     const final = () => {
       if (ya) return; ya = true;
-      { const yo = F.fotoCuerpo || F.foto || '', es0 = o.querySelector('.es'), r = document.createElement('div'), e2 = s => String(s).replace(/"/g, '&quot;');
+      if (ab === 'perfumenube') { o.classList.add('nube'); if (f) { f.classList.add('ve'); setTimeout(() => gemas(f, 30, REALES), 600); } }
+      else { const yo = F.fotoCuerpo || F.foto || '', es0 = o.querySelector('.es'), r = document.createElement('div'), e2 = s => String(s).replace(/"/g, '&quot;');
         o.querySelectorAll('.es .es15, .es .esmis').forEach(x => o.appendChild(x)); { const nn = o.querySelector('.es .esnom'); if (nn) nn.remove(); } if (f) f.style.display = 'none';
         r.className = 'relm perm'; r.innerHTML = `<div class="rin"><div class="hz p">${yo ? `<img class="bgb" src="${e2(yo)}" alt=""><img class="ent" src="${e2(yo)}" alt="">` : ''}<i class="vid"></i></div><img class="mar" src="/img-fiesta/perfume-marco.webp" alt=""><div class="plq"><small>${esc(F.tipo === '15' ? t('Mis 15') : '')}</small><b>${esc(F.nombre || '')}</b></div></div>`;
         es0.appendChild(r); requestAnimationFrame(() => requestAnimationFrame(() => { r.classList.add('ve'); setTimeout(() => r.classList.add('zoom'), 700); setTimeout(() => gemas(r.querySelector('.hz.p'), 30, REALES), 900); })); }
