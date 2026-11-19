@@ -96,29 +96,32 @@ const api = async (acc, body) => { const r = await fetch('/api/familia' + (acc ?
 const EMOS = ['👩', '👨', '👧', '👦', '👶', '👵', '👴', '🧑', '🐶', '🐱', '🦄', '⚽', '🎮', '🌸', '🦖', '⭐'];
 
 // ---------- voz de Flashy ----------
+let pendiente = '';
+function avisoVoz(){ if(voz || $('#tocame')) return; const f = $('#fla'); if(!f) return; const t = document.createElement('div'); t.id = 'tocame'; t.textContent = '🔊 Tocame para escucharme'; t.style.cssText = 'position:absolute;left:50%;top:-6px;transform:translateX(-50%);background:#e2457f;color:#fff;font-size:13px;padding:4px 10px;border-radius:999px;white-space:nowrap;animation:habla .5s ease-in-out infinite alternate;z-index:6'; f.appendChild(t); }
 function decir(txt){
-  if(!voz || !('speechSynthesis' in window)) return;
+  if(!('speechSynthesis' in window)) return;
+  if(!voz){ pendiente = txt; avisoVoz(); return; }
   try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(String(txt).replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu, '')); u.lang = 'es-AR';
     const vs = speechSynthesis.getVoices().filter(v => /^es/i.test(v.lang)); const v = vs.find(v => /google|natural|online/i.test(v.name)) || vs[0]; if(v) u.voice = v;
     u.rate = 1.05; u.pitch = 1.15; u.onstart = () => $('#fla') && $('#fla').classList.add('habla'); u.onend = u.onerror = () => $('#fla') && $('#fla').classList.remove('habla'); speechSynthesis.speak(u); }catch(e){}
 }
-function despertar(){ if(voz) return; voz = true; try{ const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); }catch(e){} }
-document.addEventListener('pointerdown', despertar, {once: true});
+function despertar(){ if(voz) return; voz = true; const t = $('#tocame'); if(t) t.remove(); try{ const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); }catch(e){} if(pendiente){ const p = pendiente; pendiente = ''; setTimeout(() => decir(p), 150); } }
+document.addEventListener('pointerdown', despertar);
 function pitido(){ try{ const A = new (window.AudioContext || window.webkitAudioContext)(); [0, .35, .7].forEach(d => { const o = A.createOscillator(), g = A.createGain(); o.frequency.value = 880; o.connect(g); g.connect(A.destination); g.gain.setValueAtTime(.3, A.currentTime + d); g.gain.exponentialRampToValueAtTime(.001, A.currentTime + d + .3); o.start(A.currentTime + d); o.stop(A.currentTime + d + .3); }); }catch(e){} if(navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300]); }
 function lluvia(emo, n){ for(let i = 0; i < (n || 26); i++){ const d = document.createElement('div'); d.className = 'lluvia'; d.textContent = emo; d.style.left = Math.random() * 100 + 'vw'; d.style.fontSize = (28 + Math.random() * 40) + 'px'; d.style.setProperty('--d', (2.4 + Math.random() * 2) + 's'); d.style.setProperty('--r', (Math.random() * 360 - 180) + 'deg'); d.style.animationDelay = Math.random() * 1.2 + 's'; document.body.appendChild(d); setTimeout(() => d.remove(), 5200); } }
 
 // ---------- pantalla ----------
 let PAN = '';
 function escena(texto, sub, botones, extra){
-  const pan = PAN; PAN = ''; document.body.classList.toggle('encuarto', !!(YO && YO.cuarto));
+  const pan = PAN; PAN = ''; document.body.classList.toggle('encuarto', !!(YO && YO.cuarto)); document.body.style.background = YO && YO.cuarto ? (CUARTOS[YO.cuarto] || CUARTOS.solo)[4] : '';
   app.innerHTML = `<div class="top" id="top"></div><div class="escena ${pan ? 'con-pan' : ''}"><div id="pan" ${pan ? '' : 'hidden'}>${pan}</div><div id="burb">${texto}${sub ? `<small>${sub}</small>` : ''}${extra || ''}</div><div id="grupo">${grupoHTML()}</div></div><div class="acc" id="acc"></div>${F ? `<nav class="menu"><button data-m="ini"><span>🏠</span>Inicio</button><button data-m="tar"><span>📋</span>Tareas</button><button data-m="hab"><span>💬</span>Hablar</button><button data-m="fam"><span>👨‍👩‍👧</span>Familia</button></nav>` : ''}`;
   app.querySelectorAll('.menu button').forEach(b => b.onclick = () => { despertar(); ({ini: () => principal(true), tar: tareas, hab: hablar, fam: familia})[b.dataset.m](); });
   const acc = $('#acc'); (botones || []).forEach(([t, f, cls]) => { const b = document.createElement('button'); b.className = 'b ' + (cls || ''); b.innerHTML = t; b.onclick = () => { despertar(); f(b); }; acc.appendChild(b); });
-  $('#fla').onclick = () => { despertar(); if(F) principal(true); };
+  $('#fla').onclick = () => { if(F && voz && !actual) principal(true); };
   pintarTop();
 }
 function grupoHTML(){ const yo = `<div id="fla" ${YO ? `style="--t:${tono(YO.id)}deg"` : ''}><div class="globo"></div>${FL_SVG()}<div class="humo i" hidden></div><div class="humo d" hidden></div></div>`;
-  if(!F || !YO) return yo; if(YO.cuarto){ const c = CUARTOS[YO.cuarto] || CUARTOS.solo; return `<div class="cuarto-esc"><span>${c[2]}</span><span>${c[0]}</span></div>` + yo; }
+  if(!F || !YO) return yo; if(YO.cuarto){ const c = CUARTOS[YO.cuarto] || CUARTOS.solo; return `<div class="cuarto-esc"><span>${c[2]}</span><span>${c[3]}</span></div>` + yo; }
   const priv = F.miembros.filter(m => m.id !== YO.id && m.cuarto), otros = F.miembros.filter(m => m.id !== YO.id && !m.cuarto), izq = otros.filter((_, i) => i % 2), der = otros.filter((_, i) => !(i % 2));
   return izq.map(miniHTML).join('') + yo + der.map(miniHTML).join('') + (priv.length ? `<div style="position:absolute;top:-34px;right:4px;display:flex">${priv.map(puertaHTML).join('')}</div>` : ''); }
 function globo(id, txt, ms){ const el = id === (YO && YO.id) ? $('#fla') : document.querySelector(`.mini[data-id="${id}"]`); if(!el) return; const g = el.querySelector('.globo'); g.textContent = txt; g.classList.add('ve'); el.classList.add('habla'); clearTimeout(el._t); el._t = setTimeout(() => { g.classList.remove('ve'); el.classList.remove('habla'); }, ms || 2600); }
@@ -129,9 +132,19 @@ function volar(desde, hasta, emo){ return new Promise(ok => { const a = desde ==
     setTimeout(() => { d.remove(); b.classList.remove('mira-d', 'mira-i'); }, 1000); });
   setTimeout(ok, 1000); }); }
 // charla de fondo entre los Flashys
-const CUARTOS = {tele: ['📺', 'mirando la tele', '🛋️'], tarea: ['📚', 'haciendo la tarea', '✏️'], dormir: ['😴', 'durmiendo', '🛏️'], jugar: ['🎮', 'jugando', '🕹️'], musica: ['🎧', 'escuchando música', '🎵'], solo: ['🚪', 'en su cuarto', '🪴']};
+// [icono, qué está haciendo, cosas de un lado, cosas del otro, fondo, nombre del lugar]
+const CUARTOS = {
+  galpon: ['🔧', 'en el galpón', '🚗🧰', '🪚🌿', 'linear-gradient(#e9eef3,#cfd8e3 60%,#b9c4d2)', 'el galpón'],
+  cocina: ['🍳', 'en la cocina', '🥘🧁', '🍰☕', 'linear-gradient(#fff8ef,#ffe9cf 60%,#ffd9b0)', 'la cocina'],
+  tarea: ['📚', 'estudiando', '📚✏️', '💡📐', 'linear-gradient(#f2f7ff,#dfe9fb 60%,#cdd9f5)', 'la pieza'],
+  jugar: ['🎮', 'jugando', '🎮🧸', '⚽🎲', 'linear-gradient(#f3fff4,#d9f7dc 60%,#c3eec8)', 'la pieza'],
+  tele: ['📺', 'mirando la tele', '🛋️', '📺🍿', 'linear-gradient(#f6f2ff,#e6dcfb 60%,#d7c9f6)', 'el living'],
+  dormir: ['😴', 'durmiendo', '🛏️', '🌙⭐', 'linear-gradient(#e8ecff,#c9d0f2 60%,#aeb7e6)', 'la pieza'],
+  musica: ['🎧', 'escuchando música', '🎸', '🎵🎶', 'linear-gradient(#fff1f8,#fbd9ea 60%,#f5c2dc)', 'la pieza'],
+  solo: ['🚪', 'en su cuarto', '🪴', '🖼️', 'linear-gradient(#f2f7ff,#dfe9fb 60%,#d4dcf3)', 'su cuarto']};
+const LUGARES_PADRE = ['galpon', 'cocina', 'tele', 'dormir', 'musica', 'solo'], LUGARES_HIJO = ['tarea', 'jugar', 'tele', 'musica', 'dormir', 'solo'];
 function puertaHTML(m){ const c = CUARTOS[m.cuarto] || CUARTOS.solo; return `<div class="puerta" data-id="${m.id}" title="${esc(m.nombre)} ${c[1]}"><b>🚪</b>${c[0]} ${esc(m.nombre)}</div>`; }
-function irCuarto(){ escena('¿Qué vas a hacer en tu cuarto?', 'Flashy se va con vos y no molesta a nadie', [...Object.entries(CUARTOS).map(([k, c]) => [`${c[0]} ${c[1].replace('en su cuarto', 'solo/a un rato')}`, async () => { try{ await api('cuarto', Object.assign({cuarto: k}, S)); await cargar(); }catch(e){ return alert(e.message); } const f = `Listo, me quedo con vos en tu cuarto. Te aviso solo lo importante 🤫`; escena(f, '', [['OK', () => principal(), 'pri']]); decir(f); }]), ['↩︎', () => principal(), 'chico']]); decir('¿Qué vas a hacer en tu cuarto?'); }
+function irCuarto(){ escena('¿A dónde vamos?', 'Flashy se va con vos y no molesta a nadie', [...(esPadre() ? LUGARES_PADRE : LUGARES_HIJO).map(k => [k, CUARTOS[k]]).map(([k, c]) => [`${c[0]} ${{galpon: 'Al galpón', cocina: 'A la cocina', tarea: 'A estudiar', jugar: 'A jugar', tele: 'A ver tele', dormir: 'A dormir', musica: 'Música', solo: 'Solo/a un rato'}[k]}`, async () => { try{ await api('cuarto', Object.assign({cuarto: k}, S)); await cargar(); }catch(e){ return alert(e.message); } const f = `Listo, me quedo con vos en ${CUARTOS[k][5]}. Te aviso solo lo importante 🤫`; escena(f, '', [['OK', () => principal(), 'pri']]); decir(f); }]), ['↩︎', () => principal(), 'chico']]); decir('¿A dónde vamos?'); }
 async function salirCuarto(){ try{ await api('cuarto', Object.assign({cuarto: ''}, S)); await cargar(); }catch(e){ return alert(e.message); } const f = '¡Volvimos con la familia! 🏠'; lluvia('💖', 10); principal(); decir(f); }
 const CHARLA = ['¡Hola! 👋', '¿Qué hacemos hoy?', '⭐⭐⭐', '¡Te quiero! 💖', 'Jajaja 😂', '¿Ya comiste? 🍽️', '¡Vamos familia! 💪', '🎵 la la la', '¿Jugamos? ⚽', '¡Buenísimo! 👍'];
 setInterval(() => { if(document.hidden || !F || actual || $('#in') || (YO && YO.cuarto)) return; const minis = [...document.querySelectorAll('.mini')]; if(!minis.length) return;
@@ -208,10 +221,10 @@ function nuevos(){
 function marcar(id){ vistos.add(id); localStorage.setItem('famVistos', JSON.stringify([...vistos].slice(-400))); }
 function mostrar(x){
   actual = x; clearInterval(reloj); document.body.classList.remove('enojado');
-  if(x.a && x.q){ marcar(x.a.id + x.q + x.r.estado); const que = {visto: 'lo vio 👀', voy: 'dice: ¡ya voy! 🏃', listo: 'dice: ¡listo! ✅', aprobado: 'ganó sus estrellas ⭐'}[x.r.estado] || '';
-    const frase = `${nom(x.q)} ${que}${x.r.txt ? ' "' + x.r.txt + '"' : ''}`;
+  if(x.a && x.q){ marcar(x.a.id + x.q + x.r.estado); const n0 = nom(x.q), tarea = x.a.tipo === 'tarea';
+    const frase = x.r.txt ? `${n0} te contestó: "${x.r.txt}"` : ({visto: `${n0} ya lo vio 👀`, voy: tarea ? `${n0} contestó que ya va a hacerlo 🏃` : `${n0} contestó que ya viene 🏃`, listo: `${n0} terminó la tarea ✅`, aprobado: `${n0} ganó sus estrellas ⭐`}[x.r.estado] || n0);
     escena(esc(frase), esc(x.a.texto), x.a.tipo === 'tarea' && x.r.estado === 'listo' ? [[`⭐ Darle ${x.a.estrellas || 1} estrella${(x.a.estrellas || 1) > 1 ? 's' : ''}`, async () => { try{ await api('aprobar', Object.assign({aid: x.a.id, quien: x.q}, S)); lluvia('⭐', 20); decir(`¡Bien ${nom(x.q)}! Ganaste tus estrellas.`); await cargar(); }catch(e){ alert(e.message); } siguiente(); }, 'ok'], ['Después', siguiente]] : [['👍 OK', siguiente, 'pri']]);
-    decir(frase); return; }
+    globo(x.q, x.r.txt ? '💬 ' + x.r.txt.slice(0, 22) : x.r.estado === 'listo' ? '✅ ¡Listo!' : '🏃 ¡Ya voy!', 3500); decir(frase); return; }
   const a = x, de = nom(a.de); marcar(a.id); api('responder', Object.assign({aid: a.id, estado: 'visto'}, S)).catch(() => {});
   if(a.tipo === 'sumo'){ lluvia('🎉', 24); escena(esc(a.texto), '¡Ahora son más en la familia!', [['🎉 ¡Genial!', siguiente, 'pri']]); decir(a.texto.replace(/🎉/g, '')); return; }
   if(a.tipo === 'flor' || a.tipo === 'corazon'){ setTimeout(() => globo(a.de, a.tipo === 'flor' ? '🌸 ¡Para vos!' : '💖💖💖', 3500), 200); lluvia(a.tipo === 'flor' ? '🌸' : '💖', 34); const f = a.tipo === 'flor' ? `${de} te mandó una flor 🌸` : `${de} te manda muchos corazones 💖`; escena(f, a.texto ? esc(a.texto) : '', [['💖 Mandar corazones', () => enviar({tipo: 'corazon', para: a.de}), 'pri'], ['OK', siguiente]]); decir(f); return; }
@@ -239,13 +252,13 @@ function principal(hablar){
   const hora = new Date().getHours(), hola = hora < 12 ? 'Buen día' : hora < 20 ? 'Buenas tardes' : 'Buenas noches';
   if(esPadre()){
     const pend = F.avisos.filter(a => a.tipo === 'tarea' && Object.values(a.resp || {}).some(r => r.estado === 'listo')).length;
-    escena(`${hola}, ${esc(YO.nombre)} 😊`, '¿Qué le aviso a la familia?', [['📣 Mandar un aviso', () => armar('aviso'), 'pri'], ['🧹 Dar una tarea', () => armar('tarea'), 'pri'], ...(pend ? [[`⭐ Revisar tareas (${pend})`, revisar, 'ok']] : []), ['🌸 Flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true), 'chico'], ['➕ Sumar', () => invitar('', false), 'chico'], YO.cuarto ? ['🏠 Volver con la familia', salirCuarto, 'chico'] : ['🚪 Mi cuarto', irCuarto, 'chico']]);
+    escena(YO.cuarto ? `${hola}, ${esc(YO.nombre)} ${(CUARTOS[YO.cuarto] || CUARTOS.solo)[0]}` : `${hola}, ${esc(YO.nombre)} 😊`, YO.cuarto ? `Estás en ${(CUARTOS[YO.cuarto] || CUARTOS.solo)[5]}. ¿Qué le aviso a la familia?` : '¿Qué le aviso a la familia?', [['📣 Mandar un aviso', () => armar('aviso'), 'pri'], ['🧹 Dar una tarea', () => armar('tarea'), 'pri'], ...(pend ? [[`⭐ Revisar tareas (${pend})`, revisar, 'ok']] : []), ['🌸 Flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true), 'chico'], ['➕ Sumar', () => invitar('', false), 'chico'], YO.cuarto ? ['🏠 Volver con la familia', salirCuarto, 'chico'] : ['🚪 Me voy a mi lugar', irCuarto, 'chico']]);
     if(hablar) decir(`${hola}, ${YO.nombre}. ¿Qué le aviso a la familia?`);
   } else {
     const mias = F.avisos.filter(a => a.tipo === 'tarea' && (a.para === 'todos' || a.para === YO.id) && !['listo', 'aprobado'].includes((a.resp[YO.id] || {}).estado));
-    if(YO.cuarto && !mias.length){ const c = CUARTOS[YO.cuarto] || CUARTOS.solo; escena(`Estamos en tu cuarto ${c[0]}`, 'Solo te aviso lo importante. Nadie te molesta 🤫', [['🏠 Volver con la familia', salirCuarto, 'pri'], ['🌸 Mandar una flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true)]]); if(hablar) decir('Estamos en tu cuarto. Nadie te molesta.'); return; }
+    if(YO.cuarto && !mias.length){ const c = CUARTOS[YO.cuarto] || CUARTOS.solo; escena(`Estamos en ${c[5]} ${c[0]}`, 'Solo te aviso lo importante. Nadie te molesta 🤫', [['🏠 Volver con la familia', salirCuarto, 'pri'], ['🌸 Mandar una flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true)]]); if(hablar) decir(`Estamos en ${c[5]}. Nadie te molesta.`); return; }
     escena(mias.length ? `${esc(YO.nombre)}, tenés ${mias.length} tarea${mias.length > 1 ? 's' : ''} 📋` : `${hola}, ${esc(YO.nombre)} 😊`, mias.length ? esc(mias[0].texto) : `Tenés ⭐${YO.estrellas || 0} estrellas. ¡Seguí así!`,
-      [...mias.slice(0, 2).map(a => [`✅ ${esc(a.texto).slice(0, 26)}`, () => resp(a, 'listo'), 'ok']), ['🌸 Mandar una flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true), 'pri'], YO.cuarto ? ['🏠 Volver con la familia', salirCuarto, 'chico'] : ['🚪 Me voy a mi cuarto', irCuarto, 'chico']]);
+      [...mias.slice(0, 2).map(a => [`✅ ${esc(a.texto).slice(0, 26)}`, () => resp(a, 'listo'), 'ok']), ['🌸 Mandar una flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true), 'pri'], YO.cuarto ? ['🏠 Volver con la familia', salirCuarto, 'chico'] : ['🚪 Me voy a mi lugar', irCuarto, 'chico']]);
     if(hablar) decir(mias.length ? `${YO.nombre}, tenés ${mias.length} tareas pendientes.` : `${hola}, ${YO.nombre}. Tenés ${YO.estrellas || 0} estrellas.`);
   }
 }

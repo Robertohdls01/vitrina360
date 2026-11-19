@@ -90,7 +90,7 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, pin });
     }
     if (a === 'cuarto') {
-      const ACT = ['', 'tele', 'tarea', 'dormir', 'jugar', 'musica', 'solo'];
+      const ACT = ['', 'galpon', 'cocina', 'tele', 'tarea', 'dormir', 'jugar', 'musica', 'solo'];
       yo.cuarto = ACT.includes(b.cuarto) ? b.cuarto : ''; await guardar(code, F);
       return res.status(200).json({ ok: true });
     }
