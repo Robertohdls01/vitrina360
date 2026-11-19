@@ -249,6 +249,11 @@ body.confondo{background:transparent}
 #sobre .albumhojas .alb{width:30%;aspect-ratio:3/4;top:58%}#sobre .albumhojas .alb.iz{left:28%;transform:translate(-50%,-50%) rotate(-1deg)}#sobre .albumhojas .alb.de{left:73%;transform:translate(-50%,-50%) rotate(1deg)}
 #sobre .albumglobos .alb{width:25%;aspect-ratio:4/5;top:67%}#sobre .albumglobos .alb.iz{left:29.5%}#sobre .albumglobos .alb.de{left:72.5%}
 #sobre .es.albumhojas .esnom{top:79%}#sobre .es.albumglobos .esnom{top:40%}
+#sobre.cuerpo .es .esft{left:50%!important;top:47%!important;width:64%!important;aspect-ratio:3/5!important;border-radius:50%!important;box-shadow:0 0 0 5px #f6dfa0,0 0 0 8px #c9a227,0 0 50px 14px rgba(255,210,130,.55)!important}
+#sobre.cuerpo .es .esft img{object-position:50% 30%}
+#sobre.cuerpo .es .es15{top:-2%!important;font-size:min(92vw,520px)!important;line-height:1!important;opacity:0;z-index:1!important;filter:drop-shadow(0 0 30px rgba(255,220,150,.6))!important}#sobre.cuerpo .es .es15.ve{opacity:.42}
+#sobre.cuerpo .es .esft{z-index:3!important}#sobre.cuerpo .es .esmis{position:absolute;left:0;right:0;top:3%;z-index:5;text-align:center;font:400 54px 'Great Vibes','Snell Roundhand',cursive;color:#f6e3a6;text-shadow:0 2px 14px rgba(0,0,0,.8);opacity:0;transition:opacity 1.2s}#sobre.cuerpo .es .esmis.ve{opacity:1}
+#sobre.cuerpo .es .esnom{top:86%!important}
 #sobre.luna{background:#0b1430;flex-direction:row;gap:0}
 #sobre .ln{position:relative;height:100%;aspect-ratio:9/16;flex:none;background:url(/img-fiesta/noche-sonada.jpg) center/cover no-repeat}
 #sobre .lnluz{position:absolute;left:20%;top:11.5%;width:59%;aspect-ratio:1;border-radius:50%;box-shadow:0 0 80px 30px rgba(255,226,140,.35);animation:lnLuz 4s ease-in-out infinite}
@@ -706,7 +711,7 @@ function sobre() {
   }
   if (ab === 'estrella') {
     // video 1: la estrella viene hacia la pantalla · golpe (destello, sacudón, vibración) · video 2: explota en corazones · aparece ella
-    o.classList.add('estr'); const ft = F.foto || '';
+    o.classList.add('estr'); const ft = F.fotoCuerpo || F.foto || ''; if (F.fotoCuerpo) { o.classList.add('cuerpo'); setTimeout(() => { const e = o.querySelector('.es'), n = o.querySelector('.es15'); if (!e || !n) return; const m = document.createElement('div'); m.className = 'esmis'; m.textContent = F.tipo === '15' ? t('Mis 15 años') : (F.nombre || ''); e.appendChild(m); new MutationObserver(() => { if (n.classList.contains('ve')) m.classList.add('ve'); }).observe(n, {attributes: true}); }, 0); }
     if (!document.getElementById('fGV')) { const l = document.createElement('link'); l.id = 'fGV'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap'; document.head.appendChild(l); }
     const num = F.tipo === '15' ? '15' : (F.edad ? String(F.edad) : '');
     o.innerHTML = `<div class="es"><video class="esv1" src="/img-fiesta/estrella-viene.mp4" poster="/img-fiesta/estrella-viene.jpg" muted playsinline preload="auto"></video><video class="esv2" src="/img-fiesta/estrella-explota.mp4" muted playsinline preload="auto"></video>${ft ? `<div class="esft"><img src="${esc(ft)}" alt=""></div>` : ''}${num ? `<div class="es15">${esc(num)}</div>` : ''}<div class="esnom">${esc(nom)}</div><div class="esond"></div><div class="esfl"></div><div class="estx"><b>${esc(nom)}</b><i>${esc(t('Tocá para comenzar'))}</i></div></div>`;
@@ -792,7 +797,7 @@ function sobre() {
   }
   if (ab === 'perfume') {
     // perfume de lujo girando; al tocar, destello, se destapa, sale la nube y aparece ella
-    o.classList.add('estr'); const ft = F.foto || '';
+    o.classList.add('estr'); const ft = F.fotoCuerpo || F.foto || ''; if (F.fotoCuerpo) { o.classList.add('cuerpo'); setTimeout(() => { const e = o.querySelector('.es'), n = o.querySelector('.es15'); if (!e || !n) return; const m = document.createElement('div'); m.className = 'esmis'; m.textContent = F.tipo === '15' ? t('Mis 15 años') : (F.nombre || ''); e.appendChild(m); new MutationObserver(() => { if (n.classList.contains('ve')) m.classList.add('ve'); }).observe(n, {attributes: true}); }, 0); }
     if (!document.getElementById('fGV')) { const l = document.createElement('link'); l.id = 'fGV'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap'; document.head.appendChild(l); }
     const num = F.tipo === '15' ? '15' : (F.edad ? String(F.edad) : '');
     o.innerHTML = `<div class="es carz perf" style="background-image:url(/img-fiesta/perfume-gira.jpg)"><video class="pv1" src="/img-fiesta/perfume-gira.mp4" poster="/img-fiesta/perfume-gira.jpg" muted playsinline autoplay loop preload="auto"></video><video class="esv2" src="/img-fiesta/perfume-abre.mp4" muted playsinline preload="auto"></video>${ft ? `<div class="esft"><img src="${esc(ft)}" alt=""></div>` : ''}${num ? `<div class="es15">${esc(num)}</div>` : ''}<div class="esnom">${esc(nom)}</div><div class="esfl"></div><div class="estx"><b>${esc(nom)}</b><i>${esc(t('Tocá para comenzar'))}</i></div></div>`;
@@ -822,7 +827,7 @@ function sobre() {
   if (ab === 'carroza' || ab === 'brindis' || ab === 'brindismar' || ab === 'copas' || ab === 'gotaoro' || ab === 'gotaplata' || ab === 'copasmanos' || ab === 'navidad' || ab === 'mesa15' || ab === 'salon15' || ab === 'libro' || ab === 'libro15' || ab === 'sobre15' || ab === 'sobre15rosa' || ab === 'super15' || ab === 'llegada15') {
     const CV = ({sobre15rosa: 'sobre15-rosa', brindismar: 'brindis-mariposas', gotaoro: 'gota-oro', gotaplata: 'gota-plata', copasmanos: 'copas-manos'})[ab] || ab, CQ = ({brindis: .45, brindismar: .42, copas: .6, gotaoro: .8, gotaplata: .32, copasmanos: .64, navidad: .46, mesa15: .58, salon15: .55, libro: .86, libro15: .84, sobre15: .6, sobre15rosa: .6, super15: .82, llegada15: .86})[ab] || .78;
     // la carroza con caballos alados baja del cielo, abre la puerta y de la luz sale ella
-    o.classList.add('estr'); const ft = F.foto || '';
+    o.classList.add('estr'); const ft = F.fotoCuerpo || F.foto || ''; if (F.fotoCuerpo) { o.classList.add('cuerpo'); setTimeout(() => { const e = o.querySelector('.es'), n = o.querySelector('.es15'); if (!e || !n) return; const m = document.createElement('div'); m.className = 'esmis'; m.textContent = F.tipo === '15' ? t('Mis 15 años') : (F.nombre || ''); e.appendChild(m); new MutationObserver(() => { if (n.classList.contains('ve')) m.classList.add('ve'); }).observe(n, {attributes: true}); }, 0); }
     if (!document.getElementById('fGV')) { const l = document.createElement('link'); l.id = 'fGV'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap'; document.head.appendChild(l); }
     const num = (ab === 'mesa15' || ab === 'libro15' || ab === 'sobre15' || ab === 'sobre15rosa' || ab === 'llegada15') ? '' : ab === 'navidad' ? t('¡Feliz Navidad!') : (F.tipo === '15' ? '15' : (F.edad ? String(F.edad) : ''));
     o.innerHTML = `<div class="es carz ${({brindismar: 'brindis', sobre15rosa: 'sobre15', super15: 'copas'})[ab] || ab}" style="background-image:url(/img-fiesta/${CV}.jpg)"><video class="esv1" src="/img-fiesta/${CV}.mp4" poster="/img-fiesta/${CV}.jpg" muted playsinline preload="auto"></video>${ft ? `<div class="esft"><img src="${esc(ft)}" alt=""></div>` : ''}${num ? `<div class="es15">${esc(num)}</div>` : ''}<div class="esnom">${esc(nom)}</div><div class="estx"><b>${esc(nom)}</b><i>${esc(t('Tocá para comenzar'))}</i></div></div>`;

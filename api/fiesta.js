@@ -102,7 +102,7 @@ const demoData = () => ({
   vestimenta: 'Elegante sport', estaciona: 'El salón tiene estacionamiento propio sin cargo. Si se llena, hay una cochera a media cuadra.', regalo: 'Lluvia de sobres o alias: JULI.15.FIESTA', mostrarMesa: true, pedirMenu: true,
   catering: 'Catering de ejemplo', mozas: ['Karina', 'Sofía', 'Lucía'], autos: true, salud: true, saludNom: 'Ambulancia de ejemplo', modoP: 'encargada', pk: 'demo', paquete: 'recuerdos', pagado: true,
   carta: CARTA_BASE(), crono: CRONO_BASE('21:30'), lugares: [{ n: 'Mesa de regalos', d: 'entrando, a la izquierda, al lado del cuadro de firmas' }, { n: 'Baños', d: 'al fondo del salón, pasando la pista a la derecha' }, { n: 'Barra', d: 'al lado de la pista, frente al DJ' }, { n: 'Rincón de fotos', d: 'junto a la entrada, con las luces' }],
-  foto: FOTO_DEMO(), historia: HIST_DEMO(), abre: 'super15', fondo: 'foto', vitNom: ['Mi familia', 'Mis amigas', 'Mis abuelos', 'Yo'], invitados: [
+  foto: FOTO_DEMO(), fotoCuerpo: '/demo15/cuerpo.jpg', historia: HIST_DEMO(), abre: 'super15', fondo: 'foto', vitNom: ['Mi familia', 'Mis amigas', 'Mis abuelos', 'Yo'], invitados: [
     { id: 'g1', nombre: 'Roberto Hernández', mesa: '2', menor: false, cupo: 1, tok: 'demoroberto' },
     { id: 'g2', nombre: 'Marta Gómez', mesa: '2', menor: false, cupo: 0, tok: 'demomarta' },
     { id: 'g3', nombre: 'Sofía Pérez', mesa: '7', menor: true, cupo: 0, tok: 'demosofia' },
@@ -111,7 +111,7 @@ const demoData = () => ({
 });
 // Fotos de ejemplo para la vitrina de la muestra (dibujos, sin personas reales).
 const HIST_DEMO = () => [['2011 · 1 añito', 3], ['2013 · Mis 3 años', 3], ['2016 · Primer día de clases', 1], ['2018 · Danza', 3], ['2020 · Mis 10', 0], ['2022 · Con mis amigas', 1], ['2023 · Con la abuela', 2], ['2025 · Mis 14', 3], ['2026 · Hoy, mis 15 ✨', 3]].map(([txt, g], k) => ({ txt, g, img: '/demo15/' + (k + 1) + '.jpg' }));
-const FOTO_DEMO = () => '/demo15/foto.jpg';
+const FOTO_DEMO = () => '/demo15/foto.jpg', CUERPO_DEMO = () => '/demo15/cuerpo.jpg';
 const CARTA_BASE = () => ['Coca-Cola', 'Coca-Cola Zero', 'Sprite', 'Agua sin gas', 'Agua con gas', 'Jugo de naranja', 'Trago sin alcohol', 'Fernet con coca*', 'Cerveza*', 'Vino tinto*', 'Vino blanco*', 'Champagne*', 'Hielo', 'Pan', 'Servilletas', 'Que limpien la mesa'].map(n => ({ n: n.replace('*', ''), alc: n.endsWith('*') }));
 const CRONO_BASE = h0 => { const [H, M] = String(h0 || '21:30').split(':').map(Number), at = mins => { const t = (H * 60 + M + mins) % 1440; return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
   return [[0, 'Recepción', 'Bienvenidos 🎉 Buscá tu mesa y pedí lo que quieras desde acá.', 0], [45, 'Entrada de la quinceañera', '✨ En 15 minutos entra la quinceañera. ¡Vení al salón!', 15], [60, 'Entrada (comida)', '🍽 Ya sale la entrada. Volvé a tu mesa.', 5], [120, 'Plato principal', '🍽 En 10 minutos sale el plato principal. Volvé a tu mesa.', 10], [180, 'Vals', '💃 En 15 minutos empieza el vals. ¡No te lo pierdas!', 15], [200, '¡A bailar!', '🪩 ¡A bailar! Se abre la pista para todos.', 0], [240, 'Ceremonia de velas', '🕯 En 15 minutos es la ceremonia de velas.', 15], [260, 'Brindis', '🥂 Se viene el brindis. ¡Llená tu copa!', 10], [270, 'Torta y mesa dulce', '🎂 Se acerca la hora de cortar la torta, y abre la mesa dulce. ¡Vení!', 0], [420, 'Fin de fiesta y souvenirs', '🎁 Antes de irte, retirá tu souvenir. ¡Gracias por venir!', 0]].map(([d, t, a, m]) => ({ h: at(d), t, a, m })); };
@@ -143,6 +143,11 @@ function limpiar(d, prev) {
     if (d.foto.length > 900000) throw Object.assign(new Error('La foto es muy pesada. Probá con otra.'), { st: 400 });
     o.foto = d.foto;
   } else o.foto = prev.foto || '';
+  // foto de cuerpo entero (con el vestido): se usa en las entradas, en un óvalo alto
+  if (typeof d.fotoCuerpo === 'string' && (d.fotoCuerpo === '' || /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(d.fotoCuerpo))) {
+    if (d.fotoCuerpo.length > 900000) throw Object.assign(new Error('La foto de cuerpo entero es muy pesada. Probá con otra.'), { st: 400 });
+    o.fotoCuerpo = d.fotoCuerpo;
+  } else o.fotoCuerpo = prev.fotoCuerpo || '';
   // Fondo de la invitación: '' (liso), 'foto' (la foto principal en grande) u otra foto propia.
   if (['', 'foto', 'oro', 'plata', 'oroplata'].includes(d.fondo)) o.fondo = d.fondo;
   else if (typeof d.fondo === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(d.fondo)) {
@@ -184,7 +189,7 @@ function limpiar(d, prev) {
 const VITS = ['arriba', 'pelicula', 'aro', 'alrededor', 'gira'];
 // Lo que puede ver cualquiera con el link de la fiesta (sin la lista de invitados ni claves).
 function publica(e) {
-  const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'fondo', 'historia', 'video', 'vitEstilo', 'vitNom', 'sinCor', 'sinPolvo', 'sinSobre', 'sinGlobos', 'abre', 'efTipo', 'flForma', 'organiza', 'autos', 'salud', 'saludNom', 'saludTel', 'seguridad', 'seguNom'].forEach(k => { o[k] = e[k]; });
+  const o = {}; ['code', 'demo', 'tipo', 'modo', 'plantilla', 'color', 'titulo', 'nombre', 'frase', 'fecha', 'hora', 'salon', 'direccion', 'vestimenta', 'regalo', 'estaciona', 'mostrarMesa', 'pedirMenu', 'foto', 'fotoCuerpo', 'fondo', 'historia', 'video', 'vitEstilo', 'vitNom', 'sinCor', 'sinPolvo', 'sinSobre', 'sinGlobos', 'abre', 'efTipo', 'flForma', 'organiza', 'autos', 'salud', 'saludNom', 'saludTel', 'seguridad', 'seguNom'].forEach(k => { o[k] = e[k]; });
   if (e.vitMax && e.paquete === 'invitacion' && VITS.indexOf(o.vitEstilo) > VITS.indexOf(e.vitMax)) o.vitEstilo = e.vitMax; // no muestra más de lo que compró
   o.total = (e.invitados || []).length; o.vivo = vivoOk(e); o.hoy = enDia(e) || !!e.demo || esAbierto(e);
   if (esAbierto(e)) { o.abierto = true; o.fecha = nocheDe(); }
