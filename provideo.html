@@ -58,6 +58,12 @@ h2{font-size:clamp(26px,3.6vw,36px);margin:0 0 8px;text-align:center}
 footer{padding:30px 0 40px;text-align:center;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
 footer b{color:var(--ink)}
 [hidden]{display:none!important}
+.inv{display:grid;grid-template-columns:260px 1fr;gap:28px;align-items:center}
+.inv .tel{width:240px;aspect-ratio:9/19.5;margin:0 auto;border-radius:32px;overflow:hidden;border:7px solid #1f1a14;box-shadow:0 18px 40px rgba(60,40,10,.3),0 0 0 2px #c9a227}
+.inv .tel video{width:100%;height:100%;object-fit:cover;display:block}
+.ents{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.ents a{background:#fff;border:2px solid #f1dfc4;border-radius:999px;padding:6px 12px;font-weight:700;font-size:14px;text-decoration:none;color:#7a5a1c}
+.pasos{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}.pasos div{background:#fff;border:2px solid #f1dfc4;border-radius:16px;padding:12px;font-size:15px;color:var(--muted)}.pasos b{display:block;color:var(--ink);font-size:16px}
+@media (max-width:860px){.inv{grid-template-columns:1fr}.pasos{grid-template-columns:1fr}}
 @media (max-width:860px){.grid,.why{grid-template-columns:1fr}.big{grid-column:auto;grid-template-columns:1fr}}
 </style>
 <script>try{var r=new URLSearchParams(location.search).get('ref');if(r&&/^[A-Za-z0-9]{3,16}$/.test(r))localStorage.setItem('v360-ref',JSON.stringify({c:r.toUpperCase(),t:Date.now()}))}catch(e){}</script>
@@ -98,6 +104,12 @@ footer b{color:var(--ink)}
           <h3>ShopMenu</h3>
           <p>El menú QR con una moza virtual: el cliente pide desde la mesa (o desde su máquina, en un casino) en 8 idiomas y el pedido llega directo a la barra.</p>
           <div class="acts"><a class="btn pri" href="/shopmenu">Conocer ShopMenu</a></div>
+        </article>
+        <article class="card">
+          <div class="ic">💌</div><div class="for">15 años, casamientos, bautismos y cumpleaños</div>
+          <h3>ShopFiesta · Invitaciones digitales</h3>
+          <p>Invitaciones que se viven como una película, con la foto real de la protagonista: confirmación de invitados, mapa, cuadro de firmas, Flashy en la fiesta y álbum de fotos.</p>
+          <div class="acts"><a class="btn pri" href="#invitaciones">Ver las invitaciones</a></div>
         </article>
         <article class="card">
           <div class="ic">🛠️</div><div class="for">Profesionales de oficios</div>
@@ -151,6 +163,42 @@ footer b{color:var(--ink)}
           <h3>Más productos en camino</h3>
           <p>Seguimos creando: asistentes que te explican tus libros y cursos, y más herramientas con IA.</p>
         </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="invitaciones" style="background:var(--warm)">
+    <div class="wrap">
+      <h2>💌 Invitaciones digitales que se viven como una película</h2>
+      <p class="sub">Se abren en el celular de cada invitado con una entrada que no vas a ver en ningún otro lado, y al final aparece ella, con su foto real.</p>
+      <div class="inv">
+        <div class="tel"><video src="/img-fiesta/portada-super.mp4" poster="/img-fiesta/portada-super.jpg" autoplay muted loop playsinline preload="metadata"></video></div>
+        <div>
+          <h3 style="margin-top:0">⭐ La Súper tarjeta</h3>
+          <p>Se abre la carta con el sello, llega ella en una carroza con caballos alados, salta el corcho del champán y las copas brindan: el celular vibra en el "chin chin" y aparece su foto con el 15 y su nombre.</p>
+          <p class="sub" style="text-align:left;margin:10px 0 4px">Tocá una y mirala en tu celular (con volumen):</p>
+          <div class="ents">
+            <a href="/fiesta/DEMO15?abre=super15" target="_blank" rel="noopener">⭐ Súper tarjeta</a>
+            <a href="/fiesta/DEMO15?abre=estrella" target="_blank" rel="noopener">🌠 Estrella fugaz que choca la pantalla</a>
+            <a href="/fiesta/DEMO15?abre=copas" target="_blank" rel="noopener">🥂 Copas que brindan</a>
+            <a href="/fiesta/DEMO15?abre=llegada15" target="_blank" rel="noopener">🐎 Llegada en carroza</a>
+            <a href="/fiesta/DEMO15?abre=relicario" target="_blank" rel="noopener">💛 Relicario</a>
+            <a href="/fiesta/DEMO15?abre=albumhojas" target="_blank" rel="noopener">📖 Álbum de su vida</a>
+            <a href="/fiesta/DEMO15?abre=sobre15rosa" target="_blank" rel="noopener">💌 Carta con sello</a>
+            <a href="/fiesta/DEMO15?abre=brindis" target="_blank" rel="noopener">🍾 Brindis dorado</a>
+            <a href="/fiesta/DEMO15?abre=perfume" target="_blank" rel="noopener">💗 Perfume de lujo</a>
+            <a href="/fiesta/DEMO15?abre=gotaoro" target="_blank" rel="noopener">💧 Gota de oro</a>
+            <a href="/fiesta/DEMO15?abre=luna" target="_blank" rel="noopener">🌙 Noche soñada</a>
+            <a href="/fiesta/DEMO15?abre=navidad" target="_blank" rel="noopener">🎄 Brindis de Navidad</a>
+          </div>
+          <div class="pasos">
+            <div><b>💌 Antes</b>La invitación con su entrada, su historia en fotos, mapa y confirmación de asistencia.</div>
+            <div><b>🥂 Durante</b>Flashy acompaña a cada invitado: su mesa, el horario y los pedidos. Y todos firman el cuadro.</div>
+            <div><b>📖 Después</b>El álbum digital con las fotos de la noche, para hojear y compartir.</div>
+          </div>
+          <div class="acts" style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn pri" href="/fiestas">Armar mi invitación</a><a class="btn wa" data-wa="Hola! Quiero una invitación digital de Pro Video." href="#" target="_blank" rel="noopener" hidden>💬 Pedila por WhatsApp</a></div>
+          <p class="sub" style="text-align:left;margin:12px 0 0;font-size:15px">Para 15 años, casamientos, bautismos, comuniones y cumpleaños. ¿Querés algo único? También diseñamos tu tarjeta a medida.</p>
+        </div>
       </div>
     </div>
   </section>
