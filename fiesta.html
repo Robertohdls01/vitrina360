@@ -214,6 +214,8 @@ body.confondo{background:transparent}
 #sobre .es.mesa15 .esnom{top:68%}
 #sobre .es.carz.salon15 .esft{left:50%;top:45%;width:52%}
 #sobre .es.salon15 .es15{top:5%}#sobre .es.salon15 .esnom{top:63%}
+#sobre .es.carz.libro .esft{left:52%;top:44%;width:52%;aspect-ratio:3/4;border-radius:6px;box-shadow:0 0 0 5px #f4e2b0,0 0 0 7px #b8892e,0 10px 30px rgba(60,30,0,.45)}
+#sobre .es.libro .es15{top:6%}#sobre .es.libro .esnom{top:69%;color:#8a6420;text-shadow:0 1px 0 #fff,0 0 12px rgba(255,255,255,.9)}
 #sobre .es.carz .esft{left:46%;top:45%;width:66%}
 #sobre .bo{position:relative;height:100%;width:100%;max-width:calc(100vh * 9 / 16);overflow:hidden;background:#04061a url(/img-fiesta/botella.jpg) center/cover}
 #sobre .bo video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;-webkit-mask:radial-gradient(34% 46% at 50% 52%,#000 90%,transparent 100%);mask:radial-gradient(34% 46% at 50% 52%,#000 90%,transparent 100%)}
@@ -627,7 +629,7 @@ function sobre() {
   try { if (sessionStorage.getItem('sobre_' + CODE)) return; } catch (e) {}
   sobre.una = true;
   const nom = F.nombre || '', ini = F.tipo === '15' ? '15' : (nom.trim()[0] || '♥').toUpperCase();
-  let ab = F.abre || 'sobre'; if (F.demo) { const q = new URLSearchParams(location.search).get('abre'); if (['sobre', 'cofre', 'cofreplata', 'luna', 'relicario', 'estrella', 'carroza', 'botella', 'botellawhisky', 'brindis', 'perfume', 'copas', 'brindismar', 'gotaoro', 'gotaplata', 'copasmanos', 'navidad', 'mesa15', 'salon15'].includes(q)) ab = q; }
+  let ab = F.abre || 'sobre'; if (F.demo) { const q = new URLSearchParams(location.search).get('abre'); if (['sobre', 'cofre', 'cofreplata', 'luna', 'relicario', 'estrella', 'carroza', 'botella', 'botellawhisky', 'brindis', 'perfume', 'copas', 'brindismar', 'gotaoro', 'gotaplata', 'copasmanos', 'navidad', 'mesa15', 'salon15', 'libro'].includes(q)) ab = q; }
   const o = document.createElement('div'); o.id = 'sobre';
   if (ab === 'cofre' || ab === 'cofreplata' || ab === 'relicario') {
     const rel = ab === 'relicario', ft = F.foto || '', V = rel ? 'relicario' : 'cofre';
@@ -742,8 +744,8 @@ function sobre() {
     };
     return;
   }
-  if (ab === 'carroza' || ab === 'brindis' || ab === 'brindismar' || ab === 'copas' || ab === 'gotaoro' || ab === 'gotaplata' || ab === 'copasmanos' || ab === 'navidad' || ab === 'mesa15' || ab === 'salon15') {
-    const CV = ({brindismar: 'brindis-mariposas', gotaoro: 'gota-oro', gotaplata: 'gota-plata', copasmanos: 'copas-manos'})[ab] || ab, CQ = ({brindis: .45, brindismar: .42, copas: .6, gotaoro: .8, gotaplata: .32, copasmanos: .64, navidad: .46, mesa15: .58, salon15: .55})[ab] || .78;
+  if (ab === 'carroza' || ab === 'brindis' || ab === 'brindismar' || ab === 'copas' || ab === 'gotaoro' || ab === 'gotaplata' || ab === 'copasmanos' || ab === 'navidad' || ab === 'mesa15' || ab === 'salon15' || ab === 'libro') {
+    const CV = ({brindismar: 'brindis-mariposas', gotaoro: 'gota-oro', gotaplata: 'gota-plata', copasmanos: 'copas-manos'})[ab] || ab, CQ = ({brindis: .45, brindismar: .42, copas: .6, gotaoro: .8, gotaplata: .32, copasmanos: .64, navidad: .46, mesa15: .58, salon15: .55, libro: .86})[ab] || .78;
     // la carroza con caballos alados baja del cielo, abre la puerta y de la luz sale ella
     o.classList.add('estr'); const ft = F.foto || '';
     if (!document.getElementById('fGV')) { const l = document.createElement('link'); l.id = 'fGV'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap'; document.head.appendChild(l); }
