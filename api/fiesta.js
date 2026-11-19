@@ -155,7 +155,7 @@ function limpiar(d, prev) {
   } else o.historia = prev.historia || [];
   o.flForma = ['corazon', 'normal'].includes(d.flForma) ? d.flForma : (prev.flForma || '');
   o.efTipo = ['corazones', 'flores', 'estrellas', 'mariposas', 'mezcla', 'boda', 'oroplata'].includes(d.efTipo) ? d.efTipo : (prev.efTipo || 'corazones');
-  o.abre = ['sobre', 'cofre', 'cofreplata', 'luna', 'relicario', 'estrella', 'carroza', 'botella', 'botellawhisky', 'brindis', 'perfume', 'copas', 'brindismar', 'gotaoro', 'gotaplata'].includes(d.abre) ? d.abre : (prev.abre || 'sobre');
+  o.abre = ['sobre', 'cofre', 'cofreplata', 'luna', 'relicario', 'estrella', 'carroza', 'botella', 'botellawhisky', 'brindis', 'perfume', 'copas', 'brindismar', 'gotaoro', 'gotaplata', 'copasmanos'].includes(d.abre) ? d.abre : (prev.abre || 'sobre');
   ['sinCor', 'sinPolvo', 'sinSobre', 'sinGlobos'].forEach(k => { o[k] = typeof d[k] === 'boolean' ? d[k] : !!prev[k]; }); // efectos opcionales (vienen prendidos)
   o.vitNom = Array.isArray(d.vitNom) ? [0, 1, 2, 3].map(i => corto(d.vitNom[i], 22)) : (prev.vitNom || []);
   o.vitEstilo = ['arriba', 'pelicula', 'aro', 'alrededor', 'gira'].includes(d.vitEstilo) ? d.vitEstilo : (prev.vitEstilo || 'arriba');

@@ -206,6 +206,8 @@ body.confondo{background:transparent}
 #sobre .es.copas .es15{top:5%}#sobre .es.copas .esnom{top:56%}
 #sobre .es.carz.gotaoro .esft,#sobre .es.carz.gotaplata .esft{left:50%;top:44%;width:70%}
 #sobre .es.gotaoro .es15,#sobre .es.gotaplata .es15{filter:drop-shadow(0 0 3px rgba(60,30,0,.9)) drop-shadow(0 3px 10px rgba(0,0,0,.7))}#sobre .es.gotaoro .esnom,#sobre .es.gotaplata .esnom{text-shadow:0 0 4px rgba(0,0,0,.9),0 2px 14px rgba(0,0,0,.8)}
+#sobre .es.carz.copasmanos .esft{left:50%;top:41%;width:62%}
+#sobre .es.copasmanos .es15{top:3%}#sobre .es.copasmanos .esnom{top:76%}
 #sobre .es.carz .esft{left:46%;top:45%;width:66%}
 #sobre .bo{position:relative;height:100%;width:100%;max-width:calc(100vh * 9 / 16);overflow:hidden;background:#04061a url(/img-fiesta/botella.jpg) center/cover}
 #sobre .bo video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;-webkit-mask:radial-gradient(34% 46% at 50% 52%,#000 90%,transparent 100%);mask:radial-gradient(34% 46% at 50% 52%,#000 90%,transparent 100%)}
@@ -619,7 +621,7 @@ function sobre() {
   try { if (sessionStorage.getItem('sobre_' + CODE)) return; } catch (e) {}
   sobre.una = true;
   const nom = F.nombre || '', ini = F.tipo === '15' ? '15' : (nom.trim()[0] || '♥').toUpperCase();
-  let ab = F.abre || 'sobre'; if (F.demo) { const q = new URLSearchParams(location.search).get('abre'); if (['sobre', 'cofre', 'cofreplata', 'luna', 'relicario', 'estrella', 'carroza', 'botella', 'botellawhisky', 'brindis', 'perfume', 'copas', 'brindismar', 'gotaoro', 'gotaplata'].includes(q)) ab = q; }
+  let ab = F.abre || 'sobre'; if (F.demo) { const q = new URLSearchParams(location.search).get('abre'); if (['sobre', 'cofre', 'cofreplata', 'luna', 'relicario', 'estrella', 'carroza', 'botella', 'botellawhisky', 'brindis', 'perfume', 'copas', 'brindismar', 'gotaoro', 'gotaplata', 'copasmanos'].includes(q)) ab = q; }
   const o = document.createElement('div'); o.id = 'sobre';
   if (ab === 'cofre' || ab === 'cofreplata' || ab === 'relicario') {
     const rel = ab === 'relicario', ft = F.foto || '', V = rel ? 'relicario' : 'cofre';
@@ -734,8 +736,8 @@ function sobre() {
     };
     return;
   }
-  if (ab === 'carroza' || ab === 'brindis' || ab === 'brindismar' || ab === 'copas' || ab === 'gotaoro' || ab === 'gotaplata') {
-    const CV = ({brindismar: 'brindis-mariposas', gotaoro: 'gota-oro', gotaplata: 'gota-plata'})[ab] || ab, CQ = ({brindis: .45, brindismar: .42, copas: .6, gotaoro: .8, gotaplata: .32})[ab] || .78;
+  if (ab === 'carroza' || ab === 'brindis' || ab === 'brindismar' || ab === 'copas' || ab === 'gotaoro' || ab === 'gotaplata' || ab === 'copasmanos') {
+    const CV = ({brindismar: 'brindis-mariposas', gotaoro: 'gota-oro', gotaplata: 'gota-plata', copasmanos: 'copas-manos'})[ab] || ab, CQ = ({brindis: .45, brindismar: .42, copas: .6, gotaoro: .8, gotaplata: .32, copasmanos: .36})[ab] || .78;
     // la carroza con caballos alados baja del cielo, abre la puerta y de la luz sale ella
     o.classList.add('estr'); const ft = F.foto || '';
     if (!document.getElementById('fGV')) { const l = document.createElement('link'); l.id = 'fGV'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap'; document.head.appendChild(l); }
@@ -753,7 +755,7 @@ function sobre() {
     };
     let chin = false;
     v.ontimeupdate = () => {
-      if (ab === 'copas' && !chin && v.currentTime > 3.85) { chin = true; if (navigator.vibrate) navigator.vibrate([60, 30, 120]); const e = o.querySelector('.es'); e.classList.add('tiembla'); }
+      if ((ab === 'copas' && !chin && v.currentTime > 3.85) || (ab === 'copasmanos' && !chin && v.currentTime > 2.9)) { chin = true; if (navigator.vibrate) navigator.vibrate([60, 30, 120]); const e = o.querySelector('.es'); e.classList.add('tiembla'); }
       if (v.duration && v.currentTime > v.duration * CQ) final();
     };
     v.onended = final;
@@ -761,7 +763,7 @@ function sobre() {
       if (o.classList.contains('abre')) return; o.classList.add('abre');
       try { sessionStorage.setItem('sobre_' + CODE, '1'); } catch (e) {}
       if (MUS && MUS.paused && !musica.parada) MUS.play().catch(() => {});
-      if (ab === 'copas' || ab === 'brindis') {
+      if (ab === 'copas' || ab === 'brindis' || ab === 'copasmanos') {
         // el video trae su propio sonido (se acercan, chin chin / corcho): suena encima de la canción, que baja un poco
         v.muted = false; v.volume = 1; v.playbackRate = 1;
         if (MUS) { const vol0 = MUS.volume; MUS.volume = Math.min(vol0, .35); setTimeout(() => { MUS.volume = vol0; }, 8500); }
