@@ -146,6 +146,8 @@ const esPadre = () => YO && YO.rol === 'padre';
 // ---------- entrar / crear ----------
 function inicio(){
   const c = (Q.get('c') || '').toUpperCase();
+  if(c && Q.get('p')) return unirseDirecto(c, Q.get('p'));
+  if(c && Q.get('r') === 'h') return unirseDirecto(c, '');
   if(c) return unirse(c);
   escena('¡Hola! Soy <b>Flashy</b> 👋', 'Organizo tu familia y la hago más divertida', [['👨‍👩‍👧 Crear mi familia', crear, 'pri'], ['🔑 Tengo un código', () => pedir('¿Cuál es el código de tu familia?', 'Ej: K7P2QX', v => unirse(v.toUpperCase()))]]);
   setTimeout(() => decir('¡Hola! Soy Flashy. Organizo tu familia, y la hago más divertida.'), 400);
@@ -168,6 +170,11 @@ async function unirse(code){
   escena(`¡Te están esperando en la familia <b>${esc(fam)}</b>! 🎉`, '¿Sos mamá/papá o hijo/a?', [['👧👦 Soy hijo/a', () => datos(code, ''), 'pri'], ['👩👨 Soy mamá/papá', () => pedir('Escribí el PIN de mamá/papá', 'Son 4 números', pin => datos(code, pin), 'Lo tiene quien creó la familia')]]);
   decir(`¡Te están esperando en la familia ${fam}!`);
 }
+async function unirseDirecto(code, pin){
+  let fam = ''; try{ const r = await fetch('/api/familia?code=' + encodeURIComponent(code)); const j = await r.json(); if(!r.ok) throw new Error(j.error); fam = j.familia; }catch(e){ return escena('😕 ' + esc(e.message || 'No encontré esa familia'), 'Pedí que te muestren el QR de nuevo', [['Volver', () => { history.replaceState(null, '', '/familia'); inicio(); }]]); }
+  escena(`¡Te están esperando en ${/^familia\b/i.test(fam) ? 'la ' + esc(fam) : 'la familia <b>' + esc(fam) + '</b>'}! 🎉`, pin ? 'Entrás como mamá/papá' : '', [['¡Vamos! ➜', () => datos(code, pin), 'pri']]);
+  decir(`¡Te están esperando en la familia ${fam.replace(/^familia\s*/i, '')}!`);
+}
 function datos(code, pin){
   pedir('¿Cómo te llamás?', 'Tu nombre', nombre => elegirEmoji('Elegí tu dibujito', async emoji => {
     try{ const j = await api('unirse', {code, nombre, emoji, pin}); S = {code, mid: j.mid, k: j.k}; localStorage.setItem('familia', JSON.stringify(S)); history.replaceState(null, '', '/familia'); await cargar(); principal(true); }
@@ -175,14 +182,20 @@ function datos(code, pin){
 }
 let QRLIB = null;
 function cargarQR(){ return QRLIB || (QRLIB = new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); })); }
-async function invitar(pin, nuevo){
-  if(!pin && esPadre()){ try{ pin = (await api('pin', S)).pin; }catch(e){} }
-  const link = location.origin + '/familia?c=' + S.code, txt = `¡Sumate a nuestra familia en ShopFamilia! 🏠 Flashy nos organiza. Entrá acá: ${link}`;
+function invitar(pin, nuevo){
+  if(!esPadre()) return mostrarQR('', nuevo);
+  escena(nuevo ? '¡Listo! Ya tenés tu familia 🎉' : '¿A quién vas a sumar?', nuevo ? '¿A quién sumamos primero?' : 'Cada uno tiene su propio QR', [['👧👦 Un hijo/a', () => mostrarQR('', nuevo), 'pri'], ['👩👨 Mamá o papá', () => mostrarQR('padre', nuevo), 'pri'], ['Después', () => principal(true), 'chico']]);
+  decir(nuevo ? '¡Listo! Ya tenés tu familia. ¿A quién sumamos primero?' : '¿A quién vas a sumar?');
+}
+async function mostrarQR(tipo, nuevo){
+  let pin = ''; if(tipo === 'padre'){ try{ pin = (await api('pin', S)).pin; }catch(e){ return alert(e.message); } }
+  const link = location.origin + '/familia?c=' + S.code + (pin ? '&p=' + pin : '&r=h');
+  const txt = pin ? `¡Sumate como mamá/papá a nuestra familia en ShopFamilia! 🏠 Entrá acá: ${link}` : `¡Sumate a nuestra familia en ShopFamilia! 🏠 Flashy nos organiza. Entrá acá: ${link}`;
   let qr = ''; try{ await cargarQR(); const q = qrcode(0, 'M'); q.addData(link); q.make(); qr = q.createSvgTag({cellSize: 6, margin: 2, scalable: true}); }catch(e){}
   if(qr) PAN = `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="width:min(46vw,190px);aspect-ratio:1">${qr.replace('<svg ', '<svg style="width:100%;height:100%" ')}</div><div class="tit">📷 Escaneá para sumarte</div></div>`;
-  escena(nuevo ? '¡Listo! Ya tenés tu familia 🎉' : 'Sumar a la familia', `Código: <b style="font-size:22px;color:#e2457f">${S.code}</b>${pin ? `<br>PIN de mamá/papá: <b>${pin}</b> (solo para mamá/papá, no se lo des a los chicos)` : ''}`,
-    [['Seguir ➜', () => principal(true), 'pri'], ['📲 Mandar por WhatsApp', () => open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank')]]);
-  decir(nuevo ? '¡Listo! Ya tenés tu familia. Que cada uno escanee este código con la cámara del celular para sumarse.' : 'Que escanee este código con la cámara del celular.');
+  escena(pin ? 'QR para mamá o papá 👩👨' : 'QR para los chicos 👧👦', pin ? 'Ya trae la clave adentro. No se lo muestres a los chicos 🤫' : `Escaneá con la cámara · Código: <b style="color:#e2457f">${S.code}</b>`,
+    [['Listo ➜', () => principal(true), 'pri'], ['📲 Mandar por WhatsApp', () => open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank')], ...(esPadre() ? [[pin ? '👧 QR de los chicos' : '👩 QR de mamá/papá', () => mostrarQR(pin ? '' : 'padre', false), 'chico']] : [])]);
+  decir(pin ? 'Este es el código para mamá o papá. Que lo escaneen con la cámara.' : 'Que escanee este código con la cámara del celular.');
 }
 
 // ---------- la familia ----------
