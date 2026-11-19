@@ -97,7 +97,7 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 #abrirInv.fuera{opacity:0;pointer-events:none}
 body.m-oro,body.m-plata,body.m-oroplata{background-attachment:fixed;--line:rgba(255,255,255,.55)}
 body.m-oro{background:linear-gradient(135deg,#b8862b 0%,#f3d27a 18%,#fff1c1 30%,#d9a93f 45%,#a8761f 58%,#f0cf7a 72%,#fff3cc 82%,#c08f2f 100%) fixed}
-body.m-plata{background:linear-gradient(135deg,#9aa0a8 0%,#e3e6ea 18%,#ffffff 30%,#c4c8cf 45%,#8d939b 58%,#dfe2e6 72%,#fbfbfc 82%,#a4a9b1 100%) fixed}
+body.m-plata{background:#d9dce0 url(/img-fiesta/fondo-plata.jpg) center/cover fixed}
 body.m-oroplata{background:linear-gradient(135deg,#b8862b 0%,#f3d27a 16%,#fff3cc 26%,#d4d7dc 40%,#ffffff 50%,#a9aeb6 60%,#f0cf7a 74%,#fff1c1 84%,#9aa0a8 100%) fixed}
 body.m-oro::before,body.m-plata::before,body.m-oroplata::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.45) 45%,transparent 60%) 0 0/250% 100%;animation:mBri 6s ease-in-out infinite}
 @keyframes mBri{0%{background-position:120% 0}100%{background-position:-120% 0}}
@@ -200,6 +200,8 @@ body.confondo{background:transparent}
 #sobre .es.perf .es15{top:4%}#sobre .es.perf .esnom{top:49%}
 #sobre .es.carz.copas .esft{left:50%;top:36%;width:60%}
 #sobre .es.copas .es15{top:5%}#sobre .es.copas .esnom{top:56%}
+#sobre .es.carz.gotaoro .esft,#sobre .es.carz.gotaplata .esft{left:50%;top:44%;width:70%}
+#sobre .es.gotaoro .es15,#sobre .es.gotaplata .es15{filter:drop-shadow(0 0 3px rgba(60,30,0,.9)) drop-shadow(0 3px 10px rgba(0,0,0,.7))}#sobre .es.gotaoro .esnom,#sobre .es.gotaplata .esnom{text-shadow:0 0 4px rgba(0,0,0,.9),0 2px 14px rgba(0,0,0,.8)}
 #sobre .es.carz .esft{left:46%;top:45%;width:66%}
 #sobre .bo{position:relative;height:100%;width:100%;max-width:calc(100vh * 9 / 16);overflow:hidden;background:#04061a url(/img-fiesta/botella.jpg) center/cover}
 #sobre .bo video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;-webkit-mask:radial-gradient(34% 46% at 50% 52%,#000 90%,transparent 100%);mask:radial-gradient(34% 46% at 50% 52%,#000 90%,transparent 100%)}
@@ -603,7 +605,7 @@ function sobre() {
   try { if (sessionStorage.getItem('sobre_' + CODE)) return; } catch (e) {}
   sobre.una = true;
   const nom = F.nombre || '', ini = F.tipo === '15' ? '15' : (nom.trim()[0] || '♥').toUpperCase();
-  let ab = F.abre || 'sobre'; if (F.demo) { const q = new URLSearchParams(location.search).get('abre'); if (['sobre', 'cofre', 'cofreplata', 'luna', 'relicario', 'estrella', 'carroza', 'botella', 'botellawhisky', 'brindis', 'perfume', 'copas', 'brindismar'].includes(q)) ab = q; }
+  let ab = F.abre || 'sobre'; if (F.demo) { const q = new URLSearchParams(location.search).get('abre'); if (['sobre', 'cofre', 'cofreplata', 'luna', 'relicario', 'estrella', 'carroza', 'botella', 'botellawhisky', 'brindis', 'perfume', 'copas', 'brindismar', 'gotaoro', 'gotaplata'].includes(q)) ab = q; }
   const o = document.createElement('div'); o.id = 'sobre';
   if (ab === 'cofre' || ab === 'cofreplata' || ab === 'relicario') {
     const rel = ab === 'relicario', ft = F.foto || '', V = rel ? 'relicario' : 'cofre';
@@ -718,8 +720,8 @@ function sobre() {
     };
     return;
   }
-  if (ab === 'carroza' || ab === 'brindis' || ab === 'brindismar' || ab === 'copas') {
-    const CV = ab === 'brindismar' ? 'brindis-mariposas' : ab, CQ = ({brindis: .45, brindismar: .42, copas: .6})[ab] || .78;
+  if (ab === 'carroza' || ab === 'brindis' || ab === 'brindismar' || ab === 'copas' || ab === 'gotaoro' || ab === 'gotaplata') {
+    const CV = ({brindismar: 'brindis-mariposas', gotaoro: 'gota-oro', gotaplata: 'gota-plata'})[ab] || ab, CQ = ({brindis: .45, brindismar: .42, copas: .6, gotaoro: .8, gotaplata: .58})[ab] || .78;
     // la carroza con caballos alados baja del cielo, abre la puerta y de la luz sale ella
     o.classList.add('estr'); const ft = F.foto || '';
     if (!document.getElementById('fGV')) { const l = document.createElement('link'); l.id = 'fGV'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap'; document.head.appendChild(l); }
