@@ -176,10 +176,11 @@ function datos(code, pin){
 let QRLIB = null;
 function cargarQR(){ return QRLIB || (QRLIB = new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); })); }
 async function invitar(pin, nuevo){
+  if(!pin && esPadre()){ try{ pin = (await api('pin', S)).pin; }catch(e){} }
   const link = location.origin + '/familia?c=' + S.code, txt = `¡Sumate a nuestra familia en ShopFamilia! 🏠 Flashy nos organiza. Entrá acá: ${link}`;
   let qr = ''; try{ await cargarQR(); const q = qrcode(0, 'M'); q.addData(link); q.make(); qr = q.createSvgTag({cellSize: 6, margin: 2, scalable: true}); }catch(e){}
   if(qr) PAN = `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="width:min(46vw,190px);aspect-ratio:1">${qr.replace('<svg ', '<svg style="width:100%;height:100%" ')}</div><div class="tit">📷 Escaneá para sumarte</div></div>`;
-  escena(nuevo ? '¡Listo! Ya tenés tu familia 🎉' : 'Sumar a la familia', `Código: <b style="font-size:22px;color:#e2457f">${S.code}</b>${pin ? `<br>PIN de mamá/papá: <b>${pin}</b> (guardalo, no se lo des a los chicos)` : ''}`,
+  escena(nuevo ? '¡Listo! Ya tenés tu familia 🎉' : 'Sumar a la familia', `Código: <b style="font-size:22px;color:#e2457f">${S.code}</b>${pin ? `<br>PIN de mamá/papá: <b>${pin}</b> (solo para mamá/papá, no se lo des a los chicos)` : ''}`,
     [['Seguir ➜', () => principal(true), 'pri'], ['📲 Mandar por WhatsApp', () => open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank')]]);
   decir(nuevo ? '¡Listo! Ya tenés tu familia. Que cada uno escanee este código con la cámara del celular para sumarse.' : 'Que escanee este código con la cámara del celular.');
 }
