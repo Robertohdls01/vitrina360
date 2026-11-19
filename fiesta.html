@@ -817,7 +817,7 @@ function sobre() {
     return;
   }
   if (ab === 'carroza' || ab === 'brindis' || ab === 'brindismar' || ab === 'copas' || ab === 'gotaoro' || ab === 'gotaplata' || ab === 'copasmanos' || ab === 'navidad' || ab === 'mesa15' || ab === 'salon15' || ab === 'libro' || ab === 'libro15' || ab === 'sobre15' || ab === 'sobre15rosa' || ab === 'super15') {
-    const CV = ({sobre15rosa: 'sobre15-rosa', brindismar: 'brindis-mariposas', gotaoro: 'gota-oro', gotaplata: 'gota-plata', copasmanos: 'copas-manos'})[ab] || ab, CQ = ({brindis: .45, brindismar: .42, copas: .6, gotaoro: .8, gotaplata: .32, copasmanos: .64, navidad: .46, mesa15: .58, salon15: .55, libro: .86, libro15: .84, sobre15: .6, sobre15rosa: .6, super15: .72})[ab] || .78;
+    const CV = ({sobre15rosa: 'sobre15-rosa', brindismar: 'brindis-mariposas', gotaoro: 'gota-oro', gotaplata: 'gota-plata', copasmanos: 'copas-manos'})[ab] || ab, CQ = ({brindis: .45, brindismar: .42, copas: .6, gotaoro: .8, gotaplata: .32, copasmanos: .64, navidad: .46, mesa15: .58, salon15: .55, libro: .86, libro15: .84, sobre15: .6, sobre15rosa: .6, super15: .78})[ab] || .78;
     // la carroza con caballos alados baja del cielo, abre la puerta y de la luz sale ella
     o.classList.add('estr'); const ft = F.foto || '';
     if (!document.getElementById('fGV')) { const l = document.createElement('link'); l.id = 'fGV'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap'; document.head.appendChild(l); }
@@ -835,7 +835,7 @@ function sobre() {
     };
     let chin = false;
     v.ontimeupdate = () => {
-      if ((ab === 'copas' && !chin && v.currentTime > 3.85) || (ab === 'copasmanos' && !chin && v.currentTime > 5.6) || (ab === 'navidad' && !chin && v.currentTime > 3.45) || (ab === 'mesa15' && !chin && v.currentTime > 4.95) || (ab === 'salon15' && !chin && v.currentTime > 4.45) || (ab === 'super15' && !chin && v.currentTime > 12.55)) { chin = true; if (navigator.vibrate) navigator.vibrate([60, 30, 120]); const e = o.querySelector('.es'); e.classList.add('tiembla'); }
+      if ((ab === 'copas' && !chin && v.currentTime > 3.85) || (ab === 'copasmanos' && !chin && v.currentTime > 5.6) || (ab === 'navidad' && !chin && v.currentTime > 3.45) || (ab === 'mesa15' && !chin && v.currentTime > 4.95) || (ab === 'salon15' && !chin && v.currentTime > 4.45) || (ab === 'super15' && !chin && v.currentTime > 18.43)) { chin = true; if (navigator.vibrate) navigator.vibrate([60, 30, 120]); const e = o.querySelector('.es'); e.classList.add('tiembla'); }
       if (v.duration && v.currentTime > v.duration * CQ) final();
     };
     v.onended = final;
@@ -846,10 +846,10 @@ function sobre() {
       if (ab === 'copas' || ab === 'brindis' || ab === 'copasmanos' || ab === 'navidad' || ab === 'mesa15' || ab === 'salon15') {
         // el video trae su propio sonido (se acercan, chin chin / corcho): suena encima de la canción, que baja un poco
         v.muted = false; v.volume = 1; v.playbackRate = 1;
-        if (MUS) { const vol0 = MUS.volume; MUS.volume = Math.min(vol0, .35); setTimeout(() => { MUS.volume = vol0; }, ab === 'super15' ? 17000 : 8500); }
+        if (MUS) { const vol0 = MUS.volume; MUS.volume = Math.min(vol0, .35); setTimeout(() => { MUS.volume = vol0; }, ab === 'super15' ? 23000 : 8500); }
         v.play().catch(() => { v.muted = true; v.play().catch(final); });
       } else { v.playbackRate = 1.15; v.play().catch(final); }
-      setTimeout(final, ab === 'super15' ? 19000 : 10000);
+      setTimeout(final, ab === 'super15' ? 25000 : 10000);
     };
     return;
   }
