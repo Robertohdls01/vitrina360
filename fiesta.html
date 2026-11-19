@@ -103,7 +103,7 @@ body.m-oro::before,body.m-plata::before,body.m-oroplata::before{content:"";posit
 @keyframes mBri{0%{background-position:120% 0}100%{background-position:-120% 0}}
 #fondovid{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;pointer-events:none}
 body.m-oro::before,body.m-plata::before{display:none}
-body.m-oro #fondovid{opacity:.72}body.m-plata #fondovid{opacity:.8}
+body.m-oro #fondovid{opacity:.55;filter:blur(2px)}body.m-plata #fondovid{opacity:.6;filter:blur(2px)}
 body.m-oro .hero,body.m-plata .hero,body.m-oroplata .hero{text-shadow:0 0 10px rgba(255,255,255,.95),0 0 3px rgba(255,255,255,.9)}
 #fondo{position:fixed;inset:0;z-index:-1;background:center/cover no-repeat;pointer-events:none}
 #fondo:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(250,249,246,.55),rgba(250,249,246,.78) 45%,rgba(250,249,246,.88))}
@@ -354,6 +354,7 @@ body.confondo{background:transparent}
 html,body{overflow-x:hidden;max-width:100%}
 @keyframes flhabla{from{transform:translateY(0) scale(1)}to{transform:translateY(-4px) scale(1.04)}}
 .flwave{transform-origin:10px 70px;animation:flw 1.2s ease-in-out infinite alternate}@keyframes flw{from{transform:rotate(-20deg)}to{transform:rotate(25deg)}}
+#flb .flvol{display:flex;align-items:center;gap:8px;margin:8px 0 2px;font-size:15px}#flb .flvol input{flex:1;accent-color:#e2457f;height:28px}
 #flb{display:none;background:#fff;color:#1f2937;border-radius:20px 20px 6px 20px;padding:14px;width:min(340px,calc(100vw - 20px));box-shadow:0 14px 34px rgba(0,0,0,.25);font:600 18px/1.35 var(--sans)}
 #flb.on{display:block;animation:baja .3s ease}
 #flb .tx{margin-bottom:10px}#flb .ops{display:flex;flex-wrap:wrap;gap:8px}
@@ -596,7 +597,7 @@ function fondo() {
     if (u !== 'oroplata' && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       let v = document.getElementById('fondovid'); if (!v) { v = document.createElement('video'); v.id = 'fondovid'; v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.setAttribute('muted', ''); document.body.prepend(v); }
       const src = '/img-fiesta/fondo-' + u + '.mp4'; if (!v.src.endsWith(src)) v.src = src;
-      const pl = () => v.play().catch(() => {}); pl(); document.addEventListener('click', pl, {once: true});
+      v.defaultPlaybackRate = .35; v.playbackRate = .35; v.onloadeddata = () => { v.playbackRate = .35; }; const pl = () => v.play().then(() => { v.playbackRate = .35; }).catch(() => {}); pl(); document.addEventListener('click', pl, {once: true});
     }
     return;
   }
@@ -1503,6 +1504,7 @@ function escena(texto) {
 const conNombre = t => { if (!INV) return t; const nom = INV.nombre.split(' ')[0]; const mm = String(t).match(/^(\p{Extended_Pictographic}\uFE0F?\s*)(.)(.*)$/u); return mm ? `${mm[1]}${nom}, ${mm[2].toLowerCase()}${mm[3]}` : `${nom}, ${String(t).charAt(0).toLowerCase()}${String(t).slice(1)}`; };
 // ===== Flashy, el asistente del invitado =====
 let FL = false, flVoz = false, flPend = null;
+let flVol = (() => { try { const v = parseFloat(localStorage.getItem('flVol')); return isNaN(v) ? .8 : v; } catch (e) { return .8; } })();
 const norm = x => sinT(String(x).toLowerCase()).replace(/[^\p{L}\p{N} ]/gu, ' ').replace(/\s+/g, ' ').trim();
 function sinT(t) { return t.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
 const NUMS = {un: 1, una: 1, uno: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, par: 2, a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, um: 1, duas: 2, tres: 3, quatro: 4, due: 2, tre: 3, quattro: 4, une: 1, deux: 2, trois: 3, quatre: 4, ein: 1, eine: 1, einen: 1, zwei: 2, drei: 3, vier: 4};
@@ -1531,15 +1533,16 @@ function flVozDe() { const vs = speechSynthesis.getVoices(), L = I18N.VOZ.toLowe
   return vs.find(v => lg(v) === L && buena(v)) || vs.find(v => lg(v).startsWith(p) && buena(v)) || vs.find(v => lg(v) === L && v.localService) || vs.find(v => lg(v) === L) || vs.find(v => lg(v).startsWith(p)); }
 function flHablar(t) {
   if (!flVoz || document.hidden || !('speechSynthesis' in window)) return;
-  try { const ya = speechSynthesis.speaking || speechSynthesis.pending; if (ya) speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(String(t).replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu, '').slice(0, 200)); u.lang = I18N.VOZ; const v = flVozDe(); if (v) u.voice = v; u.rate = 1.05; u.pitch = v && /\bmale\b|hombre|jorge|diego|pablo|juan|carlos|enrique|raul|raúl|andres|andrés|jose|josé|daniel|felipe|antonio|miguel|reed|eddy|rocko/i.test(v.name) ? 1.05 : 0.85; u.volume = .85;
+  try { const ya = speechSynthesis.speaking || speechSynthesis.pending; if (ya) speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(String(t).replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu, '').slice(0, 200)); u.lang = I18N.VOZ; const v = flVozDe(); if (v) u.voice = v; u.rate = 1.05; u.pitch = v && /\bmale\b|hombre|jorge|diego|pablo|juan|carlos|enrique|raul|raúl|andres|andrés|jose|josé|daniel|felipe|antonio|miguel|reed|eddy|rocko/i.test(v.name) ? 1.05 : 0.85; u.volume = Math.min(1, .45 + flVol * .55);
     // mientras Flashy habla, la música baja para que no se sature el parlante
-    u.onstart = () => { $('#fl').classList.add('habla'); if (MUS && !MUS.paused) MUS.volume = .15; }; u.onend = u.onerror = () => { $('#fl').classList.remove('habla'); if (MUS) MUS.volume = .7; }; if (ya) setTimeout(() => speechSynthesis.speak(u), 120); else speechSynthesis.speak(u); } catch (e) {}
+    u.onstart = () => { $('#fl').classList.add('habla'); if (MUS && !MUS.paused) MUS.volume = Math.max(0, .22 - flVol * .22); }; u.onend = u.onerror = () => { $('#fl').classList.remove('habla'); if (MUS) MUS.volume = .7; }; if (ya) setTimeout(() => speechSynthesis.speak(u), 120); else speechSynthesis.speak(u); } catch (e) {}
 }
 function flDecir(texto, ops, conEscribir) {
   if (!FL) return; const b = $('#flb');
-  b.innerHTML = `<button class="cerrar" aria-label="${t('Cerrar')}">✕</button><div class="tx">${esc(texto)}</div><div class="ops">${(ops || []).map((o, i) => `<button class="op ${o.alt ? 'alt' : ''}" data-flo="${i}">${esc(o.t)}</button>`).join('')}</div>${conEscribir ? `<div class="esc"><input id="flin" placeholder="${t('Ej: dos cocas y un agua, o ¿dónde está el baño?')}"><button id="flmic" aria-label="${t('Hablar')}">🎤</button><button id="flok" aria-label="${t('Enviar')}">➤</button></div>` : ''}`;
+  b.innerHTML = `<button class="cerrar" aria-label="${t('Cerrar')}">✕</button><div class="tx">${esc(texto)}</div><div class="flvol"><span>🔈</span><input type="range" min="0" max="1" step="0.05" value="${flVol}" aria-label="${t('Volumen de Flashy')}"><span>🔊</span></div><div class="ops">${(ops || []).map((o, i) => `<button class="op ${o.alt ? 'alt' : ''}" data-flo="${i}">${esc(o.t)}</button>`).join('')}</div>${conEscribir ? `<div class="esc"><input id="flin" placeholder="${t('Ej: dos cocas y un agua, o ¿dónde está el baño?')}"><button id="flmic" aria-label="${t('Hablar')}">🎤</button><button id="flok" aria-label="${t('Enviar')}">➤</button></div>` : ''}`;
   b.classList.add('on'); flHablar(texto);
   b.querySelector('.cerrar').onclick = () => b.classList.remove('on');
+  const vr = b.querySelector('.flvol input'); if (vr) vr.onchange = () => { flVol = +vr.value; try { localStorage.setItem('flVol', flVol); } catch (e) {} flVoz = true; flHablar(t('Así me escuchás')); };
   b.querySelectorAll('[data-flo]').forEach(x => x.onclick = () => { flVoz = true; const o = ops[+x.dataset.flo]; o.f && o.f(); });
   const inp = $('#flin'); if (inp) { const ir = () => { const t = inp.value.trim(); if (t) flEntendi(t); }; $('#flok').onclick = ir; inp.onkeydown = e => { if (e.key === 'Enter') ir(); }; $('#flmic').onclick = flEscuchar; }
 }

@@ -187,6 +187,8 @@
     ["Apoyá el dedo gordo en el recuadro y queda tu huellita de corazón 👍", "Press your thumb on the box and leave a heart thumbprint 👍", "Apoie o polegar no quadro e fica sua digital de coração 👍", "Appoggia il pollice nel riquadro e resta un'impronta a cuore 👍", "Posez le pouce dans le cadre : une empreinte en cœur 👍", "Drück den Daumen ins Feld: ein Herz-Daumenabdruck 👍", "在框里按下拇指，留下爱心指纹 👍", "枠に親指を置くとハートの指紋が残ります 👍"],
     ["Apoyá la mano abierta, con al menos 3 dedos tocando la pantalla.", "Place your open hand with at least 3 fingers touching the screen.", "Apoie a mão aberta, com pelo menos 3 dedos tocando a tela.", "Appoggia la mano aperta, con almeno 3 dita sullo schermo.", "Posez la main ouverte, au moins 3 doigts sur l'écran.", "Lege die Hand offen auf, mindestens 3 Finger auf dem Bildschirm.", "请张开手，至少3根手指接触屏幕。", "手を開いて、少なくとも3本の指を画面に触れてください。"],
     ["¡Feliz Navidad!", "Merry Christmas!", "Feliz Natal!", "Buon Natale!", "Joyeux Noël !", "Frohe Weihnachten!", "圣诞快乐！", "メリークリスマス！"],
+    ["Volumen de Flashy", "Flashy volume", "Volume do Flashy", "Volume di Flashy", "Volume de Flashy", "Flashy-Lautstärke", "Flashy 音量", "Flashyの音量"],
+    ["Así me escuchás", "This is how you hear me", "É assim que você me ouve", "Così mi senti", "Voilà comment tu m'entends", "So hörst du mich", "这样你就能听到我", "こんなふうに聞こえます"],
     ["1 opinión", "1 review", "1 avaliação", "1 recensione", "1 avis", "1 Bewertung", "1 条评价", "1件のレビュー"],
     ["Regalo", "Gift", "Presente", "Regalo", "Cadeau", "Geschenk", "礼物", "プレゼント"],
     ["📋 Copiar", "📋 Copy", "📋 Copiar", "📋 Copia", "📋 Copier", "📋 Kopieren", "📋 复制", "📋 コピー"],
