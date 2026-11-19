@@ -95,6 +95,12 @@ body.t-brillos .btn.no,body.t-luna .btn.no{background:#3a3756;color:#f7f0e2}
 #abrirInv>div{text-align:center;display:grid;gap:8px;animation:late2 2.2s ease-in-out infinite}
 #abrirInv b{font:600 34px/1.1 Georgia,serif;color:var(--ac)}#abrirInv span{font:600 16px var(--sans);color:#6b5b45}
 #abrirInv.fuera{opacity:0;pointer-events:none}
+body.m-oro,body.m-plata,body.m-oroplata{background-attachment:fixed;--line:rgba(255,255,255,.55)}
+body.m-oro{background:linear-gradient(135deg,#b8862b 0%,#f3d27a 18%,#fff1c1 30%,#d9a93f 45%,#a8761f 58%,#f0cf7a 72%,#fff3cc 82%,#c08f2f 100%) fixed}
+body.m-plata{background:linear-gradient(135deg,#9aa0a8 0%,#e3e6ea 18%,#ffffff 30%,#c4c8cf 45%,#8d939b 58%,#dfe2e6 72%,#fbfbfc 82%,#a4a9b1 100%) fixed}
+body.m-oroplata{background:linear-gradient(135deg,#b8862b 0%,#f3d27a 16%,#fff3cc 26%,#d4d7dc 40%,#ffffff 50%,#a9aeb6 60%,#f0cf7a 74%,#fff1c1 84%,#9aa0a8 100%) fixed}
+body.m-oro::before,body.m-plata::before,body.m-oroplata::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.45) 45%,transparent 60%) 0 0/250% 100%;animation:mBri 6s ease-in-out infinite}
+@keyframes mBri{0%{background-position:120% 0}100%{background-position:-120% 0}}
 #fondo{position:fixed;inset:0;z-index:-1;background:center/cover no-repeat;pointer-events:none}
 #fondo:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(250,249,246,.55),rgba(250,249,246,.78) 45%,rgba(250,249,246,.88))}
 body.confondo{background:transparent}
@@ -544,6 +550,9 @@ let MUS = null;
 // Fondo de la invitación: liso (colores de siempre), la foto principal en grande, u otra foto (paisaje, salón…).
 function fondo() {
   let u = F && F.fondo; if (F && F.demo) { const q = new URLSearchParams(location.search).get('fondo'); if (q === 'foto') u = 'foto'; }
+  if (F && F.demo) { const q = new URLSearchParams(location.search).get('fondo'); if (['oro', 'plata', 'oroplata'].includes(q)) u = q; }
+  document.body.classList.remove('m-oro', 'm-plata', 'm-oroplata');
+  if (['oro', 'plata', 'oroplata'].includes(u)) { const d0 = document.getElementById('fondo'); if (d0) d0.remove(); document.body.classList.remove('confondo'); document.body.classList.add('m-' + u); return; }
   if (u === 'foto') u = F.foto; let d = document.getElementById('fondo');
   if (!u) { if (d) d.remove(); document.body.classList.remove('confondo'); return; }
   if (!d) { d = document.createElement('div'); d.id = 'fondo'; document.body.prepend(d); }
