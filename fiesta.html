@@ -296,6 +296,18 @@ html,body{overflow-x:hidden;max-width:100%}
 .capa .fgr{width:58%;max-width:300px;aspect-ratio:1;border-radius:22px;object-fit:cover;border:5px solid var(--card);box-shadow:0 0 0 3px var(--ac),0 12px 28px rgba(0,0,0,.18)}
 .capa .fgr.fini{font-size:110px}
 .capa h2{font:400 40px/1.05 var(--script);margin:6px 0 4px;color:var(--ink)}
+.cmat{position:relative;width:min(100%,560px);aspect-ratio:1;margin:8px auto 4px;background:radial-gradient(circle at 50% 45%,#fffdf8,#f6efe1);border-radius:18px;box-shadow:inset 0 0 0 10px #fff,inset 0 0 0 12px var(--ac),0 10px 26px rgba(0,0,0,.12)}
+.cmat .cfoto{position:absolute;left:50%;top:50%;width:44%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;overflow:hidden;box-shadow:0 0 0 4px #fff,0 0 0 7px var(--ac),0 6px 18px rgba(0,0,0,.2)}
+.cmat .cfoto img{width:100%;height:100%;object-fit:cover}
+.cmat .cnom{position:absolute;left:0;right:0;top:75%;text-align:center;font:400 clamp(26px,7vw,40px) 'Great Vibes',Georgia,serif;color:#2e2414}
+.cmat .sg{position:absolute;width:21%;transform:translate(-50%,-50%) rotate(var(--r,0deg));text-align:center;line-height:1}
+.cmat .sg img{width:100%;height:auto;max-height:44px;object-fit:contain;display:block;margin:0 auto}
+.cmat .sg b{display:block;font:600 9px var(--sans);color:#7a6a52;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmat .sg.yo img{filter:drop-shadow(0 0 4px rgba(255,200,80,.9))}
+.fprev{position:relative;width:min(100%,360px);margin:10px auto 0}
+.fprev .cfoto2{width:100%;aspect-ratio:1;border-radius:50%;overflow:hidden;box-shadow:0 0 0 5px #fff,0 0 0 8px var(--ac)}
+.fprev .cfoto2 img{width:100%;height:100%;object-fit:cover}
+.fprev .mia{position:absolute;left:50%;bottom:6%;width:62%;transform:translateX(-50%) rotate(-6deg);filter:drop-shadow(0 1px 1px rgba(255,255,255,.9)) drop-shadow(0 0 3px rgba(255,255,255,.8))}
 #lienzo{width:100%;height:280px;background:#fff;border:2px dashed var(--ac);border-radius:18px;touch-action:none;display:block;margin-top:12px}
 .colores{display:flex;gap:10px;align-items:center;margin:10px 0}.colores button{width:34px;height:34px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px var(--line);cursor:pointer}.colores button.on{box-shadow:0 0 0 3px var(--ink)}
 .firmas{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:14px}
@@ -791,6 +803,7 @@ function cerrarCapa() { $('#capa').classList.remove('on'); $('#capa').innerHTML 
 function abrirFirma() {
   const c = $('#capa'), n = esc(F.nombre || '');
   c.innerHTML = `<div style="max-width:560px;margin:0 auto"><div class="top">${fotoHTML('fgr')}<div><h2>${n}</h2><p style="color:var(--soft);margin:0">${t('Firmá acá abajo con el dedo ✍️')}</p></div></div>
+    <div style="display:flex;gap:6px;margin-top:10px"><input id="fEsc" maxlength="28" placeholder="${t('Aa · O escribí tu nombre y sale en letra de firma')}" style="flex:1;min-width:0;font:17px var(--sans);padding:11px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)"></div>
     <canvas id="lienzo"></canvas>
     <div class="colores">${['#1f2937', '#b8860b', '#db2777', '#2563eb', '#16a34a'].map((k, i) => `<button type="button" data-col="${k}" class="${i ? '' : 'on'}" style="background:${k}" aria-label="color"></button>`).join('')}</div>
     <div class="colores" style="margin-top:6px">${[['fino', 1.8], ['medio', 2.8], ['grueso', 4.2]].map(([k, a], i) => `<button type="button" data-anc="${a}" class="btn alt" style="width:auto;height:auto;border-radius:999px;padding:6px 12px;box-shadow:inset 0 0 0 2px ${i === 1 ? 'var(--ac)' : 'var(--line)'}"><span style="display:inline-block;width:22px;height:${a}px;background:#1f2937;border-radius:9px;vertical-align:middle"></span></button>`).join('')}<button type="button" class="btn alt" id="fDesh" style="width:auto;height:auto;border-radius:999px;margin:0 0 0 auto;padding:6px 12px;box-shadow:inset 0 0 0 2px var(--line)">↩️ ${t('Deshacer')}</button><button type="button" class="btn alt" id="fBorrar" style="width:auto;height:auto;border-radius:999px;padding:6px 12px;box-shadow:inset 0 0 0 2px var(--line)">${t('Borrar')}</button></div>
@@ -803,28 +816,59 @@ function abrirFirma() {
   let dib = false, hay = false, last = null;
   const pos = e => { const b = cv.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
   let anc = 2.8, pl = null; const mkP = mouse => window.Pluma ? Pluma(cv, x, {ancho: anc, mouse}) : null;
-  cv.onpointerdown = e => { $('#fErr').innerHTML = ''; pl = mkP(e.pointerType === 'mouse') || pl; if (pl) { pl.down(e); hay = true; dib = true; return; } dib = true; last = pos(e); cv.setPointerCapture(e.pointerId); hay = true; };
+  cv.onpointerdown = e => { $('#fErr').innerHTML = ''; if ($('#fEsc').value) { $('#fEsc').value = ''; x.clearRect(0, 0, cv.width, cv.height); } pl = mkP(e.pointerType === 'mouse') || pl; if (pl) { pl.down(e); hay = true; dib = true; return; } dib = true; last = pos(e); cv.setPointerCapture(e.pointerId); hay = true; };
   cv.onpointermove = e => { if (!dib) return; if (pl) return pl.move(e); const p = pos(e); x.beginPath(); x.moveTo(last[0], last[1]); x.lineTo(p[0], p[1]); x.stroke(); last = p; };
   cv.onpointerup = cv.onpointercancel = () => { if (pl) pl.up(); dib = false; };
   const pasos = []; const guardarPaso = () => { try { pasos.push(x.getImageData(0, 0, cv.width, cv.height)); if (pasos.length > 20) pasos.shift(); } catch (e) {} };
   cv.addEventListener('pointerdown', guardarPaso, {capture: true});
   $('#fDesh').onclick = () => { const im = pasos.pop(); if (!im) return; x.save(); x.setTransform(1, 0, 0, 1, 0, 0); x.putImageData(im, 0, 0); x.restore(); if (!pasos.length) hay = false; };
   c.querySelectorAll('[data-anc]').forEach(b => b.onclick = () => { anc = +b.dataset.anc; c.querySelectorAll('[data-anc]').forEach(y => y.style.boxShadow = 'inset 0 0 0 2px ' + (y === b ? 'var(--ac)' : 'var(--line)')); });
-  c.querySelectorAll('[data-col]').forEach(b => b.onclick = () => { x.strokeStyle = b.dataset.col; c.querySelectorAll('[data-col]').forEach(y => y.classList.toggle('on', y === b)); });
-  $('#fBorrar').onclick = () => { guardarPaso(); x.clearRect(0, 0, cv.width, cv.height); hay = false; };
+  c.querySelectorAll('[data-col]').forEach(b => b.onclick = () => { x.strokeStyle = b.dataset.col; c.querySelectorAll('[data-col]').forEach(y => y.classList.toggle('on', y === b)); if ($('#fEsc').value.trim()) $('#fEsc').oninput(); });
+  $('#fBorrar').onclick = () => { guardarPaso(); x.clearRect(0, 0, cv.width, cv.height); hay = false; $('#fEsc').value = ''; };
+  // Firma escrita: el nombre sale en letra de firma elegante, del color elegido (para el que no tiene buen pulso)
+  if (!document.getElementById('fGV')) { const l = document.createElement('link'); l.id = 'fGV'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap'; document.head.appendChild(l); }
+  const escribir = () => { const v = $('#fEsc').value.trim(), w = cv.width / dpr, h = cv.height / dpr; x.clearRect(0, 0, w, h); hay = !!v; if (!v) return;
+    let fs = 78; x.font = `${fs}px 'Great Vibes', 'Snell Roundhand', 'Brush Script MT', cursive`; while (x.measureText(v).width > w * .88 && fs > 28) { fs -= 4; x.font = `${fs}px 'Great Vibes', 'Snell Roundhand', 'Brush Script MT', cursive`; }
+    x.save(); x.fillStyle = x.strokeStyle; x.textAlign = 'center'; x.textBaseline = 'middle'; x.translate(w / 2, h / 2); x.rotate(-.05); x.fillText(v, 0, 0); x.restore(); };
+  $('#fEsc').oninput = escribir;
+  try { document.fonts && document.fonts.load("40px 'Great Vibes'").then(() => { if ($('#fEsc') && $('#fEsc').value) escribir(); }); } catch (e) {}
   $('#fNo').onclick = cerrarCapa;
   $('#fOk').onclick = async () => {
     if (!hay) { $('#fErr').innerHTML = `<p class="err">${t('Primero firmá con el dedo en el recuadro blanco.')}</p>`; return; }
-    const b = $('#fOk'); b.disabled = true;
-    // achicamos la firma para que pese poco
-    const o = document.createElement('canvas'); o.width = 480; o.height = Math.round(480 * cv.height / cv.width); o.getContext('2d').drawImage(cv, 0, 0, o.width, o.height);
-    try { const r = await fetch('/api/fiesta?accion=firmar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, img: o.toDataURL('image/png'), msg: $('#fMsg').value})}); const j = await r.json();
+    // recortamos solo el trazo (sin el blanco de alrededor) para que la firma quede grande y prolija
+    const o = recortarFirma(cv); if (!o) { $('#fErr').innerHTML = `<p class="err">${t('Primero firmá con el dedo en el recuadro blanco.')}</p>`; return; }
+    const png = o.toDataURL('image/png'), msg = $('#fMsg').value, ant = c.innerHTML;
+    // vista previa: así queda tu firma sobre la foto
+    const box = c.firstElementChild; box.style.display = 'none';
+    const pv = document.createElement('div'); pv.style.cssText = 'max-width:560px;margin:0 auto;text-align:center';
+    pv.innerHTML = `<h2>${t('Así queda tu firma')}</h2><div class="fprev"><div class="cfoto2">${F.foto ? `<img src="${esc(F.foto)}" alt="">` : ''}</div><img class="mia" src="${png}" alt=""></div>${msg ? `<p style="font-style:italic">“${esc(msg)}”</p>` : ''}<button class="btn big2" id="fListo" style="margin-top:14px">${t('✅ Listo, firmar')}</button><br><button class="btn alt" id="fOtra">${t('↩️ Volver a firmar')}</button><div id="fErr2"></div>`;
+    c.appendChild(pv);
+    $('#fOtra').onclick = () => { pv.remove(); box.style.display = ''; };
+    $('#fListo').onclick = async () => { const b = $('#fListo'); b.disabled = true;
+    try { const r = await fetch('/api/fiesta?accion=firmar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({f: CODE, i: TOK, img: png, msg})}); const j = await r.json();
       if (!r.ok) throw new Error(j.error || t('No se pudo guardar'));
       if (FIRMAS) FIRMAS = FIRMAS.filter(f => !f.yo).concat([j.firma]); else FIRMAS = j.demo ? [j.firma] : null;
       if (navigator.vibrate) navigator.vibrate(60); if (FL) flDecir(t('¡Gracias por firmar! 💖 Tu firma ya está en el cuadro de {n}.', {n: F.nombre || ''}), [{t: t('👍 Gracias'), alt: true, f: () => $('#flb').classList.remove('on')}]);
       verCuadro(true);
-    } catch (e) { $('#fErr').innerHTML = `<p class="err">${esc(e.message)}</p>`; b.disabled = false; }
+    } catch (e) { $('#fErr2').innerHTML = `<p class="err">${esc(e.message)}</p>`; b.disabled = false; }
+    };
   };
+}
+// Recorta la firma a su trazo, con un margen chico, y la achica para que pese poco
+function recortarFirma(cv) {
+  const x = cv.getContext('2d'), w = cv.width, h = cv.height; let d; try { d = x.getImageData(0, 0, w, h).data; } catch (e) { return null; }
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let y = 0; y < h; y += 2) for (let i = 0; i < w; i += 2) if (d[(y * w + i) * 4 + 3] > 20) { if (i < x0) x0 = i; if (i > x1) x1 = i; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (x1 < 0) return null;
+  const m = Math.round(Math.max(w, h) * .02); x0 = Math.max(0, x0 - m); y0 = Math.max(0, y0 - m); x1 = Math.min(w, x1 + m); y1 = Math.min(h, y1 + m);
+  const cw = x1 - x0, ch = y1 - y0, k = Math.min(1, 520 / cw, 220 / ch), o = document.createElement('canvas');
+  o.width = Math.max(1, Math.round(cw * k)); o.height = Math.max(1, Math.round(ch * k)); o.getContext('2d').drawImage(cv, x0, y0, cw, ch, 0, 0, o.width, o.height); return o;
+}
+// Lugares para las firmas alrededor de la foto, como en un cuadro de firmas de verdad
+function lugaresFirmas(n) {
+  const L = [], anillos = [[.355, 10], [.445, 14]];
+  for (const [r, k] of anillos) for (let i = 0; i < k; i++) { const a = -Math.PI / 2 + (i + .5) / k * Math.PI * 2 + (r > .4 ? Math.PI / k : 0); const y = .5 + Math.sin(a) * r; if (y > .68 && y < .84 && Math.abs(Math.cos(a) * r) < .2) continue; L.push([.5 + Math.cos(a) * r, y, ((i * 37) % 13) - 6]); }
+  return L.slice(0, n);
 }
 async function verCuadro(recien, auth) {
   const c = $('#capa'); c.innerHTML = `<div class="carga">…</div>`; c.classList.add('on'); document.body.style.overflow = 'hidden';
@@ -832,22 +876,27 @@ async function verCuadro(recien, auth) {
       const mia = (FIRMAS || []).find(f => f.yo); FIRMAS = j.firmas; if (mia && !FIRMAS.some(f => f.yo)) FIRMAS.push(mia); }
   } catch (e) { c.innerHTML = `<div class="carga">😕 ${esc(e.message)}</div><div style="text-align:center"><button class="btn" onclick="cerrarCapa()">${t('Cerrar')}</button></div>`; return; }
   const n = esc(F.nombre || '');
-  c.innerHTML = `<div style="max-width:760px;margin:0 auto" class="cuadroF">${recien ? `<div class="ok" style="margin-bottom:10px"><b>${t('¡Gracias por firmar! 💖 Tu firma ya está en el cuadro de {n}.', {n})}</b></div>` : ''}${fotoHTML('fgr')}<h2>${n}</h2>
+  const LG = lugaresFirmas(FIRMAS.length), enCuadro = FIRMAS.slice(0, LG.length), resto = FIRMAS.slice(LG.length);
+  c.innerHTML = `<div style="max-width:760px;margin:0 auto" class="cuadroF">${recien ? `<div class="ok" style="margin-bottom:10px"><b>${t('¡Gracias por firmar! 💖 Tu firma ya está en el cuadro de {n}.', {n})}</b></div>` : ''}
+    <div class="cmat"><div class="cfoto">${F.foto ? `<img src="${esc(F.foto)}" alt="">` : ''}</div><div class="cnom">${n}</div>${enCuadro.map((f, k) => `<div class="sg ${f.yo ? 'yo' : ''}" style="left:${(LG[k][0] * 100).toFixed(1)}%;top:${(LG[k][1] * 100).toFixed(1)}%;--r:${LG[k][2]}deg"><img src="${esc(f.img)}" alt=""><b>${esc(f.nombre)}</b></div>`).join('')}</div>
     <p style="color:var(--soft)">${t('{c} firmas', {c: FIRMAS.length})}</p>
-    <div class="firmas">${FIRMAS.map(f => `<div class="${f.yo ? 'yo' : ''}"><img src="${esc(f.img)}" alt=""><b>${esc(f.nombre)}</b>${f.msg ? `<br><span>${esc(f.msg)}</span>` : ''}</div>`).join('') || `<p style="grid-column:1/-1;color:var(--soft)">${t('Todavía no firmó nadie. ¡Sé el primero! ✍️')}</p>`}</div>
+    ${FIRMAS.some(f => f.msg) || resto.length ? '' : '<!--'}<div class="firmas">${(resto.length ? resto : FIRMAS.filter(f => f.msg)).map(f => `<div class="${f.yo ? 'yo' : ''}"><img src="${esc(f.img)}" alt=""><b>${esc(f.nombre)}</b>${f.msg ? `<br><span>${esc(f.msg)}</span>` : ''}</div>`).join('') || `<p style="grid-column:1/-1;color:var(--soft)">${t('Todavía no firmó nadie. ¡Sé el primero! ✍️')}</p>`}</div>${FIRMAS.some(f => f.msg) || resto.length ? '' : '-->'}${FIRMAS.length ? '' : `<p style="color:var(--soft)">${t('Todavía no firmó nadie. ¡Sé el primero! ✍️')}</p>`}
     <button class="btn" id="cDesc" style="margin-top:14px">${t('⬇️ Descargar el cuadro')}</button> ${INV ? `<button class="btn alt" id="cFirmar">${t('✍️ Firmar')}</button>` : ''} <button class="btn no" id="cCerrar">${t('Cerrar')}</button></div>`;
   $('#cCerrar').onclick = cerrarCapa; const cf = $('#cFirmar'); if (cf) cf.onclick = abrirFirma; $('#cDesc').onclick = descargarCuadro;
 }
 const cargaImg = src => new Promise((ok, mal) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => ok(i); i.onerror = mal; i.src = src; });
 async function descargarCuadro() {
-  const W = 1500, cols = 5, lado = W / cols, filas = Math.ceil(FIRMAS.length / cols), H = 900 + Math.max(1, filas) * (lado * .62 + 40) + 80;
-  const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const x = cv.getContext('2d'); const ac = getComputedStyle(document.documentElement).getPropertyValue('--ac').trim() || '#c9a227';
-  x.fillStyle = '#fffaf2'; x.fillRect(0, 0, W, H); x.strokeStyle = ac; x.lineWidth = 14; x.strokeRect(24, 24, W - 48, H - 48);
-  try { if (F.foto) { const im = await cargaImg(F.foto); x.save(); x.beginPath(); x.arc(W / 2, 380, 300, 0, 7); x.clip(); const s = Math.max(600 / im.width, 600 / im.height); x.drawImage(im, W / 2 - im.width * s / 2, 380 - im.height * s / 2, im.width * s, im.height * s); x.restore(); x.beginPath(); x.arc(W / 2, 380, 300, 0, 7); x.lineWidth = 10; x.stroke(); } } catch (e) {}
-  x.fillStyle = '#2e2414'; x.textAlign = 'center'; x.font = '90px "Great Vibes", cursive'; x.fillText(F.nombre || '', W / 2, 800);
-  for (let k = 0; k < FIRMAS.length; k++) { const f = FIRMAS[k], cx = (k % cols) * lado, cy = 880 + Math.floor(k / cols) * (lado * .62 + 40);
-    try { const im = await cargaImg(f.img); x.drawImage(im, cx + 10, cy, lado - 20, (lado - 20) * im.height / im.width); } catch (e) {}
-    x.font = '600 24px Figtree, sans-serif'; x.fillStyle = '#6b5b45'; x.fillText(f.nombre, cx + lado / 2, cy + lado * .62 + 20); }
+  const W = 1600, cv = document.createElement('canvas'), LG = lugaresFirmas(FIRMAS.length), resto = FIRMAS.slice(LG.length), filas = Math.ceil(resto.length / 5), H = W + (filas ? filas * 200 + 60 : 0);
+  cv.width = W; cv.height = H; const x = cv.getContext('2d'); const ac = getComputedStyle(document.documentElement).getPropertyValue('--ac').trim() || '#c9a227';
+  const g = x.createRadialGradient(W / 2, W * .45, 50, W / 2, W / 2, W * .75); g.addColorStop(0, '#fffdf8'); g.addColorStop(1, '#f3ead8'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  x.strokeStyle = '#fff'; x.lineWidth = 40; x.strokeRect(20, 20, W - 40, H - 40); x.strokeStyle = ac; x.lineWidth = 8; x.strokeRect(44, 44, W - 88, H - 88);
+  const R = W * .22;
+  try { if (F.foto) { const im = await cargaImg(F.foto); x.save(); x.beginPath(); x.arc(W / 2, W / 2, R, 0, 7); x.clip(); const s = Math.max(2 * R / im.width, 2 * R / im.height); x.drawImage(im, W / 2 - im.width * s / 2, W / 2 - im.height * s / 2, im.width * s, im.height * s); x.restore(); } } catch (e) {}
+  x.beginPath(); x.arc(W / 2, W / 2, R + 8, 0, 7); x.lineWidth = 12; x.strokeStyle = '#fff'; x.stroke(); x.beginPath(); x.arc(W / 2, W / 2, R + 18, 0, 7); x.lineWidth = 8; x.strokeStyle = ac; x.stroke();
+  x.fillStyle = '#2e2414'; x.textAlign = 'center'; x.font = '110px "Great Vibes", Georgia, serif'; x.fillText(F.nombre || '', W / 2, W * .79);
+  const dib = async (f, cx, cy, ancho, rot) => { try { const im = await cargaImg(f.img); const k = Math.min(ancho / im.width, 120 / im.height); x.save(); x.translate(cx, cy); x.rotate(rot * Math.PI / 180); x.drawImage(im, -im.width * k / 2, -im.height * k / 2 - 10, im.width * k, im.height * k); x.font = '600 22px Figtree, sans-serif'; x.fillStyle = '#7a6a52'; x.fillText(f.nombre, 0, im.height * k / 2 + 16); x.restore(); } catch (e) {} };
+  for (let k = 0; k < LG.length; k++) await dib(FIRMAS[k], LG[k][0] * W, LG[k][1] * W, W * .2, LG[k][2]);
+  for (let k = 0; k < resto.length; k++) await dib(resto[k], (k % 5 + .5) * W / 5, W + 110 + Math.floor(k / 5) * 200, W * .17, 0);
   try { const a = document.createElement('a'); a.download = 'cuadro-de-firmas-' + (F.nombre || 'fiesta') + '.png'; a.href = cv.toDataURL('image/png'); a.click(); } catch (e) { alert(t('No se pudo descargar la imagen.')); }
 }
 // ===== Álbum de la fiesta: cada invitado sube sus fotos y videos (hasta 30 s) =====
