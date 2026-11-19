@@ -721,7 +721,7 @@ function sobre() {
     return;
   }
   if (ab === 'carroza' || ab === 'brindis' || ab === 'brindismar' || ab === 'copas' || ab === 'gotaoro' || ab === 'gotaplata') {
-    const CV = ({brindismar: 'brindis-mariposas', gotaoro: 'gota-oro', gotaplata: 'gota-plata'})[ab] || ab, CQ = ({brindis: .45, brindismar: .42, copas: .6, gotaoro: .8, gotaplata: .58})[ab] || .78;
+    const CV = ({brindismar: 'brindis-mariposas', gotaoro: 'gota-oro', gotaplata: 'gota-plata'})[ab] || ab, CQ = ({brindis: .45, brindismar: .42, copas: .6, gotaoro: .8, gotaplata: .32})[ab] || .78;
     // la carroza con caballos alados baja del cielo, abre la puerta y de la luz sale ella
     o.classList.add('estr'); const ft = F.foto || '';
     if (!document.getElementById('fGV')) { const l = document.createElement('link'); l.id = 'fGV'; l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap'; document.head.appendChild(l); }
