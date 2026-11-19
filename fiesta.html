@@ -736,7 +736,13 @@ function sobre() {
       if (o.classList.contains('abre')) return; o.classList.add('abre');
       try { sessionStorage.setItem('sobre_' + CODE, '1'); } catch (e) {}
       if (MUS && MUS.paused && !musica.parada) MUS.play().catch(() => {});
-      v.playbackRate = 1.15; v.play().catch(final); setTimeout(final, 10000);
+      if (ab === 'copas' || ab === 'brindis') {
+        // el video trae su propio sonido (se acercan, chin chin / corcho): suena encima de la canción, que baja un poco
+        v.muted = false; v.volume = 1; v.playbackRate = 1;
+        if (MUS) { const vol0 = MUS.volume; MUS.volume = Math.min(vol0, .35); setTimeout(() => { MUS.volume = vol0; }, 8500); }
+        v.play().catch(() => { v.muted = true; v.play().catch(final); });
+      } else { v.playbackRate = 1.15; v.play().catch(final); }
+      setTimeout(final, 10000);
     };
     return;
   }
