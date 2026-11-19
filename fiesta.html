@@ -719,13 +719,14 @@ function sobre() {
       });
       requestAnimationFrame(gira);
     };
-    requestAnimationFrame(gira);
+    requestAnimationFrame(gira); { const bv = o.querySelector('.bo video'); const pr = () => bv.play().catch(() => {}); pr(); bv.addEventListener('canplay', pr, {once: true}); }
     setTimeout(() => fs.forEach((el, k) => setTimeout(() => el.classList.add('ve'), k * 180)), 300);
     const fin = () => { vivo = false; o.classList.add('fuera'); document.body.style.overflow = ''; setTimeout(() => o.remove(), 900); };
     o.onclick = () => {
       if (o.classList.contains('abre')) return; o.classList.add('abre');
       try { sessionStorage.setItem('sobre_' + CODE, '1'); } catch (e) {}
       if (MUS && MUS.paused && !musica.parada) MUS.play().catch(() => {});
+      const bv = o.querySelector('.bo video'); if (bv && bv.paused) bv.play().catch(() => {});
       let k = 0; const ac = setInterval(() => { vel = Math.min(2.4, vel * 1.25); if (++k > 10) clearInterval(ac); }, 160);
       setTimeout(() => { if (f) { f.classList.add('ve'); gemas(f, 30, REALES); } }, 2200);
       setTimeout(() => { vel = .5; n && n.classList.add('ve'); }, 3000);
