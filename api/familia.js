@@ -4,6 +4,7 @@
 //   POST ?accion=unirse    {code, nombre, emoji, pin?}              → {mid, k}              (con el PIN entra como mamá/papá)
 //   GET  ?code&mid&k                                                → la familia (miembros, estrellas, avisos)
 //   POST ?accion=enviar    {code,mid,k, para, texto, tipo, min, estrellas, humor}   aviso / tarea / flor
+//   POST ?accion=cuarto {code,mid,k, cuarto}  '' (con la familia) · tele · tarea · dormir · jugar · musica · solo
 //   POST ?accion=responder {code,mid,k, aid, estado, txt}           visto · voy · listo
 //   POST ?accion=aprobar   {code,mid,k, aid, quien}                 mamá/papá aprueba la tarea → suma estrellas
 const crypto = require('crypto');
@@ -24,7 +25,7 @@ const nuevoId = () => crypto.randomBytes(5).toString('hex');
 const EMOJIS = ['👩', '👨', '👧', '👦', '👶', '👵', '👴', '🧑', '🐶', '🐱', '⭐', '🦄', '⚽', '🎮', '🌸', '🦖'];
 const emo = e => EMOJIS.includes(e) ? e : '🙂';
 function publica(F) {
-  return { code: F.code, familia: F.familia, miembros: F.miembros.map(m => ({ id: m.id, nombre: m.nombre, emoji: m.emoji, rol: m.rol, estrellas: m.estrellas || 0, mes: m.mes || 0 })),
+  return { code: F.code, familia: F.familia, miembros: F.miembros.map(m => ({ id: m.id, nombre: m.nombre, emoji: m.emoji, rol: m.rol, estrellas: m.estrellas || 0, mes: m.mes || 0, cuarto: m.cuarto || '' })),
     avisos: F.avisos.slice(0, 60) };
 }
 function quien(F, b) { const m = F.miembros.find(x => x.id === String(b.mid || '')); return m && m.k === hash(String(b.k || '')) ? m : null; }
@@ -81,6 +82,11 @@ module.exports = async (req, res) => {
       F.avisos.unshift(av); F.avisos = F.avisos.slice(0, 120);
       await guardar(code, F);
       return res.status(200).json({ ok: true, aid: av.id });
+    }
+    if (a === 'cuarto') {
+      const ACT = ['', 'tele', 'tarea', 'dormir', 'jugar', 'musica', 'solo'];
+      yo.cuarto = ACT.includes(b.cuarto) ? b.cuarto : ''; await guardar(code, F);
+      return res.status(200).json({ ok: true });
     }
     if (a === 'responder') {
       const av = F.avisos.find(x => x.id === String(b.aid || '')); if (!av) return res.status(404).json({ error: 'No encontramos ese aviso.' });

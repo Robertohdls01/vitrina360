@@ -20,7 +20,7 @@ body{font:600 18px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;colo
 #burb small{display:block;font-size:14px;color:#8a6b80;font-weight:600;margin-top:4px}
 #burb .reloj{font:900 46px system-ui;color:#e2457f;letter-spacing:1px}
 #fla{width:min(62vw,300px);height:min(40vh,330px);position:relative;animation:vive 2.2s ease-in-out infinite;filter:drop-shadow(0 14px 18px rgba(120,40,90,.25));cursor:pointer}
-#fla svg{width:100%;height:100%}
+#fla svg{width:100%;height:100%;filter:hue-rotate(var(--t,0deg))}
 #fla.habla{animation:habla .22s ease-in-out infinite alternate}
 @keyframes vive{0%,100%{transform:translateY(0)}35%{transform:translateY(-12px)}65%{transform:translateY(0)}82%{transform:translateY(-5px)}}
 @keyframes habla{from{transform:translateY(0) scale(1)}to{transform:translateY(-5px) scale(1.04)}}
@@ -49,6 +49,20 @@ input.campo{width:100%;border:2px solid #f3c6da;border-radius:16px;padding:14px;
 .menu{display:flex;justify-content:space-around;background:#fff;border-radius:22px 22px 0 0;box-shadow:0 -4px 14px rgba(120,40,90,.1);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
 .menu button{border:0;background:none;font:700 12px system-ui;color:#8a6b80;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;cursor:pointer}.menu button span{font-size:24px}
 .acc{padding-bottom:10px}
+#grupo{position:relative;display:flex;align-items:flex-end;justify-content:center;width:100%;max-width:520px}
+.mini{position:relative;width:min(19vw,92px);height:min(16vh,120px);margin:0 -4px;display:flex;flex-direction:column;align-items:center;animation:vive 2.6s ease-in-out infinite;cursor:pointer;transition:transform .5s}
+.mini svg{width:100%;height:100%;filter:drop-shadow(0 8px 10px rgba(120,40,90,.22))}
+.mini .nm{position:absolute;bottom:-14px;font-size:12px;color:#8a6b80;white-space:nowrap;background:#fff;border-radius:999px;padding:1px 8px;box-shadow:0 2px 6px rgba(160,52,106,.12)}
+.mini .em{position:absolute;top:18%;right:-2px;font-size:20px}
+.mini.habla{animation:habla .22s ease-in-out infinite alternate}
+.mini.mira-d{transform:rotate(8deg)}.mini.mira-i{transform:rotate(-8deg)}
+.globo{position:absolute;bottom:100%;left:50%;transform:translateX(-50%) scale(0);transform-origin:bottom center;background:#fff;border-radius:16px 16px 16px 4px;padding:6px 10px;font-size:14px;white-space:nowrap;max-width:46vw;overflow:hidden;text-overflow:ellipsis;box-shadow:0 6px 14px rgba(120,40,90,.18);transition:transform .25s;z-index:5}
+.globo.ve{transform:translateX(-50%) scale(1)}
+#grupo #fla{margin:0 4px}
+.vuela{position:fixed;font-size:34px;z-index:60;pointer-events:none;transition:left .9s ease-in-out,top .9s cubic-bezier(.3,-0.6,.7,1),transform .9s}
+body.encuarto{background:radial-gradient(120% 80% at 50% 0%,#f2f7ff 0%,#dfe9fb 50%,#d4dcf3 100%)}
+.cuarto-esc{position:absolute;inset:auto 0 0 0;height:46%;pointer-events:none;display:flex;align-items:flex-end;justify-content:space-between;padding:0 6% 2%;font-size:min(13vw,64px);opacity:.9}
+.puerta{display:flex;flex-direction:column;align-items:center;font-size:12px;color:#7a6f96;margin:0 2px;cursor:pointer}.puerta b{font-size:min(10vw,48px);line-height:1}
 .pie{position:absolute;bottom:62px;left:0;right:0;text-align:center;font-size:11px;color:#b48aa2;pointer-events:none}
 </style>
 </head>
@@ -65,6 +79,9 @@ const FL_LOOKS = {
 const FL_BASE = '<svg viewBox="0 0 80 110" aria-hidden="true" class="flsvg"><ellipse cx="40" cy="106" rx="20" ry="4" fill="rgba(0,0,0,.18)"/><defs><radialGradient id="flhg" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fde68a"/><stop offset=".6" stop-color="#facc15"/><stop offset="1" stop-color="#eab308"/></radialGradient></defs><path d="M42 4 31 24h10l-5 13 15-20H40l7-13z" fill="#16a34a" stroke="#14532d" stroke-width="2" stroke-linejoin="round"/><circle cx="40" cy="64" r="32" fill="url(#flhg)" stroke="#ca8a04" stroke-width="2.5"/><g class="heyes"><ellipse cx="29" cy="59" rx="5.5" ry="7.5" fill="#1f2937"/><ellipse cx="51" cy="59" rx="5.5" ry="7.5" fill="#1f2937"/><circle cx="31" cy="56" r="2.2" fill="#fff"/><circle cx="53" cy="56" r="2.2" fill="#fff"/></g><circle cx="20" cy="72" r="5" fill="#fb7185" opacity=".55"/><circle cx="60" cy="72" r="5" fill="#fb7185" opacity=".55"/><g class="hmouth" style="transform-origin:40px 76px"><path d="M30 74q10 11 20 0" fill="#7f1d1d" stroke="#1f2937" stroke-width="2.4" stroke-linecap="round"/><path d="M34 78q6 3.5 12 0" fill="#fb7185"/></g><path d="M10 70q-8-6-4-16" stroke="#ca8a04" stroke-width="4" fill="none" stroke-linecap="round" class="flwave"/>';
 
 const FL_SVG = () => FL_BASE + FL_LOOKS.normal + '</svg>';
+const TONOS = [0, 300, 160, 200, 30, 260, 110, 330];
+const tono = id => { const i = F ? F.miembros.findIndex(m => m.id === id) : 0; return TONOS[Math.max(0, i) % TONOS.length]; };
+function miniHTML(m){ return `<div class="mini" data-id="${m.id}"><div class="globo"></div>${FL_SVG().replace('<svg ', `<svg style="filter:hue-rotate(${tono(m.id)}deg)" `)}<span class="em">${m.emoji}</span><span class="nm">${esc(m.nombre)}</span></div>`; }
 const $ = s => document.querySelector(s), app = $('#app');
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'})[c]);
 const Q = new URLSearchParams(location.search);
@@ -88,13 +105,34 @@ function lluvia(emo, n){ for(let i = 0; i < (n || 26); i++){ const d = document.
 // ---------- pantalla ----------
 let PAN = '';
 function escena(texto, sub, botones, extra){
-  const pan = PAN; PAN = '';
-  app.innerHTML = `<div class="top" id="top"></div><div class="escena ${pan ? 'con-pan' : ''}"><div id="pan" ${pan ? '' : 'hidden'}>${pan}</div><div id="burb">${texto}${sub ? `<small>${sub}</small>` : ''}${extra || ''}</div><div id="fla">${FL_SVG()}<div class="humo i" hidden></div><div class="humo d" hidden></div></div></div><div class="acc" id="acc"></div>${F ? `<nav class="menu"><button data-m="ini"><span>🏠</span>Inicio</button><button data-m="tar"><span>📋</span>Tareas</button><button data-m="hab"><span>💬</span>Hablar</button><button data-m="fam"><span>👨‍👩‍👧</span>Familia</button></nav>` : ''}`;
+  const pan = PAN; PAN = ''; document.body.classList.toggle('encuarto', !!(YO && YO.cuarto));
+  app.innerHTML = `<div class="top" id="top"></div><div class="escena ${pan ? 'con-pan' : ''}"><div id="pan" ${pan ? '' : 'hidden'}>${pan}</div><div id="burb">${texto}${sub ? `<small>${sub}</small>` : ''}${extra || ''}</div><div id="grupo">${grupoHTML()}</div></div><div class="acc" id="acc"></div>${F ? `<nav class="menu"><button data-m="ini"><span>🏠</span>Inicio</button><button data-m="tar"><span>📋</span>Tareas</button><button data-m="hab"><span>💬</span>Hablar</button><button data-m="fam"><span>👨‍👩‍👧</span>Familia</button></nav>` : ''}`;
   app.querySelectorAll('.menu button').forEach(b => b.onclick = () => { despertar(); ({ini: () => principal(true), tar: tareas, hab: hablar, fam: familia})[b.dataset.m](); });
   const acc = $('#acc'); (botones || []).forEach(([t, f, cls]) => { const b = document.createElement('button'); b.className = 'b ' + (cls || ''); b.innerHTML = t; b.onclick = () => { despertar(); f(b); }; acc.appendChild(b); });
   $('#fla').onclick = () => { despertar(); if(F) principal(true); };
   pintarTop();
 }
+function grupoHTML(){ const yo = `<div id="fla" ${YO ? `style="--t:${tono(YO.id)}deg"` : ''}><div class="globo"></div>${FL_SVG()}<div class="humo i" hidden></div><div class="humo d" hidden></div></div>`;
+  if(!F || !YO) return yo; if(YO.cuarto){ const c = CUARTOS[YO.cuarto] || CUARTOS.solo; return `<div class="cuarto-esc"><span>${c[2]}</span><span>${c[0]}</span></div>` + yo; }
+  const priv = F.miembros.filter(m => m.id !== YO.id && m.cuarto), otros = F.miembros.filter(m => m.id !== YO.id && !m.cuarto), izq = otros.filter((_, i) => i % 2), der = otros.filter((_, i) => !(i % 2));
+  return izq.map(miniHTML).join('') + yo + der.map(miniHTML).join('') + (priv.length ? `<div style="position:absolute;top:-34px;right:4px;display:flex">${priv.map(puertaHTML).join('')}</div>` : ''); }
+function globo(id, txt, ms){ const el = id === (YO && YO.id) ? $('#fla') : document.querySelector(`.mini[data-id="${id}"]`); if(!el) return; const g = el.querySelector('.globo'); g.textContent = txt; g.classList.add('ve'); el.classList.add('habla'); clearTimeout(el._t); el._t = setTimeout(() => { g.classList.remove('ve'); el.classList.remove('habla'); }, ms || 2600); }
+function volar(desde, hasta, emo){ return new Promise(ok => { const a = desde === (YO && YO.id) ? $('#fla') : document.querySelector(`.mini[data-id="${desde}"]`), destinos = hasta === 'todos' ? [...document.querySelectorAll('.mini')] : [document.querySelector(`.mini[data-id="${hasta}"]`) || document.querySelector(`.puerta[data-id="${hasta}"]`) || $("#fla")];
+  if(!a || !destinos[0]) return ok(); const r = a.getBoundingClientRect();
+  destinos.forEach(b => { const d = document.createElement('div'); d.className = 'vuela'; d.textContent = emo; d.style.left = (r.left + r.width / 2 - 17) + 'px'; d.style.top = (r.top + 10) + 'px'; document.body.appendChild(d);
+    const q = b.getBoundingClientRect(); b.classList.add(q.left < r.left ? 'mira-d' : 'mira-i'); requestAnimationFrame(() => requestAnimationFrame(() => { d.style.left = (q.left + q.width / 2 - 17) + 'px'; d.style.top = (q.top + 10) + 'px'; d.style.transform = 'scale(.7) rotate(20deg)'; }));
+    setTimeout(() => { d.remove(); b.classList.remove('mira-d', 'mira-i'); }, 1000); });
+  setTimeout(ok, 1000); }); }
+// charla de fondo entre los Flashys
+const CUARTOS = {tele: ['📺', 'mirando la tele', '🛋️'], tarea: ['📚', 'haciendo la tarea', '✏️'], dormir: ['😴', 'durmiendo', '🛏️'], jugar: ['🎮', 'jugando', '🕹️'], musica: ['🎧', 'escuchando música', '🎵'], solo: ['🚪', 'en su cuarto', '🪴']};
+function puertaHTML(m){ const c = CUARTOS[m.cuarto] || CUARTOS.solo; return `<div class="puerta" data-id="${m.id}" title="${esc(m.nombre)} ${c[1]}"><b>🚪</b>${c[0]} ${esc(m.nombre)}</div>`; }
+function irCuarto(){ escena('¿Qué vas a hacer en tu cuarto?', 'Flashy se va con vos y no molesta a nadie', [...Object.entries(CUARTOS).map(([k, c]) => [`${c[0]} ${c[1].replace('en su cuarto', 'solo/a un rato')}`, async () => { try{ await api('cuarto', Object.assign({cuarto: k}, S)); await cargar(); }catch(e){ return alert(e.message); } const f = `Listo, me quedo con vos en tu cuarto. Te aviso solo lo importante 🤫`; escena(f, '', [['OK', () => principal(), 'pri']]); decir(f); }]), ['↩︎', () => principal(), 'chico']]); decir('¿Qué vas a hacer en tu cuarto?'); }
+async function salirCuarto(){ try{ await api('cuarto', Object.assign({cuarto: ''}, S)); await cargar(); }catch(e){ return alert(e.message); } const f = '¡Volvimos con la familia! 🏠'; lluvia('💖', 10); principal(); decir(f); }
+const CHARLA = ['¡Hola! 👋', '¿Qué hacemos hoy?', '⭐⭐⭐', '¡Te quiero! 💖', 'Jajaja 😂', '¿Ya comiste? 🍽️', '¡Vamos familia! 💪', '🎵 la la la', '¿Jugamos? ⚽', '¡Buenísimo! 👍'];
+setInterval(() => { if(document.hidden || !F || actual || $('#in') || (YO && YO.cuarto)) return; const minis = [...document.querySelectorAll('.mini')]; if(!minis.length) return;
+  const m = minis[Math.floor(Math.random() * minis.length)], ult = F.avisos.find(a => a.de === m.dataset.id && a.texto && a.tipo !== 'sumo');
+  globo(m.dataset.id, ult && Math.random() < .35 ? ult.texto.slice(0, 26) : CHARLA[Math.floor(Math.random() * CHARLA.length)]);
+  if(Math.random() < .5) setTimeout(() => { const o = minis.filter(x => x !== m), t = o.length ? o[Math.floor(Math.random() * o.length)].dataset.id : YO.id; globo(t, CHARLA[Math.floor(Math.random() * CHARLA.length)]); }, 1500); }, 5000);
 function pintarTop(){ const el = $('#top'); if(!el || !F) return; const max = Math.max(0, ...F.miembros.map(m => m.mes || 0));
   el.innerHTML = `<b>🏠 ${esc(F.familia)}</b>` + F.miembros.map(m => `<span class="chip ${max && m.mes === max ? 'top1' : ''}">${m.emoji} ${esc(m.nombre)} ${m.rol === 'padre' ? '' : '⭐' + (m.estrellas || 0)}${max && m.mes === max && m.rol !== 'padre' ? ' 👑' : ''}</span>`).join(''); }
 const nom = id => { const m = F && F.miembros.find(x => x.id === id); return m ? m.nombre : 'Alguien'; };
@@ -153,7 +191,7 @@ function mostrar(x){
     decir(frase); return; }
   const a = x, de = nom(a.de); marcar(a.id); api('responder', Object.assign({aid: a.id, estado: 'visto'}, S)).catch(() => {});
   if(a.tipo === 'sumo'){ lluvia('🎉', 24); escena(esc(a.texto), '¡Ahora son más en la familia!', [['🎉 ¡Genial!', siguiente, 'pri']]); decir(a.texto.replace(/🎉/g, '')); return; }
-  if(a.tipo === 'flor' || a.tipo === 'corazon'){ lluvia(a.tipo === 'flor' ? '🌸' : '💖', 34); const f = a.tipo === 'flor' ? `${de} te mandó una flor 🌸` : `${de} te manda muchos corazones 💖`; escena(f, a.texto ? esc(a.texto) : '', [['💖 Mandar corazones', () => enviar({tipo: 'corazon', para: a.de}), 'pri'], ['OK', siguiente]]); decir(f); return; }
+  if(a.tipo === 'flor' || a.tipo === 'corazon'){ setTimeout(() => globo(a.de, a.tipo === 'flor' ? '🌸 ¡Para vos!' : '💖💖💖', 3500), 200); lluvia(a.tipo === 'flor' ? '🌸' : '💖', 34); const f = a.tipo === 'flor' ? `${de} te mandó una flor 🌸` : `${de} te manda muchos corazones 💖`; escena(f, a.texto ? esc(a.texto) : '', [['💖 Mandar corazones', () => enviar({tipo: 'corazon', para: a.de}), 'pri'], ['OK', siguiente]]); decir(f); return; }
   if(a.humor === 'enojado'){ document.body.classList.add('enojado'); }
   if(a.humor === 'contento') lluvia('💖', 16);
   const nombreYo = YO.nombre, frase = a.tipo === 'tarea' ? `${nombreYo}, ${de} dice: ${a.texto}` : `${de} dice: ${a.texto}`;
@@ -162,6 +200,7 @@ function mostrar(x){
   escena(esc(frase), a.tipo === 'tarea' ? `Tarea · vale ${'⭐'.repeat(a.estrellas || 1)}` + (a.humor === 'enojado' ? ' · 😠 ¡está enojado/a!' : '') : (a.humor === 'enojado' ? '😠 ¡está enojado/a!' : ''),
     a.tipo === 'tarea' ? [['🏃 ¡Ya voy!', () => resp(a, 'voy'), 'pri'], ['✅ ¡Listo!', () => resp(a, 'listo'), 'ok']] : [['👍 ¡Ya voy!', () => resp(a, 'voy'), 'pri'], ['💬 Contestar', () => contestar(a)]], extra);
   if(a.humor === 'enojado') document.querySelectorAll('.humo').forEach(h => h.hidden = false);
+  setTimeout(() => globo(a.de, a.humor === 'enojado' ? '😠 ¡' + a.texto.slice(0, 20) + '!' : '📣 ' + a.texto.slice(0, 22), 4000), 200);
   if(navigator.vibrate) navigator.vibrate(a.humor === 'enojado' ? [200, 80, 200, 80, 400] : 200);
   decir((a.humor === 'enojado' ? '¡Uy! ' : '') + frase);
   if(a.min){ const fin = Date.parse(a.creado) + a.min * 60e3; const tick = () => { const s = Math.max(0, Math.round((fin - Date.now()) / 1000)), el = $('#rel'); if(el) el.textContent = `⏱ ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; if(!s){ clearInterval(reloj); pitido(); decir(`¡${nombreYo}, se terminó el tiempo! ¡Apurate!`); } }; tick(); reloj = setInterval(tick, 1000); }
@@ -177,12 +216,13 @@ function principal(hablar){
   const hora = new Date().getHours(), hola = hora < 12 ? 'Buen día' : hora < 20 ? 'Buenas tardes' : 'Buenas noches';
   if(esPadre()){
     const pend = F.avisos.filter(a => a.tipo === 'tarea' && Object.values(a.resp || {}).some(r => r.estado === 'listo')).length;
-    escena(`${hola}, ${esc(YO.nombre)} 😊`, '¿Qué le aviso a la familia?', [['📣 Mandar un aviso', () => armar('aviso'), 'pri'], ['🧹 Dar una tarea', () => armar('tarea'), 'pri'], ...(pend ? [[`⭐ Revisar tareas (${pend})`, revisar, 'ok']] : []), ['🌸 Flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true), 'chico'], ['➕ Sumar', () => invitar('', false), 'chico']]);
+    escena(`${hola}, ${esc(YO.nombre)} 😊`, '¿Qué le aviso a la familia?', [['📣 Mandar un aviso', () => armar('aviso'), 'pri'], ['🧹 Dar una tarea', () => armar('tarea'), 'pri'], ...(pend ? [[`⭐ Revisar tareas (${pend})`, revisar, 'ok']] : []), ['🌸 Flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true), 'chico'], ['➕ Sumar', () => invitar('', false), 'chico'], YO.cuarto ? ['🏠 Volver con la familia', salirCuarto, 'chico'] : ['🚪 Mi cuarto', irCuarto, 'chico']]);
     if(hablar) decir(`${hola}, ${YO.nombre}. ¿Qué le aviso a la familia?`);
   } else {
     const mias = F.avisos.filter(a => a.tipo === 'tarea' && (a.para === 'todos' || a.para === YO.id) && !['listo', 'aprobado'].includes((a.resp[YO.id] || {}).estado));
+    if(YO.cuarto && !mias.length){ const c = CUARTOS[YO.cuarto] || CUARTOS.solo; escena(`Estamos en tu cuarto ${c[0]}`, 'Solo te aviso lo importante. Nadie te molesta 🤫', [['🏠 Volver con la familia', salirCuarto, 'pri'], ['🌸 Mandar una flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true)]]); if(hablar) decir('Estamos en tu cuarto. Nadie te molesta.'); return; }
     escena(mias.length ? `${esc(YO.nombre)}, tenés ${mias.length} tarea${mias.length > 1 ? 's' : ''} 📋` : `${hola}, ${esc(YO.nombre)} 😊`, mias.length ? esc(mias[0].texto) : `Tenés ⭐${YO.estrellas || 0} estrellas. ¡Seguí así!`,
-      [...mias.slice(0, 2).map(a => [`✅ ${esc(a.texto).slice(0, 26)}`, () => resp(a, 'listo'), 'ok']), ['🌸 Mandar una flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true), 'pri']]);
+      [...mias.slice(0, 2).map(a => [`✅ ${esc(a.texto).slice(0, 26)}`, () => resp(a, 'listo'), 'ok']), ['🌸 Mandar una flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true), 'pri'], YO.cuarto ? ['🏠 Volver con la familia', salirCuarto, 'chico'] : ['🚪 Me voy a mi cuarto', irCuarto, 'chico']]);
     if(hablar) decir(mias.length ? `${YO.nombre}, tenés ${mias.length} tareas pendientes.` : `${hola}, ${YO.nombre}. Tenés ${YO.estrellas || 0} estrellas.`);
   }
 }
@@ -204,6 +244,7 @@ function paso2(tipo, texto){
 }
 function humor(cb){ escena('¿Cómo estás?', 'Así se lo digo', [['😊 Contento/a', () => cb('contento'), 'pri'], ['😐 Normal', () => cb('')], ['😠 ¡Enojado/a!', () => cb('enojado')]]); decir('¿Cómo estás? Así se lo digo.'); }
 async function enviar(d){ try{ await api('enviar', Object.assign(d, S)); }catch(e){ return alert(e.message); }
+  if(!document.querySelector('.mini')){ escena('Enviando…', ''); } globo(YO.id, d.tipo === 'flor' ? '🌸' : d.tipo === 'corazon' ? '💖' : '📣 ' + (d.texto || '').slice(0, 20), 1600); await volar(YO.id, d.para, d.tipo === 'flor' ? '🌸' : d.tipo === 'corazon' ? '💖' : d.tipo === 'tarea' ? '📋' : '💬'); if(d.para !== 'todos' && document.querySelector(`.mini[data-id="${d.para}"]`)) globo(d.para, d.tipo === 'tarea' ? '¡Uh! 😅' : '¡Recibido! 👍', 1800);
   const a = d.para === 'todos' ? 'a todos' : 'a ' + nom(d.para); const f = d.tipo === 'flor' ? `¡Le mandé tu flor ${a}! 🌸` : d.tipo === 'corazon' ? `¡Le mandé tus corazones ${a}! 💖` : `¡Listo! Ya se lo dije ${a} 📣`;
   if(d.tipo === 'flor') lluvia('🌸', 12); if(d.tipo === 'corazon') lluvia('💖', 12); await cargar().catch(() => {}); escena(f, '', [['OK', () => principal(), 'pri']]); decir(f); }
 function revisar(){ const L = F.avisos.filter(a => a.tipo === 'tarea').flatMap(a => Object.entries(a.resp || {}).filter(([q, r]) => r.estado === 'listo').map(([q]) => ({resp: true, a, q, r: a.resp[q]}))); if(!L.length) return principal(); L.forEach(x => vistos.delete(x.a.id + x.q + 'listo')); mostrar(L[0]); }
@@ -211,13 +252,13 @@ function revisar(){ const L = F.avisos.filter(a => a.tipo === 'tarea').flatMap(a
 
 // lo que aparece en el cuadro según la tarea
 const ESCENAS = [[/patio|pasto|jard|hoja|rastrill/i, '🌳🍂<br>🧹', 'El patio'], [/basura|residuo/i, '🗑️♻️', 'La basura'], [/perr|pasear|mascota|gato/i, '🐶🦮', 'La mascota'], [/pieza|cuarto|cama|ordenar/i, '🛏️🧸', 'Tu pieza'], [/plato|lavar|cocina/i, '🍽️🧽', 'La cocina'], [/ba[ñn]o|duch|bañar/i, '🛁🫧', 'El baño'], [/comer|cena|almuerzo|desayuno/i, '🍽️😋', 'A la mesa'], [/dormir|noche/i, '🌙😴', 'A dormir'], [/limpi|casa|barrer/i, '🏠🧹', 'La casa'], [/compra|mandado|almac|pan\b|traer/i, '🛒🥖', 'Mandado'], [/reuni|pel[ií]cula/i, '🛋️🎬', 'Reunión familiar']];
-function panTarea(txt){ if(/tarea de|estudi|escuela|colegio|materia|deberes|leer/i.test(txt)) return `<div class="tit">📚 Tarea del colegio</div><div class="lee">${esc(txt)}</div>`; const e = ESCENAS.find(([r]) => r.test(txt)); return e ? `<div class="esc">${e[1]}</div><div class="tit">${e[2]}</div>` : `<div class="esc">⭐</div><div class="tit">${esc(txt)}</div>`; }
+function panTarea(txt){ if(/tarea de|hacer la tarea|estudi|escuela|colegio|materia|deberes|leer/i.test(txt)) return `<div class="tit">📚 Tarea del colegio</div><div class="lee">${esc(txt)}</div>`; const e = ESCENAS.find(([r]) => r.test(txt)); return e ? `<div class="esc">${e[1]}</div><div class="tit">${e[2]}</div>` : `<div class="esc">⭐</div><div class="tit">${esc(txt)}</div>`; }
 function tareas(){ const L = F.avisos.filter(a => a.tipo === 'tarea' && (esPadre() ? a.de === YO.id : (a.para === 'todos' || a.para === YO.id)) && !Object.values(a.resp || {}).some(r => r.estado === 'aprobado' && (esPadre() || r === a.resp[YO.id]))).slice(0, 6);
   if(!L.length){ escena('No hay tareas pendientes 🎉', esPadre() ? 'Podés dar una nueva' : `Tenés ⭐${YO.estrellas || 0} estrellas`, esPadre() ? [['🧹 Dar una tarea', () => armar('tarea'), 'pri']] : []); return decir('No hay tareas pendientes.'); }
   PAN = panTarea(L[0].texto);
   escena(`${L.length} tarea${L.length > 1 ? 's' : ''} pendiente${L.length > 1 ? 's' : ''}`, '', L.map(a => [`${esPadre() ? (a.para === 'todos' ? '👨‍👩‍👧' : nom(a.para)) + ': ' : ''}${esc(a.texto).slice(0, 28)} ${'⭐'.repeat(a.estrellas || 1)}`, () => esPadre() ? revisar() : resp(a, 'listo'), esPadre() ? '' : 'ok'])); }
 function hablar(){ aQuien(para => pedir(`¿Qué le digo a ${esc(nom(para))}?`, 'Escribí el mensaje', texto => enviar({tipo: 'aviso', texto, para})), true); }
-function familia(){ escena(`🏠 ${esc(F.familia)}`, F.miembros.map(m => `${m.emoji} ${esc(m.nombre)}${m.rol === 'padre' ? ' (mamá/papá)' : ' ⭐' + (m.estrellas || 0)}`).join('<br>'), [['➕ Sumar a alguien', () => invitar('', false), 'pri'], ['🌸 Mandar una flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true)]]); }
+function familia(){ escena(`🏠 ${esc(F.familia)}`, F.miembros.map(m => `${m.emoji} ${esc(m.nombre)}${m.rol === 'padre' ? ' (mamá/papá)' : ' ⭐' + (m.estrellas || 0)}${m.cuarto ? ' · 🚪 ' + (CUARTOS[m.cuarto] || CUARTOS.solo)[1] : ''}`).join('<br>'), [['➕ Sumar a alguien', () => invitar('', false), 'pri'], ['🌸 Mandar una flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true)]]); }
 
 // ---------- arranque y novedades ----------
 async function arrancar(){
