@@ -4,6 +4,7 @@
 //   POST ?accion=unirse    {code, nombre, emoji, pin?}              → {mid, k}              (con el PIN entra como mamá/papá)
 //   GET  ?code&mid&k                                                → la familia (miembros, estrellas, avisos)
 //   POST ?accion=enviar    {code,mid,k, para, texto, tipo, min, estrellas, humor}   aviso / tarea / flor
+//   POST ?accion=preguntar {code,mid,k, texto, hist}  → {texto}  Flashy con IA (ANTHROPIC_API_KEY, tope LIMITE_FAMILIA_IA por familia por mes)
 //   POST ?accion=pin    {code,mid,k}  → {pin} nuevo PIN de mamá/papá (solo padres)
 //   POST ?accion=cuarto {code,mid,k, cuarto}  '' (con la familia) · tele · tarea · dormir · jugar · musica · solo
 //   POST ?accion=responder {code,mid,k, aid, estado, txt}           visto · voy · listo
@@ -83,6 +84,27 @@ module.exports = async (req, res) => {
       F.avisos.unshift(av); F.avisos = F.avisos.slice(0, 120);
       await guardar(code, F);
       return res.status(200).json({ ok: true, aid: av.id });
+    }
+    if (a === 'preguntar') {
+      const KEY = process.env.ANTHROPIC_API_KEY; if (!KEY) return res.status(503).json({ error: 'Flashy todavía no puede pensar. Probá más tarde.' });
+      const preg = String(b.texto || '').trim().slice(0, 600); if (!preg) return res.status(400).json({ error: 'Escribí tu pregunta.' });
+      const mes = new Date().toISOString().slice(0, 7), lim = Math.max(0, Number(process.env.LIMITE_FAMILIA_IA || 300));
+      if (F.iaMes !== mes) { F.iaMes = mes; F.iaUsadas = 0; }
+      if (F.iaUsadas >= lim) return res.status(429).json({ error: `Este mes ya me hicieron ${lim} preguntas. El día 1 vuelvo a tener ganas de charlar 😄` });
+      const hist = (Array.isArray(b.hist) ? b.hist : []).slice(-6).filter(h => h && ['user', 'assistant'].includes(h.role) && typeof h.content === 'string').map(h => ({ role: h.role, content: h.content.slice(0, 1200) }));
+      while (hist.length && hist[0].role !== 'user') hist.shift();
+      const chico = yo.rol !== 'padre', nombres = F.miembros.map(m => m.nombre + (m.rol === 'padre' ? ' (mamá/papá)' : ' (hijo/a)')).join(', ');
+      const sys = `Sos Flashy, el ayudante simpático de la familia ${F.familia} en la app ShopFamilia (de Pro Video JSRHG). Hablás en castellano rioplatense (Argentina), con calidez y buen humor, como alguien más de la casa.
+Integrantes: ${nombres}. Te está hablando ${yo.nombre}${chico ? ', que es un chico o una chica: usá palabras simples y contenido apto para chicos' : ''}.
+Ayudás con la vida de la casa: recetas y comidas con lo que hay en la heladera, tareas del colegio (explicá paso a paso para que aprendan, no les hagas la tarea entera), juegos, ideas para salir, orden y limpieza, consejos para convivir mejor.
+Tus respuestas se leen en voz alta: sé breve (máximo 120 palabras), sin tablas ni markdown, sin asteriscos ni numerales. Para recetas: primero los ingredientes en una línea, después pasos cortos numerados "1.", "2.". Usá ingredientes y medidas que se consiguen en Argentina.
+Si es algo de salud o una emergencia, decí que hablen con un adulto o con un médico (en emergencia: 107 o 911). Si te piden algo peligroso o no apto para chicos, decí amablemente que no.`;
+      const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'x-api-key': KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        body: JSON.stringify({ model: process.env.IA_MODEL_TEXT || 'claude-haiku-5-5', max_tokens: 600, system: sys, messages: [...hist, { role: 'user', content: preg }] }) });
+      if (!r.ok) return res.status(502).json({ error: 'Me distraje un segundo 😅 Preguntame de nuevo.' });
+      const j = await r.json(), txt = (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('').replace(/[*#_`]/g, '').trim();
+      F.iaUsadas = (F.iaUsadas || 0) + 1; await guardar(code, F);
+      return res.status(200).json({ ok: true, texto: txt });
     }
     if (a === 'pin') {
       if (yo.rol !== 'padre') return res.status(403).json({ error: 'Solo mamá/papá.' });

@@ -21,7 +21,7 @@ body{font:600 18px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;colo
 .chip{display:flex;align-items:center;gap:4px;background:#fff;border-radius:999px;padding:4px 10px;font-size:14px;white-space:nowrap;box-shadow:0 2px 6px rgba(160,52,106,.12)}
 .chip.top1{background:linear-gradient(90deg,#fff3c4,#ffe08a)}
 .escena{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;min-height:0}
-#burb{background:#fff;border-radius:26px 26px 26px 8px;padding:16px 18px;margin:0 16px 8px;box-shadow:0 10px 30px rgba(120,40,90,.15);font-size:20px;max-width:520px;width:calc(100% - 32px);text-align:center;min-height:64px}
+#burb{background:#fff;border-radius:26px 26px 26px 8px;padding:16px 18px;margin:0 16px 22px;box-shadow:0 10px 30px rgba(120,40,90,.15);font-size:20px;max-width:520px;width:calc(100% - 32px);text-align:center;min-height:64px}
 #burb small{display:block;font-size:14px;color:#8a6b80;font-weight:600;margin-top:4px}
 #burb .reloj{font:900 46px system-ui;color:#e2457f;letter-spacing:1px}
 #fla{width:min(62vw,300px);height:min(40vh,330px);position:relative;animation:vive 2.2s ease-in-out infinite;filter:drop-shadow(0 14px 18px rgba(120,40,90,.25));cursor:pointer}
@@ -52,7 +52,9 @@ input.campo{width:100%;border:2px solid #f3c6da;border-radius:16px;padding:14px;
 #pan .lee{font:500 17px/1.5 system-ui;color:#2b2140;text-align:left;width:100%}
 .con-pan #fla{height:min(26vh,230px);width:min(44vw,200px)}
 .menu{display:flex;justify-content:space-around;background:#fff;border-radius:22px 22px 0 0;box-shadow:0 -4px 14px rgba(120,40,90,.1);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
-.menu button{border:0;background:none;font:700 12px system-ui;color:#8a6b80;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;cursor:pointer}.menu button span{font-size:24px}
+.menu button{border:0;background:none;font:700 12px system-ui;color:#8a6b80;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 4px;cursor:pointer}.menu button[data-m=ia]{color:#e2457f}
+#pan .resp{font:500 17px/1.5 system-ui;color:#2b2140;text-align:left;width:100%;white-space:pre-line;align-self:flex-start}
+.mic{font-size:26px;flex:0 0 58px!important;padding:0!important}.mic.oye{background:#e2457f!important;color:#fff;animation:habla .4s ease-in-out infinite alternate}.menu button span{font-size:24px}
 .acc{padding-bottom:10px}
 #grupo{position:relative;display:flex;align-items:flex-end;justify-content:center;width:100%;max-width:520px}
 .mini{position:relative;width:min(19vw,92px);height:min(16vh,120px);margin:0 -4px;display:flex;flex-direction:column;align-items:center;animation:vive 2.6s ease-in-out infinite;cursor:pointer;transition:transform .5s}
@@ -114,8 +116,8 @@ function lluvia(emo, n){ for(let i = 0; i < (n || 26); i++){ const d = document.
 let PAN = '';
 function escena(texto, sub, botones, extra){
   const pan = PAN; PAN = ''; document.body.classList.toggle('encuarto', !!(YO && YO.cuarto)); document.body.style.background = YO && YO.cuarto ? (CUARTOS[YO.cuarto] || CUARTOS.solo)[4] : '';
-  app.innerHTML = `<div class="top" id="top"></div><div class="escena ${pan ? 'con-pan' : ''}"><div id="pan" ${pan ? '' : 'hidden'}>${pan}</div><div id="burb">${texto}${sub ? `<small>${sub}</small>` : ''}${extra || ''}</div><div id="grupo">${grupoHTML()}</div></div><div class="acc" id="acc"></div>${F ? `<nav class="menu"><button data-m="ini"><span>🏠</span>Inicio</button><button data-m="tar"><span>📋</span>Tareas</button><button data-m="hab"><span>💬</span>Hablar</button><button data-m="fam"><span>👨‍👩‍👧</span>Familia</button></nav>` : ''}`;
-  app.querySelectorAll('.menu button').forEach(b => b.onclick = () => { despertar(); ({ini: () => principal(true), tar: tareas, hab: hablar, fam: familia})[b.dataset.m](); });
+  app.innerHTML = `<div class="top" id="top"></div><div class="escena ${pan ? 'con-pan' : ''}"><div id="pan" ${pan ? '' : 'hidden'}>${pan}</div><div id="burb">${texto}${sub ? `<small>${sub}</small>` : ''}${extra || ''}</div><div id="grupo">${grupoHTML()}</div></div><div class="acc" id="acc"></div>${F ? `<nav class="menu"><button data-m="ini"><span>🏠</span>Inicio</button><button data-m="tar"><span>📋</span>Tareas</button><button data-m="ia"><span>✨</span>Preguntar</button><button data-m="hab"><span>💬</span>Hablar</button><button data-m="fam"><span>👨‍👩‍👧</span>Familia</button></nav>` : ''}`;
+  app.querySelectorAll('.menu button').forEach(b => b.onclick = () => { despertar(); ({ini: () => principal(true), tar: tareas, ia: () => preguntar(), hab: hablar, fam: familia})[b.dataset.m](); });
   const acc = $('#acc'); (botones || []).forEach(([t, f, cls]) => { const b = document.createElement('button'); b.className = 'b ' + (cls || ''); b.innerHTML = t; b.onclick = () => { despertar(); f(b); }; acc.appendChild(b); });
   $('#fla').onclick = () => { if(F && voz && !actual) principal(true); };
   pintarTop();
@@ -252,13 +254,13 @@ function principal(hablar){
   const hora = new Date().getHours(), hola = hora < 12 ? 'Buen día' : hora < 20 ? 'Buenas tardes' : 'Buenas noches';
   if(esPadre()){
     const pend = F.avisos.filter(a => a.tipo === 'tarea' && Object.values(a.resp || {}).some(r => r.estado === 'listo')).length;
-    escena(YO.cuarto ? `${hola}, ${esc(YO.nombre)} ${(CUARTOS[YO.cuarto] || CUARTOS.solo)[0]}` : `${hola}, ${esc(YO.nombre)} 😊`, YO.cuarto ? `Estás en ${(CUARTOS[YO.cuarto] || CUARTOS.solo)[5]}. ¿Qué le aviso a la familia?` : '¿Qué le aviso a la familia?', [['📣 Mandar un aviso', () => armar('aviso'), 'pri'], ['🧹 Dar una tarea', () => armar('tarea'), 'pri'], ...(pend ? [[`⭐ Revisar tareas (${pend})`, revisar, 'ok']] : []), ['🌸 Flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true), 'chico'], ['➕ Sumar', () => invitar('', false), 'chico'], YO.cuarto ? ['🏠 Volver con la familia', salirCuarto, 'chico'] : ['🚪 Me voy a mi lugar', irCuarto, 'chico']]);
+    escena(YO.cuarto ? `${hola}, ${esc(YO.nombre)} ${(CUARTOS[YO.cuarto] || CUARTOS.solo)[0]}` : `${hola}, ${esc(YO.nombre)} 😊`, YO.cuarto ? `Estás en ${(CUARTOS[YO.cuarto] || CUARTOS.solo)[5]}. ¿Qué le aviso a la familia?` : '¿Qué le aviso a la familia?', [['📣 Mandar un aviso', () => armar('aviso'), 'pri'], ['🧹 Dar una tarea', () => armar('tarea'), 'pri'], ['✨ Preguntale a Flashy', () => preguntar(), 'chico'], ...(pend ? [[`⭐ Revisar tareas (${pend})`, revisar, 'ok']] : []), ['🌸 Flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true), 'chico'], ['➕ Sumar', () => invitar('', false), 'chico'], YO.cuarto ? ['🏠 Volver con la familia', salirCuarto, 'chico'] : ['🚪 Me voy a mi lugar', irCuarto, 'chico']]);
     if(hablar) decir(`${hola}, ${YO.nombre}. ¿Qué le aviso a la familia?`);
   } else {
     const mias = F.avisos.filter(a => a.tipo === 'tarea' && (a.para === 'todos' || a.para === YO.id) && !['listo', 'aprobado'].includes((a.resp[YO.id] || {}).estado));
     if(YO.cuarto && !mias.length){ const c = CUARTOS[YO.cuarto] || CUARTOS.solo; escena(`Estamos en ${c[5]} ${c[0]}`, 'Solo te aviso lo importante. Nadie te molesta 🤫', [['🏠 Volver con la familia', salirCuarto, 'pri'], ['🌸 Mandar una flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true)]]); if(hablar) decir(`Estamos en ${c[5]}. Nadie te molesta.`); return; }
     escena(mias.length ? `${esc(YO.nombre)}, tenés ${mias.length} tarea${mias.length > 1 ? 's' : ''} 📋` : `${hola}, ${esc(YO.nombre)} 😊`, mias.length ? esc(mias[0].texto) : `Tenés ⭐${YO.estrellas || 0} estrellas. ¡Seguí así!`,
-      [...mias.slice(0, 2).map(a => [`✅ ${esc(a.texto).slice(0, 26)}`, () => resp(a, 'listo'), 'ok']), ['🌸 Mandar una flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true), 'pri'], YO.cuarto ? ['🏠 Volver con la familia', salirCuarto, 'chico'] : ['🚪 Me voy a mi lugar', irCuarto, 'chico']]);
+      [...mias.slice(0, 2).map(a => [`✅ ${esc(a.texto).slice(0, 26)}`, () => resp(a, 'listo'), 'ok']), ['✨ Preguntale a Flashy', () => preguntar(), 'pri'], ['🌸 Mandar una flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true), 'chico'], YO.cuarto ? ['🏠 Volver con la familia', salirCuarto, 'chico'] : ['🚪 Me voy a mi lugar', irCuarto, 'chico']]);
     if(hablar) decir(mias.length ? `${YO.nombre}, tenés ${mias.length} tareas pendientes.` : `${hola}, ${YO.nombre}. Tenés ${YO.estrellas || 0} estrellas.`);
   }
 }
@@ -293,6 +295,27 @@ function tareas(){ const L = F.avisos.filter(a => a.tipo === 'tarea' && (esPadre
   if(!L.length){ escena('No hay tareas pendientes 🎉', esPadre() ? 'Podés dar una nueva' : `Tenés ⭐${YO.estrellas || 0} estrellas`, esPadre() ? [['🧹 Dar una tarea', () => armar('tarea'), 'pri']] : []); return decir('No hay tareas pendientes.'); }
   PAN = panTarea(L[0].texto);
   escena(`${L.length} tarea${L.length > 1 ? 's' : ''} pendiente${L.length > 1 ? 's' : ''}`, '', L.map(a => [`${esPadre() ? (a.para === 'todos' ? '👨‍👩‍👧' : nom(a.para)) + ': ' : ''}${esc(a.texto).slice(0, 28)} ${'⭐'.repeat(a.estrellas || 1)}`, () => esPadre() ? revisar() : resp(a, 'listo'), esPadre() ? '' : 'ok'])); }
+// ---------- Flashy con inteligencia artificial ----------
+let IAH = [];
+const IDEAS = ['🍝 ¿Qué cocinamos hoy?', '📚 Ayudame con la tarea', '🎲 Un juego para jugar en familia', '🧹 ¿Cómo organizamos la casa?'];
+function preguntar(prev){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(prev) PAN = `<div class="resp">${esc(prev)}</div>`;
+  escena(prev ? '¿Algo más? 😊' : 'Preguntame lo que quieras 💡', prev ? '' : 'Comidas, tareas del colegio, juegos, ideas…', [['Preguntar ➜', () => { const v = $('#in').value.trim(); if(v) mandarPregunta(v); }, 'pri'], ...(SR ? [['🎤', b => escuchar(b), 'mic']] : []), ...(prev ? [['🏠 Listo', () => { IAH = []; principal(); }, 'chico']] : IDEAS.map(t => [t, () => mandarPregunta(t.replace(/^\S+\s/, '')), 'chico']))],
+    `<input class="campo" id="in" placeholder="Ej: tengo pollo y papas, ¿qué hago?" maxlength="300">`);
+  const i = $('#in'); i.onkeydown = e => { if(e.key === 'Enter' && i.value.trim()) mandarPregunta(i.value.trim()); };
+  if(!prev) decir('Preguntame lo que quieras. Te ayudo con comidas, tareas, juegos, lo que necesites.');
+}
+function escuchar(b){ const SR = window.SpeechRecognition || window.webkitSpeechRecognition; if(!SR) return; try{ speechSynthesis.cancel(); }catch(e){}
+  const r = new SR(); r.lang = 'es-AR'; r.interimResults = true; b.classList.add('oye'); b.textContent = '👂';
+  r.onresult = e => { const t = [...e.results].map(x => x[0].transcript).join(''); $('#in').value = t; if(e.results[e.results.length - 1].isFinal){ r.stop(); mandarPregunta(t); } };
+  r.onerror = r.onend = () => { b.classList.remove('oye'); b.textContent = '🎤'; }; r.start(); }
+async function mandarPregunta(t){
+  actual = {ia: true}; escena('Mmm… déjame pensar 🤔', esc(t), []); const f = $('#fla'); if(f) f.classList.add('habla');
+  let j; try{ j = await api('preguntar', Object.assign({texto: t, hist: IAH}, S)); }catch(e){ actual = null; escena('😕 ' + esc(e.message), '', [['Probar de nuevo', () => preguntar(), 'pri']]); return decir(e.message); }
+  IAH.push({role: 'user', content: t}, {role: 'assistant', content: j.texto}); IAH = IAH.slice(-8);
+  actual = {ia: true}; preguntar(j.texto); decir(j.texto.replace(/^\d+\.\s*/gm, ''));
+}
 function hablar(){ aQuien(para => pedir(`¿Qué le digo a ${esc(nom(para))}?`, 'Escribí el mensaje', texto => enviar({tipo: 'aviso', texto, para})), true); }
 function familia(){ escena(`🏠 ${esc(F.familia)}`, F.miembros.map(m => `${m.emoji} ${esc(m.nombre)}${m.rol === 'padre' ? ' (mamá/papá)' : ' ⭐' + (m.estrellas || 0)}${m.cuarto ? ' · 🚪 ' + (CUARTOS[m.cuarto] || CUARTOS.solo)[1] : ''}`).join('<br>'), [['➕ Sumar a alguien', () => invitar('', false), 'pri'], ['🌸 Mandar una flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true)], ...(esPadre() ? [['🔑 PIN de mamá/papá', verPin, 'chico']] : [])]); }
 async function verPin(){ let j; try{ j = await api('pin', S); }catch(e){ return alert(e.message); } escena(`🔑 PIN de mamá/papá: <b style="font-size:30px;color:#e2457f">${j.pin}</b>`, 'Es para que otro papá o mamá entre con su celular. No se lo des a los chicos.<br>Si lo pedís de nuevo, se cambia por otro.', [['OK', () => principal(), 'pri'], ['➕ Sumar a alguien', () => invitar(j.pin, false)]]); decir('Este es el PIN de mamá y papá. No se lo des a los chicos.'); }
