@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="color-scheme" content="light only">
-<style>:root{color-scheme:light only}</style>
+<style>:root{color-scheme:light only}.portv{width:min(240px,62vw);aspect-ratio:9/19.5;margin:4px auto 18px;border-radius:30px;overflow:hidden;border:6px solid #1f1a14;box-shadow:0 18px 40px rgba(60,40,10,.35),0 0 0 2px #c9a227}
+.portv video{width:100%;height:100%;object-fit:cover;display:block}
+</style>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ShopFiesta · Panel de tu fiesta</title>
 <meta name="description" content="Armá la invitación de tu fiesta, mandala por WhatsApp y mirá quién confirmó.">
@@ -113,9 +115,9 @@ const waLink = (tel, txt) => 'https://wa.me/' + waNum(tel) + '?text=' + encodeUR
 function inicio() {
   const l = mis();
   if (!CODE) {
-    $('#raiz').innerHTML = `<div class="hero"><h1>La invitación y la app de tu fiesta 💌</h1><p>Elegí un diseño, cargá tus invitados y mandales su invitación por WhatsApp. Cada uno confirma, y vos ves quién viene y quién no.</p>
+    $('#raiz').innerHTML = `<div class="hero"><div class="portv"><video src="/img-fiesta/portada-super.mp4" poster="/img-fiesta/portada-super.jpg" autoplay muted loop playsinline preload="auto"></video></div><h1>La invitación y la app de tu fiesta 💌</h1><p>Elegí un diseño, cargá tus invitados y mandales su invitación por WhatsApp. Cada uno confirma, y vos ves quién viene y quién no.</p>
       <button class="btn" id="empezar" style="font-size:18px;padding:14px 22px">✨ Armar mi invitación</button>
-      <p style="margin-top:18px"><a href="/fiesta/DEMO15" target="_blank">👀 Ver una invitación de muestra</a></p>
+      <p style="margin-top:18px"><a href="/fiesta/DEMO15?abre=super15" target="_blank">👀 Abrí la súper tarjeta en tu celular</a> · <a href="/fiesta/DEMO15" target="_blank">otra muestra</a></p>
       ${sesionDueno() ? `<div class="box" style="text-align:left;margin-top:18px;border-radius:16px"><h3 style="margin-top:0">🎟 Códigos para Mercado Libre (solo Pro Video)</h3><p class="muted">Cuando alguien compra en Mercado Libre, generá un código y mandáselo por la mensajería de la venta, con el link vitrina360app.com.ar/fiestas.</p><select id="cPaq" style="max-width:260px"><option value="invitacion">Invitación (con vitrina y música)</option><option value="completa">Fiesta completa</option><option value="recuerdos">Completa + recuerdos</option></select> <select id="cVit" style="max-width:240px"><option value="arriba">Clásica · 2 vitrinas</option><option value="pelicula">Película</option><option value="aro" selected>Aro · fotos girando</option></select> <button class="btn" id="cGen">Generar código</button><p id="cOut" style="font-size:20px;font-weight:800"></p></div>` : ''}
       ${l.length ? `<div class="box" style="text-align:left;margin-top:24px;border-radius:16px"><h3 style="margin-top:0">Mis fiestas</h3><ul class="lista">${l.map(x => `<li><a href="/fiesta-panel?f=${esc(x.code)}&k=${esc(x.k)}">${esc(x.nombre || x.code)}</a></li>`).join('')}</ul></div>` : ''}</div>
       <div class="pie">ShopFiesta · Pro Video JSRHG</div>`;
