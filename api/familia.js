@@ -4,6 +4,7 @@
 //   POST ?accion=unirse    {code, nombre, emoji, pin?}              → {mid, k}              (con el PIN entra como mamá/papá)
 //   GET  ?code&mid&k                                                → la familia (miembros, estrellas, avisos)
 //   POST ?accion=enviar    {code,mid,k, para, texto, tipo, min, estrellas, humor}   aviso / tarea / flor
+//   POST ?accion=pin    {code,mid,k}  → {pin} nuevo PIN de mamá/papá (solo padres)
 //   POST ?accion=cuarto {code,mid,k, cuarto}  '' (con la familia) · tele · tarea · dormir · jugar · musica · solo
 //   POST ?accion=responder {code,mid,k, aid, estado, txt}           visto · voy · listo
 //   POST ?accion=aprobar   {code,mid,k, aid, quien}                 mamá/papá aprueba la tarea → suma estrellas
@@ -82,6 +83,11 @@ module.exports = async (req, res) => {
       F.avisos.unshift(av); F.avisos = F.avisos.slice(0, 120);
       await guardar(code, F);
       return res.status(200).json({ ok: true, aid: av.id });
+    }
+    if (a === 'pin') {
+      if (yo.rol !== 'padre') return res.status(403).json({ error: 'Solo mamá/papá.' });
+      const pin = String(1000 + crypto.randomInt(9000)); F.pin = hash(pin); await guardar(code, F);
+      return res.status(200).json({ ok: true, pin });
     }
     if (a === 'cuarto') {
       const ACT = ['', 'tele', 'tarea', 'dormir', 'jugar', 'musica', 'solo'];

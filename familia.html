@@ -267,7 +267,8 @@ function tareas(){ const L = F.avisos.filter(a => a.tipo === 'tarea' && (esPadre
   PAN = panTarea(L[0].texto);
   escena(`${L.length} tarea${L.length > 1 ? 's' : ''} pendiente${L.length > 1 ? 's' : ''}`, '', L.map(a => [`${esPadre() ? (a.para === 'todos' ? '👨‍👩‍👧' : nom(a.para)) + ': ' : ''}${esc(a.texto).slice(0, 28)} ${'⭐'.repeat(a.estrellas || 1)}`, () => esPadre() ? revisar() : resp(a, 'listo'), esPadre() ? '' : 'ok'])); }
 function hablar(){ aQuien(para => pedir(`¿Qué le digo a ${esc(nom(para))}?`, 'Escribí el mensaje', texto => enviar({tipo: 'aviso', texto, para})), true); }
-function familia(){ escena(`🏠 ${esc(F.familia)}`, F.miembros.map(m => `${m.emoji} ${esc(m.nombre)}${m.rol === 'padre' ? ' (mamá/papá)' : ' ⭐' + (m.estrellas || 0)}${m.cuarto ? ' · 🚪 ' + (CUARTOS[m.cuarto] || CUARTOS.solo)[1] : ''}`).join('<br>'), [['➕ Sumar a alguien', () => invitar('', false), 'pri'], ['🌸 Mandar una flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true)]]); }
+function familia(){ escena(`🏠 ${esc(F.familia)}`, F.miembros.map(m => `${m.emoji} ${esc(m.nombre)}${m.rol === 'padre' ? ' (mamá/papá)' : ' ⭐' + (m.estrellas || 0)}${m.cuarto ? ' · 🚪 ' + (CUARTOS[m.cuarto] || CUARTOS.solo)[1] : ''}`).join('<br>'), [['➕ Sumar a alguien', () => invitar('', false), 'pri'], ['🌸 Mandar una flor', () => aQuien(p => enviar({tipo: 'flor', para: p}), true)], ...(esPadre() ? [['🔑 PIN de mamá/papá', verPin, 'chico']] : [])]); }
+async function verPin(){ let j; try{ j = await api('pin', S); }catch(e){ return alert(e.message); } escena(`🔑 PIN de mamá/papá: <b style="font-size:30px;color:#e2457f">${j.pin}</b>`, 'Es para que otro papá o mamá entre con su celular. No se lo des a los chicos.<br>Si lo pedís de nuevo, se cambia por otro.', [['OK', () => principal(), 'pri'], ['➕ Sumar a alguien', () => invitar(j.pin, false)]]); decir('Este es el PIN de mamá y papá. No se lo des a los chicos.'); }
 
 // ---------- arranque y novedades ----------
 async function arrancar(){
