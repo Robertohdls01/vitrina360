@@ -8,6 +8,8 @@
 //   POST ?accion=desconectar     (comerciante, Bearer)
 //   POST ?accion=pagar {ref,k}   (cliente) → { url } del cobro de Mercado Pago por el total del pedido
 //   POST ?accion=aviso&u=<dueño> (Mercado Pago avisa un pago) → si está aprobado, el pedido queda "pagado" solo
+// ShopMenu (cafés): POST ?accion=menuConectar {id,clave,volver} · GET ?accion=menuEstado&id&clave · POST ?accion=menuDesconectar {id,clave}
+//   GET ?accion=menuDisponible&id · POST ?accion=menuPagar {id,mesa,nombre,peds:[{pid,k}],propina} · aviso con &m=<id>
 // Las claves de cada comerciante se guardan cifradas en el almacenamiento privado (carpeta "mpcobro").
 const crypto = require('crypto');
 const { cuerpo, usuario, stHeaders, db } = require('./_comun');
@@ -17,6 +19,8 @@ const ST = () => SURL() + '/storage/v1';
 const CID = () => process.env.MP_OAUTH_CLIENT_ID || '';
 const CSEC = () => process.env.MP_OAUTH_CLIENT_SECRET || '';
 const okUid = u => /^[0-9a-f-]{36}$/i.test(String(u || ''));
+const okMenu = id => /^[a-z0-9]{6,20}$/.test(String(id || ''));
+const hashMenu = c => crypto.createHash('sha256').update('shopmenu|' + c).digest('hex');
 const okRef = ref => /^[0-9a-f-]{36}\/[0-9a-z]{6,24}$/i.test(String(ref || ''));
 
 async function bucket(b) { try { await fetch(ST() + '/bucket', { method: 'POST', headers: stHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ id: b, name: b, public: false }) }); } catch (e) {} }
@@ -64,9 +68,10 @@ module.exports = async (req, res) => {
       const st = /^[a-f0-9]{32}$/.test(String(q.state)) ? await leer('mpcobro', 's/' + q.state + '.json') : null;
       if (!st || Date.now() - st.t > 30 * 60e3) { res.writeHead(302, { Location: '/panel?mp=error' }); return res.end(); }
       await borrar('mpcobro', 's/' + q.state + '.json');
-      try { const j = await mpToken({ grant_type: 'authorization_code', code: String(q.code), redirect_uri: REDIR }); await guardarConexion(st.uid, j); }
-      catch (e) { console.error('mpcobro conectar', e.message); res.writeHead(302, { Location: '/panel?mp=error' }); return res.end(); }
-      res.writeHead(302, { Location: '/panel?mp=ok' }); return res.end();
+      const vuelta = st.menu ? (st.volver || '/menu?m=' + st.menu) : '/panel', sep = vuelta.includes('?') ? '&' : '?';
+      try { const j = await mpToken({ grant_type: 'authorization_code', code: String(q.code), redirect_uri: REDIR }); await guardarConexion(st.menu ? 'm-' + st.menu : st.uid, j); }
+      catch (e) { console.error('mpcobro conectar', e.message); res.writeHead(302, { Location: vuelta + sep + 'mp=error' }); return res.end(); }
+      res.writeHead(302, { Location: vuelta + sep + 'mp=ok' }); return res.end();
     }
     if (req.method === 'GET' && q.error) { res.writeHead(302, { Location: '/panel?mp=cancelado' }); return res.end(); }
 
@@ -88,6 +93,59 @@ module.exports = async (req, res) => {
       await guardar('mpcobro', 's/' + state + '.json', { uid: u.id, t: Date.now() });
       const url = 'https://auth.mercadopago.com/authorization?client_id=' + encodeURIComponent(CID()) + '&response_type=code&platform_id=mp&state=' + state + '&redirect_uri=' + encodeURIComponent(REDIR);
       return res.status(200).json({ url });
+    }
+
+
+    // ================= ShopMenu: cada café conecta SU Mercado Pago y la mesa paga el total exacto =================
+    if (a === 'menuConectar' || a === 'menuEstado' || a === 'menuDesconectar') {
+      const b = req.method === 'POST' ? cuerpo(req) : q, id = String(b.id || '');
+      if (!okMenu(id)) return res.status(400).json({ error: 'Menú inválido.' });
+      const f = await leer('pedidos', 'menus/' + id + '.json');
+      if (!f || hashMenu(String(b.clave || '')) !== f.clave) return res.status(403).json({ error: 'La clave no es correcta.' });
+      if (a === 'menuEstado') { const t = await leer('mpcobro', 't/m-' + id + '.json'); return res.status(200).json({ conectado: !!t, disponible: !!(CID() && CSEC()) }); }
+      if (a === 'menuDesconectar') { await borrar('mpcobro', 't/m-' + id + '.json'); return res.status(200).json({ ok: true }); }
+      if (!CID() || !CSEC()) return res.status(503).json({ error: 'El cobro con Mercado Pago todavía no está activado.' });
+      let volver = String(b.volver || ''); if (!volver.startsWith('/menu?m=' + id)) volver = '/menu?m=' + id;
+      const state = crypto.randomBytes(16).toString('hex');
+      await guardar('mpcobro', 's/' + state + '.json', { menu: id, volver: volver.slice(0, 300), t: Date.now() });
+      const url = 'https://auth.mercadopago.com/authorization?client_id=' + encodeURIComponent(CID()) + '&response_type=code&platform_id=mp&state=' + state + '&redirect_uri=' + encodeURIComponent(REDIR);
+      return res.status(200).json({ url });
+    }
+    if (req.method === 'GET' && a === 'menuDisponible') {
+      const id = String(q.id || ''); if (!okMenu(id)) return res.status(200).json({ ok: false });
+      const t = await leer('mpcobro', 't/m-' + id + '.json');
+      res.setHeader('Cache-Control', 'public, s-maxage=60');
+      return res.status(200).json({ ok: !!t });
+    }
+    if (req.method === 'POST' && a === 'menuPagar') {
+      const b = cuerpo(req), id = String(b.id || '');
+      if (!okMenu(id)) return res.status(400).json({ error: 'Menú inválido.' });
+      const f = await leer('pedidos', 'menus/' + id + '.json'); if (!f || !f.menu) return res.status(404).json({ error: 'No encontramos este menú.' });
+      const tok = await tokenDe('m-' + id); if (!tok) return res.status(409).json({ error: 'Este local no tiene Mercado Pago conectado.' });
+      const L = (await leer('pedidos', 'menus/' + id + '-pedidos.json')) || { items: [] };
+      const peds = (Array.isArray(b.peds) ? b.peds : []).slice(0, 30), mios = [];
+      peds.forEach(x => { const p = (L.items || []).find(y => y.tipo === 'pedido' && y.id === String(x && x.pid || '')); if (p && p.k === String(x.k || '') && !p.pagadoMp && p.estado !== 'cancelado') mios.push(p); });
+      if (!mios.length) return res.status(404).json({ error: 'No encontramos tus pedidos para cobrar.' });
+      let total = 0; mios.forEach(p => (p.items || []).forEach(i => { const v = num(i.p); if (isFinite(v)) total += v * (i.q || 1); }));
+      if (!(total > 0)) return res.status(400).json({ error: 'Tu pedido no tiene precio: pagale al mozo.' });
+      const tip = Math.max(0, Math.min(total * 0.5, Number(b.propina) || 0)), monto = Math.round((total + tip) * 100) / 100;
+      const MONS = { '$': 'ARS', 'US$': 'USD', 'R$': 'BRL', 'UYU': 'UYU', 'CLP': 'CLP', 'S/': 'PEN' }, moneda = MONS[f.menu.moneda || '$'] || 'ARS';
+      const pago = crypto.randomBytes(6).toString('hex'), mesa = Math.max(0, Math.min(500, parseInt(b.mesa, 10) || 0));
+      const P = (await leer('pedidos', 'menus/' + id + '-mp.json')) || { p: {} };
+      P.p[pago] = { peds: mios.map(p => p.id), monto, tip, mesa, nombre: String(b.nombre || '').slice(0, 30), creado: new Date().toISOString() };
+      Object.keys(P.p).forEach(k => { if (Date.now() - Date.parse(P.p[k].creado) > 3 * 864e5) delete P.p[k]; });
+      await guardar('pedidos', 'menus/' + id + '-mp.json', P);
+      const back = host + '/menu?m=' + id + '&mesa=' + mesa;
+      const r = await fetch('https://api.mercadopago.com/checkout/preferences', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok }, body: JSON.stringify({
+        items: [{ id: pago, title: (String(f.menu.nombre || 'Consumo').slice(0, 40) + (mesa ? ' · Mesa ' + mesa : '')).slice(0, 60), quantity: 1, unit_price: monto, currency_id: moneda }],
+        external_reference: 'menu:' + id + ':' + pago,
+        notification_url: host + '/api/mpcobro?accion=aviso&m=' + id,
+        back_urls: { success: back + '&pago=ok', pending: back + '&pago=pendiente', failure: back + '&pago=error' },
+        auto_return: 'approved', statement_descriptor: 'SHOPMENU'
+      }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.init_point) { console.error('mpcobro menuPagar', r.status, JSON.stringify(j).slice(0, 300)); return res.status(502).json({ error: 'Mercado Pago no respondió. Probá de nuevo o pagale al mozo.' }); }
+      return res.status(200).json({ url: j.init_point, monto });
     }
 
     // ---- el cliente quiere pagar su pedido ----
@@ -120,6 +178,25 @@ module.exports = async (req, res) => {
     }
 
     // ---- Mercado Pago avisa un pago ----
+    if (a === 'aviso' && q.m) {
+      const id = String(q.m); if (!okMenu(id)) return res.status(200).json({ ok: true });
+      const b = cuerpo(req);
+      const tipo = b.type || b.topic || q.type || q.topic || '', pid = String((b.data && b.data.id) || q['data.id'] || q.id || '').replace(/\D/g, '');
+      if (!/payment/.test(tipo) || !pid) return res.status(200).json({ ok: true });
+      const tok = await tokenDe('m-' + id); if (!tok) return res.status(200).json({ ok: true });
+      const r = await fetch('https://api.mercadopago.com/v1/payments/' + pid, { headers: { Authorization: 'Bearer ' + tok } });
+      const pay = await r.json().catch(() => null); if (!r.ok || !pay || pay.status !== 'approved') return res.status(200).json({ ok: true });
+      const ref = String(pay.external_reference || '').split(':'); if (ref[0] !== 'menu' || ref[1] !== id) return res.status(200).json({ ok: true });
+      const P = (await leer('pedidos', 'menus/' + id + '-mp.json')) || { p: {} }, x = P.p[ref[2]];
+      if (!x || x.pagado || Math.abs(Number(pay.transaction_amount) - x.monto) > Math.max(1, x.monto * 0.005)) return res.status(200).json({ ok: true });
+      x.pagado = new Date().toISOString(); x.mp = pid; await guardar('pedidos', 'menus/' + id + '-mp.json', P);
+      const L = (await leer('pedidos', 'menus/' + id + '-pedidos.json')) || { items: [] };
+      (L.items || []).forEach(p => { if (x.peds.includes(p.id)) { p.pagadoMp = x.pagado; } });
+      const money = n => '$' + Number(n).toLocaleString('es-AR', { maximumFractionDigits: 2 });
+      L.items = [{ id: Date.now().toString(36) + crypto.randomBytes(3).toString('hex'), k: crypto.randomBytes(8).toString('hex'), mesa: x.mesa, nombre: x.nombre, creado: new Date().toISOString(), tipo: 'pago', metodo: 'virtual', monto: money(x.monto), propina: x.tip ? 'propina ' + money(x.tip) : '', texto: '✅ Pagó con Mercado Pago (confirmado solo, ya está en tu cuenta)', mpOk: true, estado: 'nuevo' }].concat(L.items || []).slice(0, 150);
+      await guardar('pedidos', 'menus/' + id + '-pedidos.json', L);
+      return res.status(200).json({ ok: true });
+    }
     if (a === 'aviso') {
       const owner = String(q.u || ''); if (!okUid(owner)) return res.status(200).json({ ok: true });
       const b = cuerpo(req);
