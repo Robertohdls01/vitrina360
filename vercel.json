@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/familia",
+      "destination": "/familia.html"
+    },
+    {
       "source": "/vida/:code",
       "destination": "/vida.html"
     },
