@@ -301,12 +301,15 @@ html,body{overflow-x:hidden;max-width:100%}
 .cmat .cfoto img{width:100%;height:100%;object-fit:cover}
 .cmat .cnom{position:absolute;left:0;right:0;top:75%;text-align:center;font:400 clamp(26px,7vw,40px) 'Great Vibes',Georgia,serif;color:#2e2414}
 .cmat .sg{position:absolute;width:21%;transform:translate(-50%,-50%) rotate(var(--r,0deg));text-align:center;line-height:1}
-.cmat .sg img{width:100%;height:auto;max-height:44px;object-fit:contain;display:block;margin:0 auto}
-.cmat .sg b{display:block;font:600 9px var(--sans);color:#7a6a52;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmat .sg img{width:100%;height:auto;max-height:52px;object-fit:contain;display:block;margin:0 auto}
+.cmat .sg b{display:block;font:600 9px var(--sans);color:#7a6a52;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cmat .sg i{display:block;font:italic 8px var(--sans);color:#8a7a62;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fmodos{display:flex;gap:6px;margin-top:10px}.fmodos button{flex:1;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:9px 4px;font:700 14px var(--sans)}.fmodos button.on{border-color:var(--ac);box-shadow:inset 0 0 0 1px var(--ac)}
+#lienzo.mano{height:360px}
 .cmat .sg.yo img{filter:drop-shadow(0 0 4px rgba(255,200,80,.9))}
 .fprev{position:relative;width:min(100%,360px);margin:10px auto 0}
 .fprev .cfoto2{width:100%;aspect-ratio:1;border-radius:50%;overflow:hidden;box-shadow:0 0 0 5px #fff,0 0 0 8px var(--ac)}
 .fprev .cfoto2 img{width:100%;height:100%;object-fit:cover}
+.fprev .mia.mn{left:auto;right:-4%;bottom:-2%;width:34%;transform:rotate(8deg)}
 .fprev .mia{position:absolute;left:50%;bottom:6%;width:62%;transform:translateX(-50%) rotate(-6deg);filter:drop-shadow(0 1px 1px rgba(255,255,255,.9)) drop-shadow(0 0 3px rgba(255,255,255,.8))}
 #lienzo{width:100%;height:280px;background:#fff;border:2px dashed var(--ac);border-radius:18px;touch-action:none;display:block;margin-top:12px}
 .colores{display:flex;gap:10px;align-items:center;margin:10px 0}.colores button{width:34px;height:34px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px var(--line);cursor:pointer}.colores button.on{box-shadow:0 0 0 3px var(--ink)}
@@ -803,7 +806,8 @@ function cerrarCapa() { $('#capa').classList.remove('on'); $('#capa').innerHTML 
 function abrirFirma() {
   const c = $('#capa'), n = esc(F.nombre || '');
   c.innerHTML = `<div style="max-width:560px;margin:0 auto"><div class="top">${fotoHTML('fgr')}<div><h2>${n}</h2><p style="color:var(--soft);margin:0">${t('Firmá acá abajo con el dedo ✍️')}</p></div></div>
-    <div style="display:flex;gap:6px;margin-top:10px"><input id="fEsc" maxlength="28" placeholder="${t('Aa · O escribí tu nombre y sale en letra de firma')}" style="flex:1;min-width:0;font:17px var(--sans);padding:11px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)"></div>
+    <div class="fmodos"><button type="button" data-modo="firma" class="on">${t('✍️ Firma')}</button><button type="button" data-modo="mano">${t('🖐 Manito')}</button><button type="button" data-modo="huella">${t('👍 Huellita')}</button></div><p id="fAyuda" style="color:var(--soft);font-size:14px;margin:6px 0 0"></p>
+    <div id="fEscW" style="display:flex;gap:6px;margin-top:10px"><input id="fEsc" maxlength="28" placeholder="${t('Aa · O escribí tu nombre y sale en letra de firma')}" style="flex:1;min-width:0;font:17px var(--sans);padding:11px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)"></div>
     <canvas id="lienzo"></canvas>
     <div class="colores">${['#1f2937', '#b8860b', '#db2777', '#2563eb', '#16a34a'].map((k, i) => `<button type="button" data-col="${k}" class="${i ? '' : 'on'}" style="background:${k}" aria-label="color"></button>`).join('')}</div>
     <div class="colores" style="margin-top:6px">${[['fino', 1.8], ['medio', 2.8], ['grueso', 4.2]].map(([k, a], i) => `<button type="button" data-anc="${a}" class="btn alt" style="width:auto;height:auto;border-radius:999px;padding:6px 12px;box-shadow:inset 0 0 0 2px ${i === 1 ? 'var(--ac)' : 'var(--line)'}"><span style="display:inline-block;width:22px;height:${a}px;background:#1f2937;border-radius:9px;vertical-align:middle"></span></button>`).join('')}<button type="button" class="btn alt" id="fDesh" style="width:auto;height:auto;border-radius:999px;margin:0 0 0 auto;padding:6px 12px;box-shadow:inset 0 0 0 2px var(--line)">↩️ ${t('Deshacer')}</button><button type="button" class="btn alt" id="fBorrar" style="width:auto;height:auto;border-radius:999px;padding:6px 12px;box-shadow:inset 0 0 0 2px var(--line)">${t('Borrar')}</button></div>
@@ -819,6 +823,48 @@ function abrirFirma() {
   cv.onpointerdown = e => { $('#fErr').innerHTML = ''; if ($('#fEsc').value) { $('#fEsc').value = ''; x.clearRect(0, 0, cv.width, cv.height); } pl = mkP(e.pointerType === 'mouse') || pl; if (pl) { pl.down(e); hay = true; dib = true; return; } dib = true; last = pos(e); cv.setPointerCapture(e.pointerId); hay = true; };
   cv.onpointermove = e => { if (!dib) return; if (pl) return pl.move(e); const p = pos(e); x.beginPath(); x.moveTo(last[0], last[1]); x.lineTo(p[0], p[1]); x.stroke(); last = p; };
   cv.onpointerup = cv.onpointercancel = () => { if (pl) pl.up(); dib = false; };
+  // ===== Manito y huellita =====
+  let modo = 'firma', manoPng = null; const toques = new Map(); let mejor = [];
+  const AY = {firma: '', mano: t('Apoyá la manito abierta (o las puntas de los 5 dedos) en el recuadro y levantala. Queda tu huellita de mano 🖐'), huella: t('Apoyá el dedo gordo en el recuadro y queda tu huellita de corazón 👍')};
+  const colorAct = () => x.strokeStyle;
+  const lienzoTam = () => { const r2 = cv.getBoundingClientRect(); cv.width = r2.width * dpr; cv.height = r2.height * dpr; x.setTransform(dpr, 0, 0, dpr, 0, 0); x.lineCap = 'round'; x.lineJoin = 'round'; };
+  const ponModo = m => { const col = colorAct(); modo = m; manoPng = null; hay = false; toques.clear(); mejor = [];
+    c.querySelectorAll('[data-modo]').forEach(b => b.classList.toggle('on', b.dataset.modo === m)); $('#fAyuda').textContent = AY[m];
+    $('#fEscW').style.display = m === 'firma' ? 'flex' : 'none'; cv.classList.toggle('mano', m !== 'firma'); lienzoTam(); x.strokeStyle = col; x.clearRect(0, 0, cv.width, cv.height);
+    c.querySelectorAll('[data-anc]').forEach(b => b.style.display = m === 'firma' ? '' : 'none'); };
+  c.querySelectorAll('[data-modo]').forEach(b => b.onclick = () => ponModo(b.dataset.modo));
+  // dibuja una mano con pintura a partir de las puntas de los dedos, en un cuadrado fijo (la escala es la misma para todos)
+  const dibujarMano = (pts, ctx, k, ox, oy, col) => {
+    const P = pts.map(([a, b]) => [ox + a * k, oy + b * k]), n = P.length, xs = P.map(p => p[0]), ys = P.map(p => p[1]);
+    const ancho = Math.max(...xs) - Math.min(...xs), cx = xs.reduce((a, b) => a + b) / n, top = Math.max(...ys);
+    const pw = Math.max(ancho * .78, 40 * k), ph = pw * .95, pcy = top + ph * .42;
+    ctx.save(); ctx.fillStyle = col; ctx.strokeStyle = col; ctx.globalAlpha = .92;
+    ctx.beginPath(); ctx.ellipse(cx, pcy, pw / 2, ph / 2, 0, 0, Math.PI * 2); ctx.fill();
+    const dedo = Math.max(14 * k, pw * .2);
+    P.forEach(([px, py]) => { const bx = cx + (px - cx) * .55, by = pcy - ph * .25; ctx.lineWidth = dedo; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(px, py); ctx.stroke(); });
+    ctx.globalAlpha = .18; ctx.fillStyle = '#fff'; for (let i = 0; i < 160; i++) { const a = Math.random() * 6.28, r = Math.random() * pw * .5; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * r, pcy + Math.sin(a) * r * .9, Math.random() * 1.8 * k + .4, 0, 7); ctx.fill(); }
+    ctx.restore(); };
+  const huellaCorazon = (ctx, cx, cy, sz, col) => {
+    ctx.save(); ctx.translate(cx, cy); ctx.beginPath(); const h = sz;
+    ctx.moveTo(0, h * .35); ctx.bezierCurveTo(-h * .9, -h * .2, -h * .45, -h * .85, 0, -h * .38); ctx.bezierCurveTo(h * .45, -h * .85, h * .9, -h * .2, 0, h * .35); ctx.closePath(); ctx.clip();
+    ctx.strokeStyle = col; ctx.lineWidth = Math.max(1.6, sz * .035);
+    for (let r = sz * .05; r < sz * 1.1; r += sz * .085) { ctx.beginPath(); for (let a = 0; a <= Math.PI * 2 + .05; a += .08) { const w = r * (1 + .06 * Math.sin(a * 5 + r)); const px = Math.cos(a) * w * .85, py = Math.sin(a) * w * 1.05 - sz * .12; a ? ctx.lineTo(px, py) : ctx.moveTo(px, py); } ctx.stroke(); }
+    ctx.restore(); };
+  const salidaFija = (fn) => { const o = document.createElement('canvas'); o.width = 260; o.height = 260; fn(o.getContext('2d')); return o.toDataURL('image/png'); };
+  cv.addEventListener('pointerdown', e => { if (modo === 'firma') return; e.stopImmediatePropagation(); e.preventDefault(); $('#fErr').innerHTML = '';
+    const b = cv.getBoundingClientRect(), pt = [e.clientX - b.left, e.clientY - b.top];
+    if (modo === 'huella') { x.clearRect(0, 0, cv.width, cv.height); huellaCorazon(x, pt[0], pt[1], 90, colorAct()); manoPng = salidaFija(o => huellaCorazon(o, 130, 140, 110, colorAct())); hay = true; if (navigator.vibrate) navigator.vibrate(30); return; }
+    try { cv.setPointerCapture(e.pointerId); } catch (er) {} toques.set(e.pointerId, pt); if (toques.size >= mejor.length) mejor = [...toques.values()];
+    x.clearRect(0, 0, cv.width, cv.height); [...toques.values()].forEach(([a, b2]) => { x.save(); x.fillStyle = colorAct(); x.globalAlpha = .35; x.beginPath(); x.arc(a, b2, 18, 0, 7); x.fill(); x.restore(); }); }, {capture: true});
+  cv.addEventListener('pointermove', e => { if (modo !== 'mano' || !toques.has(e.pointerId)) return; e.stopImmediatePropagation(); const b = cv.getBoundingClientRect(); toques.set(e.pointerId, [e.clientX - b.left, e.clientY - b.top]); if (toques.size >= mejor.length) mejor = [...toques.values()]; }, {capture: true});
+  const soltar = e => { if (modo !== 'mano') return; e.stopImmediatePropagation(); toques.delete(e.pointerId); if (toques.size) return;
+    if (mejor.length < 3) { $('#fErr').innerHTML = `<p class="err">${t('Apoyá la mano abierta, con al menos 3 dedos tocando la pantalla.')}</p>`; mejor = []; x.clearRect(0, 0, cv.width, cv.height); return; }
+    const pts = mejor.slice(0, 5); x.clearRect(0, 0, cv.width, cv.height); dibujarMano(pts, x, 1, 0, 0, colorAct());
+    // misma escala para todos: una mano grande ocupa casi todo el cuadrado, la de un nene queda más chica
+    const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]), k = .5, w = (Math.max(...xs) - Math.min(...xs)) * k, h0 = Math.min(...ys);
+    manoPng = salidaFija(o => dibujarMano(pts, o, k, 130 - ((Math.min(...xs) + Math.max(...xs)) / 2) * k, 40 - h0 * k + Math.max(0, (120 - w) * .35), colorAct()));
+    hay = true; mejor = []; if (navigator.vibrate) navigator.vibrate(40); };
+  cv.addEventListener('pointerup', soltar, {capture: true}); cv.addEventListener('pointercancel', soltar, {capture: true});
   const pasos = []; const guardarPaso = () => { try { pasos.push(x.getImageData(0, 0, cv.width, cv.height)); if (pasos.length > 20) pasos.shift(); } catch (e) {} };
   cv.addEventListener('pointerdown', guardarPaso, {capture: true});
   $('#fDesh').onclick = () => { const im = pasos.pop(); if (!im) return; x.save(); x.setTransform(1, 0, 0, 1, 0, 0); x.putImageData(im, 0, 0); x.restore(); if (!pasos.length) hay = false; };
@@ -836,12 +882,12 @@ function abrirFirma() {
   $('#fOk').onclick = async () => {
     if (!hay) { $('#fErr').innerHTML = `<p class="err">${t('Primero firmá con el dedo en el recuadro blanco.')}</p>`; return; }
     // recortamos solo el trazo (sin el blanco de alrededor) para que la firma quede grande y prolija
-    const o = recortarFirma(cv); if (!o) { $('#fErr').innerHTML = `<p class="err">${t('Primero firmá con el dedo en el recuadro blanco.')}</p>`; return; }
+    const o = modo === 'firma' ? recortarFirma(cv) : {toDataURL: () => manoPng}; if (!o || (modo !== 'firma' && !manoPng)) { $('#fErr').innerHTML = `<p class="err">${t('Primero firmá con el dedo en el recuadro blanco.')}</p>`; return; }
     const png = o.toDataURL('image/png'), msg = $('#fMsg').value, ant = c.innerHTML;
     // vista previa: así queda tu firma sobre la foto
     const box = c.firstElementChild; box.style.display = 'none';
     const pv = document.createElement('div'); pv.style.cssText = 'max-width:560px;margin:0 auto;text-align:center';
-    pv.innerHTML = `<h2>${t('Así queda tu firma')}</h2><div class="fprev"><div class="cfoto2">${F.foto ? `<img src="${esc(F.foto)}" alt="">` : ''}</div><img class="mia" src="${png}" alt=""></div>${msg ? `<p style="font-style:italic">“${esc(msg)}”</p>` : ''}<button class="btn big2" id="fListo" style="margin-top:14px">${t('✅ Listo, firmar')}</button><br><button class="btn alt" id="fOtra">${t('↩️ Volver a firmar')}</button><div id="fErr2"></div>`;
+    pv.innerHTML = `<h2>${t('Así queda tu firma')}</h2><div class="fprev"><div class="cfoto2">${F.foto ? `<img src="${esc(F.foto)}" alt="">` : ''}</div><img class="mia${modo === 'firma' ? '' : ' mn'}" src="${png}" alt=""></div>${msg ? `<p style="font-style:italic">“${esc(msg)}”</p>` : ''}<button class="btn big2" id="fListo" style="margin-top:14px">${t('✅ Listo, firmar')}</button><br><button class="btn alt" id="fOtra">${t('↩️ Volver a firmar')}</button><div id="fErr2"></div>`;
     c.appendChild(pv);
     $('#fOtra').onclick = () => { pv.remove(); box.style.display = ''; };
     $('#fListo').onclick = async () => { const b = $('#fListo'); b.disabled = true;
@@ -878,7 +924,7 @@ async function verCuadro(recien, auth) {
   const n = esc(F.nombre || '');
   const LG = lugaresFirmas(FIRMAS.length), enCuadro = FIRMAS.slice(0, LG.length), resto = FIRMAS.slice(LG.length);
   c.innerHTML = `<div style="max-width:760px;margin:0 auto" class="cuadroF">${recien ? `<div class="ok" style="margin-bottom:10px"><b>${t('¡Gracias por firmar! 💖 Tu firma ya está en el cuadro de {n}.', {n})}</b></div>` : ''}
-    <div class="cmat"><div class="cfoto">${F.foto ? `<img src="${esc(F.foto)}" alt="">` : ''}</div><div class="cnom">${n}</div>${enCuadro.map((f, k) => `<div class="sg ${f.yo ? 'yo' : ''}" style="left:${(LG[k][0] * 100).toFixed(1)}%;top:${(LG[k][1] * 100).toFixed(1)}%;--r:${LG[k][2]}deg"><img src="${esc(f.img)}" alt=""><b>${esc(f.nombre)}</b></div>`).join('')}</div>
+    <div class="cmat"><div class="cfoto">${F.foto ? `<img src="${esc(F.foto)}" alt="">` : ''}</div><div class="cnom">${n}</div>${enCuadro.map((f, k) => `<div class="sg ${f.yo ? 'yo' : ''}" style="left:${(LG[k][0] * 100).toFixed(1)}%;top:${(LG[k][1] * 100).toFixed(1)}%;--r:${LG[k][2]}deg"><img src="${esc(f.img)}" alt=""><b>${esc(f.nombre)}</b>${f.msg ? `<i>${esc(f.msg)}</i>` : ''}</div>`).join('')}</div>
     <p style="color:var(--soft)">${t('{c} firmas', {c: FIRMAS.length})}</p>
     ${FIRMAS.some(f => f.msg) || resto.length ? '' : '<!--'}<div class="firmas">${(resto.length ? resto : FIRMAS.filter(f => f.msg)).map(f => `<div class="${f.yo ? 'yo' : ''}"><img src="${esc(f.img)}" alt=""><b>${esc(f.nombre)}</b>${f.msg ? `<br><span>${esc(f.msg)}</span>` : ''}</div>`).join('') || `<p style="grid-column:1/-1;color:var(--soft)">${t('Todavía no firmó nadie. ¡Sé el primero! ✍️')}</p>`}</div>${FIRMAS.some(f => f.msg) || resto.length ? '' : '-->'}${FIRMAS.length ? '' : `<p style="color:var(--soft)">${t('Todavía no firmó nadie. ¡Sé el primero! ✍️')}</p>`}
     <button class="btn" id="cDesc" style="margin-top:14px">${t('⬇️ Descargar el cuadro')}</button> ${INV ? `<button class="btn alt" id="cFirmar">${t('✍️ Firmar')}</button>` : ''} <button class="btn no" id="cCerrar">${t('Cerrar')}</button></div>`;
@@ -894,7 +940,7 @@ async function descargarCuadro() {
   try { if (F.foto) { const im = await cargaImg(F.foto); x.save(); x.beginPath(); x.arc(W / 2, W / 2, R, 0, 7); x.clip(); const s = Math.max(2 * R / im.width, 2 * R / im.height); x.drawImage(im, W / 2 - im.width * s / 2, W / 2 - im.height * s / 2, im.width * s, im.height * s); x.restore(); } } catch (e) {}
   x.beginPath(); x.arc(W / 2, W / 2, R + 8, 0, 7); x.lineWidth = 12; x.strokeStyle = '#fff'; x.stroke(); x.beginPath(); x.arc(W / 2, W / 2, R + 18, 0, 7); x.lineWidth = 8; x.strokeStyle = ac; x.stroke();
   x.fillStyle = '#2e2414'; x.textAlign = 'center'; x.font = '110px "Great Vibes", Georgia, serif'; x.fillText(F.nombre || '', W / 2, W * .79);
-  const dib = async (f, cx, cy, ancho, rot) => { try { const im = await cargaImg(f.img); const k = Math.min(ancho / im.width, 120 / im.height); x.save(); x.translate(cx, cy); x.rotate(rot * Math.PI / 180); x.drawImage(im, -im.width * k / 2, -im.height * k / 2 - 10, im.width * k, im.height * k); x.font = '600 22px Figtree, sans-serif'; x.fillStyle = '#7a6a52'; x.fillText(f.nombre, 0, im.height * k / 2 + 16); x.restore(); } catch (e) {} };
+  const dib = async (f, cx, cy, ancho, rot) => { try { const im = await cargaImg(f.img); const k = Math.min(ancho / im.width, 120 / im.height); x.save(); x.translate(cx, cy); x.rotate(rot * Math.PI / 180); x.drawImage(im, -im.width * k / 2, -im.height * k / 2 - 10, im.width * k, im.height * k); x.font = '600 22px Figtree, sans-serif'; x.fillStyle = '#7a6a52'; x.fillText(f.nombre, 0, im.height * k / 2 + 16); if (f.msg) { x.font = 'italic 18px Figtree, sans-serif'; x.fillText(f.msg.length > 30 ? f.msg.slice(0, 29) + '…' : f.msg, 0, im.height * k / 2 + 40); } x.restore(); } catch (e) {} };
   for (let k = 0; k < LG.length; k++) await dib(FIRMAS[k], LG[k][0] * W, LG[k][1] * W, W * .2, LG[k][2]);
   for (let k = 0; k < resto.length; k++) await dib(resto[k], (k % 5 + .5) * W / 5, W + 110 + Math.floor(k / 5) * 200, W * .17, 0);
   try { const a = document.createElement('a'); a.download = 'cuadro-de-firmas-' + (F.nombre || 'fiesta') + '.png'; a.href = cv.toDataURL('image/png'); a.click(); } catch (e) { alert(t('No se pudo descargar la imagen.')); }
