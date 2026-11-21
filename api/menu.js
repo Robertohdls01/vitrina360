@@ -89,7 +89,7 @@ async function traducir(menu, prev, solo) {
 }
 
 // ---- Cuenta del local: 7 días de prueba, después abono mensual por Mercado Pago (o cobro a mano desde Mis pruebas) ----
-const PRECIO = () => parseInt(process.env.SHOPMENU_PRECIO, 10) || 19800;
+const PRECIO = () => parseInt(process.env.SHOPMENU_PRECIO, 10) || 18700;
 const LIBRES = ['fdaf46084d']; // Café Demo
 async function cuenta(id, f) {
   const ahora = Date.now(); let cambio = false;
