@@ -6,14 +6,14 @@
 <style>:root{color-scheme:light only}</style>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pro Video JSRHG · Productos físicos y digitales</title>
-<meta name="description" content="Pro Video JSRHG: apps con inteligencia artificial para comercios, restaurantes, hoteles, casinos y oficios. ShopFlash, ShopMenu, ShopFlash Parques y Oficios, ShopCut y más. Hecho en Argentina.">
+<meta name="description" content="Pro Video JSRHG: apps con inteligencia artificial para comercios, restaurantes, hoteles, casinos y oficios. ShopFlash, ShopMenu, ShopFiesta, ShopEventos, ShopVida, ShopFlash Oficios, ShopCut y más. Hecho en Argentina.">
 <meta property="og:title" content="Pro Video JSRHG · Productos físicos y digitales">
 <meta property="og:description" content="Apps con inteligencia artificial para comercios, restaurantes, hoteles, casinos y oficios. Hecho en Argentina.">
 <meta property="og:image" content="https://www.vitrina360app.com.ar/pv-logo.jpg?v=2">
-<meta name="theme-color" content="#2f6f6a">
+<meta name="theme-color" content="#c8008f">
 <link rel="icon" href="/pv-logo-180.jpg?v=2"><link rel="apple-touch-icon" href="/pv-logo-180.jpg?v=2">
 <style>
-:root{--a:#2f6f6a;--a2:#4f9a92;--ink:#1f2b2a;--muted:#5d6d6b;--bg:#f6faf9;--soft:#e8f3f1;--line:#d3e6e2;--warm:#fdf6ec}
+:root{--a:#c8008f;--a2:#f020c0;--ink:#2a1226;--muted:#6b4763;--bg:#fff4fc;--soft:#ffdff4;--line:#ffb5e6;--warm:#fdf6ec}
 *{box-sizing:border-box}
 body{margin:0;font:400 17px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
 a{color:var(--a)}
@@ -26,7 +26,7 @@ nav{display:flex;justify-content:space-between;align-items:center;padding:16px 0
 .heroLogo{width:150px;height:150px;border-radius:50%;display:block;margin:0 auto 16px;box-shadow:0 10px 30px rgba(20,10,40,.28)}
 .logo b{font-size:20px;line-height:1.1}.logo small{display:block;font-size:13px;color:var(--muted);font-weight:600}
 .btn{border:0;border-radius:999px;padding:13px 20px;font-weight:800;font-size:16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;cursor:pointer}
-.pri{background:linear-gradient(90deg,var(--a),var(--a2));color:#fff;box-shadow:0 8px 22px rgba(47,111,106,.25)}
+.pri{background:linear-gradient(90deg,var(--a),var(--a2));color:#fff;box-shadow:0 8px 22px rgba(200,0,143,.25)}
 .sec{background:#fff;color:var(--a);border:2px solid var(--line)}
 .wa{background:#25d366;color:#fff}
 .hero{padding:28px 0 46px;text-align:center}
@@ -57,13 +57,31 @@ h2{font-size:clamp(26px,3.6vw,36px);margin:0 0 8px;text-align:center}
 .contact .ctas{margin-top:8px}
 footer{padding:30px 0 40px;text-align:center;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
 footer b{color:var(--ink)}
+/* Asistente virtual de la página (Flashy) */
+#gBtn{position:fixed;right:16px;bottom:16px;z-index:50;width:72px;height:72px;border-radius:50%;border:3px solid #fff;background:#fff;box-shadow:0 8px 24px rgba(120,40,75,.3);padding:4px;cursor:pointer;animation:gSalta 3s ease-in-out infinite}
+#gBtn svg{width:100%;height:100%;display:block}
+@keyframes gSalta{0%,80%,100%{transform:translateY(0)}88%{transform:translateY(-8px)}94%{transform:translateY(0)}}
+#gTip{position:fixed;right:96px;bottom:30px;z-index:50;background:#fff;border:2px solid var(--line);border-radius:18px 18px 4px 18px;padding:10px 14px;font-weight:700;font-size:15px;max-width:230px;box-shadow:0 6px 20px rgba(0,0,0,.12);cursor:pointer}
+#gTip .x{border:0;background:none;font-size:16px;color:var(--muted);cursor:pointer;margin-left:6px}
+#gBox{position:fixed;right:16px;bottom:100px;z-index:51;width:min(380px,calc(100vw - 32px));max-height:min(620px,calc(100vh - 130px));background:#fff;border:2px solid var(--line);border-radius:22px;box-shadow:0 14px 40px rgba(120,40,75,.25);display:flex;flex-direction:column;overflow:hidden}
+#gBox header{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--soft);border-bottom:2px solid var(--line)}
+#gBox header svg{width:42px;height:42px;flex:none}
+#gBox header b{display:block;font-size:17px}#gBox header small{color:var(--muted);font-weight:600}
+#gBox header .cerrar{border:0;background:#fff;border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer;color:var(--muted)}
+#gMsgs{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.gM{max-width:88%;padding:9px 12px;border-radius:16px;font-size:15.5px;line-height:1.4}
+.gM.bot{background:var(--soft);border-bottom-left-radius:4px;align-self:flex-start}
+.gM.yo{background:var(--a);color:#fff;border-bottom-right-radius:4px;align-self:flex-end}
+.gOps{display:flex;flex-wrap:wrap;gap:6px}
+.gOps button,.gOps a{border:2px solid var(--line);background:#fff;color:var(--a);border-radius:999px;padding:7px 12px;font:700 14px system-ui,sans-serif;cursor:pointer;text-decoration:none}
+.gOps .p{background:var(--a);border-color:var(--a);color:#fff}.gOps .w{background:#25d366;border-color:#25d366;color:#fff}
+#gForm{display:flex;gap:6px;padding:10px;border-top:2px solid var(--line)}
+#gForm input{flex:1;min-width:0;border:2px solid var(--line);border-radius:999px;padding:10px 14px;font-size:16px}
+#gMic{background:var(--soft)!important;color:var(--a)!important;font-size:20px;padding:0 12px!important}#gMic.oye{background:#ff3b6b!important;color:#fff!important;animation:gLate 1s infinite}@keyframes gLate{50%{transform:scale(1.12)}}
+#gForm button{border:0;border-radius:999px;background:var(--a);color:#fff;font-weight:800;padding:0 16px;cursor:pointer}
+.card.gLuz{outline:4px solid #f5c84c;outline-offset:3px;transition:outline-color .3s}
+@media (max-width:520px){#gBox{right:8px;left:8px;width:auto;bottom:96px}}
 [hidden]{display:none!important}
-.inv{display:grid;grid-template-columns:260px 1fr;gap:28px;align-items:center}
-.inv .tel{width:240px;aspect-ratio:9/19.5;margin:0 auto;border-radius:32px;overflow:hidden;border:7px solid #1f1a14;box-shadow:0 18px 40px rgba(60,40,10,.3),0 0 0 2px #c9a227}
-.inv .tel video{width:100%;height:100%;object-fit:cover;display:block}
-.ents{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.ents a{background:#fff;border:2px solid #f1dfc4;border-radius:999px;padding:6px 12px;font-weight:700;font-size:14px;text-decoration:none;color:#7a5a1c}
-.pasos{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}.pasos div{background:#fff;border:2px solid #f1dfc4;border-radius:16px;padding:12px;font-size:15px;color:var(--muted)}.pasos b{display:block;color:var(--ink);font-size:16px}
-@media (max-width:860px){.inv{grid-template-columns:1fr}.pasos{grid-template-columns:1fr}}
 @media (max-width:860px){.grid,.why{grid-template-columns:1fr}.big{grid-column:auto;grid-template-columns:1fr}}
 </style>
 <script>try{var r=new URLSearchParams(location.search).get('ref');if(r&&/^[A-Za-z0-9]{3,16}$/.test(r))localStorage.setItem('v360-ref',JSON.stringify({c:r.toUpperCase(),t:Date.now()}))}catch(e){}</script>
@@ -80,7 +98,7 @@ footer b{color:var(--ink)}
   <div class="hero wrap">
     <figure class="heroQr"><img src="/pv-qr.png?v=2" alt="Código QR de Pro Video JSRHG para abrir esta página en el celular"><figcaption class="onlyDeskTx">📲 Escaneá y abrí Pro Video en tu celular</figcaption><figcaption class="onlyPhoneTx">📲 Mostrá este QR para que otra persona entre a Pro Video</figcaption></figure>
     <h1>Apps con <span>inteligencia artificial</span> para tu negocio</h1>
-    <p>En Pro Video creamos herramientas simples para comercios, restaurantes, hoteles, casinos y profesionales de oficios: tu tienda online, tu menú QR, tus presupuestos con fotos y tus reseñas, todo con una asistente virtual que atiende por vos.</p>
+    <p>En Pro Video creamos herramientas simples para comercios, restaurantes, hoteles, casinos, fiestas y profesionales de oficios: tu tienda online, tu menú QR, la invitación y la app de tu fiesta, tus presupuestos con fotos y tus reseñas, todo con una asistente virtual que atiende por vos.</p>
     <div class="ctas">
       <a class="btn pri" href="#productos">Ver los productos</a>
       <a class="btn sec" data-wa="Hola! Tengo un negocio y quiero saber qué producto de Pro Video me sirve." href="#" target="_blank" rel="noopener" hidden>💬 Te asesoramos por WhatsApp</a>
@@ -106,10 +124,29 @@ footer b{color:var(--ink)}
           <div class="acts"><a class="btn pri" href="/shopmenu">Conocer ShopMenu</a></div>
         </article>
         <article class="card">
-          <div class="ic">💌</div><div class="for">15 años, casamientos, bautismos y cumpleaños</div>
-          <h3>ShopFiesta · Invitaciones digitales</h3>
-          <p>Invitaciones que se viven como una película, con la foto real de la protagonista: confirmación de invitados, mapa, cuadro de firmas, Flashy en la fiesta y álbum de fotos.</p>
-          <div class="acts"><a class="btn pri" href="#invitaciones">Ver las invitaciones</a></div>
+          <div class="ic">🎉</div><div class="for">Fiestas de 15 y eventos</div>
+          <h3>ShopFiesta</h3>
+          <p>La invitación virtual con música y fotos, y la app de la fiesta: cada invitado confirma, ve su mesa y su moza, pide desde la mesa y sube fotos y videos de todos los momentos para que a la familia le quede todo de recuerdo.</p>
+          <ul><li>Fiestas de 15 · casamientos · bautismos · cumpleaños · egresados</li><li>Asistente virtual que acompaña a cada invitado toda la noche</li><li>En 8 idiomas</li></ul>
+          <div class="acts"><a class="btn pri" href="/fiesta/DEMO15">💌 Ver invitación de muestra</a><a class="btn sec" href="/fiestas">Armar mi fiesta</a></div>
+        </article>
+        <article class="card">
+          <div class="ic">🪩</div><div class="for">Boliches y bares nocturnos</div>
+          <h3>ShopEventos Boliche</h3>
+          <p>La app de tu boliche: el cliente pide desde el celular, recibe un número y retira en la barra. El dueño y la barra mandan avisos de eventos y promos a todos los que fueron, y reciben reseñas de cada noche.</p>
+          <div class="acts"><a class="btn pri" href="/fiesta/DEMOBAR">🍹 Probar el bar de muestra</a></div>
+        </article>
+        <article class="card">
+          <div class="ic">🆘</div><div class="for">Familias, chicos y adultos mayores</div>
+          <h3>ShopVida</h3>
+          <p>Tu información de emergencia en un QR (sticker, pulsera o llavero): a quién llamar, grupo sanguíneo, alergias y remedios. Ideal para chicos en la playa y personas mayores.</p>
+          <div class="acts"><a class="btn pri" href="/vida">Conocer ShopVida</a></div>
+        </article>
+        <article class="card">
+          <div class="ic">👨‍👩‍👧</div><div class="for">Familias</div>
+          <h3>ShopFamilia</h3>
+          <p>Flashy en el celular de cada uno de la familia: avisos, tareas con estrellas para los chicos, mandados y ayuda con las comidas. Cada uno en su cuarto, todos conectados.</p>
+          <div class="acts"><a class="btn pri" href="/familia">Probar ShopFamilia</a></div>
         </article>
         <article class="card">
           <div class="ic">🛠️</div><div class="for">Profesionales de oficios</div>
@@ -158,47 +195,22 @@ footer b{color:var(--ink)}
           <p>Sumate como vendedor o vendedora: ganás un premio por cada comercio que se suscribe y una comisión todos los meses.</p>
           <div class="acts"><a class="btn sec" href="/vender.html">Quiero vender</a></div>
         </article>
-        <article class="card">
-          <div class="ic">🎓</div><div class="for">Muy pronto</div>
-          <h3>Más productos en camino</h3>
-          <p>Seguimos creando: asistentes que te explican tus libros y cursos, y más herramientas con IA.</p>
-        </article>
       </div>
     </div>
   </section>
 
-  <section id="invitaciones" style="background:var(--warm)">
+  <section id="pronto">
     <div class="wrap">
-      <h2>💌 Invitaciones digitales que se viven como una película</h2>
-      <p class="sub">Se abren en el celular de cada invitado con una entrada que no vas a ver en ningún otro lado, y al final aparece ella, con su foto real.</p>
-      <div class="inv">
-        <div class="tel"><video src="/img-fiesta/portada-super.mp4" poster="/img-fiesta/portada-super.jpg" autoplay muted loop playsinline preload="metadata"></video></div>
-        <div>
-          <h3 style="margin-top:0">⭐ La Súper tarjeta</h3>
-          <p>Se abre la carta con el sello, llega ella en una carroza con caballos alados, salta el corcho del champán y las copas brindan: el celular vibra en el "chin chin" y aparece su foto con el 15 y su nombre.</p>
-          <p class="sub" style="text-align:left;margin:10px 0 4px">Tocá una y mirala en tu celular (con volumen):</p>
-          <div class="ents">
-            <a href="/fiesta/DEMO15?abre=super15" target="_blank" rel="noopener">⭐ Súper tarjeta</a>
-            <a href="/fiesta/DEMO15?abre=estrella" target="_blank" rel="noopener">🌠 Estrella fugaz que choca la pantalla</a>
-            <a href="/fiesta/DEMO15?abre=copas" target="_blank" rel="noopener">🥂 Copas que brindan</a>
-            <a href="/fiesta/DEMO15?abre=llegada15" target="_blank" rel="noopener">🐎 Llegada en carroza</a>
-            <a href="/fiesta/DEMO15?abre=relicario" target="_blank" rel="noopener">💛 Relicario</a>
-            <a href="/fiesta/DEMO15?abre=albumhojas" target="_blank" rel="noopener">📖 Álbum de su vida</a>
-            <a href="/fiesta/DEMO15?abre=sobre15rosa" target="_blank" rel="noopener">💌 Carta con sello</a>
-            <a href="/fiesta/DEMO15?abre=brindis" target="_blank" rel="noopener">🍾 Brindis dorado</a>
-            <a href="/fiesta/DEMO15?abre=perfume" target="_blank" rel="noopener">💗 Perfume de lujo</a>
-            <a href="/fiesta/DEMO15?abre=gotaoro" target="_blank" rel="noopener">💧 Gota de oro</a>
-            <a href="/fiesta/DEMO15?abre=luna" target="_blank" rel="noopener">🌙 Noche soñada</a>
-            <a href="/fiesta/DEMO15?abre=navidad" target="_blank" rel="noopener">🎄 Brindis de Navidad</a>
-          </div>
-          <div class="pasos">
-            <div><b>💌 Antes</b>La invitación con su entrada, su historia en fotos, mapa y confirmación de asistencia.</div>
-            <div><b>🥂 Durante</b>Flashy acompaña a cada invitado: su mesa, el horario y los pedidos. Y todos firman el cuadro.</div>
-            <div><b>📖 Después</b>El álbum digital con las fotos de la noche, para hojear y compartir.</div>
-          </div>
-          <div class="acts" style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn pri" href="/fiestas">Armar mi invitación</a><a class="btn wa" data-wa="Hola! Quiero una invitación digital de Pro Video." href="#" target="_blank" rel="noopener" hidden>💬 Pedila por WhatsApp</a></div>
-          <p class="sub" style="text-align:left;margin:12px 0 0;font-size:15px">Para 15 años, casamientos, bautismos, comuniones y cumpleaños. ¿Querés algo único? También diseñamos tu tarjeta a medida.</p>
-        </div>
+      <h2>🚀 Lo que viene</h2>
+      <p class="sub">Proyectos que estamos terminando. Si te interesa alguno, escribinos y te avisamos primero cuando salga.</p>
+      <div class="grid">
+        <article class="card"><div class="ic">🤰</div><div class="for">Muy pronto</div><h3>Tu embarazo con Flashy</h3><p>Un asistente con carita que acompaña a la mamá durante todo el embarazo: le habla cada semana, le cuenta cómo crece el bebé y responde sus dudas. No reemplaza al médico: la acompaña entre consulta y consulta.</p><div class="acts"><a class="btn sec" data-wa="Hola! Avisame cuando salga la app de embarazo con Flashy." href="#" target="_blank" rel="noopener" hidden>🔔 Avisame</a></div></article>
+        <article class="card"><div class="ic">📚</div><div class="for">Muy pronto</div><h3>ShopBook</h3><p>Subís tu libro, ebook o curso en PDF y un asistente con carita te lo explica y te guía paso a paso.</p><div class="acts"><a class="btn sec" data-wa="Hola! Avisame cuando salga ShopBook." href="#" target="_blank" rel="noopener" hidden>🔔 Avisame</a></div></article>
+        <article class="card"><div class="ic">👼</div><div class="for">Muy pronto</div><h3>ShopBautismo, Casamiento y Comunión</h3><p>Invitaciones elegantes para cada evento, con la misma app de fiesta de ShopFiesta.</p><div class="acts"><a class="btn sec" data-wa="Hola! Quiero info de las invitaciones para bautismo, casamiento o comunión." href="#" target="_blank" rel="noopener" hidden>🔔 Avisame</a></div></article>
+        <article class="card"><div class="ic">🎓</div><div class="for">Muy pronto</div><h3>ShopEventos Egresados</h3><p>Fiesta de egresados y viaje de egresados: avisos, fotos y todo el grupo conectado.</p><div class="acts"><a class="btn sec" data-wa="Hola! Avisame cuando salga ShopEventos Egresados." href="#" target="_blank" rel="noopener" hidden>🔔 Avisame</a></div></article>
+        <article class="card"><div class="ic">🏖️</div><div class="for">Muy pronto</div><h3>ShopEventos After y Peñas</h3><p>La app para fiestas en la playa y peñas: pedidos a la barra, avisos y reseñas.</p><div class="acts"><a class="btn sec" data-wa="Hola! Avisame cuando salga ShopEventos After / Peñas." href="#" target="_blank" rel="noopener" hidden>🔔 Avisame</a></div></article>
+        <article class="card"><div class="ic">🏫</div><div class="for">Muy pronto</div><h3>Asistencia escolar con QR</h3><p>Para colegios y jardines: los chicos marcan la entrada con un QR y los padres reciben el aviso al instante.</p><div class="acts"><a class="btn sec" data-wa="Hola! Quiero info de la asistencia escolar con QR." href="#" target="_blank" rel="noopener" hidden>🔔 Avisame</a></div></article>
+        <article class="card"><div class="ic">🧭</div><div class="for">Muy pronto</div><h3>Guía dentro del local</h3><p>Un QR en la puerta del súper o del negocio: el cliente pregunta y el asistente le dice si hay lo que busca y en qué góndola está.</p><div class="acts"><a class="btn sec" data-wa="Hola! Quiero info de la guía con QR dentro del local." href="#" target="_blank" rel="noopener" hidden>🔔 Avisame</a></div></article>
       </div>
     </div>
   </section>
@@ -335,6 +347,15 @@ footer b{color:var(--ink)}
   <div class="wrap"><b>Pro Video JSRHG</b> · Productos físicos y digitales · Hecho en Argentina 🇦🇷</div>
 </footer>
 
+<!-- Asistente virtual de la página -->
+<div id="gTip" hidden>👋 ¿Te ayudo a encontrar lo que necesitás?<button class="x" aria-label="Cerrar">✕</button></div>
+<button id="gBtn" aria-label="Abrir el asistente de Pro Video"></button>
+<div id="gBox" role="dialog" aria-label="Asistente de Pro Video" hidden>
+  <header><span id="gCara"></span><span><b>Flashy</b><small>Asistente de Pro Video</small></span><button id="gVoz" class="cerrar" aria-label="Apagar la voz" title="Voz de Flashy" style="margin-left:auto">🔊</button><button id="gX" class="cerrar" aria-label="Cerrar" style="margin-left:6px">✕</button></header>
+  <div id="gMsgs" aria-live="polite"></div>
+  <form id="gForm"><button type="button" id="gMic" aria-label="Hablarle a Flashy" title="Hablale a Flashy" hidden>🎤</button><input id="gIn" placeholder="Escribí o tocá el 🎤 y hablale…" autocomplete="off" maxlength="200"><button>➤</button></form>
+</div>
+
 <script>
 // Datos de contacto de Pro Video: se cargan en un solo lugar (los botones se muestran solos cuando hay dato)
 const PV = {wa: '2235814437', fb: '', ig: '', tt: '', yt: '', tino: '', kitPareja: '', kitHogar: '', packPrompts: '',
@@ -348,6 +369,102 @@ const PV = {wa: '2235814437', fb: '', ig: '', tt: '', yt: '', tino: '', kitParej
   document.querySelectorAll('[data-sinlink]').forEach(a => { if(PV[a.dataset.sinlink]) a.hidden = true; });
   if(PV.fb){ const a = document.querySelector('[data-fb]'); a.href = PV.fb; a.hidden = false; }
   if(PV.ig){ const a = document.querySelector('[data-ig]'); a.href = PV.ig; a.hidden = false; }
+})();
+</script>
+
+<script>
+// Asistente virtual: guía al visitante con preguntas simples (sin costo de IA) y lo lleva al producto que le sirve.
+(() => {
+  const CARA = `<svg viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="gcf" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fde68a"/><stop offset=".6" stop-color="#facc15"/><stop offset="1" stop-color="#eab308"/></radialGradient></defs><path d="M52 2 38 26h12l-6 16 18-24H50l8-16z" fill="#f020c0" stroke="#c8008f" stroke-width="2" stroke-linejoin="round"/><circle cx="50" cy="60" r="34" fill="url(#gcf)" stroke="#ca8a04" stroke-width="2.5"/><ellipse cx="38" cy="56" rx="6" ry="8" fill="#1f2937"/><ellipse cx="62" cy="56" rx="6" ry="8" fill="#1f2937"/><circle cx="40" cy="53" r="2.4" fill="#fff"/><circle cx="64" cy="53" r="2.4" fill="#fff"/><circle cx="28" cy="69" r="5" fill="#fb7185" opacity=".5"/><circle cx="72" cy="69" r="5" fill="#fb7185" opacity=".5"/><path d="M39 71q11 12 22 0z" fill="#7f1d1d"/><path d="M43 75q7 4 14 0" fill="#fb7185"/></svg>`;
+  const $ = q => document.querySelector(q);
+  $('#gBtn').innerHTML = CARA; $('#gCara').innerHTML = CARA;
+  const n = String(PV.wa || '').replace(/\D/g, ''); const WA = n ? 'https://wa.me/' + (n.startsWith('54') ? n : '549' + n) + '?text=' : '';
+  // Cada opción: qué dice, a dónde lleva para probar y qué tarjeta de la página resalta
+  const R = {
+    comercio: {t: '🛍️ Tengo un comercio', d: 'Para tu comercio te sirve <b>ShopFlash</b>: tu tienda online con vitrinas 360°, una vendedora virtual que atiende por vos y cobros con Mercado Pago. Cargás los productos con una foto y lo probás gratis.', go: ['/', 'Ver ShopFlash'], card: 'ShopFlash', k: /comerc|tienda|negocio|vend.*online|local|kiosco|ropa|zapat|celular|producto/},
+    resto: {t: '🍽️ Restaurante, bar o café', d: 'Te va <b>ShopMenu</b>: el menú QR con una moza virtual. El cliente pide desde la mesa, en 8 idiomas, y el pedido llega directo a la caja o la barra.', go: ['/shopmenu', 'Ver ShopMenu'], card: 'ShopMenu', k: /resto|restaur|bar\b|caf[eé]|pizz|parrill|comida|men[uú]|mozo|moza|cervecer|helader/},
+    empresa: {t: '🏨 Hotel, casino o cadena', d: 'Para empresas hacemos la puesta en marcha con vos: QR para cada mesa, habitación o máquina, pedidos en 8 idiomas y una prueba sin costo en una parte del local.', go: ['/shopmenu', 'Ver ShopMenu'], card: 'Hoteles, casinos', wa: 'Hola! Tengo una empresa (hotel, casino o cadena) y quiero una propuesta de Pro Video.', k: /hotel|casino|cadena|franquic|empresa|bingo/},
+    fiesta: {t: '🎉 Organizo una fiesta', d: 'Te sirve <b>ShopFiesta</b>: invitación virtual con música y fotos, confirmación de invitados, la mesa de cada uno, pedidos desde la mesa y todas las fotos y videos de recuerdo. Mirá la invitación de muestra.', go: ['/fiesta/DEMO15', '💌 Ver invitación de muestra'], card: 'ShopFiesta', wa: 'Hola! Quiero info de ShopFiesta para una fiesta.', k: /fiesta|15|quince|cumple|casamient|boda|bautism|comuni[oó]n|egresad|invitaci/},
+    boliche: {t: '🪩 Tengo un boliche', d: 'Te va <b>ShopEventos Boliche</b>: el cliente pide desde el celular y retira en la barra con su número, y vos mandás avisos de eventos y promos a todos los que fueron.', go: ['/fiesta/DEMOBAR', '🍹 Probar el bar de muestra'], card: 'ShopEventos Boliche', k: /bolich|disco|noche|after|pe[ñn]a|barra/},
+    oficio: {t: '🛠️ Trabajo de un oficio', d: 'Te sirve <b>ShopFlash Oficios</b>: tu app con tu logo, el cliente te manda una foto y la IA le arma el presupuesto con tus precios, elige turno y te deja su reseña.', go: ['/parques', 'Ver cómo funciona'], card: 'ShopFlash Oficios', k: /oficio|plomer|electric|gasist|pintor|alba[ñn]il|jardin|parquer|paisaj|mec[aá]nic|t[eé]cnico|techist|durlock|solar|aire|volquete|afilad|presupuest/},
+    familia: {t: '👨‍👩‍👧 Organizar mi familia', d: '<b>ShopFamilia</b> pone a Flashy en el celular de cada uno: avisos, tareas con estrellas para los chicos, mandados y ayuda con las comidas.', go: ['/familia', 'Probar ShopFamilia'], card: 'ShopFamilia', k: /famil|hijos|tareas|mandados/},
+    vida: {t: '🆘 QR de emergencia', d: '<b>ShopVida</b> pone tu información de emergencia en un QR (sticker, pulsera o llavero): a quién llamar, alergias y remedios. Ideal para chicos en la playa y personas mayores.', go: ['/vida', 'Conocer ShopVida'], card: 'ShopVida', k: /emergencia|perdid|playa|abuel|alzheimer|salud|pulsera|chic[oa]s? perd/},
+    vender: {t: '💼 Quiero vender con ustedes', d: 'Podés sumarte como vendedor o vendedora: ganás un premio por cada comercio que se suscribe y una comisión todos los meses.', go: ['/vender.html', 'Quiero vender'], card: 'Vendé con nosotros', k: /trabaj|vendedor|comisi[oó]n|sumarme|revend/},
+    kits: {t: '📚 Ebooks y kits', d: 'Tenemos kits digitales para leer en el celular: pareja, familia y el pack para armar tu propio programa con IA.', scroll: '#ebooks', k: /ebook|kit|pareja|hogar feliz|prompt/},
+    pronto: {t: '🚀 Lo que viene', d: 'Estamos terminando la app de embarazo con Flashy, ShopBook, invitaciones para bautismo, casamiento y comunión, egresados, after y peñas, asistencia escolar con QR y la guía dentro del local.', scroll: '#pronto', k: /pronto|nuevo|viene|embaraz|beb[eé]|mam[aá]|shopbook|colegio|escuela|jard[ií]n de/},
+    gratis: {t: '🎁 Algo gratis para probar', d: 'Probá <b>ShopCut</b> (la IA te dice qué corte de pelo te queda mejor, también para tu mascota) o anotá a tu mascota en el <b>Censo Mundial de Mascotas</b>.', go: ['/shopcut', 'Probar ShopCut'], card: 'ShopCut', k: /gratis|mascota|perro|gato|corte|pelo|peluquer/}
+  };
+  const box = $('#gBox'), msgs = $('#gMsgs');
+  // Voz: Flashy lee en voz alta lo que dice (se puede apagar con el 🔊)
+  let voz = true; try { voz = localStorage.getItem('pvVoz') !== '0'; } catch (e) {}
+  const VS = window.speechSynthesis;
+  const decir = (html) => {
+    if (!voz || !VS) return;
+    const t = html.replace(/<[^>]+>/g, '').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '').trim(); if (!t) return;
+    VS.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = 'es-AR'; u.rate = 1.05; u.pitch = 1.25;
+    const vs = VS.getVoices(); const v = vs.find(v => /es-AR/i.test(v.lang)) || vs.find(v => /es-(US|MX|419)/i.test(v.lang)) || vs.find(v => /^es/i.test(v.lang)); if (v) u.voice = v;
+    VS.speak(u);
+  };
+  const pintarVoz = () => { const b = document.getElementById('gVoz'); b.textContent = voz ? '🔊' : '🔇'; b.setAttribute('aria-label', voz ? 'Apagar la voz' : 'Prender la voz'); };
+  document.getElementById('gVoz').onclick = () => { voz = !voz; try { localStorage.setItem('pvVoz', voz ? '1' : '0'); } catch (e) {} if (!voz && VS) VS.cancel(); pintarVoz(); };
+  if (!VS) document.getElementById('gVoz').hidden = true; else pintarVoz();
+  const add = (html, quien) => { if ((quien || 'bot') === 'bot') decir(html); const d = document.createElement('div'); d.className = 'gM ' + (quien || 'bot'); d.innerHTML = html; msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight; return d; };
+  const ops = (lista) => { const d = document.createElement('div'); d.className = 'gOps'; lista.forEach(o => d.appendChild(o)); msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight; };
+  const btn = (txt, fn, cls) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = txt; if (cls) b.className = cls; b.onclick = fn; return b; };
+  const link = (txt, href, cls, nueva) => { const a = document.createElement('a'); a.textContent = txt; a.href = href; if (cls) a.className = cls; if (nueva) { a.target = '_blank'; a.rel = 'noopener'; } return a; };
+  const waLink = (texto) => WA ? link('💬 Hablar por WhatsApp', WA + encodeURIComponent(texto || 'Hola! Quiero hacer una consulta sobre los productos de Pro Video.'), 'w', true) : null;
+  const marcar = (r) => {
+    let el = r.scroll ? $(r.scroll) : [...document.querySelectorAll('.card h3')].find(h => h.textContent.includes(r.card));
+    if (!el) return; el = el.closest('.card') || el;
+    if (innerWidth < 860) cerrar();
+    el.scrollIntoView({behavior: 'smooth', block: 'center'});
+    if (el.classList.contains('card')) { el.classList.add('gLuz'); setTimeout(() => el.classList.remove('gLuz'), 2600); }
+  };
+  function menu(texto) {
+    add(texto || '¡Hola! Soy <b>Flashy</b>, el asistente de Pro Video 👋 ¿Qué andás necesitando?');
+    ops(Object.keys(R).map(k => btn(R[k].t, () => elegir(k, true))).concat([waLink()].filter(Boolean)));
+  }
+  function elegir(k, conEco) {
+    const r = R[k]; if (conEco) add(r.t, 'yo');
+    add(r.d);
+    const l = [];
+    if (r.go) l.push(link(r.go[1], r.go[0], 'p'));
+    l.push(btn(r.scroll ? '👀 Mostrámelo' : '👀 Verlo en la página', () => marcar(r)));
+    const w = waLink(r.wa || 'Hola! Vi la página de Pro Video y quiero info sobre: ' + r.t.replace(/^\S+\s/, '')); if (w) l.push(w);
+    l.push(btn('↩️ Otra cosa', () => menu('¿Qué otra cosa andás buscando?')));
+    ops(l);
+  }
+  const sinTilde = t => t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  $('#gForm').onsubmit = e => {
+    e.preventDefault(); const v = $('#gIn').value.trim(); if (!v) return; $('#gIn').value = ''; add(v.replace(/[<>&]/g, ''), 'yo');
+    const t = sinTilde(v), t2 = v.toLowerCase();
+    const k = Object.keys(R).find(k => R[k].k.test(t) || R[k].k.test(t2));
+    if (k) return setTimeout(() => elegir(k), 300);
+    setTimeout(() => { add('No estoy seguro de haberte entendido 🤔 Elegí una de estas opciones, o escribinos y te responde una persona.'); ops(Object.keys(R).map(k => btn(R[k].t, () => elegir(k, true))).concat([waLink('Hola! Vi la página de Pro Video. Necesito: ' + v)].filter(Boolean))); }, 300);
+  };
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SR) {
+    const mic = $('#gMic'); mic.hidden = false; let rec = null;
+    mic.onclick = () => {
+      if (rec) { rec.stop(); return; }
+      if (VS) VS.cancel();
+      rec = new SR(); rec.lang = 'es-AR'; rec.interimResults = true; rec.maxAlternatives = 1;
+      mic.classList.add('oye'); $('#gIn').placeholder = 'Te escucho… 👂';
+      let txt = '';
+      rec.onresult = e => { txt = [...e.results].map(r => r[0].transcript).join(' '); $('#gIn').value = txt; };
+      rec.onerror = e => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') add('Para hablarme, tu celular tiene que darle permiso al micrófono 🎤. Si no, escribime nomás.'); };
+      rec.onend = () => { mic.classList.remove('oye'); $('#gIn').placeholder = 'Escribí o tocá el 🎤 y hablale…'; rec = null; if (txt.trim()) $('#gForm').requestSubmit(); };
+      try { rec.start(); } catch (e) { rec = null; mic.classList.remove('oye'); }
+    };
+  } else { $('#gIn').placeholder = 'Escribí qué necesitás…'; }
+  let empezo = false;
+  const abrir = () => { box.hidden = false; $('#gTip').hidden = true; try { sessionStorage.setItem('pvGuia', '1'); } catch (e) {} if (!empezo) { empezo = true; menu(); } setTimeout(() => { if (innerWidth > 860) $('#gIn').focus(); }, 50); };
+  const cerrar = () => { box.hidden = true; if (VS) VS.cancel(); };
+  $('#gBtn').onclick = () => box.hidden ? abrir() : cerrar();
+  document.getElementById('gX').onclick = cerrar;
+  $('#gTip').onclick = e => { if (e.target.classList.contains('x')) { e.stopPropagation(); $('#gTip').hidden = true; try { sessionStorage.setItem('pvGuia', '1'); } catch (er) {} return; } abrir(); };
+  let visto = false; try { visto = !!sessionStorage.getItem('pvGuia'); } catch (e) {}
+  if (!visto) setTimeout(() => { if (box.hidden) $('#gTip').hidden = false; }, 5000);
 })();
 </script>
 </body>
