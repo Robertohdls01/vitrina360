@@ -302,6 +302,35 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
   })();
   if(Q.get('pago') && ID) setTimeout(() => { const ok = Q.get('pago') === 'ok', d = document.createElement('div'); d.setAttribute('role', 'status'); d.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:99;background:' + (ok ? '#1f9d55' : '#b7791f') + ';color:#fff;padding:14px 18px;border-radius:14px;font:700 17px system-ui;box-shadow:0 10px 30px rgba(0,0,0,.25);max-width:92vw;text-align:center'; d.textContent = ok ? '✅ ¡Pago aprobado! Ya le avisamos a la caja. ¡Gracias!' : Q.get('pago') === 'pendiente' ? '⏳ Tu pago quedó pendiente. Cuando se acredite, la caja lo ve sola.' : '⚠️ El pago no se completó. Podés intentar de nuevo o pagarle al mozo.'; document.body.appendChild(d); setTimeout(() => d.remove(), 9000); }, 1200);
   if(Q.has('pagado')) setTimeout(() => { const d = document.createElement('div'); d.setAttribute('role', 'status'); d.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:99;background:#f0fdf4;border:2px solid #86efac;border-radius:16px;padding:12px 18px;font-weight:700;max-width:92vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.12)'; d.textContent = '✅ ¡Gracias! Tu suscripción a ShopMenu quedó registrada. Abrí tu caja: en unos minutos figura activa.'; document.body.appendChild(d); setTimeout(() => d.remove(), 12000); }, 600);
+  // ---- Cartel grande de regalo (media hoja A4): QR de reseñas de Google + QR del menú con Flashy ----
+  if(ID && Q.has('cartel')) return (async () => {
+    let M0; try{ M0 = (await api('/api/menu?id=' + ID)).menu; }catch(e){ app.innerHTML = '<p class="msg">No encontramos este menú.</p>'; return; }
+    try{ await loadQR(); }catch(e){}
+    const o = location.origin + location.pathname, svg = u => { try{ const q = qrcode(0, 'M'); q.addData(u); q.make(); return q.createSvgTag({cellSize: 6, margin: 1, scalable: true}); }catch(e){ return ''; } };
+    const caja = (u, tit, txt) => `<div class="cqr"><div class="cq">${svg(u)}</div><b>${tit}</b><span>${txt}</span></div>`;
+    app.innerHTML = `<style>
+      .cartel{width:10.5cm;height:14.8cm;margin:10px auto;background:#fff;border:2px dashed #f3b6cf;border-radius:14px;padding:5mm 5mm;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;text-align:center;font-family:system-ui,sans-serif;color:#3a2433;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      .cartel h1{margin:0;font-size:19pt;line-height:1.05;color:#e2457f}.cartel .sub{margin:1.5mm 0 3mm;font-size:9.5pt}
+      .cqrs{display:grid;grid-template-columns:1fr 1fr;gap:3mm;width:100%}.cqr{background:#fff6fa;border:2px solid #f6d3e2;border-radius:10px;padding:2.5mm;display:flex;flex-direction:column;align-items:center;gap:1mm}
+      .cq{width:4cm;height:4cm}.cq svg{width:100%;height:100%}.cqr b{font-size:9.5pt;color:#c2336b}.cqr span{font-size:7.5pt;line-height:1.2}
+      .cband{margin-top:3mm;background:#e2457f;color:#fff;font-weight:900;border-radius:10px;padding:2mm 4mm;font-size:9pt}
+      .cloc{margin-top:auto;font-size:15pt;font-weight:900;color:#e2457f}.cfirma{font-size:6.5pt;color:#9a7a8a;margin-top:1mm}
+      @media print{body{background:#fff}.noprint{display:none!important}.cartel{margin:0 auto;border:1px dashed #bbb}@page{size:A4;margin:6mm}}
+    </style>
+    <div class="noprint" style="text-align:center;padding:10px"><button class="btn pri" type="button" onclick="print()">🖨 Imprimir el cartel</button><p class="note">Sale en un cuarto de hoja A4 (10,5 × 14,8 cm). Recortá por la línea punteada y plastificalo.${M0.greview ? '' : ' ⚠️ Todavía no cargaste tu link de Google: el cartel sale solo con el QR del menú.'}</p></div>
+    <div class="cartel">
+      ${CAJA_AVAS.flashi.replace('class="chef"', 'class="chef" style="width:1.7cm;height:1.7cm"')}
+      <h1>¡Gracias por venir! ⭐</h1>
+      <div class="sub">Tu opinión nos ayuda muchísimo</div>
+      <div class="cqrs" style="${M0.greview ? '' : 'grid-template-columns:1fr;max-width:5cm'}">
+        ${M0.greview ? caja(M0.greview, '⭐ Reseña en Google', 'Escaneá y dejanos tus estrellas en Google') : ''}
+        ${caja(`${o}?m=${ID}`, '📱 Nuestro menú', `Pedí con ${esc(M0.asistente || 'Flashy')} y mirá las opiniones`)}
+      </div>
+      <div class="cband">📱 Escaneá con la cámara de tu celular</div>
+      <div class="cloc">${esc(M0.nombre || '')}</div>
+      <div class="cfirma">ShopMenu · Pro Video JSRHG</div>
+    </div>`;
+  })();
   if(ID && (MESA || !CLAVE)) return mesa();
   if(ID && CLAVE && Q.has('caja')) return caja();
   return dueno();
@@ -460,7 +489,7 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
           <span>🧾 <b>Pantalla de la caja</b> (abrila en la compu o tablet del mostrador): <a href="${caja}" target="_blank">${esc(caja)}</a></span>
           <span>✏️ <b>Editar el menú</b> (cambiar precios o promos): <a href="${edit}">${esc(edit)}</a></span>
           <div class="row"><a class="btn pri" href="${caja}" target="_blank">🧾 Abrir la caja</a><button class="btn sec" type="button" id="bWaMe">📲 Mandármelos por WhatsApp</button></div></div>
-        <div class="row noprint"><a class="btn sec" href="${o}?m=${id}&mesa=1" target="_blank">👀 Probar como cliente (mesa 1)</a><button class="btn pri" type="button" onclick="print()">🖨 Imprimir los QR de las mesas</button></div>
+        <div class="row noprint"><a class="btn sec" href="${o}?m=${id}&mesa=1" target="_blank">👀 Probar como cliente (mesa 1)</a><button class="btn pri" type="button" onclick="print()">🖨 Imprimir los QR de las mesas</button><a class="btn sec" href="${o}?m=${id}&cartel=1" target="_blank">🎁 Cartel grande de reseñas</a></div>
         <p class="note noprint">🖨 Sale en hojas A4 con <b>10 cartelitos de 10×5 cm</b>. <b>Cómo hacerlo:</b> 1) imprimí la hoja (en blanco y negro alcanza), 2) recortá por la línea punteada, 3) plastificalos o metelos en un folio, 4) ponelos en el servilletero de cada mesa. Antes, escaneá uno con tu celular para probarlo. El primero, <b>MENÚ</b>, es el general: para la carta, la puerta o el mostrador (le pregunta al cliente en qué mesa está).</p>
         <p class="note noprint">Imprimí los QR, recortalos y pegá uno en cada mesa: cada uno sabe su número. ¿Ya tenés un QR propio que podés cambiar (tu web o un link editable)? Hacelo apuntar a este link general: <a href="${o}?m=${id}" target="_blank">${esc(o + '?m=' + id)}</a> — el asistente le pregunta al cliente en qué mesa está.</p>
         <div class="row noprint" style="align-items:center;gap:8px"><label style="display:flex;align-items:center;gap:8px;font-weight:800">🖨 Imprimir QR hasta la mesa <input id="qrHasta" type="number" min="1" max="500" style="width:90px"></label><label style="display:flex;align-items:center;gap:6px;font-weight:800">o solo estos números <input id="qrSolo" placeholder="Ej: 101-120, 152" style="width:170px"></label><label style="display:flex;align-items:center;gap:6px;font-weight:800">Formato <select id="qrFmt" style="width:auto"><option value="">🪧 Cartelito 10×5 cm (servilletero)</option><option value="sticker">🏷️ Sticker 6×6 cm (para pegar, 12 por hoja)</option></select></label><span class="note" id="qrInfo"></span><button class="btn sec" type="button" id="qrCsv">📋 Lista de links (para sistemas)</button></div>
