@@ -292,7 +292,7 @@ module.exports = async (req, res) => {
       const L = (await leerObj(pedPath(q.id))) || { items: [] };
       const cu = await cuenta(q.id, f);
       if (q.id === PUB || q.id === BAL) L.items = (L.items || []).filter(it => Date.now() - Date.parse(it.creado) < 3 * 3600e3);
-      return res.status(200).json({ fondo: f.menu.fondoCaja && f.menu.fondoV ? f.menu.fondoV : '', lugar: f.menu.lugar || 'mesa', cuenta: cu, items: (L.items || []).map(x => Object.assign({}, x, { k: undefined })), nombre: f.menu.nombre, mozos: f.menu.mozos || [], dueno: f.menu.dueno || '', cajaAva: f.menu.cajaAva || 'flashi', asistente: f.menu.asistente || 'Lola', avatar: f.menu.avatar || '', pelo: f.menu.pelo || '', largo: f.menu.largo || '', piel: f.menu.piel || '', barba: !!f.menu.barba });
+      return res.status(200).json({ fondo: f.menu.fondoCaja && f.menu.fondoV ? f.menu.fondoV : '', lugar: f.menu.lugar || 'mesa', cuenta: cu, greview: !!f.menu.greview, items: (L.items || []).map(x => Object.assign({}, x, { k: undefined })), nombre: f.menu.nombre, mozos: f.menu.mozos || [], dueno: f.menu.dueno || '', cajaAva: f.menu.cajaAva || 'flashi', asistente: f.menu.asistente || 'Lola', avatar: f.menu.avatar || '', pelo: f.menu.pelo || '', largo: f.menu.largo || '', piel: f.menu.piel || '', barba: !!f.menu.barba });
     }
     // ---- Opiniones de los dueños sobre ShopMenu (para mostrar en la página de venta, solo las aprobadas) ----
     if (req.method === 'GET' && q.testimonios) {
