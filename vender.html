@@ -123,5 +123,6 @@ fetch('/api/vendedores?accion=tabla').then(r => r.ok ? r.json() : null).then(j =
   if(j.pct){ const a = document.getElementById('pctP'), b = document.getElementById('pctM'); if(a) a.textContent = j.pct.premio + '%'; if(b) b.textContent = j.pct.mes + '%'; }
 }).catch(() => {});
 </script>
+<div style="text-align:center;padding:18px 12px 26px;font:13px system-ui,sans-serif;color:#6b4763;opacity:.9"><a href="/provideo" target="_blank" rel="noopener" title="Conocé todos los productos de Pro Video" style="color:inherit;text-decoration:none;font-weight:700;white-space:nowrap"><img src="/pv-logo-180.jpg?v=2" alt="" width="20" height="20" style="width:20px;height:20px;border-radius:50%;vertical-align:middle;margin-right:5px;display:inline-block">Pro Video JSRHG</a></div>
 </body>
 </html>
