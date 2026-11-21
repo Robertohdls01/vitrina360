@@ -9,7 +9,7 @@
 <meta name="description" content="Sacale una foto a tu carta y la IA arma tu menú QR con un asistente que recibe a cada mesa, toma el pedido por voz y lo manda a la caja.">
 <meta property="og:title" content="ShopMenu 🍽️ · El menú QR que te atiende">
 <meta property="og:description" content="Una foto de tu carta y listo: cada mesa tiene un asistente que habla, recomienda y manda el pedido a la caja.">
-<meta property="og:image" content="https://vitrina360app.com.ar/og-shopmenu.png">
+<meta property="og:image" content="https://www.vitrina360app.com.ar/og-shopmenu.jpg">
 <meta name="theme-color" content="#5b21b6">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
 <style>
@@ -268,7 +268,7 @@ body:has(.mesa){--v:#3f7a5a;--o:#5aa37c;--p:#8cc9a5;--ink:#2d3a32;--cream:#f6faf
         const $$ = n => Number(n || 0).toLocaleString('es-AR');
         const arma = () => { const v = k => $('#' + k).value, n = Math.max(1, parseInt(v('bN'), 10) || 1), tot = n + 1, hojas = Math.ceil(tot / 12), trab = +v('bTrab') || 0;
           const st = hojas * (+v('bHoja') || 0) + trab, pl = tot * (+v('bPlast') || 0) + trab, loc = v('bLoc').trim();
-          const t = `🍽️ *ShopMenu${loc ? ' para ' + loc : ''}*\nMenú QR con moza virtual: tus clientes piden desde el celular y el pedido llega directo a la barra.\n\n📍 ${n} ${v('bTipo')} + 1 QR general\n\n*Instalación (un solo pago), elegí:*\n🏷️ Stickers para pegar (${hojas} hoja${hojas > 1 ? 's' : ''}): $${$$(st)}\n🪧 Cartelitos plastificados (${tot}): $${$$(pl)}\nIncluye: carga de la carta, configuración y QR de cada lugar.\n\n📆 *Abono mensual:* $${$$(v('bAbono'))}\n🎁 7 días de prueba gratis. Sin permanencia.\n\n👀 Probalo: https://vitrina360app.com.ar/shopmenu`;
+          const t = `🍽️ *ShopMenu${loc ? ' para ' + loc : ''}*\nMenú QR con moza virtual: tus clientes piden desde el celular y el pedido llega directo a la barra.\n\n📍 ${n} ${v('bTipo')} + 1 QR general\n\n*Instalación (un solo pago), elegí:*\n🏷️ Stickers para pegar (${hojas} hoja${hojas > 1 ? 's' : ''}): $${$$(st)}\n🪧 Cartelitos plastificados (${tot}): $${$$(pl)}\nIncluye: carga de la carta, configuración y QR de cada lugar.\n\n📆 *Abono mensual:* $${$$(v('bAbono'))}\n🎁 7 días de prueba gratis. Sin permanencia.\n\n👀 Probalo: https://www.vitrina360app.com.ar/shopmenu`;
           $('#bTxt').value = t; $('#bWa').href = 'https://wa.me/?text=' + encodeURIComponent(t);
           const o = {}; ids.forEach(k => o[k] = v(k)); try{ localStorage.setItem('shopmenu-presu', JSON.stringify(o)); }catch(e){} };
         ids.forEach(k => $('#' + k).oninput = arma); arma();
