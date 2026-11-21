@@ -90,6 +90,9 @@ async function traducir(menu, prev, solo) {
 
 // ---- Cuenta del local: 7 días de prueba, después abono mensual por Mercado Pago (o cobro a mano desde Mis pruebas) ----
 const PRECIO = () => parseInt(process.env.SHOPMENU_PRECIO, 10) || 18700;
+// Oferta del primer día: si se suscribe dentro de las 24 h de crear el menú, el primer mes sale PRECIO_PROMO; desde el 2.º mes pasa solo al precio normal.
+const PROMO = () => parseInt(process.env.SHOPMENU_PRECIO_PROMO, 10) || 14900;
+const promoVigente = f => !f.precio && !f.mpSus && f.creado && Date.now() - Date.parse(f.creado) < 864e5;
 const LIBRES = ['fdaf46084d']; // Café Demo
 async function cuenta(id, f) {
   const ahora = Date.now(); let cambio = false;
@@ -103,10 +106,18 @@ async function cuenta(id, f) {
       if (pre && pre.status === 'authorized') { const prox = Date.parse(pre.next_payment_date || '') || (ahora + 30 * 864e5); hasta = Math.max(ahora + 3 * 864e5, prox + 3 * 864e5); f.pagoHasta = new Date(hasta).toISOString(); f.mpEstado = 'authorized'; }
       else if (pre) f.mpEstado = pre.status; } catch (e) {}
   }
+  // pasado el primer cobro con oferta, la suscripción sube sola al precio normal
+  if (f.promo1 && f.mpSus && process.env.MP_ACCESS_TOKEN && (!f.promoCheck || ahora - Date.parse(f.promoCheck) > 6 * 3600e3)) {
+    f.promoCheck = new Date().toISOString(); cambio = true;
+    try { const pre = await mp('GET', '/preapproval/' + encodeURIComponent(f.mpSus));
+      const cobros = pre && pre.summarized ? Number(pre.summarized.charged_quantity || 0) : 0;
+      if (pre && pre.status === 'authorized' && cobros >= 1) { await mp('PUT', '/preapproval/' + encodeURIComponent(f.mpSus), { auto_recurring: { transaction_amount: f.precio || PRECIO(), currency_id: 'ARS' } }); f.promo1 = false; f.promoPasado = new Date().toISOString(); }
+    } catch (e) { console.error('shopmenu promo', e.status || '', e.message); }
+  }
   if (cambio) { try { await guardarObj('menus/' + id + '.json', f); } catch (e) {} }
   const pr = f.precio || PRECIO();
   if (hasta > ahora) return { estado: 'activo', hasta: new Date(hasta).toISOString(), mp: !!f.mpSus, precio: pr };
-  if (ahora < finPrueba) return { estado: 'prueba', dias: Math.ceil((finPrueba - ahora) / 864e5), precio: pr };
+  if (ahora < finPrueba) return Object.assign({ estado: 'prueba', dias: Math.ceil((finPrueba - ahora) / 864e5), precio: pr }, promoVigente(f) ? { promo: PROMO(), promoHasta: new Date(Date.parse(f.creado) + 864e5).toISOString() } : {});
   return { estado: 'vencido', precio: pr, mpEstado: f.mpEstado || '' };
 }
 
@@ -308,11 +319,12 @@ module.exports = async (req, res) => {
       if (!process.env.MP_ACCESS_TOKEN) return res.status(503).json({ error: 'El cobro todavía no está configurado.' });
       const email = String(b.email || '').trim().toLowerCase();
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return res.status(400).json({ error: 'Revisá el mail de Mercado Pago.' });
+      const conPromo = promoVigente(f);
       const origin = 'https://' + (req.headers['x-forwarded-host'] || req.headers.host);
       try {
         const pre = await mp('POST', '/preapproval', { reason: 'ShopMenu · ' + (f.menu.nombre || 'Menú QR'), external_reference: 'menu:' + b.id, payer_email: email, back_url: origin + '/menu?pagado=1', status: 'pending',
-          auto_recurring: { frequency: 1, frequency_type: 'months', transaction_amount: f.precio || PRECIO(), currency_id: 'ARS' } });
-        f.mpSus = pre.id; f.mpEmail = email; f.mpCheck = ''; await guardarObj('menus/' + b.id + '.json', f);
+          auto_recurring: { frequency: 1, frequency_type: 'months', transaction_amount: conPromo ? PROMO() : (f.precio || PRECIO()), currency_id: 'ARS' } });
+        f.mpSus = pre.id; f.promo1 = conPromo; f.mpEmail = email; f.mpCheck = ''; await guardarObj('menus/' + b.id + '.json', f);
         return res.status(200).json({ url: pre.init_point });
       } catch (e) {
         console.error('shopmenu suscribir', e.status || '', e.message, e.body ? JSON.stringify(e.body).slice(0, 400) : '');
