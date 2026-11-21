@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="color-scheme" content="light only">
-<style>:root{color-scheme:light only}.portv{width:min(240px,62vw);aspect-ratio:9/19.5;margin:4px auto 18px;border-radius:30px;overflow:hidden;border:6px solid #1f1a14;box-shadow:0 18px 40px rgba(60,40,10,.35),0 0 0 2px #c9a227}
+<style>:root{color-scheme:light only}.portv{width:min(240px,62vw);aspect-ratio:9/19.5;margin:4px auto 18px;border-radius:30px;overflow:hidden;border:6px solid #1f1a14;box-shadow:0 18px 40px rgba(60,40,10,.35),0 0 0 2px #d6157f}
 .portv video{width:100%;height:100%;object-fit:cover;display:block}
 </style>
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -16,9 +16,9 @@
 <link rel="icon" href="/icons/fiesta-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;800&display=swap" rel="stylesheet">
 <style>
-:root{--ac:#b08a2e;--bg:#f7f5f0;--card:#fff;--ink:#1f2937;--soft:#4b5563;--line:#e5e1d8;--ok:#15803d}
+:root{--ac:#c8008f;--bg:#fff4fc;--card:#fff;--ink:#2a1226;--soft:#6b4763;--line:#ffb5e6;--ok:#15803d}
 *{box-sizing:border-box}body{margin:0;font:16px/1.5 'Figtree',system-ui,sans-serif;background:var(--bg);color:var(--ink)}
-header{background:#fffdf8;border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
+header{background:#fff;border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
 header b{font-size:18px}header small{color:var(--soft)}
 .tabs{display:flex;gap:6px;padding:10px 16px 0;max-width:1100px;margin:0 auto;flex-wrap:wrap}
 .tabs button{border:0;background:#ece8de;color:var(--ink);font:700 15px inherit;font-family:inherit;padding:10px 14px;border-radius:12px 12px 0 0;cursor:pointer}
@@ -35,10 +35,10 @@ textarea{min-height:90px;resize:vertical}
 .opts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 @media(max-width:560px){.opts{grid-template-columns:1fr}}
 .opt{border:2px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;background:#fff;text-align:left;font-family:inherit;color:var(--ink)}
-.opt.on{border-color:var(--ac);background:#fffaf0}.opt b{display:block;font-size:16px}.opt small{color:var(--soft)}
+.opt.on{border-color:var(--ac);background:#fff4fc}.opt b{display:block;font-size:16px}.opt small{color:var(--soft)}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{border:2px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font:600 15px inherit;font-family:inherit;cursor:pointer;color:var(--ink)}
-.chip.on{border-color:var(--ac);background:#fffaf0}
+.chip.on{border-color:var(--ac);background:#fff4fc}
 .sw{width:36px;height:36px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1.5px var(--line);cursor:pointer;padding:0}
 .sw.on{box-shadow:0 0 0 3px var(--ink)}
 .chk{display:flex;align-items:center;gap:10px;font-weight:500;margin:10px 0}.chk input{width:22px;height:22px}
@@ -47,7 +47,7 @@ textarea{min-height:90px;resize:vertical}
 .btn.wa{background:#25d366;color:#08311a}
 .btn.sm{padding:7px 10px;font-size:14px;border-radius:9px}
 .btn:disabled{opacity:.55}
-.barra{position:fixed;left:0;right:0;bottom:0;background:#fffdf8;border-top:1px solid var(--line);padding:10px 16px;display:flex;gap:10px;justify-content:center;align-items:center;z-index:6}
+.barra{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 16px;display:flex;gap:10px;justify-content:center;align-items:center;z-index:6}
 .barra .estado{color:var(--soft);font-size:14px}
 .prevcol{position:sticky;top:64px}
 .tel{border-radius:34px;border:10px solid #1f2937;overflow:hidden;height:min(680px,calc(100vh - 160px));background:#fff;box-shadow:0 20px 40px rgba(0,0,0,.18)}
@@ -80,13 +80,13 @@ code{background:#f3f1ea;padding:2px 6px;border-radius:6px;word-break:break-all}
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const FL_LOOKS = {
-  normal: '<rect x="30" y="92" width="5" height="11" rx="2" fill="#ca8a04"/><rect x="45" y="92" width="5" height="11" rx="2" fill="#ca8a04"/><ellipse cx="30" cy="104" rx="6.5" ry="3.6" fill="#374151"/><ellipse cx="50" cy="104" rx="6.5" ry="3.6" fill="#374151"/><ellipse cx="27.5" cy="102.8" rx="2.4" ry=".9" fill="#9ca3af" opacity=".7"/><ellipse cx="47.5" cy="102.8" rx="2.4" ry=".9" fill="#9ca3af" opacity=".7"/>',
+  normal: '<rect x="30" y="92" width="5" height="11" rx="2" fill="#c8008f"/><rect x="45" y="92" width="5" height="11" rx="2" fill="#c8008f"/><ellipse cx="30" cy="104" rx="6.5" ry="3.6" fill="#374151"/><ellipse cx="50" cy="104" rx="6.5" ry="3.6" fill="#374151"/><ellipse cx="27.5" cy="102.8" rx="2.4" ry=".9" fill="#9ca3af" opacity=".7"/><ellipse cx="47.5" cy="102.8" rx="2.4" ry=".9" fill="#9ca3af" opacity=".7"/>',
   traje: '<rect x="30" y="92" width="5" height="11" rx="2" fill="#1f2937"/><rect x="45" y="92" width="5" height="11" rx="2" fill="#1f2937"/><ellipse cx="30" cy="104" rx="7.5" ry="3.6" fill="#0b0f19"/><ellipse cx="50" cy="104" rx="7.5" ry="3.6" fill="#0b0f19"/><ellipse cx="27.5" cy="102.8" rx="2.4" ry=".9" fill="#fff" opacity=".7"/><ellipse cx="47.5" cy="102.8" rx="2.4" ry=".9" fill="#fff" opacity=".7"/><defs><clipPath id="flc"><circle cx="40" cy="64" r="31"/></clipPath></defs><g clip-path="url(#flc)"><rect x="0" y="83" width="80" height="30" fill="#1f2937"/><path d="M29 83 40 97 51 83z" fill="#fff"/><path d="M40 97 36 83h-3l7 14zM40 97l4-14h3z" fill="#111827" opacity=".5"/></g><path d="M32 81l8 4.5-8 4.5zM48 81l-8 4.5 8 4.5z" fill="#111827"/><circle cx="40" cy="85.5" r="2.4" fill="#374151"/>',
   camisa: '<rect x="30" y="92" width="5" height="11" rx="2" fill="#1e3a8a"/><rect x="45" y="92" width="5" height="11" rx="2" fill="#1e3a8a"/><ellipse cx="30" cy="104" rx="7.5" ry="3.6" fill="#7c2d12"/><ellipse cx="50" cy="104" rx="7.5" ry="3.6" fill="#7c2d12"/><ellipse cx="27.5" cy="102.8" rx="2.4" ry=".9" fill="#fdba74" opacity=".7"/><ellipse cx="47.5" cy="102.8" rx="2.4" ry=".9" fill="#fdba74" opacity=".7"/><defs><clipPath id="flc"><circle cx="40" cy="64" r="31"/></clipPath></defs><g clip-path="url(#flc)"><rect x="0" y="84" width="80" height="30" fill="#bfdbfe"/><path d="M30 84l10 6 10-6v4l-10 6-10-6z" fill="#fff"/><path d="M38 89h4l2 3-3 14h-2l-3-14z" fill="#b91c1c"/></g>',
-  fiesta: '<rect x="30" y="92" width="5" height="11" rx="2" fill="#ca8a04"/><rect x="45" y="92" width="5" height="11" rx="2" fill="#ca8a04"/><ellipse cx="30" cy="104" rx="7" ry="3.6" fill="#ec4899"/><ellipse cx="50" cy="104" rx="7" ry="3.6" fill="#ec4899"/><ellipse cx="27.5" cy="102.8" rx="2.4" ry=".9" fill="#fbcfe8" opacity=".7"/><ellipse cx="47.5" cy="102.8" rx="2.4" ry=".9" fill="#fbcfe8" opacity=".7"/><path d="M12 44 22 14l12 26z" fill="#f472b6" stroke="#be185d" stroke-width="1.5"/><path d="M15 36l12-4M18 27l9-3" stroke="#fde047" stroke-width="2.5"/><circle cx="22" cy="13" r="3.5" fill="#fde047"/><path d="M31 82l9 4.5-9 4.5zM49 82l-9 4.5 9 4.5z" fill="#8b5cf6"/><circle cx="40" cy="86.5" r="2.4" fill="#6d28d9"/><circle cx="66" cy="38" r="2" fill="#f472b6"/><circle cx="70" cy="50" r="1.6" fill="#22d3ee"/><circle cx="12" cy="56" r="1.6" fill="#fde047"/>',
-  claro: '<rect x="30" y="92" width="5" height="11" rx="2" fill="#e5e7eb"/><rect x="45" y="92" width="5" height="11" rx="2" fill="#e5e7eb"/><ellipse cx="30" cy="104" rx="7.5" ry="3.6" fill="#92400e"/><ellipse cx="50" cy="104" rx="7.5" ry="3.6" fill="#92400e"/><ellipse cx="27.5" cy="102.8" rx="2.4" ry=".9" fill="#fde68a" opacity=".7"/><ellipse cx="47.5" cy="102.8" rx="2.4" ry=".9" fill="#fde68a" opacity=".7"/><defs><clipPath id="flc"><circle cx="40" cy="64" r="31"/></clipPath></defs><g clip-path="url(#flc)"><rect x="0" y="83" width="80" height="30" fill="#f8fafc"/><path d="M29 83 40 97 51 83z" fill="#fde68a"/><path d="M40 97 33 83h-3l8 14zM40 97l7-14h3z" fill="#cbd5e1"/></g><path d="M32 81l8 4.5-8 4.5zM48 81l-8 4.5 8 4.5z" fill="#ca8a04"/><circle cx="40" cy="85.5" r="2.4" fill="#a16207"/>'
+  fiesta: '<rect x="30" y="92" width="5" height="11" rx="2" fill="#c8008f"/><rect x="45" y="92" width="5" height="11" rx="2" fill="#c8008f"/><ellipse cx="30" cy="104" rx="7" ry="3.6" fill="#ec4899"/><ellipse cx="50" cy="104" rx="7" ry="3.6" fill="#ec4899"/><ellipse cx="27.5" cy="102.8" rx="2.4" ry=".9" fill="#fbcfe8" opacity=".7"/><ellipse cx="47.5" cy="102.8" rx="2.4" ry=".9" fill="#fbcfe8" opacity=".7"/><path d="M12 44 22 14l12 26z" fill="#f472b6" stroke="#be185d" stroke-width="1.5"/><path d="M15 36l12-4M18 27l9-3" stroke="#fde047" stroke-width="2.5"/><circle cx="22" cy="13" r="3.5" fill="#fde047"/><path d="M31 82l9 4.5-9 4.5zM49 82l-9 4.5 9 4.5z" fill="#8b5cf6"/><circle cx="40" cy="86.5" r="2.4" fill="#6d28d9"/><circle cx="66" cy="38" r="2" fill="#f472b6"/><circle cx="70" cy="50" r="1.6" fill="#22d3ee"/><circle cx="12" cy="56" r="1.6" fill="#fde047"/>',
+  claro: '<rect x="30" y="92" width="5" height="11" rx="2" fill="#e5e7eb"/><rect x="45" y="92" width="5" height="11" rx="2" fill="#e5e7eb"/><ellipse cx="30" cy="104" rx="7.5" ry="3.6" fill="#92400e"/><ellipse cx="50" cy="104" rx="7.5" ry="3.6" fill="#92400e"/><ellipse cx="27.5" cy="102.8" rx="2.4" ry=".9" fill="#ffdff4" opacity=".7"/><ellipse cx="47.5" cy="102.8" rx="2.4" ry=".9" fill="#ffdff4" opacity=".7"/><defs><clipPath id="flc"><circle cx="40" cy="64" r="31"/></clipPath></defs><g clip-path="url(#flc)"><rect x="0" y="83" width="80" height="30" fill="#f8fafc"/><path d="M29 83 40 97 51 83z" fill="#ffdff4"/><path d="M40 97 33 83h-3l8 14zM40 97l7-14h3z" fill="#cbd5e1"/></g><path d="M32 81l8 4.5-8 4.5zM48 81l-8 4.5 8 4.5z" fill="#c8008f"/><circle cx="40" cy="85.5" r="2.4" fill="#a16207"/>'
 };
-const FL_BASE = '<svg viewBox="0 0 80 110" aria-hidden="true" class="flsvg"><ellipse cx="40" cy="106" rx="20" ry="4" fill="rgba(0,0,0,.18)"/><defs><radialGradient id="flhg" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fde68a"/><stop offset=".6" stop-color="#facc15"/><stop offset="1" stop-color="#eab308"/></radialGradient></defs><path d="M42 4 31 24h10l-5 13 15-20H40l7-13z" fill="#16a34a" stroke="#14532d" stroke-width="2" stroke-linejoin="round"/><circle cx="40" cy="64" r="32" fill="url(#flhg)" stroke="#ca8a04" stroke-width="2.5"/><g class="heyes"><ellipse cx="29" cy="59" rx="5.5" ry="7.5" fill="#1f2937"/><ellipse cx="51" cy="59" rx="5.5" ry="7.5" fill="#1f2937"/><circle cx="31" cy="56" r="2.2" fill="#fff"/><circle cx="53" cy="56" r="2.2" fill="#fff"/></g><circle cx="20" cy="72" r="5" fill="#fb7185" opacity=".55"/><circle cx="60" cy="72" r="5" fill="#fb7185" opacity=".55"/><g class="hmouth" style="transform-origin:40px 76px"><path d="M30 74q10 11 20 0" fill="#7f1d1d" stroke="#1f2937" stroke-width="2.4" stroke-linecap="round"/><path d="M34 78q6 3.5 12 0" fill="#fb7185"/></g><path d="M10 70q-8-6-4-16" stroke="#ca8a04" stroke-width="4" fill="none" stroke-linecap="round" class="flwave"/>';
+const FL_BASE = '<svg viewBox="0 0 80 110" aria-hidden="true" class="flsvg"><ellipse cx="40" cy="106" rx="20" ry="4" fill="rgba(0,0,0,.18)"/><defs><radialGradient id="flhg" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#ffdff4"/><stop offset=".6" stop-color="#facc15"/><stop offset="1" stop-color="#eab308"/></radialGradient></defs><path d="M42 4 31 24h10l-5 13 15-20H40l7-13z" fill="#16a34a" stroke="#14532d" stroke-width="2" stroke-linejoin="round"/><circle cx="40" cy="64" r="32" fill="url(#flhg)" stroke="#c8008f" stroke-width="2.5"/><g class="heyes"><ellipse cx="29" cy="59" rx="5.5" ry="7.5" fill="#1f2937"/><ellipse cx="51" cy="59" rx="5.5" ry="7.5" fill="#1f2937"/><circle cx="31" cy="56" r="2.2" fill="#fff"/><circle cx="53" cy="56" r="2.2" fill="#fff"/></g><circle cx="20" cy="72" r="5" fill="#fb7185" opacity=".55"/><circle cx="60" cy="72" r="5" fill="#fb7185" opacity=".55"/><g class="hmouth" style="transform-origin:40px 76px"><path d="M30 74q10 11 20 0" fill="#7f1d1d" stroke="#1f2937" stroke-width="2.4" stroke-linecap="round"/><path d="M34 78q6 3.5 12 0" fill="#fb7185"/></g><path d="M10 70q-8-6-4-16" stroke="#c8008f" stroke-width="4" fill="none" stroke-linecap="round" class="flwave"/>';
 const flSVG = look => FL_BASE + (FL_LOOKS[look] || '') + '</svg>';
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -97,8 +97,8 @@ const LOOK_DE = {'15': 'traje', casamiento: 'claro', cumple: 'fiesta', bautismo:
 let lookTocado = false;
 const TITULOS = {'15': 'Mis 15', casamiento: 'Nos casamos', cumple: 'Mi cumple', bautismo: 'Mi bautismo', egresados: 'Fiesta de egresados', boliche: 'Esta noche', otro: 'Te invito'};
 const PLANT = [['elegante', 'Elegante', '#fbf7f0'], ['flores', 'Flores', '#fbf1f3'], ['brillos', 'Brillos', '#1d1b2f'], ['moderna', 'Moderna', '#f5f5f2'], ['mariposas', 'Mariposas', '#f3effa'], ['luna', 'Luna y estrellas', '#1c2440']];
-const COLORES = ['#c9a227', '#d98ca0', '#9b87c9', '#6fa8c9', '#7fa88a', '#9aa3ad', '#a85a6a', '#d4a373'];
-const nuevo = () => ({tipo: '15', modo: 'especial', plantilla: 'elegante', color: '#c9a227', titulo: 'Mis 15', nombre: '', frase: 'Hay momentos que no se olvidan. Quiero compartir este con vos.', fecha: '', hora: '21:30', salon: '', direccion: '', vestimenta: '', regalo: '', mostrarMesa: false, pedirMenu: true, organiza: '', catering: '', cateringTel: '', mozas: [], foto: '', invitados: [], carta: [], crono: [], modoP: 'encargada', zonas: {}, flLook: 'traje', lugares: []});
+const COLORES = ['#d6157f', '#d98ca0', '#9b87c9', '#6fa8c9', '#7fa88a', '#9aa3ad', '#a85a6a', '#d4a373'];
+const nuevo = () => ({tipo: '15', modo: 'especial', plantilla: 'elegante', color: '#d6157f', titulo: 'Mis 15', nombre: '', frase: 'Hay momentos que no se olvidan. Quiero compartir este con vos.', fecha: '', hora: '21:30', salon: '', direccion: '', vestimenta: '', regalo: '', mostrarMesa: false, pedirMenu: true, organiza: '', catering: '', cateringTel: '', mozas: [], foto: '', invitados: [], carta: [], crono: [], modoP: 'encargada', zonas: {}, flLook: 'traje', lugares: []});
 const mis = () => { try { return JSON.parse(localStorage.getItem('misFiestas') || '[]'); } catch (e) { return []; } };
 const guardarMis = () => { if (!CODE || !K || DEMO) return; const l = mis().filter(x => x.code !== CODE); l.unshift({code: CODE, k: K, nombre: D.nombre || ''}); try { localStorage.setItem('misFiestas', JSON.stringify(l.slice(0, 10))); } catch (e) {} };
 const enviados = () => { try { return JSON.parse(localStorage.getItem('fiestaEnv:' + CODE) || '{}'); } catch (e) { return {}; } };
@@ -142,7 +142,7 @@ function activarHTML(subir) {
   if (DEMO || !CODE || (D.pagado && !subir)) return '';
   const L = PAQS ? Object.entries(PAQS) : [['invitacion', {nombre: 'Invitación', precio: 35000, disponible: true, incluye: ''}]];
   const n = (D.invitados || []).length;
-  return `<div class="sec" style="background:#fffaf0;border:2px solid #ecd9a8;border-radius:16px;padding:16px"><h3>${subir ? '🎉 Pasate a la fiesta completa' : '🔓 Activá tu invitación para mandarla'}</h3>
+  return `<div class="sec" style="background:#fff4fc;border:2px solid #ecd9a8;border-radius:16px;padding:16px"><h3>${subir ? '🎉 Pasate a la fiesta completa' : '🔓 Activá tu invitación para mandarla'}</h3>
     <p class="muted">Ya podés armarla y verla gratis. Para mandarla a tus invitados y recibir las confirmaciones, activala con un pago único.</p>
     <div class="opts">${L.map(([k, p]) => { const extra = p.vivo && n > 150 ? EXTRA : 0; return `<button class="opt ${paqElegido === k && p.disponible ? 'on' : ''}" data-paq="${k}" ${p.disponible || sesionDueno() ? '' : 'disabled style="opacity:.6"'}><b>${esc(p.nombre)}</b><span style="font-size:20px;font-weight:800">${pesos(p.precio + extra)}</span><br><small>${esc(p.incluye || '')}${extra ? ' · incluye ' + pesos(extra) + ' por más de 150 invitados' : ''}${p.disponible ? '' : '<br><b>Próximamente</b>'}</small></button>`; }).join('')}</div>
     <button class="btn" id="pagar" style="margin-top:12px;font-size:17px">💳 Pagar con Mercado Pago</button>
