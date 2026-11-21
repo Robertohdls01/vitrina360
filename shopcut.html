@@ -11,14 +11,14 @@
 <meta property="og:description" content="Una selfie (o una foto de tu mascota) y la IA te dice los cortes ideales. Gratis.">
 <meta property="og:image" content="https://www.vitrina360app.com.ar/og-shopcut.png">
 <meta property="og:url" content="https://www.vitrina360app.com.ar/shopcut">
-<meta name="theme-color" content="#6d28d9">
+<meta name="theme-color" content="#c8008f">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂️</text></svg>">
 <style>
-:root{--v:#6d28d9;--v2:#9333ea;--p:#db2777;--ink:#1f1235;--soft:#f5f3ff}
+:root{--v:#c8008f;--v2:#f020c0;--p:#db2777;--ink:#2a1226;--soft:#fff4fc}
 *{box-sizing:border-box}
-body{margin:0;font:400 16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:#faf7ff;min-height:100vh}
+body{margin:0;font:400 16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:#fff4fc;min-height:100vh}
 .hero{background:linear-gradient(160deg,var(--v) 0%,var(--v2) 55%,var(--p) 100%);color:#fff;padding:28px 18px 70px;text-align:center;position:relative;overflow:hidden}
-.hero::after{content:"";position:absolute;left:-10%;right:-10%;bottom:-60px;height:110px;background:#faf7ff;border-radius:50% 50% 0 0}
+.hero::after{content:"";position:absolute;left:-10%;right:-10%;bottom:-60px;height:110px;background:#fff4fc;border-radius:50% 50% 0 0}
 .logo{font-weight:800;font-size:30px;letter-spacing:-.5px}.logo small{display:block;font-size:12px;font-weight:600;opacity:.8;letter-spacing:1px}
 .hero h1{font-size:clamp(30px,7vw,46px);line-height:1.05;margin:18px auto 10px;max-width:640px;letter-spacing:-1px}
 .hero p{margin:0 auto;max-width:520px;opacity:.95;font-size:17px}
@@ -26,28 +26,28 @@ body{margin:0;font:400 16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-s
 main{max-width:620px;margin:-40px auto 0;padding:0 16px 40px;position:relative;z-index:1}
 .card{background:#fff;border-radius:24px;box-shadow:0 12px 40px rgba(76,29,149,.14);padding:20px;display:grid;gap:14px}
 .who{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.who button{border:3px solid #ede9fe;background:var(--soft);border-radius:20px;padding:18px 8px;font:700 17px system-ui;color:var(--ink);cursor:pointer;display:grid;gap:4px;justify-items:center}
-.who button span{font-size:46px}.who button[aria-pressed="true"]{border-color:var(--v2);background:#ede9fe;box-shadow:0 6px 18px rgba(147,51,234,.25)}
+.who button{border:3px solid #ffdff4;background:var(--soft);border-radius:20px;padding:18px 8px;font:700 17px system-ui;color:var(--ink);cursor:pointer;display:grid;gap:4px;justify-items:center}
+.who button span{font-size:46px}.who button[aria-pressed="true"]{border-color:var(--v2);background:#ffdff4;box-shadow:0 6px 18px rgba(147,51,234,.25)}
 .lbl{font-weight:700;font-size:15px;margin:0}
-.chips{display:flex;gap:8px;flex-wrap:wrap}.chips button{border:2px solid #e9d5ff;background:#fff;border-radius:999px;padding:7px 14px;font:600 15px system-ui;color:var(--ink);cursor:pointer}.chips button[aria-pressed="true"]{border-color:var(--v2);background:#f3e8ff}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.chips button{border:2px solid #ffc6ea;background:#fff;border-radius:999px;padding:7px 14px;font:600 15px system-ui;color:var(--ink);cursor:pointer}.chips button[aria-pressed="true"]{border-color:var(--v2);background:#ffdff4}
 .go{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .btn{border:0;border-radius:999px;padding:15px 18px;font:800 17px system-ui;cursor:pointer;text-decoration:none;text-align:center;display:inline-flex;justify-content:center;align-items:center;gap:6px}
-.pri{background:linear-gradient(90deg,var(--v),var(--p));color:#fff;box-shadow:0 8px 22px rgba(219,39,119,.3)}.sec{background:#f3e8ff;color:var(--v)}
-.note{font-size:13px;color:#6b5b86;margin:0;text-align:center}
+.pri{background:linear-gradient(90deg,var(--v),var(--p));color:#fff;box-shadow:0 8px 22px rgba(219,39,119,.3)}.sec{background:#ffdff4;color:var(--v)}
+.note{font-size:13px;color:#6b4763;margin:0;text-align:center}
 .free{font-size:14px;text-align:center;margin:0;color:var(--v);font-weight:700}
 .msg{color:#b91c1c;text-align:center;margin:0;font-weight:600}
-.photo{width:150px;height:150px;border-radius:50%;object-fit:cover;justify-self:center;border:5px solid #e9d5ff}
+.photo{width:150px;height:150px;border-radius:50%;object-fit:cover;justify-self:center;border:5px solid #ffc6ea}
 .spin{text-align:center;font-size:54px;animation:snip .5s ease-in-out infinite alternate}
 .res h2{margin:0;text-align:center;font-size:24px}
-.cut{border:2px solid #f3e8ff;border-radius:18px;padding:14px;display:grid;gap:6px}.cut h3{margin:0;font-size:19px}
-.mt{justify-self:start;font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;background:#f3e8ff;color:var(--v)}
-.ask{background:#faf5ff;border-radius:12px;padding:8px 11px;font-size:15px}
+.cut{border:2px solid #ffdff4;border-radius:18px;padding:14px;display:grid;gap:6px}.cut h3{margin:0;font-size:19px}
+.mt{justify-self:start;font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;background:#ffdff4;color:var(--v)}
+.ask{background:#fff4fc;border-radius:12px;padding:8px 11px;font-size:15px}
 .ask button{border:0;background:none;color:var(--v);font-weight:700;cursor:pointer;padding:0 0 0 4px}
 .prods{display:grid;gap:8px}.prod{display:flex;align-items:center;justify-content:space-between;gap:10px;border:2px solid #fde68a;background:#fffbeb;border-radius:14px;padding:10px 12px;text-decoration:none;color:var(--ink)}
 .prod b{display:block}.prod small{color:#78716c}.prod span.ml{flex:none;background:#ffe600;color:#2d3277;font-weight:800;border-radius:999px;padding:6px 12px;font-size:13px}
 .tip{background:#ecfeff;border-radius:14px;padding:10px 12px}
 .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-footer{text-align:center;padding:10px 16px 34px;font-size:14px;color:#6b5b86}footer a{color:var(--v);font-weight:700}
+footer{text-align:center;padding:10px 16px 34px;font-size:14px;color:#6b4763}footer a{color:var(--v);font-weight:700}
 [hidden]{display:none!important}
 </style>
 </head>
