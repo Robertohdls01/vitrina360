@@ -223,7 +223,10 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
   // ---- Kit de prueba: cartelitos genéricos "ShopMenu · MESA N" que se reusan de café en café ----
   if(!ID && Q.has('k')) return (async () => {
     const k = String(Q.get('k')).toUpperCase().replace(/[^A-Z0-9]/g, '');
-    try{ const j = await api('/api/menu?kit=' + encodeURIComponent(k)); location.replace(`?m=${j.id}&mesa=${MESA || 1}`); return; }
+    try{ const j = await api('/api/menu?kit=' + encodeURIComponent(k));
+      if(Q.has('g')){ try{ const mm = (await api('/api/menu?id=' + j.id)).menu; if(mm && mm.greview){ location.replace(mm.greview); return; } }catch(e){} location.replace(`?m=${j.id}`); return; }
+      if(Q.has('c')){ location.replace(`?m=${j.id}`); return; }
+      location.replace(`?m=${j.id}&mesa=${MESA || 1}`); return; }
     catch(e){ app.innerHTML = `<div class="wrap" style="padding:40px 18px;text-align:center"><h2>🍽️ ShopMenu</h2><p>Este QR de prueba (kit <b>${esc(k)}</b>) todavía no está activado en ningún local.</p><p class="note">Si sos el dueño: entrá a tu caja → 🧪 <b>Activar kit de prueba</b> y escribí <b>${esc(k)}</b>.</p></div>`; return; }
   })();
   // ---- Mis pruebas: lista del vendedor de los cafés que están probando con un kit ----
@@ -308,17 +311,7 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
     try{ await loadQR(); }catch(e){}
     const o = location.origin + location.pathname, svg = u => { try{ const q = qrcode(0, 'M'); q.addData(u); q.make(); return q.createSvgTag({cellSize: 6, margin: 1, scalable: true}); }catch(e){ return ''; } };
     const caja = (u, tit, txt) => `<div class="cqr"><div class="cq">${svg(u)}</div><b>${tit}</b><span>${txt}</span></div>`;
-    app.innerHTML = `<style>
-      .cartel{width:10.5cm;height:14.8cm;margin:10px auto;background:#fff;border:2px dashed #f3b6cf;border-radius:14px;padding:5mm 5mm;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;text-align:center;font-family:system-ui,sans-serif;color:#3a2433;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-      .cartel h1{margin:0;font-size:19pt;line-height:1.05;color:#e2457f}.cartel .sub{margin:1.5mm 0 3mm;font-size:9.5pt}
-      .cqrs{display:grid;grid-template-columns:1fr 1fr;gap:3mm;width:100%}.cqr{background:#fff6fa;border:2px solid #f6d3e2;border-radius:10px;padding:2.5mm;display:flex;flex-direction:column;align-items:center;gap:1mm}
-      .cq{width:4cm;height:4cm}.cq svg{width:100%;height:100%}.cqr b{font-size:9.5pt;color:#c2336b}.cqr span{font-size:7.5pt;line-height:1.2}
-      .cband{margin-top:3mm;background:#e2457f;color:#fff;font-weight:900;border-radius:10px;padding:2mm 4mm;font-size:9pt}
-      .cloc{margin-top:auto;font-size:15pt;font-weight:900;color:#e2457f}.cfirma{font-size:6.5pt;color:#9a7a8a;margin-top:1mm}
-      @media print{body{background:#fff}.noprint{display:none!important}.cartel{margin:0 auto;border:1px dashed #bbb}@page{size:A4;margin:6mm}}
-    </style>
-    <div class="noprint" style="text-align:center;padding:10px"><button class="btn pri" type="button" onclick="print()">🖨 Imprimir el cartel</button><p class="note">Sale en un cuarto de hoja A4 (10,5 × 14,8 cm). Recortá por la línea punteada y plastificalo.${M0.greview ? '' : ' ⚠️ Todavía no cargaste tu link de Google: el cartel sale solo con el QR del menú.'}</p></div>
-    <div class="cartel">
+    const UNO = `<div class="cartel">
       ${CAJA_AVAS.flashi.replace('class="chef"', 'class="chef" style="width:1.7cm;height:1.7cm"')}
       <h1>¡Gracias por venir! ⭐</h1>
       <div class="sub">Tu opinión nos ayuda muchísimo</div>
@@ -330,6 +323,17 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
       <div class="cloc">${esc(M0.nombre || '')}</div>
       <div class="cfirma">ShopMenu · Pro Video JSRHG</div>
     </div>`;
+    app.innerHTML = `<style>
+      .cartel{width:10.5cm;height:14.8cm;margin:10px auto;background:#fff;border:2px dashed #f3b6cf;border-radius:14px;padding:5mm 5mm;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;text-align:center;font-family:system-ui,sans-serif;color:#3a2433;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      .cartel h1{margin:0;font-size:19pt;line-height:1.05;color:#e2457f}.cartel .sub{margin:1.5mm 0 3mm;font-size:9.5pt}
+      .cqrs{display:grid;grid-template-columns:1fr 1fr;gap:3mm;width:100%}.cqr{background:#fff6fa;border:2px solid #f6d3e2;border-radius:10px;padding:2.5mm;display:flex;flex-direction:column;align-items:center;gap:1mm}
+      .cq{width:4cm;height:4cm}.cq svg{width:100%;height:100%}.cqr b{font-size:9.5pt;color:#c2336b}.cqr span{font-size:7.5pt;line-height:1.2}
+      .cband{margin-top:3mm;background:#e2457f;color:#fff;font-weight:900;border-radius:10px;padding:2mm 4mm;font-size:9pt}
+      .cloc{margin-top:auto;font-size:15pt;font-weight:900;color:#e2457f}.cfirma{font-size:6.5pt;color:#9a7a8a;margin-top:1mm}
+      .hoja4{display:grid;grid-template-columns:repeat(2,10.5cm);justify-content:center;gap:10px}@media print{body{background:#fff}.noprint{display:none!important}.hoja4{gap:0}.cartel{margin:0;border:1px dashed #bbb;border-radius:0}@page{size:A4;margin:0}}
+    </style>
+    <div class="noprint" style="text-align:center;padding:10px"><button class="btn pri" type="button" onclick="print()">🖨 Imprimir el cartel</button><p class="note">Salen 4 carteles en una hoja A4 (cada uno de 10,5 × 14,8 cm): uno para el mostrador, uno para la vidriera y dos de repuesto. Recortá por la línea punteada y plastificalo.${M0.greview ? '' : ' ⚠️ Todavía no cargaste tu link de Google: el cartel sale solo con el QR del menú.'}</p></div>
+    <div class="hoja4">${UNO.repeat(4)}</div>`;
   })();
   if(ID && (MESA || !CLAVE)) return mesa();
   if(ID && CLAVE && Q.has('caja')) return caja();
