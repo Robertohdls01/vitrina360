@@ -515,10 +515,10 @@ body:has(.mesa){--v:#3f7a5a;--o:#5aa37c;--p:#8cc9a5;--ink:#2d3a32;--cream:#f6faf
     const SALUDO = (TR && TR.saludo) || (LANG === SRC ? M.saludo : '') || '';
     CHEF = makeAva(avaOpts(M));
     const PROMOS = ALL.filter(i => i.promo);
-    let nombre = '', mute = false, order = {}, PARA = {}; const ofrecido = new Set(); const KEYP = 'shopmenu-' + ID + '-' + MESA;
+    let nombre = '', GRUPO = '', mute = false, order = {}, PARA = {}; const ofrecido = new Set(); const KEYP = 'shopmenu-' + ID + '-' + MESA;
     let presentada = false;
-    try{ const s = JSON.parse(localStorage.getItem(KEYP) || 'null'); if(s && Date.now() - (s.t || 0) < 4 * 3600e3){ nombre = s.nombre || ''; order = s.order || {}; presentada = !!s.p; } }catch(e){}
-    const keep = () => { try{ localStorage.setItem(KEYP, JSON.stringify({nombre, order, p: presentada, t: Date.now()})); }catch(e){} };
+    try{ const s = JSON.parse(localStorage.getItem(KEYP) || 'null'); if(s && Date.now() - (s.t || 0) < 4 * 3600e3){ nombre = s.nombre || ''; GRUPO = s.g || ''; order = s.order || {}; presentada = !!s.p; } }catch(e){}
+    const keep = () => { try{ localStorage.setItem(KEYP, JSON.stringify({nombre, g: GRUPO, order, p: presentada, t: Date.now()})); }catch(e){} };
     const terminar = () => { try{ localStorage.removeItem(KEYP); }catch(e){} };
     try{ mute = localStorage.getItem('shopmenu-mute') === '1'; }catch(e){}
     const FLAGS = {es: '🇦🇷 ES', en: '🇺🇸 EN', pt: '🇧🇷 PT', fr: '🇫🇷 FR', it: '🇮🇹 IT', de: '🇩🇪 DE', ru: '🇷🇺 RU', zh: '🇨🇳 中文'};
@@ -679,6 +679,7 @@ body:has(.mesa){--v:#3f7a5a;--o:#5aa37c;--p:#8cc9a5;--ink:#2d3a32;--cream:#f6faf
       if(step === 'mesa' && /(llego|antes de llegar|ahead|chego)/.test(n)){ pedirLlego(); return; }
       if(step === 'mesa'){ const m = n.match(/\d+/), w = {uno: 1, una: 1, one: 1, um: 1, dos: 2, two: 2, dois: 2, tres: 3, three: 3, cuatro: 4, four: 4, quatro: 4, cinco: 5, five: 5, seis: 6, six: 6, siete: 7, seven: 7, sete: 7, ocho: 8, eight: 8, oito: 8, nueve: 9, nine: 9, nove: 9, diez: 10, ten: 10, dez: 10, once: 11, eleven: 11, onze: 11, doce: 12, twelve: 12, doze: 12}; const k = m ? +m[0] : (n.split(/\s+/).map(x => w[x]).find(Boolean) || 0); if(k > 0 && k <= 500) setMesa(k); else talk(T('No te entendí el número 🙈. Decime solo el número de la mesa, por ejemplo "cinco".', 'I didn\'t catch the number 🙈. Just tell me your table number, like "five".', 'Não entendi o número 🙈. Diga só o número da mesa, por exemplo "cinco".')); return; }
       if(!nombre && step === 'nombre'){ setName(text); return; }
+      if(step === 'grupo'){ const g = grupoDeTexto(n); if(g) return setGrupo(g); step = ''; GRUPO = 'solo'; keep(); }
       if(step === 'consulta'){ consulta(text); return; }
       if(has(n, /\b(encargado|dueno|duena|chef|cocinero|gerente|coordinador|queja|reclamo|alergi|allerg|celiac|gluten|vegan|vegetarian|manager|owner|complain|gerente|reclamacao)/)) return encargado();
       if(has(n, /\b(mozo|mesero|camarero|moza|waiter|waitress|garcom|garconete)\b/)) return aviso('mozo');
@@ -799,7 +800,7 @@ body:has(.mesa){--v:#3f7a5a;--o:#5aa37c;--p:#8cc9a5;--ink:#2d3a32;--cream:#f6faf
         sh.querySelector('#bSendOrder').onclick = async ev => { ev.target.disabled = true; ev.target.textContent = '…';
           const nota = sh.querySelector('#iNota').value;
           try{ const favNow = Object.entries(order).map(([n, q]) => ({n, q}));
-          const j = await api('/api/menu?accion=pedido', {id: ID, mesa: MESA, nombre, llevar: LLEVAR, cid: CLI.cid, nota: [paraNota(), (LANG !== 'es' && nota ? '[' + LANG.toUpperCase() + '] ' : '') + nota].filter(Boolean).join(' — '), items: Object.entries(order).map(([n, q]) => ({n, q}))});
+          const j = await api('/api/menu?accion=pedido', {id: ID, mesa: MESA, nombre, llevar: LLEVAR, cid: CLI.cid, nota: [GRUPO && GRUPO !== 'solo' ? grupoTx(GRUPO) : '', paraNota(), (LANG !== 'es' && nota ? '[' + LANG.toUpperCase() + '] ' : '') + nota].filter(Boolean).join(' — '), items: Object.entries(order).map(([n, q]) => ({n, q}))});
             totalUlt += total(); if(j && j.pid) misPeds.push({pid: j.pid, k: j.k}); sh.remove(); order = {}; PARA = {}; paintCart(); guardaCli({nombre: nombre || CLI.nombre || '', fav: favNow, modo: LLEVAR ? LLEVAR.tipo : 'mesa'}); j._items = favNow; seguir(j); setTimeout(ofrecerApp, 2500);
           }catch(e){ ev.target.disabled = false; ev.target.textContent = '✅ ' + T('Enviar a la cocina', 'Send to the kitchen', 'Enviar para a cozinha'); alert(e.message); } };
       };
@@ -922,9 +923,23 @@ body:has(.mesa){--v:#3f7a5a;--o:#5aa37c;--p:#8cc9a5;--ink:#2d3a32;--cream:#f6faf
       try{ await api('/api/menu?accion=aviso', {id: ID, mesa: MESA, nombre, tipo}); talk(tipo === 'cuenta' ? T('¡Dale! Ya le avisé a la caja que querés la cuenta 💳. Enseguida te la traen.', 'Sure! I told the cashier you\'d like the bill 💳. They\'ll bring it right away.', 'Claro! Avisei o caixa que você quer a conta 💳. Já trazem.') : T('¡Con mucho gusto! Ya le avisé al mozo, enseguida se acerca a tu mesa 🙋.', 'Done! I called the waiter, they\'ll be right there 🙋.', 'Pronto! Chamei o garçom, ele já vem 🙋.'), mainChips()); }
       catch(e){ talk(T('Uy, no pude avisar. Probá de nuevo en un ratito.', 'Oops, I couldn\'t send that. Try again in a moment.', 'Ops, não consegui avisar. Tente de novo.'), mainChips()); }
     }
-    function setName(t){ nombre = t.trim().split(/\s+/).slice(-1)[0].replace(/[^\p{L}]/gu, '').slice(0, 20); nombre = nombre ? nombre[0].toUpperCase() + nombre.slice(1).toLowerCase() : ''; keep(); step = ''; $('#iTxt').placeholder = T('Decime o escribime qué querés…', 'Tell me or type what you want…', 'Fale ou escreva o que você quer…'); pregunta(); }
+    function setName(t){ nombre = t.trim().split(/\s+/).slice(-1)[0].replace(/[^\p{L}]/gu, '').slice(0, 20); nombre = nombre ? nombre[0].toUpperCase() + nombre.slice(1).toLowerCase() : ''; keep(); step = ''; $('#iTxt').placeholder = T('Decime o escribime qué querés…', 'Tell me or type what you want…', 'Fale ou escreva o que você quer…'); if(GRUPO || LLEVAR) return pregunta(); preguntaGrupo(); }
     // después de presentarse: pregunta qué quiere y espera la respuesta; recién ahí muestra esa parte de la carta
+    // ¿con quién vino? → así Flashy sabe si pide para uno, para dos, para la familia o para amigos
+    const GRUPOS_MESA = {solo: ['🙋', 'Solo/a', 'Alone', 'Sozinho'], pareja: ['💑', 'Con mi pareja', 'With my partner', 'Com meu par'], familia: ['👨‍👩‍👧', 'En familia', 'With family', 'Em família'], amigos: ['👥', 'Con amigos', 'With friends', 'Com amigos']};
+    const grupoTx = g => { const x = GRUPOS_MESA[g]; return x ? x[0] + ' ' + T(x[1], x[2], x[3]) : ''; };
+    function preguntaGrupo(){
+      step = 'grupo'; area.innerHTML = ''; talk.listen = !mute;
+      talk((nombre ? T(`¡Un gusto, ${nombre}! 😊 `, `Nice to meet you, ${nombre}! 😊 `, `Prazer, ${nombre}! 😊 `) : '') + T('¿Venís solo o estás acompañado?', 'Are you on your own or with someone?', 'Você está sozinho ou acompanhado?'), Object.keys(GRUPOS_MESA).map(g => [grupoTx(g), () => setGrupo(g)]));
+    }
+    function grupoDeTexto(n){ if(/\b(hij[oa]s?|nen[ea]s?|chic[oa]s|famil|mama|papa|abuel|nietos?|kids|children|family|filh)/.test(n)) return 'familia'; if(/\b(amig[oa]s?|companer|colegas|trabajo|friends|grupo)/.test(n)) return 'amigos'; if(/\b(senora|senor|esposa|esposo|marido|mujer|novi[oa]|pareja|los dos|partner|wife|husband|girlfriend|boyfriend)\b/.test(n)) return 'pareja'; const m = n.match(/\bsomos (\d+|dos|tres|cuatro|cinco|seis)/); if(m) return /^(2|dos)$/.test(m[1]) ? 'pareja' : 'familia'; if(/\b(sol[oa]|yo nomas|alone|by myself|sozinh)/.test(n)) return 'solo'; return ''; }
+    function setGrupo(g){ GRUPO = g; step = ''; keep(); pregunta(); }
     function pregunta(){
+      if(GRUPO && GRUPO !== 'solo'){ area.innerHTML = ''; talk.listen = !mute;
+        const tip = {pareja: T('¿Qué van a tomar los dos? Podés decirme todo junto, por ejemplo: "para mí un café y para mi señora un té".', 'What will you both have? You can say it all at once, like "a coffee for me and a tea for my wife".', 'O que vocês dois vão querer? Pode me dizer tudo junto: "para mim um café e para minha esposa um chá".'),
+          familia: T('¡Qué lindo venir en familia! Contame qué quiere cada uno, por ejemplo: "para mí un café, para mi señora un té y para los chicos dos licuados". Yo lo anoto separado para que no haya confusiones.', 'How nice, a family outing! Tell me what each one wants, like "a coffee for me, a tea for my wife and two milkshakes for the kids". I\'ll note it separately.', 'Que bom vir em família! Me diga o que cada um quer: "para mim um café, para minha esposa um chá e para as crianças dois sucos".'),
+          amigos: T('¡Buenísimo! Pueden decirme todo a mí, o cada uno escanea el QR de la mesa con su celular y pide lo suyo: todo llega junto a esta mesa y cada uno paga lo que pidió.', 'Great! You can tell me everything, or each of you can scan the table QR with your own phone and order: it all comes to this table and everyone pays for their own.', 'Ótimo! Podem me dizer tudo, ou cada um escaneia o QR da mesa no próprio celular e pede o seu: tudo chega junto e cada um paga o que pediu.')}[GRUPO];
+        return talk(tip, CATS.filter(c => c.items.length).slice(0, 8).map(c => [c.n, () => verCat([c])]).concat([['📖 ' + T('Ver toda la carta', 'See the full menu', 'Ver o cardápio completo'), () => promos(true), true]])); }
       const hola = nombre ? T(`¡Un gusto, ${nombre}! 😊 `, `Nice to meet you, ${nombre}! 😊 `, `Prazer, ${nombre}! 😊 `) : T('¡Dale! 😊 ', 'Great! 😊 ', 'Ótimo! 😊 ');
       area.innerHTML = '';
       talk.listen = !mute;
