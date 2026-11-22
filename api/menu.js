@@ -127,7 +127,7 @@ module.exports = async (req, res) => {
     if (!process.env.SUPABASE_SERVICE_KEY) return res.status(503).json({ error: 'ShopMenu no está configurado.' });
 
     // ---- Pedidos y avisos de las mesas ----
-    const ESTADOS = ['nuevo', 'preparando', 'listo', 'entregado', 'cancelado', 'visto', 'respondido'];
+    const ESTADOS = ['nuevo', 'preparando', 'listo', 'entregado', 'cancelado', 'visto', 'respondido', 'confirmado', 'rechazado'];
     const pedPath = id => 'menus/' + id + '-pedidos.json';
     const okId = id => /^[a-z0-9]{6,20}$/.test(String(id || ''));
     if (req.method === 'GET' && q.id && q.pedido) {
@@ -238,6 +238,16 @@ module.exports = async (req, res) => {
       } catch (e) {}
       return res.status(200).json({ ok: true, kit: k });
     }
+    // comprobante de pago de una mesa: solo con la clave de la caja
+    if (req.method === 'GET' && q.comp) {
+      const id = String(q.id || ''), cid = String(q.comp); if (!okId(id) || !/^[a-z0-9]{6,40}$/.test(cid)) return res.status(400).end();
+      const f = await leerObj('menus/' + id + '.json');
+      if (!f || hash(String(q.clave || '')) !== f.clave) return res.status(403).end();
+      const C = await leerObj0('menus/comp/' + id + '-' + cid + '.json'); const m = C && String(C.img || '').match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
+      if (!m) return res.status(404).end();
+      res.setHeader('Content-Type', m[1]); res.setHeader('Cache-Control', 'private, max-age=3600');
+      return res.status(200).send(Buffer.from(m[2], 'base64'));
+    }
     // foto de fondo del local (se guarda aparte para que el menú siga liviano)
     if (req.method === 'GET' && q.fondo) {
       const id = String(q.fondo); if (!okId(id)) return res.status(400).end();
@@ -347,6 +357,12 @@ module.exports = async (req, res) => {
         const lang = LANGS.includes(b.lang) && b.lang !== 'es' ? b.lang : '';
         nuevo = Object.assign(base0, { lang, tipo: ['cuenta', 'pago', 'consulta'].includes(b.tipo) ? b.tipo : 'mozo', monto: t(b.monto, 20), pedido_n: parseInt(b.pedido_n, 10) || null, texto: t(b.texto, 300), metodo: ['virtual', 'efectivo', 'caja', 'tarjeta', 'app'].includes(b.metodo) ? b.metodo : '', detalle: t(b.detalle, 30), propina: t(b.propina, 40), estado: 'nuevo' });
         if (lang && nuevo.texto) { const es = await traducirTexto(nuevo.texto, 'es'); if (es) { nuevo.orig = nuevo.texto; nuevo.texto = es; } }
+        // comprobante del pago (captura de pantalla) que manda la mesa: se guarda aparte y solo lo ve la caja
+        const comp = String(b.comp || '');
+        if (nuevo.tipo === 'pago' && comp) {
+          if (!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(comp) || comp.length > 900000) return res.status(400).json({ error: 'El comprobante es muy pesado o no es una imagen.' });
+          await guardarObj0('menus/comp/' + b.id + '-' + nuevo.id + '.json', { img: comp }); nuevo.comp = 1;
+        }
       } else {
         const valid = {}; (f.menu.cats || []).forEach(c => (c.items || []).forEach(i => { valid[i.n] = i.p; }));
         const items = (Array.isArray(b.items) ? b.items : []).slice(0, 60).map(i => ({ n: t(i && i.n, 90), q: Math.max(1, Math.min(99, parseInt(i && i.q, 10) || 1)) })).filter(i => valid[i.n] !== undefined).map(i => Object.assign(i, { p: valid[i.n] }));
