@@ -116,5 +116,22 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/muestra",
+      "destination": "/menu?m=demopublico&e=demo&caja=1",
+      "permanent": false
+    },
+    {
+      "source": "/muestra-mesa",
+      "destination": "/menu?m=demopublico&mesa=1",
+      "permanent": false
+    },
+    {
+      "source": "/nuevo",
+      "destination": "/menu",
+      "permanent": false
+    }
   ]
 }
