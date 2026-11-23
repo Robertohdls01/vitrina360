@@ -129,6 +129,11 @@
       "permanent": false
     },
     {
+      "source": "/qr-muestra",
+      "destination": "/qr-muestra.html",
+      "permanent": false
+    },
+    {
       "source": "/nuevo",
       "destination": "/menu",
       "permanent": false
