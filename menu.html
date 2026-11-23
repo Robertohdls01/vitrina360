@@ -1142,7 +1142,7 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
   // =================== CAJA: pedidos y avisos de las mesas en vivo ===================
   async function caja(){
     let ding = false, seen = null, nombreLocal = '', MOZOS = [];
-    app.innerHTML = `<div class="caja"><div class="cajatop"><h2 style="margin:0" id="cName">🧾 Caja</h2><div class="row"><button class="btn pri" type="button" id="bDing">🔔 Activar sonido</button><a class="btn sec" id="bEdit" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}">✏️ Editar menú</a><a class="btn sec" id="bQR" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&qr=1">🖨 QR de mesas</a></div></div>
+    app.innerHTML = `<div class="caja"><div class="cajatop"><h2 style="margin:0" id="cName">🧾 Caja</h2><div class="row"><button class="btn pri" type="button" id="bDing">🔔 Activar sonido</button><button class="btn pri" type="button" id="bCierre">💰 Cierre de caja</button><a class="btn sec" id="bEdit" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}">✏️ Editar menú</a><a class="btn sec" id="bQR" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&qr=1">🖨 QR de mesas</a></div></div>
       <div id="cCuenta"></div>
       <div class="row" id="atajos" style="gap:6px;flex-wrap:wrap"><b style="align-self:center">🧰 Tu local:</b><a class="cnt" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&ir=carta">📖 Carta y precios</a><a class="cnt" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&ir=links">💬 WhatsApp y redes</a><a class="cnt" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&ir=local">💳 Cobros y mozos</a><a class="cnt" id="mpCaja" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&ir=pagos" style="display:none"></a><a class="cnt" href="?m=${ID}&e=${encodeURIComponent(CLAVE)}&ir=asistente">🙋 Asistente</a><a class="cnt" href="?m=${ID}&mesa=1" target="_blank" rel="noopener">👀 Ver como cliente</a><button class="cnt" type="button" id="bInstCaja">📌 Ícono de la caja en esta compu</button><button class="cnt" type="button" id="bOpi">⭐ Opinar sobre ShopMenu</button><button class="cnt" type="button" id="bKit">🧪 Activar kit de prueba</button><button class="cnt" type="button" id="bKitOff">🔓 Desvincular kits</button><button class="cnt" type="button" id="bPostal">📮 Postal</button><button class="cnt" type="button" id="bTour">❓ Mostrame todo</button></div>
       <div id="cajaAsis"><div id="cAva" style="width:84px;height:110px"></div><div style="display:grid;gap:6px"><div class="bubble" id="cSay" style="font-size:16px">👋 Tocá <b>🎙️ Asistente</b> para que te avise de los pedidos con la voz.</div><div class="opts" id="cOpts" style="padding:0"></div></div><div style="display:grid;gap:6px;justify-items:center"><button class="mic" type="button" id="cMic" title="Hablale al asistente">🎙️</button></div><input id="cTxt" placeholder="…o escribile: “prepará mesa 2”, “listo mesa 2 lo lleva Marcos”, “¿cuántos pedidos tengo?”"></div>
@@ -1203,6 +1203,7 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
       ['#cE', 'Y arriba quedan los que ya entregaste hoy. Cuando tocás Entregado, el pedido sube solo.'],
       ['#bDing', 'Este es el sonido: cada vez que entra un pedido suena un ding y yo te aviso.'],
       ['#atajos', 'Acá tenés todo tu local a mano: la carta y los precios, el WhatsApp y las redes, los cobros y los mozos, tu asistente, y cómo lo ven tus clientes. Y con el botón del pinche te queda un ícono de la caja en esta compu, para entrar directo.'],
+      ['#bCierre', 'Y este es el cierre de caja: te junta todo lo que vendiste en el día, cuánto de cada producto y cómo te pagaron. Lo podés imprimir o bajar a Excel, y ver cualquier día o el mes entero. También me podés decir: cerrá la caja.'],
       ['#bQR', 'Acá imprimís los códigos QR para poner en cada mesa.'],
       ['#bEdit', 'Y acá editás todo: la carta y los precios, los mozos, el alias para cobrar, tu reseña de Google, y los 10 links: Instagram, Facebook, TikTok, WhatsApp, Google Maps para que te encuentren, tu tienda ShopFlash o el delivery. También las novedades del local.'],
       ['#cMic', 'Por último, a mí me hablás tocando el micrófono, o me escribís acá al lado. Decime por ejemplo: preparar mesa 2, o ¿cuántos pedidos tengo? ¡Eso es todo!']];
@@ -1245,7 +1246,7 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
     { let ini = 0; try{ ini = +localStorage.getItem('shopmenu-ini-' + ID) || 0; if(!ini){ ini = Date.now(); localStorage.setItem('shopmenu-ini-' + ID, ini); } }catch(e){}
       let est = ''; try{ est = localStorage.getItem('shopmenu-opi-' + ID) || ''; }catch(e){}
       if(ID !== 'demopublico' && ID !== 'fdaf46084d' && !est && Date.now() - ini > 3 * 864e5) setTimeout(opinar, 4000); }
-    app.addEventListener('click', async e => { if(e.target.closest('#bInstCaja')) return instalarCaja(); if(e.target.closest('#bOpi')) return opinar(); if(e.target.closest('[data-sus]')){ const em = (prompt('Escribí el mail de tu cuenta de Mercado Pago (con ese mail pagás la suscripción):') || '').trim(); if(!em) return;
+    app.addEventListener('click', async e => { if(e.target.closest('#bCierre')) return cierre(); if(e.target.closest('#bInstCaja')) return instalarCaja(); if(e.target.closest('#bOpi')) return opinar(); if(e.target.closest('[data-sus]')){ const em = (prompt('Escribí el mail de tu cuenta de Mercado Pago (con ese mail pagás la suscripción):') || '').trim(); if(!em) return;
         try{ const r = await api('/api/menu?accion=suscribir', {id: ID, clave: CLAVE, email: em}); location.href = r.url; }catch(err){ alert(err.message); } return; }
       if(e.target.closest('#bTour')) tour(0);
       if(e.target.closest('#bPostal')){ if(window.PVPostal) PVPostal.dueno({id: ID, clave: CLAVE, dueno: DUENO}); return; }
@@ -1255,10 +1256,72 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
       if(e.target.closest('#bKit')){ const k = (prompt('Código del kit de prueba (está abajo, chiquito, en cada cartelito). Ej: P7K3XQ') || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); if(!k) return;
         try{ await api('/api/menu?accion=kit', {id: ID, clave: CLAVE, kit: k}); cTalk(`¡Listo${DUENO ? ', ' + DUENO : ''}! Los cartelitos del kit ${k} ya abren tu menú. Escaneá uno con el celular para probar.`); }
         catch(err){ cTalk('No pude activar el kit: ' + err.message); } } });
+    // ---- 💰 Cierre de caja: todo lo vendido junto (por producto, cómo cobraste y por hora), para imprimir o bajar a Excel ----
+    const diaHoy = (d = 0) => new Date(Date.now() - 3 * 3600e3 - d * 864e5).toISOString().slice(0, 10);
+    const fechaTx = v => { const [a, m, d] = v.split('-'); return d ? `${d}/${m}/${a}` : ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'][+m - 1] + ' ' + a; };
+    const PAGOS = {mp: '💳 Mercado Pago (automático)', virtual: '📲 Transferencia / virtual', efectivo: '💵 Efectivo', tarjeta: '💳 Tarjeta (posnet)', app: '📱 Otra app (QR)', caja: '🧾 Pagó en la caja'};
+    function calcCierre(items){
+      const peds = items.filter(x => x.it && !x.x), anul = items.filter(x => x.it && x.x).length, prod = {}, pago = {}, hora = {}, dias = {};
+      let total = 0;
+      peds.forEach(p => { let s = 0; p.it.forEach(i => { const v = priceN(i.p) * i.q; s += v; const k = i.n; prod[k] = prod[k] || {n: k, q: 0, t: 0}; prod[k].q += i.q; prod[k].t += v; });
+        p.tot = s; total += s; const h = new Date(p.t).getHours(); hora[h] = hora[h] || {n: 0, t: 0}; hora[h].n++; hora[h].t += s; dias[p.dia] = dias[p.dia] || {n: 0, t: 0}; dias[p.dia].n++; dias[p.dia].t += s; });
+      items.filter(x => x.pg && !x.x).forEach(x => { pago[x.pg] = pago[x.pg] || {n: 0, t: 0}; pago[x.pg].n++; pago[x.pg].t += priceN(x.m); });
+      return {peds, anul, total, prod: Object.values(prod).sort((a, b) => b.t - a.t || b.q - a.q), pago, hora, dias};
+    }
+    let CIE = null;
+    async function cierre(v){
+      v = v || diaHoy(); let d = $('#cieBox');
+      if(!d){ d = document.createElement('div'); d.className = 'sheet'; d.id = 'cieBox'; d.style.zIndex = 90; document.body.appendChild(d); d.addEventListener('click', e => { if(e.target === d) d.remove(); }); }
+      d.innerHTML = `<div style="max-width:760px;margin:0 auto"><p>⏳ Sumando las ventas…</p></div>`;
+      let j; try{ j = await api(`/api/menu?id=${ID}&clave=${encodeURIComponent(CLAVE)}&ventas=${v}`); }catch(e){ d.innerHTML = `<div style="max-width:760px;margin:0 auto"><p>😕 ${esc(e.message)}</p><button class="btn sec" type="button" onclick="this.closest('.sheet').remove()">Cerrar</button></div>`; return; }
+      MON = j.moneda || MON; const C = calcCierre(j.items || []), mes = v.length === 7; CIE = {v, j, C};
+      const hs = Object.entries(C.hora).sort((a, b) => b[1].t - a[1].t), fuerte = hs[0], top = C.prod[0];
+      const fila = (a, b, c, bold) => `<tr${bold ? ' style="font-weight:800"' : ''}><td style="padding:6px 4px;border-bottom:1px solid #eee">${a}</td><td style="padding:6px 4px;border-bottom:1px solid #eee;text-align:right">${b}</td><td style="padding:6px 4px;border-bottom:1px solid #eee;text-align:right">${c}</td></tr>`;
+      const tabla = (h, rows) => `<table style="width:100%;border-collapse:collapse;font-size:15px"><thead><tr style="text-align:left;color:#666;font-size:13px"><th style="padding:4px">${h[0]}</th><th style="padding:4px;text-align:right">${h[1]}</th><th style="padding:4px;text-align:right">${h[2]}</th></tr></thead><tbody>${rows}</tbody></table>`;
+      const pk = Object.keys(C.pago), cobrado = pk.reduce((a, k) => a + C.pago[k].t, 0);
+      d.innerHTML = `<div style="max-width:760px;margin:0 auto">
+        <div class="row" style="justify-content:space-between;align-items:center"><h2 style="margin:0">💰 Cierre de caja</h2><button class="btn sec" type="button" id="cieX" aria-label="Cerrar">✕</button></div>
+        <div class="row" style="gap:6px;flex-wrap:wrap"><button class="cnt" type="button" data-cv="${diaHoy()}">Hoy</button><button class="cnt" type="button" data-cv="${diaHoy(1)}">Ayer</button><label class="cnt" style="display:flex;gap:4px;align-items:center">📅 Otro día <input type="date" id="cieDia" value="${mes ? '' : v}" max="${diaHoy()}" style="width:auto;padding:2px 4px"></label><button class="cnt" type="button" data-cv="${diaHoy().slice(0, 7)}">Este mes</button><button class="cnt" type="button" data-cv="${new Date(Date.parse(diaHoy().slice(0, 7) + '-01') - 864e5).toISOString().slice(0, 7)}">Mes anterior</button></div>
+        <div style="background:#f0fdf4;border:2px solid #bbf7d0;border-radius:16px;padding:12px 14px">
+          <div style="font-size:14px;color:#166534;font-weight:700">${esc(j.nombre)} · ${mes ? 'Mes de ' : ''}${fechaTx(v)}</div>
+          <div style="font-size:34px;font-weight:900;color:#14532d">${money(C.total)}</div>
+          <div style="font-weight:600">${C.peds.length} ${C.peds.length === 1 ? 'pedido' : 'pedidos'}${C.peds.length ? ` · promedio ${money(C.total / C.peds.length)} por pedido` : ''}${C.anul ? ` · ${C.anul} cancelado${C.anul > 1 ? 's' : ''} (no se suman)` : ''}</div>
+          ${top ? `<div style="margin-top:4px">🏆 Lo que más vendiste: <b>${esc(top.n)}</b> (${top.q} · ${money(top.t)})${fuerte ? ` · ⏰ Horario más fuerte: <b>${fuerte[0]} a ${+fuerte[0] + 1} hs</b>` : ''}</div>` : ''}
+        </div>
+        ${C.peds.length ? `<h3 style="margin:6px 0 0">🍽️ Por producto</h3>${tabla(['Producto', 'Cantidad', 'Total'], C.prod.map(p => fila(esc(p.n), p.q, money(p.t))).join('') + fila('TOTAL', C.prod.reduce((a, p) => a + p.q, 0), money(C.total), true))}` : `<p class="note">${mes ? 'Este mes' : 'Este día'} todavía no hay ventas anotadas. Se anotan solas con cada pedido que entra por ShopMenu.</p>`}
+        ${pk.length ? `<h3 style="margin:6px 0 0">💳 Cómo cobraste</h3>${tabla(['Forma de pago', 'Mesas', 'Monto'], pk.sort((a, b) => C.pago[b].t - C.pago[a].t).map(k => fila(PAGOS[k] || k, C.pago[k].n, money(C.pago[k].t))).join('') + fila('TOTAL COBRADO', pk.reduce((a, k) => a + C.pago[k].n, 0), money(cobrado), true))}<p class="note" style="margin:2px 0">Según lo que avisaron las mesas al pagar (incluye las propinas).</p>` : ''}
+        ${mes && Object.keys(C.dias).length ? `<h3 style="margin:6px 0 0">📅 Día por día</h3>${tabla(['Día', 'Pedidos', 'Total'], Object.entries(C.dias).sort().map(([k, x]) => fila(fechaTx(k), x.n, money(x.t))).join(''))}` : ''}
+        ${!mes && hs.length ? `<h3 style="margin:6px 0 0">⏰ Por horario</h3>${tabla(['Horario', 'Pedidos', 'Total'], Object.entries(C.hora).sort((a, b) => a[0] - b[0]).map(([h, x]) => fila(`${h} a ${+h + 1} hs`, x.n, money(x.t))).join(''))}` : ''}
+        <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn pri" type="button" id="ciePr">🖨 Imprimir</button><button class="btn sec" type="button" id="cieXl">📥 Bajar para Excel</button></div>
+        <p class="note">Queda todo guardado: podés volver a ver cualquier día o mes cuando quieras.</p></div>`;
+      d.querySelector('#cieX').onclick = () => d.remove();
+      d.querySelectorAll('[data-cv]').forEach(b => b.onclick = () => cierre(b.dataset.cv));
+      d.querySelector('#cieDia').onchange = e => { if(e.target.value) cierre(e.target.value); };
+      d.querySelector('#ciePr').onclick = imprimirCierre; d.querySelector('#cieXl').onclick = excelCierre;
+      cTalk(C.peds.length ? `${hola()}${mes ? 'en ' + fechaTx(v) : v === diaHoy() ? 'hoy' : 'el ' + fechaTx(v)} vendiste ${money(C.total)} en ${C.peds.length} ${C.peds.length === 1 ? 'pedido' : 'pedidos'}.${top ? ` Lo que más salió fue ${top.n}: ${top.q}.` : ''}` : `${hola()}${mes ? 'ese mes' : v === diaHoy() ? 'hoy' : 'ese día'} todavía no hay ventas anotadas.`);
+    }
+    function imprimirCierre(){ if(!CIE) return; const {v, j, C} = CIE, mes = v.length === 7, w = open('', '_blank'); if(!w) return alert('Permití las ventanas emergentes para imprimir.');
+      const tr = (a, b, c, bo) => `<tr${bo ? ' class="t"' : ''}><td>${a}</td><td class="r">${b}</td><td class="r">${c}</td></tr>`;
+      const pk = Object.keys(C.pago).sort((a, b) => C.pago[b].t - C.pago[a].t);
+      w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Cierre de caja ${esc(fechaTx(v))}</title><style>body{font:14px system-ui,Arial;margin:16mm;color:#222}h1{margin:0 0 2px;font-size:20px}h2{font-size:15px;margin:16px 0 4px}table{width:100%;border-collapse:collapse}td,th{padding:4px 6px;border-bottom:1px solid #ddd;text-align:left}.r{text-align:right}.t td{font-weight:800;border-top:2px solid #222}.big{font-size:26px;font-weight:900;margin:6px 0}small{color:#666}</style></head><body>
+        <h1>🧾 Cierre de caja · ${esc(j.nombre)}</h1><small>${mes ? 'Mes de ' : 'Día '}${esc(fechaTx(v))} · impreso el ${new Date().toLocaleString('es-AR')}</small>
+        <div class="big">Total vendido: ${money(C.total)}</div><div>${C.peds.length} pedidos${C.anul ? ` · ${C.anul} cancelados (no se suman)` : ''}</div>
+        <h2>Por producto</h2><table><tr><th>Producto</th><th class="r">Cantidad</th><th class="r">Total</th></tr>${C.prod.map(p => tr(esc(p.n), p.q, money(p.t))).join('')}${tr('TOTAL', C.prod.reduce((a, p) => a + p.q, 0), money(C.total), 1)}</table>
+        ${pk.length ? `<h2>Cómo cobraste <small>(avisado por las mesas, con propinas)</small></h2><table><tr><th>Forma de pago</th><th class="r">Mesas</th><th class="r">Monto</th></tr>${pk.map(k => tr(PAGOS[k] || k, C.pago[k].n, money(C.pago[k].t))).join('')}${tr('TOTAL COBRADO', pk.reduce((a, k) => a + C.pago[k].n, 0), money(pk.reduce((a, k) => a + C.pago[k].t, 0)), 1)}</table>` : ''}
+        ${mes ? `<h2>Día por día</h2><table><tr><th>Día</th><th class="r">Pedidos</th><th class="r">Total</th></tr>${Object.entries(C.dias).sort().map(([k, x]) => tr(fechaTx(k), x.n, money(x.t))).join('')}</table>` : ''}
+        <p style="margin-top:24px"><small>ShopMenu · Pro Video JSRHG</small></p><script>onload=()=>setTimeout(()=>print(),300)<\/script></body></html>`); w.document.close(); }
+    function excelCierre(){ if(!CIE) return; const {v, j, C} = CIE, q = s => '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"', L = [];
+      L.push([q('Cierre de caja'), q(j.nombre), q(fechaTx(v))].join(';'), '', [q('Producto'), q('Cantidad'), q('Total')].join(';'));
+      C.prod.forEach(p => L.push([q(p.n), p.q, Math.round(p.t * 100) / 100].join(';'))); L.push([q('TOTAL'), C.prod.reduce((a, p) => a + p.q, 0), Math.round(C.total * 100) / 100].join(';'), '');
+      const pk = Object.keys(C.pago); if(pk.length){ L.push([q('Forma de pago'), q('Mesas'), q('Monto')].join(';')); pk.forEach(k => L.push([q((PAGOS[k] || k).replace(/^\S+\s/, '')), C.pago[k].n, Math.round(C.pago[k].t * 100) / 100].join(';'))); L.push(''); }
+      L.push([q('Día'), q('Hora'), q('Pedido'), q('Mesa'), q('Producto'), q('Cantidad'), q('Precio'), q('Subtotal')].join(';'));
+      C.peds.slice().sort((a, b) => String(a.t).localeCompare(String(b.t))).forEach(p => p.it.forEach(i => L.push([q(fechaTx(p.dia)), q(new Date(p.t).toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit', hour12: false})), p.n || '', q(p.ll ? 'Para llevar' : p.mesa), q(i.n), i.q, priceN(i.p), priceN(i.p) * i.q].join(';'))));
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + L.join('\r\n')], {type: 'text/csv;charset=utf-8'})); a.download = `cierre-de-caja-${v}.csv`; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); }
     function comando(txt, quiet){
       const n0 = normC(txt).replace(/\b(prepara|prepare|preparame|preparen)\b/g, 'preparar'), n = /\bmesa\b/.test(n0) ? n0 : n0.replace(/\b(\d+)\b/, 'mesa $1'), m = n.match(/mesa (\d+|[a-z]+)/), mesa = m ? (+m[1] || NUM[m[1]] || 0) : 0;
       const de = (tipo, estados) => ITEMS.filter(x => (tipo === 'pedido' ? x.tipo === 'pedido' : x.tipo !== 'pedido') && estados.includes(x.estado) && (!mesa || x.mesa === mesa)).sort((a, b) => String(a.creado).localeCompare(String(b.creado)));
       const mozo = MOZOS.find(z => n.includes(normC(z)));
+      if(/(cierre|cerra|cerrar la caja|cuanto vendi|cuanto vendimos|cuanto se vendio|ventas de hoy|que vendi|recaudacion|recaude)/.test(n) && !/(mesa \d)/.test(n)){ cierre(/(mes)\b/.test(n) ? diaHoy().slice(0, 7) : /ayer/.test(n) ? diaHoy(1) : diaHoy()); return true; }
       if(quiet && !/(hola|buen|cuant|que tengo|resum|como va|como esta|respond|contest|decile|prepar|empez|arranc|hace|listo|termin|sale|llev|entreg|servid|atend|visto|cobr|cancel|anula|pedido|mostra|ayuda|como funciona|que puedo|donde|link|redes|instagram|face|tiktok|maps|mapa|tienda|carta|precio|editar|cambiar|novedad|whatsapp|wsp)/.test(n)) return false;
       if(/^(hola|buen dia|buenas|que tal|como estas)/.test(n) && !/(prepar|listo|entreg|atend|respond|cancel)/.test(n)){ flash('nuevo'); cTalk(`¡Hola${DUENO ? ', ' + DUENO : ''}! ¿Cómo estás? Acá estoy para ayudarte. Ahora ${resumen()}`, accionChips()); return true; }
       if(/(mostra|ensena|recorrido|tour|ayuda|como funciona|que puedo|que tengo aca|que hay aca)/.test(n) && !/(pedido|mesa \d)/.test(n)) return tour(0);

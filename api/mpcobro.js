@@ -195,6 +195,10 @@ module.exports = async (req, res) => {
       const money = n => '$' + Number(n).toLocaleString('es-AR', { maximumFractionDigits: 2 });
       L.items = [{ id: Date.now().toString(36) + crypto.randomBytes(3).toString('hex'), k: crypto.randomBytes(8).toString('hex'), mesa: x.mesa, nombre: x.nombre, creado: new Date().toISOString(), tipo: 'pago', metodo: 'virtual', monto: money(x.monto), propina: x.tip ? 'propina ' + money(x.tip) : '', texto: '✅ Pagó con Mercado Pago (confirmado solo, ya está en tu cuenta)', mpOk: true, estado: 'nuevo' }].concat(L.items || []).slice(0, 150);
       await guardar('pedidos', 'menus/' + id + '-pedidos.json', L);
+      try { // cierre de caja: el cobro de Mercado Pago queda anotado en las ventas del día
+        const it = L.items[0], dia = new Date(Date.parse(it.creado) - 3 * 3600e3).toISOString().slice(0, 10), vp = 'menus/ventas/' + id + '/' + dia + '.json';
+        const V = (await leer('pedidos', vp)) || { items: [] }; V.items = (V.items || []).concat([{ id: it.id, t: it.creado, mesa: it.mesa, pg: 'mp', det: '', m: it.monto }]).slice(-4000); await guardar('pedidos', vp, V);
+      } catch (e) {}
       return res.status(200).json({ ok: true });
     }
     if (a === 'aviso') {

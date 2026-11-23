@@ -8,6 +8,7 @@
 //   GET  /api/menu?id=…&pedido=…&k=…                                 el cliente ve cómo va su pedido
 //   GET  /api/menu?id=…&clave=…&caja=1                               la caja ve los pedidos y avisos
 //   POST /api/menu?accion=estado   {id, clave, pid, estado}          la caja cambia el estado
+//   GET  /api/menu?id=…&clave=…&ventas=AAAA-MM-DD (o AAAA-MM)       cierre de caja: lo vendido ese día o mes
 const crypto = require('crypto');
 const { cuerpo, mp } = require('./_comun');
 
@@ -37,6 +38,13 @@ async function leerObj(path) {
   return leerObj0(path);
 }
 async function guardarObj(path, obj) { if (path === 'menus/' + PUB + '.json' || path === 'menus/' + BAL + '.json') return; return guardarObj0(path, obj); }
+// ---- Ventas: cada pedido y cada cobro quedan anotados por día (aparte de la lista de la caja, que se limpia sola) → cierre de caja ----
+const diaAR = iso => new Date((Date.parse(iso) || Date.now()) - 3 * 3600e3).toISOString().slice(0, 10);
+const venPath = (id, dia) => 'menus/ventas/' + id + '/' + dia + '.json';
+const venReg = x => x.tipo === 'pedido' ? { id: x.id, t: x.creado, n: x.n, mesa: x.mesa, ll: x.llevar ? x.llevar.tipo : '', it: x.items.map(i => ({ n: i.n, q: i.q, p: i.p })) }
+  : (x.tipo === 'pago' || x.tipo === 'cuenta') && x.metodo && x.monto ? { id: x.id, t: x.creado, mesa: x.mesa, pg: x.mpOk ? 'mp' : x.tipo === 'pago' ? 'virtual' : x.metodo, det: x.detalle || '', m: x.monto } : null;
+async function anotarVenta(id, x) { try { const r = venReg(x); if (!r) return; const p = venPath(id, diaAR(x.creado)), V = (await leerObj0(p)) || { items: [] }; V.items = (V.items || []).filter(y => y.id !== r.id).concat([r]).slice(-4000); await guardarObj0(p, V); } catch (e) {} }
+async function marcarVenta(id, x, anulado) { try { const p = venPath(id, diaAR(x.creado)), V = await leerObj0(p); if (!V) return; const r = (V.items || []).find(y => y.id === x.id); if (!r || !!r.x === anulado) return; if (anulado) r.x = 1; else delete r.x; await guardarObj0(p, V); } catch (e) {} }
 
 // deja el menú limpio y con tamaños razonables
 function limpiar(m) {
@@ -378,6 +386,19 @@ module.exports = async (req, res) => {
       if (q.id === PUB || q.id === BAL) L.items = (L.items || []).filter(it => Date.now() - Date.parse(it.creado) < 3 * 3600e3);
       return res.status(200).json({ fondo: f.menu.fondoCaja && f.menu.fondoV ? f.menu.fondoV : '', lugar: f.menu.lugar || 'mesa', cuenta: cu, greview: !!f.menu.greview, items: (L.items || []).map(x => Object.assign({}, x, { k: undefined })), nombre: f.menu.nombre, mozos: f.menu.mozos || [], dueno: f.menu.dueno || '', cajaAva: f.menu.cajaAva || 'flashi', asistente: f.menu.asistente || 'Lola', avatar: f.menu.avatar || '', pelo: f.menu.pelo || '', largo: f.menu.largo || '', piel: f.menu.piel || '', barba: !!f.menu.barba });
     }
+    // ---- Cierre de caja: ventas de un día (ventas=AAAA-MM-DD) o de un mes (ventas=AAAA-MM) ----
+    if (req.method === 'GET' && q.id && q.ventas) {
+      if (!okId(q.id)) return res.status(400).json({ error: 'Menú inválido.' });
+      const v = String(q.ventas); if (!/^\d{4}-\d{2}(-\d{2})?$/.test(v)) return res.status(400).json({ error: 'Fecha inválida.' });
+      const f = await leerObj('menus/' + q.id + '.json');
+      if (!f || hash(String(q.clave || '')) !== f.clave) return res.status(403).json({ error: 'La clave no es correcta.' });
+      const dias = v.length === 10 ? [v] : Array.from({ length: 31 }, (_, i) => v + '-' + String(i + 1).padStart(2, '0')).filter(d => d <= diaAR(new Date().toISOString()));
+      const L = await Promise.all(dias.map(d => leerObj0(venPath(q.id, d)).then(V => ((V && V.items) || []).map(x => Object.assign({ dia: d }, x)))));
+      let items = [].concat(...L);
+      if (q.id === PUB || q.id === BAL) items = items.filter(x => Date.now() - Date.parse(x.t) < 3 * 3600e3); // en las demos públicas solo lo de las últimas horas
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).json({ desde: v, moneda: f.menu.moneda || '$', nombre: f.menu.nombre || '', lugar: f.menu.lugar || 'mesa', items });
+    }
     // ---- Opiniones de los dueños sobre ShopMenu (para mostrar en la página de venta, solo las aprobadas) ----
     if (req.method === 'GET' && q.testimonios) {
       const T = (await leerObj('menus/testimonios.json')) || { items: [] };
@@ -457,6 +478,7 @@ module.exports = async (req, res) => {
       }
       L.items = [nuevo].concat((L.items || []).filter(x => Date.now() - Date.parse(x.creado) < 2 * 864e5)).slice(0, 150);
       await guardarObj(pedPath(b.id), L);
+      await anotarVenta(b.id, nuevo);
       return res.status(200).json({ ok: true, pid: nuevo.id, k: nuevo.k, n: nuevo.n || null });
     }
     // ---- Reseñas: solo quien hizo un pedido (pid + k), una por pedido ----
@@ -514,6 +536,7 @@ module.exports = async (req, res) => {
       if (!p) return res.status(404).json({ error: 'No encontramos ese pedido.' });
       p.estado = b.estado; p.cambiado = new Date().toISOString(); if (typeof b.rta === 'string' && b.rta.trim()) { p.rta = t(b.rta.trim(), 300); p.rtaEs = p.rta; if (p.lang) { const tr = await traducirTexto(p.rta, p.lang); if (tr) p.rta = tr; } } if (typeof b.mozo === 'string' && b.mozo.trim()) p.mozo = t(b.mozo.trim(), 20);
       await guardarObj(pedPath(b.id), L);
+      if (venReg(p)) await marcarVenta(b.id, p, b.estado === 'cancelado' || b.estado === 'rechazado');
       return res.status(200).json({ ok: true });
     }
 
