@@ -248,6 +248,65 @@ module.exports = async (req, res) => {
       res.setHeader('Content-Type', m[1]); res.setHeader('Cache-Control', 'private, max-age=3600');
       return res.status(200).send(Buffer.from(m[2], 'base64'));
     }
+    // ---- 📮 Postal de recuerdo: el cliente la firma, se la lleva y (si el dueño la aprueba) queda en el muro del café ----
+    const okImg = (x, max) => typeof x === 'string' && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(x) && x.length < max;
+    if (req.method === 'GET' && q.postalcfg) {
+      const id = String(q.postalcfg); if (!okId(id)) return res.status(400).json({ error: 'Menú inválido.' });
+      const f = await leerObj('menus/' + id + '.json'); if (!f) return res.status(404).json({ error: 'No existe.' });
+      const C = (await leerObj0('menus/' + id + '-postal.json')) || {};
+      return res.status(200).json({ nombre: (f.menu && f.menu.nombre) || '', fondo: C.fondo === 'local' && f.menu && f.menu.fondoV ? 'local' : 'ciudad', ciudad: C.ciudad || 'Mar del Plata', dueno: C.dueno || '', firma: C.firma || '', muro: C.muro !== false && id !== PUB, fondoV: (f.menu && f.menu.fondoV) || '' });
+    }
+    if (req.method === 'POST' && q.accion === 'postalcfg') {
+      const b = cuerpo(req);
+      if (!okId(b.id) || b.id === PUB || b.id === BAL) return res.status(400).json({ error: 'Menú inválido.' });
+      const f = await leerObj('menus/' + b.id + '.json');
+      if (!f || hash(String(b.clave || '')) !== f.clave) return res.status(403).json({ error: 'La clave no es correcta.' });
+      if (b.firma && !okImg(b.firma, 160000)) return res.status(400).json({ error: 'La firma es muy pesada. Probá de nuevo.' });
+      await guardarObj0('menus/' + b.id + '-postal.json', { fondo: b.fondo === 'local' ? 'local' : 'ciudad', ciudad: t(b.ciudad, 40) || 'Mar del Plata', dueno: t(b.dueno, 40), firma: b.firma || '', muro: b.muro !== false });
+      return res.status(200).json({ ok: true });
+    }
+    if (req.method === 'POST' && q.accion === 'postal') {
+      const b = cuerpo(req);
+      if (!okId(b.id) || b.id === BAL) return res.status(400).json({ error: 'Menú inválido.' });
+      if (b.id === PUB) return res.status(200).json({ ok: true, demo: true }); // en el café de muestra la postal solo se descarga
+      if (!okImg(b.img, 900000)) return res.status(400).json({ error: 'La postal es muy pesada.' });
+      const f = await leerObj('menus/' + b.id + '.json'); if (!f) return res.status(404).json({ error: 'No existe.' });
+      const P = (await leerObj0('menus/' + b.id + '-postales.json')) || { items: [] };
+      const hoy = new Date().toISOString().slice(0, 10);
+      if ((P.items || []).filter(x => String(x.t).slice(0, 10) === hoy).length >= 120) return res.status(429).json({ error: 'Hoy ya se dejaron muchas postales.' });
+      const pid = crypto.randomBytes(6).toString('hex');
+      await guardarObj0('menus/' + b.id + '-postal-' + pid + '.json', { img: b.img });
+      P.items = [{ id: pid, nombre: t(b.nombre, 30), msg: t(b.msg, 160), mesa: Math.max(0, Math.min(999, parseInt(b.mesa, 10) || 0)), t: new Date().toISOString(), ok: false }].concat(P.items || []).slice(0, 300);
+      await guardarObj0('menus/' + b.id + '-postales.json', P);
+      return res.status(200).json({ ok: true, pid });
+    }
+    if (req.method === 'GET' && q.id && q.postales) {
+      if (!okId(q.id)) return res.status(400).json({ error: 'Menú inválido.' });
+      const f = await leerObj('menus/' + q.id + '.json'); if (!f) return res.status(404).json({ error: 'No existe.' });
+      const due = q.clave && hash(String(q.clave)) === f.clave;
+      const P = (await leerObj0('menus/' + q.id + '-postales.json')) || { items: [] };
+      return res.status(200).json({ items: (P.items || []).filter(x => due || x.ok).slice(0, due ? 120 : 40) });
+    }
+    if (req.method === 'GET' && q.postal && q.id) {
+      const pid = String(q.postal); if (!okId(q.id) || !/^[a-f0-9]{12}$/.test(pid)) return res.status(400).end();
+      const P = (await leerObj0('menus/' + q.id + '-postales.json')) || { items: [] }, it = (P.items || []).find(x => x.id === pid);
+      if (!it) return res.status(404).end();
+      if (!it.ok) { const f = await leerObj('menus/' + q.id + '.json'); if (!f || hash(String(q.clave || '')) !== f.clave) return res.status(403).end(); }
+      const C = await leerObj0('menus/' + q.id + '-postal-' + pid + '.json'); const m = C && String(C.img || '').match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
+      if (!m) return res.status(404).end();
+      res.setHeader('Content-Type', m[1]); res.setHeader('Cache-Control', it.ok ? 'public, max-age=86400' : 'private, max-age=600');
+      return res.status(200).send(Buffer.from(m[2], 'base64'));
+    }
+    if (req.method === 'POST' && q.accion === 'postalok') {
+      const b = cuerpo(req);
+      if (!okId(b.id)) return res.status(400).json({ error: 'Menú inválido.' });
+      const f = await leerObj('menus/' + b.id + '.json');
+      if (!f || hash(String(b.clave || '')) !== f.clave) return res.status(403).json({ error: 'La clave no es correcta.' });
+      const P = (await leerObj0('menus/' + b.id + '-postales.json')) || { items: [] };
+      if (b.borrar) P.items = (P.items || []).filter(x => x.id !== b.pid); else (P.items || []).forEach(x => { if (x.id === b.pid) x.ok = !!b.ok; });
+      await guardarObj0('menus/' + b.id + '-postales.json', P);
+      return res.status(200).json({ ok: true });
+    }
     // foto de fondo del local (se guarda aparte para que el menú siga liviano)
     if (req.method === 'GET' && q.fondo) {
       const id = String(q.fondo); if (!okId(id)) return res.status(400).end();
