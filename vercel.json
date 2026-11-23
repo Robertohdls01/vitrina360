@@ -134,6 +134,11 @@
       "permanent": false
     },
     {
+      "source": "/cartel-muestra",
+      "destination": "/menu?m=demopublico&cartel=1",
+      "permanent": false
+    },
+    {
       "source": "/qr-productos",
       "destination": "/qr-productos.html",
       "permanent": false

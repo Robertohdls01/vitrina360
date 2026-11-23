@@ -324,8 +324,8 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
       ${CAJA_AVAS.flashi.replace('class="chef"', 'class="chef" style="width:1.7cm;height:1.7cm"')}
       <h1>¡Gracias por venir! ⭐</h1>
       <div class="sub">Tu opinión nos ayuda muchísimo</div>
-      <div class="cqrs" style="${M0.greview ? '' : 'grid-template-columns:1fr;max-width:5cm'}">
-        ${M0.greview ? caja(M0.greview, '⭐ Reseña en Google', 'Escaneá y dejanos tus estrellas en Google') : ''}
+      <div class="cqrs">
+        ${M0.greview ? caja(M0.greview, '⭐ Reseña en Google', 'Escaneá y dejanos tus estrellas en Google') : caja(`${o}?m=${ID}&opinar=1`, '⭐ Dejanos tu opinión', 'Escaneá y tocá las estrellas')}
         ${caja(`${o}?m=${ID}`, '📱 Nuestro menú', `Pedí con ${esc(M0.asistente || 'Flashy')} y mirá las opiniones`)}
       </div>
       <div class="cband">📱 Escaneá con la cámara de tu celular</div>
@@ -341,7 +341,7 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
       .cloc{margin-top:auto;font-size:15pt;font-weight:900;color:#e2457f}.cfirma{font-size:6.5pt;color:#9a7a8a;margin-top:1mm}
       .hoja4{display:grid;grid-template-columns:repeat(2,10.5cm);justify-content:center;gap:10px}@media print{body{background:#fff}.noprint{display:none!important}.hoja4{gap:0}.cartel{margin:0;border:1px dashed #bbb;border-radius:0}@page{size:A4;margin:0}}
     </style>
-    <div class="noprint" style="text-align:center;padding:10px"><button class="btn pri" type="button" onclick="print()">🖨 Imprimir el cartel</button><p class="note">Salen 4 carteles en una hoja A4 (cada uno de 10,5 × 14,8 cm): uno para el mostrador, uno para la vidriera y dos de repuesto. Recortá por la línea punteada y plastificalo.${M0.greview ? '' : ' ⚠️ Todavía no cargaste tu link de Google: el cartel sale solo con el QR del menú.'}</p></div>
+    <div class="noprint" style="text-align:center;padding:10px"><button class="btn pri" type="button" onclick="print()">🖨 Imprimir el cartel</button><p class="note">Salen 4 carteles en una hoja A4 (cada uno de 10,5 × 14,8 cm): uno para el mostrador, uno para la vidriera y dos de repuesto. Recortá por la línea punteada y plastificalo.${M0.greview ? '' : ' 💡 Si cargás tu link de reseñas de Google, el primer QR lleva directo a Google.'}</p></div>
     <div class="hoja4">${UNO.repeat(4)}</div>`;
   })();
   if(ID && (MESA || !CLAVE)) return mesa();
@@ -1025,11 +1025,11 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
       const gg = () => [['📮 ' + T('Llevarme una postal', 'Take a postcard', 'Levar um postal'), postalCli]].concat(REDES.length ? [['📲 ' + T('Seguinos en redes', 'Follow us', 'Siga a gente'), redes]] : []).concat(M.greview ? [['⭐ ' + T('Dejar reseña en Google', 'Review us on Google', 'Avaliar no Google'), () => { open(M.greview, '_blank', 'noopener'); talk(T('¡Mil gracias! 🙏 ¡Te esperamos pronto!', 'Thank you so much! 🙏 See you soon!', 'Muito obrigado! 🙏 Volte sempre!')); }, true]] : []);
       $('#rGo').onclick = async () => {
         if(!e){ talk(T('Tocá las estrellas para calificarnos 😊', 'Tap the stars to rate us 😊', 'Toque nas estrelas para nos avaliar 😊')); return; }
-        try{ await api('/api/menu?accion=resena', {id: ID, pid: ultimo.pid, k: ultimo.k, e, tx: $('#rTx').value, nombre}); }catch(err){}
+        try{ await api('/api/menu?accion=resena', ultimo.qr ? {id: ID, qr: 1, e, tx: $('#rTx').value, nombre} : {id: ID, pid: ultimo.pid, k: ultimo.k, e, tx: $('#rTx').value, nombre}); }catch(err){}
         area.innerHTML = `<div class="status st-listo">🙏 ${T('¡Gracias por tu opinión!', 'Thanks for your review!', 'Obrigado pela avaliação!')}</div>`;
         talk(T(`¡Muchas gracias${nombre ? ', ' + nombre : ''}! 🙏 `, `Thank you so much${nombre ? ', ' + nombre : ''}! 🙏 `, `Muito obrigado${nombre ? ', ' + nombre : ''}! 🙏 `) + (M.greview ? T('¿Nos dejarías también tu reseña en Google? Nos ayuda muchísimo y lleva un minuto.', 'Would you also leave us a Google review? It helps a lot and takes a minute.', 'Pode nos avaliar também no Google? Ajuda muito e leva um minuto.') : T('¡Te esperamos pronto!', 'See you soon!', 'Volte sempre!')), gg());
       };
-      talk(T('Antes de que te vayas: ¿nos dejás tu opinión? Tocá las estrellas, nos ayuda muchísimo 😊', 'Before you go: would you rate us? Tap the stars, it helps us a lot 😊', 'Antes de ir: pode nos avaliar? Toque nas estrelas, ajuda muito 😊'), [['⭐⭐⭐⭐⭐', () => { e = 5; paint(); $('#rGo').click(); }, true]].concat(gg()));
+      talk(ultimo.qr ? T('¿Cómo te atendimos? Tocá las estrellas y contanos, nos ayuda muchísimo 😊', 'How did we do? Tap the stars, it helps us a lot 😊', 'Como foi? Toque nas estrelas, ajuda muito 😊') : T('Antes de que te vayas: ¿nos dejás tu opinión? Tocá las estrellas, nos ayuda muchísimo 😊', 'Before you go: would you rate us? Tap the stars, it helps us a lot 😊', 'Antes de ir: pode nos avaliar? Toque nas estrelas, ajuda muito 😊'), [['⭐⭐⭐⭐⭐', () => { e = 5; paint(); $('#rGo').click(); }, true]].concat(gg()));
     }
     async function aviso(tipo){
       try{ await api('/api/menu?accion=aviso', {id: ID, mesa: MESA, nombre, tipo}); talk(tipo === 'cuenta' ? T('¡Dale! Ya le avisé a la caja que querés la cuenta 💳. Enseguida te la traen.', 'Sure! I told the cashier you\'d like the bill 💳. They\'ll bring it right away.', 'Claro! Avisei o caixa que você quer a conta 💳. Já trazem.') : T('¡Con mucho gusto! Ya le avisé al mozo, enseguida se acerca a tu mesa 🙋.', 'Done! I called the waiter, they\'ll be right there 🙋.', 'Pronto! Chamei o garçom, ele já vem 🙋.'), mainChips()); }
@@ -1098,6 +1098,7 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
     const saludoHora = h >= 5 && h < 13 ? T('¡Buen día!', 'Good morning!', 'Bom dia!') : h >= 13 && h < 20 ? T('¡Buenas tardes!', 'Good afternoon!', 'Boa tarde!') : T('¡Buenas noches!', 'Good evening!', 'Boa noite!');
     say.textContent = `${saludoHora} 👋 ` + T(`Bienvenido a ${M.nombre}.`, `Welcome to ${M.nombre}.`, `Bem-vindo ao ${M.nombre}.`);
     area.innerHTML = `<button type="button" class="startbig" id="bHola">👋 ${T('Tocá acá y te atiendo', 'Tap here and I\'ll help you', 'Toque aqui e eu te atendo')}</button><p class="note" style="text-align:center">🔊 ${T('Subí el volumen: te voy a hablar', 'Turn up the volume: I\'ll talk to you', 'Aumente o volume: vou falar com você')}</p>`;
+    if(Q.has('opinar')){ ultimo = {qr: true}; say.textContent = T(`¡Gracias por venir a ${M.nombre}! ⭐`, `Thanks for coming to ${M.nombre}! ⭐`, `Obrigado por vir ao ${M.nombre}! ⭐`); setTimeout(opinar, 300); }
     const askName = () => T('¿Cómo te llamás?', 'What\'s your name?', 'Qual é o seu nome?');
     const skipName = () => [T('Prefiero no decirlo', 'I\'d rather not say', 'Prefiro não dizer'), () => { step = ''; pregunta(); }];
     const namePh = () => { $('#iTxt').placeholder = T('Escribí tu nombre o tocá 🎤', 'Type your name or tap 🎤', 'Escreva seu nome ou toque 🎤'); };

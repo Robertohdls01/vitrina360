@@ -464,6 +464,13 @@ module.exports = async (req, res) => {
       const b = cuerpo(req);
       if (!okId(b.id)) return res.status(400).json({ error: 'Menú inválido.' });
       const e = parseInt(b.e, 10); if (!(e >= 1 && e <= 5)) return res.status(400).json({ error: 'Elegí de 1 a 5 estrellas.' });
+      if (!b.pid && b.qr) { // opinión desde el cartel de reseñas (sin pedido): con tope por día
+        const R = (await leerObj('menus/' + b.id + '-resenas.json')) || { items: [] }, hoy = new Date().toISOString().slice(0, 10);
+        if (b.id === PUB) return res.status(200).json({ ok: true, demo: true });
+        R.qr = R.qr && R.qr.d === hoy ? R.qr : { d: hoy, n: 0 }; if (R.qr.n >= 80) return res.status(429).json({ error: 'Hoy ya recibimos muchas opiniones. ¡Gracias!' });
+        R.qr.n++; R.items = [{ e, tx: t(b.tx, 300), nombre: t(b.nombre, 30) || 'Cliente', mesa: 'cartel', f: new Date().toISOString() }].concat(R.items || []).slice(0, 300);
+        await guardarObj('menus/' + b.id + '-resenas.json', R); return res.status(200).json({ ok: true });
+      }
       const L = (await leerObj(pedPath(b.id))) || { items: [] };
       const p = (L.items || []).find(x => x.id === String(b.pid || '') && x.tipo === 'pedido');
       if (!p || p.k !== String(b.k || '')) return res.status(404).json({ error: 'No encontramos tu pedido.' });
