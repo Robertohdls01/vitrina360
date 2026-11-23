@@ -134,6 +134,11 @@
       "permanent": false
     },
     {
+      "source": "/qr-productos",
+      "destination": "/qr-productos.html",
+      "permanent": false
+    },
+    {
       "source": "/nuevo",
       "destination": "/menu",
       "permanent": false
