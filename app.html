@@ -4677,7 +4677,7 @@ La foto puede estar sacada con el celular en casa: con poca luz, sombras, reflej
 Para reconocerlo, leé con atención etiquetas, logos y textos del envase aunque estén de costado o al revés, y usá también la forma, los colores y el tipo de envase. Si la marca no se lee, igual nombrá el producto por lo que es (por ejemplo "Detergente líquido 750 ml" o "Zapatilla urbana negra").
 Nunca respondas que la foto es mala ni pidas otra foto: siempre devolvé tu mejor reconocimiento.
 Respondé SOLO con un objeto JSON, sin texto extra, con esta forma:
-{"name": "nombre corto del producto, máximo 6 palabras", "features": ["Clave: valor", "..."], "rotation": 0}
+{"name": "nombre corto del producto, máximo 6 palabras", "features": ["Clave: valor", "..."], "rotation": 0, "rubro": "el sector del negocio donde va este producto, 1 a 3 palabras (por ejemplo Juguetes, Perfumería, Alimento para perros, Ropa de chicos)"}
 "rotation": cuántos grados hay que girar la foto en sentido horario para que el producto quede PARADO y derecho, como apoyado en un estante (botellas, frascos y cajas con la tapa o el frente arriba): 0, 90, 180 o 270. 0 si ya está bien.
 Incluí de 4 a 6 características en español rioplatense, cada una como "Clave: valor" (por ejemplo "Material: cuero", "Color: marrón", "Uso: diario", "Tamaño aprox.: 30 cm").
 Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garantías ni datos técnicos que no se puedan ver.`;
@@ -4718,6 +4718,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     await applyRot(item, r);
     const vi = auto && r ? parseInt(r.vitrina, 10) : NaN;
     item.aiCat = auto ? pickCat(r) : null;
+    item.aiRubro = r && typeof r.rubro === 'string' ? r.rubro.replace(/\s+/g, ' ').trim().slice(0, 30) : '';
     const name = r && typeof r.name === 'string' ? r.name.trim().slice(0, 80) : '';
     const features = Array.isArray(r && r.features) ? r.features.map(f => String(f).trim()).filter(Boolean).slice(0, 8) : [];
     return {name, features};
@@ -5145,9 +5146,25 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
         if(pending.length === 1){ digApply(p); setStock(p); }
         products.push(p); created.push(p); if(i === 0) newId = p.id;
       });
+      // Vitrina con el nombre que trajo la plantilla (ej. "Alimento perros"), todavía sin productos propios, y lo cargado es de otro rubro (ej. autitos): le ponemos el nombre que corresponde
+      const renamed = [];
+      try{
+        const tpl = new Set(((presetOf(brand.preset) || {}).cats || []).map(n => norm(n)));
+        [...new Set(created.map(p => p.cat))].forEach(cid => {
+          const c = catOf(cid); if(!c || !tpl.has(norm(c.name))) return;
+          if(products.some(p => p.cat === cid && !p.sample && !created.includes(p))) return;
+          const votes = {}; pending.forEach((ph, i) => { const r = ph.aiRubro; if(r && created[i] && created[i].cat === cid) votes[r] = (votes[r] || 0) + 1; });
+          const top = Object.keys(votes).sort((a, b) => votes[b] - votes[a])[0]; if(!top) return;
+          const tn = norm(top), cn = norm(c.name);
+          if(tn === cn || cn.includes(tn) || tn.includes(cn) || cn.split(' ').some(w => w.length > 3 && tn.includes(w.slice(0, -1)))) return;
+          if(cats.some(x => x.id !== cid && norm(x.name) === tn)) return;
+          const old = c.name; c.name = capFirst(top); renamed.push(`“${old}” ahora se llama “${c.name}”`);
+        });
+      }catch(e){}
       const usedCats = [...new Set(created.map(p => p.cat))];
       const where = usedCats.length > 1 ? `${usedCats.length} vitrinas` : (usedCats[0] === currentCat ? 'esta vitrina' : `la vitrina ${catOf(usedCats[0]).name}`);
       $('formMsg').textContent = pending.length > 1 ? `${pending.length} productos agregados a ${where}. Ahora poné los precios abajo.` : `${name || pending[0].name} ya está en ${where}.`;
+      if(renamed.length) $('formMsg').textContent += ` Como no era de ese rubro, le cambié el nombre a la vitrina: ${renamed.join(', ')}. Si no te gusta, lo cambiás tocando el nombre.`;
       if(created.length > 1 || (created.length === 1 && !created[0].price)) showBulkPrices(created);
       if(newCatNames.length){ fillCatSelect(created[0].cat); $('formMsg').textContent += ' ' + L(`Vitrinas armadas solas: ${newCatNames.join(', ')}.`, `Showcases created automatically: ${newCatNames.join(', ')}.`, `Vitrines criadas sozinhas: ${newCatNames.join(', ')}.`); newCatNames = []; }
       cat = created[0].cat;
