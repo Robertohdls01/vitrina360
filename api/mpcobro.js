@@ -70,10 +70,10 @@ module.exports = async (req, res) => {
       await borrar('mpcobro', 's/' + q.state + '.json');
       const vuelta = st.menu ? (st.volver || '/menu?m=' + st.menu) : '/panel', sep = vuelta.includes('?') ? '&' : '?';
       try { const j = await mpToken({ grant_type: 'authorization_code', code: String(q.code), redirect_uri: REDIR }); await guardarConexion(st.menu ? 'm-' + st.menu : st.uid, j); }
-      catch (e) { console.error('mpcobro conectar', e.message); res.writeHead(302, { Location: vuelta + sep + 'mp=error' }); return res.end(); }
+      catch (e) { console.error('mpcobro conectar', e.message); res.writeHead(302, { Location: vuelta + sep + 'mp=error&mpe=' + encodeURIComponent(String(e.message).slice(0, 120)) }); return res.end(); }
       res.writeHead(302, { Location: vuelta + sep + 'mp=ok' }); return res.end();
     }
-    if (req.method === 'GET' && q.error) { res.writeHead(302, { Location: '/panel?mp=cancelado' }); return res.end(); }
+    if (req.method === 'GET' && q.error) { console.error('mpcobro error MP', q.error, q.error_description || ''); let vuelta = '/panel'; try { if (/^[a-f0-9]{32}$/.test(String(q.state || ''))) { const st = await leer('mpcobro', 's/' + q.state + '.json'); if (st && st.menu) vuelta = st.volver || '/menu?m=' + st.menu; } } catch (e) {} const sep = vuelta.includes('?') ? '&' : '?'; res.writeHead(302, { Location: vuelta + sep + 'mp=error&mpe=' + encodeURIComponent(String(q.error_description || q.error).slice(0, 120)) }); return res.end(); }
 
     // ---- ¿esta tienda cobra con Mercado Pago automático? (lo pregunta la tienda pública) ----
     if (req.method === 'GET' && a === 'disponible') {
