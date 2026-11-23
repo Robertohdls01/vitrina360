@@ -221,6 +221,21 @@ module.exports = async (req, res) => {
       const TT = (await leerObj('menus/testimonios.json')) || { items: [] };
       return res.status(200).json({ items: P.items || [], kits: P.kits || {}, cuentas, testimonios: TT.items || [] });
     }
+    // kits activos en este café / desvincularlos (los cartelitos quedan libres para el próximo café)
+    if ((req.method === 'GET' && q.id && q.kits) || (req.method === 'POST' && q.accion === 'kitquitar')) {
+      const b = req.method === 'POST' ? cuerpo(req) : q, id = String(b.id || '');
+      if (!okId(id)) return res.status(400).json({ error: 'Menú inválido.' });
+      const f = await leerObj('menus/' + id + '.json');
+      if (!f || hash(String(b.clave || '')) !== f.clave) return res.status(403).json({ error: 'La clave no es correcta.' });
+      const P = (await leerObj('menus/pruebas.json')) || { items: [] };
+      const cand = [...new Set((P.items || []).filter(x => x.id === id && x.kit).map(x => x.kit))], activos = [];
+      for (const k of cand) { const m = await leerObj('menus/kit-' + k + '.json'); if (m && m.id === id) activos.push(k); }
+      if (req.method === 'GET') return res.status(200).json({ kits: activos });
+      const quitar = b.kit ? activos.filter(k => k === String(b.kit).toUpperCase()) : activos;
+      for (const k of quitar) await guardarObj('menus/kit-' + k + '.json', { id: '', libre: new Date().toISOString(), antes: id });
+      try { P.items = (P.items || []).map(x => x.id === id && quitar.includes(x.kit) && x.estado === 'probando' ? Object.assign({}, x, { estado: 'devuelto' }) : x); await guardarObj('menus/pruebas.json', P); } catch (e) {}
+      return res.status(200).json({ ok: true, quitados: quitar });
+    }
     if (req.method === 'POST' && q.accion === 'kit') {
       const b = cuerpo(req), k = String(b.kit || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
       if (!okId(b.id) || !okKit(k)) return res.status(400).json({ error: 'Revisá el código del kit (está abajo en cada cartelito).' });
