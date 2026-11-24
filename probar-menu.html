@@ -3,20 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Probá ShopMenu con un solo celular</title>
-<meta name="description" content="Probá ShopMenu desde un solo celular: pedí como cliente y mirá cómo llega a la caja.">
+<title>Probá ShopMenu en 2 minutos</title>
+<meta name="description" content="Probá ShopMenu: sos el dueño con la caja y el cliente en la mesa. Pedí con Flashy y mirá cómo llega a la cocina.">
 <style>
 *{box-sizing:border-box}html,body{margin:0;height:100%;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#fff0f8;color:#2a0f24}
 body{display:flex;flex-direction:column;height:100dvh}
-header{padding:10px 10px 8px;background:linear-gradient(135deg,#c8008f,#f020c0);color:#fff;box-shadow:0 4px 14px rgba(120,0,80,.25);z-index:2}
-header h1{margin:0 0 2px;font-size:16px;text-align:center}
-header p{margin:0 0 8px;font-size:13px;text-align:center;opacity:.95}
+header{padding:8px 10px;background:linear-gradient(135deg,#c8008f,#f020c0);color:#fff;box-shadow:0 4px 14px rgba(120,0,80,.25);z-index:3}
+header h1{margin:0 0 6px;font-size:15px;text-align:center}
 .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.tabs button{border:0;border-radius:14px;padding:11px 6px;font:800 15px system-ui;background:rgba(255,255,255,.22);color:#fff;cursor:pointer;position:relative}
+.tabs button{border:0;border-radius:14px;padding:10px 6px;font:800 14.5px system-ui;background:rgba(255,255,255,.22);color:#fff;cursor:pointer;position:relative}
 .tabs button[aria-pressed="true"]{background:#fff;color:#a0006f;box-shadow:0 3px 10px rgba(0,0,0,.18)}
-.tabs .dot{position:absolute;top:-6px;right:-4px;background:#ffd400;color:#3a2500;border-radius:999px;font-size:12px;padding:2px 7px;display:none;animation:lat 1s ease-in-out infinite}
+.tabs .dot{position:absolute;top:-7px;right:-4px;background:#ffd400;color:#3a2500;border-radius:999px;font-size:12px;padding:2px 7px;display:none;animation:lat 1s ease-in-out infinite}
 @keyframes lat{50%{transform:scale(1.15)}}
-.tip{font-size:13px;text-align:center;padding:6px 10px;background:#ffe3f3;color:#7a0055;border-bottom:1px solid #ffc4e6}
+.paso{padding:9px 12px;background:#fff;border-bottom:2px solid #ffc4e6;font-size:14.5px;line-height:1.35;display:grid;gap:8px}
+.paso b.n{display:inline-block;background:#c8008f;color:#fff;border-radius:999px;width:24px;height:24px;text-align:center;line-height:24px;margin-right:4px;font-size:13px}
+.paso .bts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.paso .bts button{border:0;border-radius:14px;padding:12px 8px;font:800 14.5px system-ui;cursor:pointer;background:#ffe0f3;color:#a0006f;width:100%}
+.paso .bts button.pri{background:linear-gradient(135deg,#c8008f,#f020c0);color:#fff}
+.paso small{color:#7a5470}
 main{flex:1;display:grid;min-height:0}
 iframe{width:100%;height:100%;border:0;background:#fff;display:none}
 iframe.on{display:block}
@@ -24,49 +28,95 @@ iframe.on{display:block}
   .tabs{display:none}
   main{grid-template-columns:1fr 1fr;gap:10px;padding:10px}
   iframe{display:block;border-radius:18px;box-shadow:0 8px 26px rgba(120,0,80,.18)}
-  .tip.mob{display:none}
 }
-.dos{font-size:13px;padding:7px 34px 7px 10px;background:#fff8d6;color:#5a4200;border-bottom:1px solid #f3dd8a;position:relative;line-height:1.35}.dos a{color:#a0006f;font-weight:800}.dos button{position:absolute;right:6px;top:6px;border:0;background:#f3e3a0;border-radius:50%;width:24px;height:24px;cursor:pointer}
-.pv{font-size:12px;text-align:center;padding:4px;color:#a0006f;text-decoration:none;display:block}
+#qrv{position:fixed;inset:0;background:rgba(30,0,25,.6);display:none;place-items:center;z-index:9}
+#qrv .c{background:#fff;border-radius:20px;padding:18px;max-width:330px;width:92%;text-align:center}
+#qrv .c h2{margin:0 0 4px;font-size:18px;color:#a0006f}
+#qrv #qr{width:220px;height:220px;margin:10px auto}
+#qrv button{border:0;border-radius:14px;padding:12px 16px;font:800 15px system-ui;background:linear-gradient(135deg,#c8008f,#f020c0);color:#fff;cursor:pointer;width:100%}
+#aviso{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#0f766e;color:#fff;border-radius:18px;padding:12px 16px;font-weight:800;box-shadow:0 10px 26px rgba(0,0,0,.3);display:none;z-index:8;width:min(92vw,380px);text-align:center}
+#aviso button{margin-top:8px;border:0;border-radius:12px;padding:10px 14px;font:800 15px system-ui;background:#fff;color:#0f766e;cursor:pointer}
+.pv{font-size:12px;text-align:center;padding:4px;color:#a0006f;text-decoration:none;display:block;background:#fff0f8}
 </style>
 </head>
 <body>
 <header>
-  <h1>☕ Probá ShopMenu con un solo celular</h1>
-  <p>Pedí como cliente y después mirá cómo le llega al dueño</p>
+  <h1>☕ Probá ShopMenu: sos el dueño y el cliente a la vez</h1>
   <div class="tabs" role="group" aria-label="Qué querés ver">
-    <button type="button" id="tCli" aria-pressed="true">📱 Soy el cliente</button>
-    <button type="button" id="tCaja" aria-pressed="false">🧾 Soy el dueño<span class="dot" id="dot">¡Pedido!</span></button>
+    <button type="button" id="tCaja" aria-pressed="true">🧾 Soy el dueño (caja)<span class="dot" id="dot">¡Pedido!</span></button>
+    <button type="button" id="tCli" aria-pressed="false">📱 Soy el cliente (mesa)</button>
   </div>
 </header>
-<div class="dos" id="dos">📱 Esta prueba es para <b>un solo celular</b>. Si tenés <b>otro celular o una compu</b>, queda mejor con dos: abrí <a href="/menu?m=demopublico&e=demo&caja=1" target="_blank" rel="noopener">la caja</a> en uno y escaneá <a href="/qr-muestra" target="_blank" rel="noopener">un QR de mesa</a> con el otro. <button type="button" id="dosX" aria-label="Cerrar">✕</button></div>
-<div class="tip mob" id="tip">1️⃣ Pedí algo con la moza virtual · 2️⃣ Tocá <b>🧾 Soy el dueño</b> para ver cómo llega a la caja</div>
+<div class="paso" id="paso"></div>
 <main>
-  <iframe id="fCli" class="on" title="La mesa del cliente" src="/menu?m=demopublico&mesa=1" allow="microphone; autoplay"></iframe>
-  <iframe id="fCaja" title="La caja del dueño" src="/menu?m=demopublico&e=demo&caja=1" allow="autoplay"></iframe>
+  <iframe id="fCaja" class="on" title="La caja del dueño" src="/menu?m=demopublico&e=demo&caja=1" allow="autoplay"></iframe>
+  <iframe id="fCli" title="La mesa del cliente" src="/menu?m=demopublico&mesa=1" allow="microphone; autoplay"></iframe>
 </main>
 <a class="pv" href="/shopmenu" target="_blank" rel="noopener">ShopMenu · Pro Video JSRHG · Ver toda la información</a>
+<div id="qrv" role="dialog" aria-label="QR de la mesa"><div class="c">
+  <h2>📱📱 Escaneá con el otro celular</h2>
+  <p style="margin:0;color:#5a4060">Es el QR de la <b>mesa 1</b>, como el cartelito que va en cada mesa.</p>
+  <div id="qr"></div>
+  <p style="margin:0 0 10px;font-size:13px;color:#7a5470">Pedí con Flashy en ese celular y mirá cómo llega acá, a la caja 🔔</p>
+  <button type="button" id="qrOk">Listo, ya lo escaneé</button>
+</div></div>
+<div id="aviso"><div>🔔 ¡Llegó el pedido a la caja!</div><button type="button" id="avOk">🧾 Ver la caja</button></div>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <script>
 const $ = id => document.getElementById(id);
+const MESA = location.origin + '/menu?m=demopublico&mesa=1';
+let paso = 1, modo = '';
 function ver(caja){
-  $('tCli').setAttribute('aria-pressed', String(!caja)); $('tCaja').setAttribute('aria-pressed', String(caja));
-  $('fCli').classList.toggle('on', !caja); $('fCaja').classList.toggle('on', caja);
-  if(caja){ $('dot').style.display = 'none'; $('tip').innerHTML = '🔔 Tocá la pantalla de la caja una vez para que suene el aviso · Volvé a <b>📱 Soy el cliente</b> para pedir otra cosa'; }
-  else $('tip').innerHTML = '1️⃣ Pedí algo con la moza virtual · 2️⃣ Tocá <b>🧾 Soy el dueño</b> para ver cómo llega a la caja';
+  $('tCaja').setAttribute('aria-pressed', String(caja)); $('tCli').setAttribute('aria-pressed', String(!caja));
+  $('fCaja').classList.toggle('on', caja); $('fCli').classList.toggle('on', !caja);
+  if(caja){ $('dot').style.display = 'none'; $('aviso').style.display = 'none'; }
 }
-$('dosX').onclick = () => $('dos').remove();
-$('tCli').onclick = () => ver(false);
+function pinta(){
+  const p = $('paso');
+  if(paso === 1) p.innerHTML = `<div><b class="n">1</b><b>Esta es la caja de tu café.</b> Acá te llegan los pedidos de las mesas. Tocá <b>🔔 Activar sonido</b> (arriba en la caja) para escuchar cuando entra uno.</div><div class="bts"><button type="button" class="pri" id="pYa">🔔 Ya lo activé</button><button type="button" id="pSalta">Seguir sin sonido</button></div>`;
+  else if(paso === 2) p.innerHTML = `<div><b class="n">2</b><b>Ahora sos el cliente sentado en la mesa 1.</b> ¿Con qué querés hacer el pedido?</div><div class="bts"><button type="button" class="pri" id="pMismo">📱 Con este mismo celular</button><button type="button" id="pOtro">📱📱 Con otro celular</button></div><small>Si tenés otro celular o una compu, queda mejor: en uno la caja y en el otro la mesa.</small>`;
+  else if(paso === 3) p.innerHTML = modo === 'otro'
+    ? `<div><b class="n">3</b>En el otro celular, <b>hablá con Flashy</b>: decile tu nombre y pedí, por ejemplo, <i>"un cortado y una medialuna"</i>. Al final tocá <b>✅ Enviar a la cocina</b> y mirá cómo llega acá 🔔</div><div class="bts"><button type="button" id="pQR">🔳 Ver el QR otra vez</button><button type="button" id="pCambio">📱 Mejor en este celular</button></div>`
+    : `<div><b class="n">3</b><b>Hablá con Flashy</b> (tocá "👋 Tocá acá y te atiendo"): decile tu nombre y pedí, por ejemplo, <i>"un cortado y una medialuna"</i>. Al final tocá <b>✅ Enviar a la cocina</b>.</div><small>Cuando el pedido llegue a la caja te aviso 🔔</small>`;
+  else p.innerHTML = `<div><b class="n">4</b><b>¡Llegó a la caja!</b> 🎉 En la caja tocá <b>👨‍🍳 Preparar</b> y después <b>✅ Listo</b>: al cliente le avisa que ya va su pedido. Al final del día, <b>💰 Cierre de caja</b> te suma todo lo vendido.</div><div class="bts"><button type="button" class="pri" id="pOtraVez">📱 Pedir otra cosa</button><button type="button" id="pInfo">ℹ️ Ver toda la info</button></div>`;
+  const on = (id, f) => { const e = $(id); if(e) e.onclick = f; };
+  on('pYa', () => { paso = 2; pinta(); });
+  on('pSalta', () => { paso = 2; pinta(); });
+  on('pMismo', () => { modo = 'mismo'; paso = 3; pinta(); ver(false); });
+  on('pOtro', () => { modo = 'otro'; paso = 3; pinta(); ver(true); abrirQR(); });
+  on('pQR', abrirQR);
+  on('pCambio', () => { modo = 'mismo'; pinta(); ver(false); });
+  on('pOtraVez', () => { paso = 3; pinta(); if(modo === 'otro') abrirQR(); else ver(false); });
+  on('pInfo', () => window.open('/shopmenu', '_blank', 'noopener'));
+}
+function abrirQR(){
+  const box = $('qr');
+  if(!box.innerHTML){ try{ const q = qrcode(0, 'M'); q.addData(MESA); q.make(); box.innerHTML = q.createSvgTag({cellSize: 5, margin: 2, scalable: true}); }catch(e){ box.innerHTML = `<p style="font-size:13px;word-break:break-all">${MESA}</p>`; } }
+  $('qrv').style.display = 'grid';
+}
+$('qrOk').onclick = () => { $('qrv').style.display = 'none'; };
+$('qrv').onclick = e => { if(e.target === $('qrv')) $('qrv').style.display = 'none'; };
 $('tCaja').onclick = () => ver(true);
-// Cuando el cliente manda un pedido, avisamos en el botón de la caja
-let antes = '';
+$('tCli').onclick = () => { ver(false); if(paso < 3){ modo = 'mismo'; paso = 3; pinta(); } };
+$('avOk').onclick = () => ver(true);
+pinta();
+// Miramos la caja: el botón de sonido y los pedidos nuevos
+let antes = -1;
 setInterval(() => {
-  try{
-    const d = $('fCaja').contentDocument; if(!d) return;
-    const t = ['cPend', 'cCnt', 'cE'].map(k => { const e = d.getElementById(k); return e ? e.textContent : ''; }).join('|');
-    if(antes && t !== antes && !$('fCaja').classList.contains('on')) $('dot').style.display = 'inline-block';
-    antes = t;
-  }catch(e){}
-}, 1500);
+  let d = null; try{ d = $('fCaja').contentDocument; }catch(e){}
+  if(!d || !d.body) return;
+  const b = d.getElementById('bDing');
+  if(b && !b.__v){ b.__v = 1; b.addEventListener('click', () => { if(paso === 1){ paso = 2; pinta(); } }); }
+  const m = (d.body.innerText || '').match(/Por entregar \((\d+)\)/);
+  const n = m ? +m[1] : -1;
+  if(n >= 0){
+    if(antes >= 0 && n > antes){
+      if(paso < 4){ paso = 4; pinta(); }
+      if(!$('fCaja').classList.contains('on')){ $('dot').style.display = 'inline-block'; $('aviso').style.display = 'block'; }
+    }
+    antes = n;
+  }
+}, 1200);
 </script>
 </body>
 </html>
