@@ -77,9 +77,10 @@ let B={},P=[],C=[],HOJAS=[],cur=0,CARRO={};
 const precioN=p=>{let s=String(p||'').replace(/[^\d.,]/g,'');if(!s)return 0;if(/,\d{1,2}$/.test(s))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(/[.,](?=\d{3}(\D|$))/g,'').replace(',','.');return parseFloat(s)||0;};
 const fmt=n=>'$'+Math.round(n).toLocaleString('es-AR');
 // ---------- voz de Flashy ----------
-let voz=false;document.addEventListener('pointerdown',()=>{if(voz)return;voz=true;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}},{capture:true});
+let voz=false,pend='';document.addEventListener('pointerdown',()=>{if(voz)return;voz=true;try{if(pend&&$('#globo').style.display==='block'){hablar(pend.replace(/👆.*$/u,''));}else{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}}catch(e){}pend='';},{capture:true});
+let vozTT=null;function hablar(t){if(!('speechSynthesis' in window)||B.revMute)return;try{speechSynthesis.cancel();clearTimeout(vozTT);const go=()=>{const u=new SpeechSynthesisUtterance(String(t).replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu,''));u.lang='es-AR';const vs=speechSynthesis.getVoices().filter(v=>/^es/i.test(v.lang));const fem=vs.find(v=>/female|mujer|helena|laura|paulina|monica|mónica|sabina|elena|lucia|lucía|google español/i.test(v.name));const v=fem||vs.find(v=>/google|natural|online/i.test(v.name))||vs[0];if(v)u.voice=v;u.rate=1.1;u.pitch=1.15;u.onstart=()=>$('#fla').classList.add('habla');u.onend=u.onerror=()=>$('#fla').classList.remove('habla');speechSynthesis.speak(u);};if(speechSynthesis.speaking||speechSynthesis.pending)vozTT=setTimeout(go,120);else go();}catch(e){}}
 let gT=null,gAcc=null;function decir(t,ms,acc){const g=$('#globo');g.textContent=t;if(acc&&typeof acc[0]==='string')acc=[acc];gAcc=acc||null;if(acc){const d=document.createElement('div');d.className='gacc';acc.forEach((a,i)=>{const b=document.createElement('button');b.type='button';b.textContent=a[0];b.dataset.ga=a[1];if(i===0)b.className='pri';d.appendChild(b);});g.appendChild(d);}$('#fla').classList.remove('salta');void $('#fla').offsetWidth;$('#fla').classList.add('salta');g.style.display='block';clearTimeout(gT);gT=setTimeout(()=>g.style.display='none',ms||5200);
- if(!voz||!('speechSynthesis' in window)||B.revMute)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(t).replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu,''));u.lang='es-AR';const vs=speechSynthesis.getVoices().filter(v=>/^es/i.test(v.lang));const v=vs.find(v=>/google|natural|online/i.test(v.name))||vs[0];if(v)u.voice=v;u.rate=1.12;u.pitch=1.12;u.onstart=()=>$('#fla').classList.add('habla');u.onend=u.onerror=()=>$('#fla').classList.remove('habla');speechSynthesis.speak(u);}catch(e){}}
+ if(!voz){pend=t;return;}hablar(t);}
 // ---------- cargar la tienda ----------
 async function cargar(){
  if(!SLUG){$('#libro').innerHTML='<div class="hoja tapa"><h2>Revista no encontrada</h2></div>';return;}
@@ -103,7 +104,7 @@ async function cargar(){
  if(B.season&&TEMP[B.season]){const fx=document.createElement('div');fx.id='fxEst';for(let i=0;i<14;i++){const s=document.createElement('span');s.textContent=TEMP[B.season][i%TEMP[B.season].length];s.style.left=Math.random()*100+'%';s.style.fontSize=(14+Math.random()*14)+'px';s.style.animationDuration=(9+Math.random()*9)+'s';s.style.animationDelay=(-Math.random()*15)+'s';fx.appendChild(s);}document.body.appendChild(fx);}
  try{CARRO=JSON.parse(localStorage.getItem('rev-'+SLUG)||'{}')||{};}catch(e){}
  armar();ir(0,0);pintaCarro();
- try{entrada();}catch(e){}setTimeout(()=>decir(`¡Hola! Bienvenido a la revista de ${nombre}. Deslizá para pasar las hojas, o decime qué buscás y te llevo.`,7000),700);
+ try{entrada();}catch(e){}setTimeout(()=>decir(`¡Hola! Bienvenido a la revista de ${nombre}. Deslizá para pasar las hojas, o decime qué buscás y te llevo.`+(voz?'':' 👆 Tocá la pantalla y te hablo 🔊'),9000),700);
 }
 // ---------- armar las hojas (se adaptan al tamaño de la pantalla) ----------
 function porHoja(){const w=innerWidth,h=$('#libro').clientHeight-48;const cols=w>=1000?5:w>=700?4:w>=380?2:2;const rows=Math.max(3,Math.floor(h/(cols>2?210:140)));document.body.style.setProperty('--cols',cols);return cols*rows;}
