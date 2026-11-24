@@ -10,7 +10,7 @@ const BUCKET = 'pedidos';
 const base = () => String(process.env.SUPABASE_URL || '').replace(/\/+$/, '') + '/storage/v1';
 const head = extra => { const k = process.env.SUPABASE_SERVICE_KEY, h = Object.assign({ apikey: k }, extra || {}); if (String(k).startsWith('eyJ')) h.Authorization = 'Bearer ' + k; return h; };
 const t = (v, n) => String(v == null ? '' : v).slice(0, n);
-const IDI = { es: 'castellano rioplatense (Argentina), cálido y simple', en: 'English', pt: 'português do Brasil', fr: 'français', it: 'italiano', de: 'Deutsch', ru: 'русский', zh: '简体中文', ja: '日本語', ko: '한국어', hi: 'हिन्दी', ar: 'العربية' };
+const IDI = { es: 'castellano rioplatense (Argentina), cálido y simple', en: 'English', pt: 'português do Brasil', fr: 'français', it: 'italiano', de: 'Deutsch', ru: 'русский', zh: '简体中文', ja: '日本語', ko: '한국어', hi: 'हिन्दी', ar: 'العربية', tr: 'Türkçe', id: 'Bahasa Indonesia', vi: 'Tiếng Việt', th: 'ภาษาไทย', pl: 'polski', uk: 'українська', nl: 'Nederlands', sw: 'Kiswahili', bn: 'বাংলা', ur: 'اردو', fa: 'فارسی', ha: 'Hausa', am: 'አማርኛ' };
 
 async function leer(path) { try { const r = await fetch(base() + '/object/' + BUCKET + '/' + path, { headers: head({ 'cache-control': 'no-cache' }) }); return r.ok ? await r.json() : null; } catch (e) { return null; } }
 async function guardar(path, obj) { try { await fetch(base() + '/object/' + BUCKET + '/' + path, { method: 'POST', headers: head({ 'Content-Type': 'application/json', 'x-upsert': 'true', 'cache-control': 'no-cache' }), body: JSON.stringify(obj) }); } catch (e) {} }
