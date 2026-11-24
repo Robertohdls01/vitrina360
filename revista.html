@@ -41,6 +41,10 @@ button{font:inherit;cursor:pointer}
 @keyframes salta{0%{transform:translateY(0) rotate(0)}25%{transform:translateY(-18px) rotate(-8deg)}50%{transform:translateY(0) rotate(6deg)}70%{transform:translateY(-7px) rotate(-3deg)}100%{transform:translateY(0) rotate(0)}}
 #fla.mira::after{content:'👋';position:absolute;left:-14px;top:4px;font-size:22px;animation:saluda .5s ease-in-out 4 alternate}
 @keyframes saluda{from{transform:rotate(-20deg)}to{transform:rotate(25deg)}}
+.velo.liviano{background:transparent;place-items:end end;pointer-events:none}
+.velo.liviano .panel{pointer-events:auto;width:min(340px,94vw);margin:0 8px 150px;border-radius:20px;box-shadow:0 12px 34px rgba(80,10,60,.28);border:2px solid #ffb5e6;max-height:62dvh;padding:12px}
+.velo.liviano .acc{grid-template-columns:1fr 1fr;gap:6px}.velo.liviano .acc button{padding:9px 6px;font-size:13.5px}.velo.liviano h3{font-size:16px}.velo.liviano .t{padding:9px}
+#globo .gacc{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}#globo .gacc button{border:0;border-radius:999px;padding:7px 11px;font-weight:800;font-size:13.5px;background:#ffe0f3;color:#a0006f;cursor:pointer}#globo .gacc button.pri{background:linear-gradient(135deg,#c8008f,#f020c0);color:#fff}
 /* hojas emergentes */
 .velo{position:fixed;inset:0;background:rgba(20,6,26,.55);z-index:40;display:grid;place-items:end center}.panel{background:#fff;width:min(560px,100%);max-height:90dvh;overflow:auto;border-radius:20px 20px 0 0;padding:14px 14px calc(16px + env(safe-area-inset-bottom))}
 .panel h3{margin:0 0 6px;font-size:19px}.panel .x{float:right;border:0;background:#f3e8f0;border-radius:50%;width:34px;height:34px}
@@ -70,7 +74,7 @@ const precioN=p=>{let s=String(p||'').replace(/[^\d.,]/g,'');if(!s)return 0;if(/
 const fmt=n=>'$'+Math.round(n).toLocaleString('es-AR');
 // ---------- voz de Flashy ----------
 let voz=false;document.addEventListener('pointerdown',()=>{if(voz)return;voz=true;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}},{capture:true});
-let gT=null,gAcc=null;function decir(t,ms,acc){const g=$('#globo');g.textContent=t;gAcc=acc||null;g.style.cursor=acc?'pointer':'';if(acc){const b=document.createElement('b');b.textContent=' 👉 '+acc[0];b.style.cssText='display:block;margin-top:6px;color:#c8008f';g.appendChild(b);}$('#fla').classList.remove('salta');void $('#fla').offsetWidth;$('#fla').classList.add('salta');g.style.display='block';clearTimeout(gT);gT=setTimeout(()=>g.style.display='none',ms||5200);
+let gT=null,gAcc=null;function decir(t,ms,acc){const g=$('#globo');g.textContent=t;if(acc&&typeof acc[0]==='string')acc=[acc];gAcc=acc||null;if(acc){const d=document.createElement('div');d.className='gacc';acc.forEach((a,i)=>{const b=document.createElement('button');b.type='button';b.textContent=a[0];b.dataset.ga=a[1];if(i===0)b.className='pri';d.appendChild(b);});g.appendChild(d);}$('#fla').classList.remove('salta');void $('#fla').offsetWidth;$('#fla').classList.add('salta');g.style.display='block';clearTimeout(gT);gT=setTimeout(()=>g.style.display='none',ms||5200);
  if(!voz||!('speechSynthesis' in window)||B.revMute)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(t).replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu,''));u.lang='es-AR';const vs=speechSynthesis.getVoices().filter(v=>/^es/i.test(v.lang));const v=vs.find(v=>/google|natural|online/i.test(v.name))||vs[0];if(v)u.voice=v;u.rate=1.12;u.pitch=1.12;u.onstart=()=>$('#fla').classList.add('habla');u.onend=u.onerror=()=>$('#fla').classList.remove('habla');speechSynthesis.speak(u);}catch(e){}}
 // ---------- cargar la tienda ----------
 async function cargar(){
@@ -137,7 +141,7 @@ document.addEventListener('click',e=>{
  const ac=e.target.closest('[data-acc]');if(ac){if(ac.dataset.acc==='resena')resena();return;}
  const p=e.target.closest('[data-p]');if(p&&!e.target.closest('.velo')){ver(p.dataset.p);return;}
 });
-function velo(html){cerrarVelo();const v=document.createElement('div');v.className='velo';v.innerHTML=`<div class="panel"><button class="x" aria-label="Cerrar">✕</button>${html}</div>`;v.onclick=e=>{if(e.target===v||e.target.closest('.x'))cerrarVelo();};document.body.appendChild(v);return v;}
+function velo(html,cls){cerrarVelo();const v=document.createElement('div');v.className='velo'+(cls?' '+cls:'');v.innerHTML=`<div class="panel"><button class="x" aria-label="Cerrar">✕</button>${html}</div>`;v.onclick=e=>{if(e.target===v||e.target.closest('.x'))cerrarVelo();};document.body.appendChild(v);return v;}
 function cerrarVelo(){document.querySelectorAll('.velo').forEach(v=>v.remove());}
 const EDITAR=new URLSearchParams(location.search).has('editar')&&window.parent!==window;
 function ver(id){const p=prod(id);if(!p)return;if(EDITAR){parent.postMessage({rvEdit:String(id)},'*');return;}const fs=(p.features||[]).slice(0,5);
@@ -145,7 +149,7 @@ function ver(id){const p=prod(id);if(!p)return;if(EDITAR){parent.postMessage({rv
  v.querySelector('#vAdd').onclick=()=>{agregar(id);cerrarVelo();};}
 // ---------- carrito ----------
 const guardaC=()=>{try{localStorage.setItem('rev-'+SLUG,JSON.stringify(CARRO));}catch(e){}};
-function agregar(id){const p=prod(id);if(!p)return;CARRO[id]=(CARRO[id]||0)+1;guardaC();pintaCarro();if(navigator.vibrate)navigator.vibrate(40);decir(`¡Agregué ${p.name}! ¿Algo más?`,3200);}
+function agregar(id){const p=prod(id);if(!p)return;CARRO[id]=(CARRO[id]||0)+1;guardaC();pintaCarro();if(navigator.vibrate)navigator.vibrate(40);if(!secSt||!tourOn){const n=itemsC().reduce((s,x)=>s+x.q,0);decir(`¡Agregué ${p.name}! Llevás ${n} ${n===1?'cosa':'cosas'}${totalC()?' · '+fmt(totalC()):''}. ¿Seguís mirando o vamos a pagar?`,9000,[['🛒 Ir a pagar','pagar'],['Seguir mirando','nada']]);}}
 function itemsC(){return Object.entries(CARRO).map(([id,q])=>({p:prod(id),q})).filter(x=>x.p&&x.q>0);}
 function totalC(){return itemsC().reduce((s,x)=>s+precioN(x.p.price)*x.q,0);}
 function pintaCarro(){const n=itemsC().reduce((s,x)=>s+x.q,0),b=$('#bCarro');b.style.display=n?'block':'none';b.textContent=`🛒 ${n} · ${fmt(totalC())}`;}
@@ -168,8 +172,8 @@ async function carro(){
   let m={};try{m=await (await fetch('/api/mpcobro?accion=pagar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ref:j.ref,k:j.k,slug:SLUG,tienda:B.name||''})})).json();}catch(e){}
   if(!m.url){v.querySelector('#cMsg').textContent=(m.error||'Mercado Pago no respondió.')+' Podés pagar en la caja o por WhatsApp.';pm.disabled=false;return;}
   CARRO={};guardaC();pintaCarro();decir('¡Perfecto! Te llevo a Mercado Pago.');setTimeout(()=>location.href=m.url,1200);};
- v.querySelector('#pCaja').onclick=async()=>{const j=await enviar(['enlocal','Pago en el local'],false);if(!j||!j.ref)return;const lista=L.map(x=>`${x.q} × ${esc(x.p.name)}`).join('<br>');CARRO={};guardaC();pintaCarro();
-  velo(`<div style="text-align:center"><h3>🧾 Mostrá esto en la caja</h3><div style="font-size:64px;font-weight:900;color:#0f766e;line-height:1.1">#${esc(String(j.turno||j.ref.split('/').pop().slice(-4).toUpperCase()))}</div><p style="color:#5a4060">${lista}</p><b style="font-size:20px">Total: ${fmt(totalC()||0)||''}</b><div class="acc"><button class="sec" data-acc="resena">⭐ Dejanos tu opinión</button></div></div>`);decir('¡Listo! Mostrá este número en la caja y te cobran ahí.');};
+ v.querySelector('#pCaja').onclick=async()=>{const j=await enviar(['enlocal','Pago en el local'],false);if(!j||!j.ref)return;const lista=L.map(x=>`${x.q} × ${esc(x.p.name)}`).join('<br>');const totCaja=totalC();CARRO={};guardaC();pintaCarro();
+  velo(`<div style="text-align:center"><h3>🧾 Mostrá esto en la caja</h3><div style="font-size:64px;font-weight:900;color:#0f766e;line-height:1.1">#${esc(String(j.turno||j.ref.split('/').pop().slice(-4).toUpperCase()))}</div><p style="color:#5a4060">${lista}</p><b style="font-size:20px">Total: ${fmt(totCaja||0)||''}</b><div class="acc"><button class="sec" data-acc="resena">⭐ Dejanos tu opinión</button></div></div>`);decir('¡Listo! Mostrá este número en la caja y te cobran ahí.');};
  const pw=v.querySelector('#pWA');if(pw)pw.onclick=()=>{const d=datos();const tx='¡Hola! Quiero hacer este pedido de tu revista:\n'+L.map(x=>`• ${x.q} × ${x.p.name}${x.p.price?' ('+x.p.price+')':''}`).join('\n')+`\nTotal: ${fmt(totalC())}`+(d.nombre?`\nSoy ${d.nombre}`:'');open('https://wa.me/'+String(B.wa).replace(/\D/g,'')+'?text='+encodeURIComponent(tx),'_blank','noopener');};
 }
 // ---------- reseña ----------
@@ -196,8 +200,8 @@ function buscar(q){const n=norm(q);if(!n)return false;
  if(hc>0){secTour(hc);return true;}
  decir('Uy, eso no lo encontré en la revista 🤔 Probá con otra palabra o escribinos por WhatsApp.');return true;}
 $('#busca').addEventListener('keydown',e=>{if(e.key==='Enter'){buscar(e.target.value);e.target.blur();}});
-$('#fla').onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
- const v=velo(`<h3>⚡ ¿Qué buscás?</h3><input class="t" id="fQ" placeholder="Ej: mandame a las bebidas · ¿tenés yerba? · ofertas"><div class="acc"><button class="pri" id="fGo">Buscar</button>${SR?'<button class="sec" id="fMic">🎙️ Decímelo hablando</button>':''}<button class="sec" data-ir="0">📖 Ir a la tapa</button><button class="sec" id="fCarro">🛒 Ver mi pedido</button></div><div class="acc fmas" style="margin-top:8px"><button class="sec" data-fl="tour">📖 Mostrame la revista</button><button class="sec" data-fl="ofertas">🔥 Ofertas del día</button><button class="sec" data-fl="nuevo">🆕 Lo último que llegó</button><button class="sec" data-fl="pago">💳 ¿Cómo puedo pagar?</button>${B.addr?'<button class="sec" data-fl="llegar">📍 Cómo llegar</button>':''}</div>`);
+$('#fla').onclick=()=>{$('#globo').style.display='none';tourParar();const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ const v=velo(`<h3>⚡ ¿Qué buscás?</h3><input class="t" id="fQ" placeholder="Ej: mandame a las bebidas · ¿tenés yerba? · ofertas"><div class="acc"><button class="pri" id="fGo">Buscar</button>${SR?'<button class="sec" id="fMic">🎙️ Decímelo hablando</button>':''}<button class="sec" data-ir="0">📖 Ir a la tapa</button><button class="sec" id="fCarro">🛒 Ver mi pedido</button></div><div class="acc fmas" style="margin-top:8px"><button class="sec" data-fl="tour">📖 Mostrame la revista</button><button class="sec" data-fl="ofertas">🔥 Ofertas del día</button><button class="sec" data-fl="nuevo">🆕 Lo último que llegó</button><button class="sec" data-fl="pago">💳 ¿Cómo puedo pagar?</button>${B.addr?'<button class="sec" data-fl="llegar">📍 Cómo llegar</button>':''}</div>`,'liviano');
  v.querySelectorAll('[data-fl]').forEach(b=>b.onclick=()=>{cerrarVelo();flHacer(b.dataset.fl);});
  const go=()=>{const q=v.querySelector('#fQ').value;cerrarVelo();buscar(q);};v.querySelector('#fGo').onclick=go;v.querySelector('#fQ').addEventListener('keydown',e=>{if(e.key==='Enter')go();});v.querySelector('#fCarro').onclick=()=>{cerrarVelo();carro();};
  const m=v.querySelector('#fMic');if(m)m.onclick=()=>{const r=new SR();r.lang='es-AR';m.textContent='🎙️ Te escucho…';r.onresult=e=>{cerrarVelo();buscar(e.results[0][0].transcript);};r.onend=()=>{m.textContent='🎙️ Decímelo hablando';};r.start();};
@@ -229,6 +233,10 @@ function tourPaso(){if(!tourOn)return;const sig=cur+1;
  decir(t||'Seguimos…',4200,['Parar','parar']);tourT=setTimeout(tourPaso,5200);}
 function flHacer(q){
  if(q==='parar'){tourParar('Listo, te dejo mirar tranquilo 😉');return;}
+ if(q==='nada')return;
+ if(q.startsWith('add:')){const id=q.slice(4);tourOn=false;clearTimeout(tourT);agregar(id);const n=itemsC().reduce((s,x)=>s+x.q,0);decir(`¡Listo, te lo agregué! 🛒 Llevás ${n} ${n===1?'cosa':'cosas'}${totalC()?' · '+fmt(totalC()):''}. ¿Seguimos mirando o vamos a pagar?`,12000,secSt&&secSt.k<secSt.its.length?[['▶ Seguir mirando','seguir'],['🛒 Ir a pagar','pagar']]:[['🛒 Ir a pagar','pagar'],['Seguir mirando','nada']]);return;}
+ if(q==='seguir'||q==='sig'){if(secSt&&cur===secSt.i){clearTimeout(tourT);tourOn=true;secSt.paso();}return;}
+ if(q==='pagar'){if(!itemsC().length){decir('Todavía no agregaste nada 🙂 Tocá el + de lo que te guste, o decime "lo quiero" cuando te lo muestre.',6000);return;}mpOk().then(mp=>{decir('¿Cómo querés pagar? 💳'+(mp?' Te puedo cobrar yo con Mercado Pago,':'')+' podés pagar en la caja del local'+(B.wa?' o pedirlo por WhatsApp':'')+'. Elegí abajo 👇',9000);carro();});return;}
  if(q==='tour'){tourOn=true;if(cur!==0)ir(0,-1);decir('¡Dale! Te muestro la revista hoja por hoja. Tocá la pantalla cuando quieras parar.',3800,['Parar','parar']);tourT=setTimeout(tourPaso,4200);return;}
  if(q==='ofertas'){const of=P.filter(p=>p.featured);const lista=(of.length?of:P.filter(p=>p.price).sort((a,b)=>precioN(a.price)-precioN(b.price))).slice(0,3);
   const i=HOJAS.findIndex(h=>h.sec==='ofertas');if(i>0)ir(i,1);else if(lista[0])irA(lista[0]);
@@ -243,16 +251,18 @@ function flConsejo(){if(tourOn||document.querySelector('.velo')||$('#globo').sty
  const ops=[['¿Querés que te muestre la revista hoja por hoja?',['Sí, mostrame','tour']],['🔥 ¿Te cuento las ofertas de hoy?',['Contame','ofertas']],['🆕 ¿Querés ver lo último que llegó?',['Mostrame','nuevo']],['💳 ¿Querés saber cómo podés pagar?',['Contame','pago']]];
  if(itemsC().length)ops.push(['🛒 Ya tenés cosas en tu pedido. ¿Lo terminamos?',['Ver mi pedido','carro']]);
  const o=ops[Math.floor(Math.random()*ops.length)];$('#fla').classList.add('mira');setTimeout(()=>$('#fla').classList.remove('mira'),2200);decir(o[0],7000,o[1]);}
-$('#globo').addEventListener('click',e=>{e.stopPropagation();if(gAcc){const a=gAcc[1];$('#globo').style.display='none';flHacer(a);}});
+$('#globo').addEventListener('click',e=>{e.stopPropagation();const b=e.target.closest('[data-ga]');const a=b?b.dataset.ga:(gAcc&&gAcc.length===1?gAcc[0][1]:null);if(!a)return;$('#globo').style.display='none';flHacer(a);});
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('.velo.liviano .panel')&&!e.target.closest('#fla'))document.querySelectorAll('.velo.liviano').forEach(v=>v.remove());},true);
 document.addEventListener('pointerdown',e=>{quieto=0;if(tourOn&&!e.target.closest('#globo'))tourParar('Listo, te dejo mirar tranquilo 😉');},true);
 setInterval(()=>{quieto+=5;if(quieto===15||(quieto>15&&quieto%35===0))flConsejo();},5000);
 /* Flashy te muestra una sección producto por producto */
+let secSt=null;
 function secTour(i){tourParar();const h=HOJAS[i];if(!h)return;tourOn=true;ir(i,i>cur?1:-1);
  const its=(h.items||[]).slice().sort((a,b)=>(b.featured?1:0)-(a.featured?1:0)).slice(0,8);let k=0;
  const marca=id=>{document.querySelectorAll('.pr.hl').forEach(e=>e.classList.remove('hl'));const e=document.querySelector(`.pr[data-p="${CSS.escape(id)}"]`);if(e){e.classList.add('hl');e.scrollIntoView({block:'nearest',behavior:'smooth'});}};
  decir(`¡Ya voy! En ${h.tit} tenés ${h.de>1?'varias hojas de cosas':its.length+' cosas'}. Te las muestro 👇`,3000,['Parar','parar']);
- const paso=()=>{if(!tourOn||cur!==i)return;if(k>=its.length){tourOn=false;document.querySelectorAll('.pr.hl').forEach(e=>e.classList.remove('hl'));decir(h.de>1?`Eso es lo primero de ${h.tit}. Pasá la hoja para ver más 👉 ¿Te gustó algo? Tocalo y lo agregás 🛒`:'¿Te gustó alguno? Tocalo y lo agregás al pedido 🛒',7000);return;}
-  const p=its[k++];marca(p.id);decir((p.featured?'🔥 Oferta: ':'')+p.name+(p.price?' a '+p.price:'')+(p.desc?'. '+p.desc:''),3400,['Parar','parar']);tourT=setTimeout(paso,3600);};
- tourT=setTimeout(paso,3300);}
+ const paso=()=>{secSt.k=k;if(!tourOn||cur!==i)return;if(k>=its.length){tourOn=false;document.querySelectorAll('.pr.hl').forEach(e=>e.classList.remove('hl'));decir(h.de>1?`Eso es lo primero de ${h.tit}. Pasá la hoja para ver más 👉 ¿Te gustó algo? Tocalo y lo agregás 🛒`:'¿Te gustó alguno? Tocalo y lo agregás al pedido 🛒',7000);return;}
+  const p=its[k++];secSt.k=k;marca(p.id);decir((p.featured?'🔥 Oferta: ':'')+p.name+(p.price?' a '+p.price:'')+(p.desc?'. '+p.desc:''),5600,[['➕ Lo quiero','add:'+p.id],['Siguiente ▶','sig'],['⏸','parar']]);tourT=setTimeout(paso,5800);};
+ secSt={i,its,k:0,paso};tourT=setTimeout(paso,3300);}
 cargar();
 </script></body></html>
