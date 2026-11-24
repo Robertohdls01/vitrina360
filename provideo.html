@@ -57,6 +57,14 @@ h2{font-size:clamp(26px,3.6vw,36px);margin:0 0 8px;text-align:center}
 .contact .ctas{margin-top:8px}
 footer{padding:30px 0 40px;text-align:center;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
 footer b{color:var(--ink)}
+/* Flashy, la cara de Pro Video */
+.flashyHero{margin:22px auto 0;max-width:300px;position:relative;text-align:center}
+.flashyHero video{width:100%;aspect-ratio:9/16;border-radius:28px;border:4px solid #ff5fc8;box-shadow:0 14px 40px rgba(200,0,143,.35);background:#f6c9e6;object-fit:cover;display:block}
+.flashyHero button{white-space:nowrap;position:absolute;left:50%;transform:translateX(-50%);bottom:64px;border:0;border-radius:999px;padding:9px 16px;font-weight:800;background:rgba(255,255,255,.92);color:#a0006f;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.flashyHero figcaption{margin-top:10px;font-weight:700;color:var(--muted)}
+#gBtn.fv{padding:0;overflow:hidden;border-color:#ff5fc8;background:#f6c9e6 url(/flashy/flashy-cara.jpg) center/cover}
+#gBtn.fv video{width:100%;height:100%;object-fit:cover;object-position:50% 18%;border-radius:50%;display:block}
+#gCara img{width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid #ff5fc8;display:block}
 /* Asistente virtual de la página (Flashy) */
 #gBtn{position:fixed;right:16px;bottom:16px;z-index:50;width:72px;height:72px;border-radius:50%;border:3px solid #fff;background:#fff;box-shadow:0 8px 24px rgba(120,40,75,.3);padding:4px;cursor:pointer;animation:gSalta 3s ease-in-out infinite}
 #gBtn svg{width:100%;height:100%;display:block}
@@ -104,6 +112,7 @@ footer b{color:var(--ink)}
       <a class="btn sec" data-wa="Hola! Tengo un negocio y quiero saber qué producto de Pro Video me sirve." href="#" target="_blank" rel="noopener" hidden>💬 Te asesoramos por WhatsApp</a>
     </div>
     <div class="chips"><span>🇦🇷 Hecho en Argentina</span><span>🤖 Con inteligencia artificial</span><span>📱 Sin instalar nada</span><span>💳 Mercado Pago</span><span>🎁 Prueba gratis</span><span>🌎 Para Argentina y el mundo</span></div>
+    <figure class="flashyHero"><video id="fhV" src="/flashy/flashy-presenta.mp4" poster="/flashy/flashy-presenta.jpg" autoplay muted loop playsinline preload="metadata"></video><button type="button" id="fhSon" aria-label="Escuchar a Flashy">🔊 Escuchá a Flashy</button><figcaption>⚡ Ella es <b>Flashy</b>, la asistente de todos los productos de Pro Video</figcaption></figure>
   </div>
 
   <section class="alt" id="productos">
@@ -403,7 +412,7 @@ const PV = {wa: '2235814437', fb: '', ig: '', tt: '', yt: '', tino: '', kitParej
 (() => {
   const CARA = `<svg viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="gcf" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fde68a"/><stop offset=".6" stop-color="#facc15"/><stop offset="1" stop-color="#eab308"/></radialGradient></defs><path d="M52 2 38 26h12l-6 16 18-24H50l8-16z" fill="#f020c0" stroke="#c8008f" stroke-width="2" stroke-linejoin="round"/><circle cx="50" cy="60" r="34" fill="url(#gcf)" stroke="#ca8a04" stroke-width="2.5"/><ellipse cx="38" cy="56" rx="6" ry="8" fill="#1f2937"/><ellipse cx="62" cy="56" rx="6" ry="8" fill="#1f2937"/><circle cx="40" cy="53" r="2.4" fill="#fff"/><circle cx="64" cy="53" r="2.4" fill="#fff"/><circle cx="28" cy="69" r="5" fill="#fb7185" opacity=".5"/><circle cx="72" cy="69" r="5" fill="#fb7185" opacity=".5"/><path d="M39 71q11 12 22 0z" fill="#7f1d1d"/><path d="M43 75q7 4 14 0" fill="#fb7185"/></svg>`;
   const $ = q => document.querySelector(q);
-  $('#gBtn').innerHTML = CARA; $('#gCara').innerHTML = CARA;
+  $('#gBtn').classList.add('fv'); $('#gBtn').innerHTML = '<video src="/flashy/flashy-saluda.mp4" poster="/flashy/flashy-cara.jpg" autoplay muted loop playsinline></video>'; $('#gCara').innerHTML = '<img src="/flashy/flashy-cara.jpg" alt="">';
   const n = String(PV.wa || '').replace(/\D/g, ''); const WA = n ? 'https://wa.me/' + (n.startsWith('54') ? n : '549' + n) + '?text=' : '';
   // Cada opción: qué dice, a dónde lleva para probar y qué tarjeta de la página resalta
   const R = {
@@ -493,5 +502,6 @@ const PV = {wa: '2235814437', fb: '', ig: '', tt: '', yt: '', tino: '', kitParej
   if (!visto) setTimeout(() => { if (box.hidden) $('#gTip').hidden = false; }, 5000);
 })();
 </script>
+<script>(()=>{const v=document.getElementById('fhV'),b=document.getElementById('fhSon');if(!v||!b)return;b.onclick=()=>{v.muted=!v.muted;if(!v.muted){v.currentTime=0;v.play();}b.textContent=v.muted?'🔊 Escuchá a Flashy':'🔇 Silenciar';};})();</script>
 </body>
 </html>
