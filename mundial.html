@@ -68,6 +68,7 @@ footer{text-align:center;color:#7a5470;padding:26px 0 40px;font-size:14px}
   </section>
 
   <section class="busca" aria-label="Buscar en todas las tiendas">
+    <div class="ejemplos" style="margin:0 0 8px"><button type="button" data-modo="compra" id="mCompra" style="background:#c8008f;color:#fff">🛍️ Comprar en tiendas</button><button type="button" data-modo="importa" id="mImporta">🏭 Importar de fábricas</button></div>
     <form id="fBus"><input id="q" placeholder="¿Qué buscás? Ej: masajeador de cuello" enterkeyhint="search" autocomplete="off"><button type="button" class="mic" id="bMic" hidden>🎤</button><button class="ir">⚡ Buscar en el mundo</button></form>
     <div class="ejemplos" id="ejem"></div>
   </section>
@@ -77,6 +78,18 @@ footer{text-align:center;color:#7a5470;padding:26px 0 40px;font-size:14px}
   <h2>🔥 Las ofertas de la semana <small>tienda por tienda</small></h2>
   <div class="secs" id="secs"></div>
   <div id="paises"></div>
+
+  <h2 id="importar">🏭 Para importar: fábricas y proveedores del mundo <small>hablá directo con las empresas</small></h2>
+  <div class="res" id="b2b"></div>
+  <section class="info" style="background:#eff6ff;border-color:#bfdbfe" aria-label="Importar seguro">
+    <h3 style="color:#1e3a8a">🛡️ Importar sin que te estafen</h3>
+    <ul>
+      <li>Hablá con las empresas <b>dentro de la plataforma</b> y preferí las que tienen sello de <b>verificada</b> o auditada.</li>
+      <li><b>Nunca pagues por fuera</b> de la plataforma ni a una cuenta personal. Desconfiá de los precios demasiado bajos.</li>
+      <li>Pedí <b>muestras</b> antes de comprar en cantidad, y preguntá la cantidad mínima (MOQ) y el costo del envío.</li>
+      <li>Si importás para vender, ya no es una compra personal: tenés que estar <b>inscripto como importador</b> en tu país, y conviene un despachante de aduana.</li>
+    </ul>
+  </section>
 
   <section class="info" aria-label="Cómo comprar desde Argentina">
     <h3>📦 Comprar afuera desde Argentina: lo que tenés que saber</h3>
@@ -157,6 +170,25 @@ const T = [
  {p:'ru', n:'Ozon', s:'g', f:'🇷🇺', r:'El gran marketplace de Rusia (en ruso)', env:'mir', l:'ru', b:q=>'https://www.ozon.ru/search/?text='+E(q), o:'https://www.ozon.ru/'},
  {p:'ru', n:'Wildberries', s:'g', f:'🇷🇺', r:'La tienda online más grande de Rusia (en ruso)', env:'mir', l:'ru', b:q=>'https://www.wildberries.ru/catalog/0/search.aspx?search='+E(q), o:'https://www.wildberries.ru/'},
 ];
+// ---- fábricas y proveedores para importar (directorios de empresas exportadoras) ----
+const B2B = [
+ {n:'Alibaba', f:'🇨🇳', r:'El directorio de fábricas más grande del mundo. Buscá el sello "Verified" y pagá con Trade Assurance', l:'en', b:q=>'https://www.alibaba.com/trade/search?SearchText='+E(q), o:'https://www.alibaba.com/'},
+ {n:'Made-in-China', f:'🇨🇳', r:'Fábricas chinas con auditoría', l:'en', b:q=>G('made-in-china.com', q), o:'https://www.made-in-china.com/'},
+ {n:'Global Sources', f:'🇨🇳', r:'Proveedores de electrónica, regalos y hogar', l:'en', b:q=>G('globalsources.com', q), o:'https://www.globalsources.com/'},
+ {n:'1688', f:'🇨🇳', r:'Precios de fábrica dentro de China (en chino, conviene un agente)', l:'zh', b:q=>G('1688.com', q), o:'https://www.1688.com/'},
+ {n:'Feria de Cantón', f:'🇨🇳', r:'La feria oficial de exportación de China, con su directorio de empresas', l:'en', b:q=>G('cantonfair.org.cn', q), o:'https://www.cantonfair.org.cn/en-US'},
+ {n:'IndiaMART', f:'🇮🇳', r:'El gran directorio de proveedores de India', l:'en', b:q=>'https://dir.indiamart.com/search.mp?ss='+E(q), o:'https://www.indiamart.com/'},
+ {n:'TradeIndia', f:'🇮🇳', r:'Exportadores y fabricantes de India', l:'en', b:q=>G('tradeindia.com', q), o:'https://www.tradeindia.com/'},
+ {n:'buyKOREA', f:'🇰🇷', r:'Plataforma oficial de exportadores coreanos', l:'en', b:q=>G('buykorea.org', q), o:'https://www.buykorea.org/'},
+ {n:'EC21', f:'🇰🇷', r:'Directorio de exportadores de Corea y Asia', l:'en', b:q=>G('ec21.com', q), o:'https://www.ec21.com/'},
+ {n:'Taiwantrade', f:'🇹🇼', r:'Portal oficial de exportadores de Taiwán', l:'en', b:q=>G('taiwantrade.com', q), o:'https://www.taiwantrade.com/'},
+ {n:'JETRO', f:'🇯🇵', r:'Agencia oficial de comercio exterior de Japón', l:'en', b:q=>G('jetro.go.jp', q), o:'https://www.jetro.go.jp/en/'},
+ {n:'ThomasNet', f:'🇺🇸', r:'Fabricantes e industrias de Estados Unidos', l:'en', b:q=>G('thomasnet.com', q), o:'https://www.thomasnet.com/'},
+ {n:'Europages', f:'🇪🇺', r:'Fabricantes y mayoristas de toda Europa', l:'en', b:q=>G('europages.com', q), o:'https://www.europages.com/'},
+ {n:'Kompass', f:'🌍', r:'Directorio de empresas de todo el mundo', l:'en', b:q=>G('kompass.com', q), o:'https://www.kompass.com/'},
+ {n:'ApexBrasil', f:'🇧🇷', r:'Agencia oficial de exportaciones de Brasil', l:'pt', b:q=>G('apexbrasil.com.br', q), o:'https://apexbrasil.com.br/'},
+];
+const tarjetaB = (t, q, k) => `<div class="tie"><div class="h"><span class="f">${t.f}</span><b>${t.n}</b></div><div class="r">${t.r}</div><span class="env" style="background:#e0f2fe;color:#075985">🏭 Fábricas y proveedores</span><div class="bts">${q ? `<a class="pri" href="${t.b(k)}" target="_blank" rel="noopener">🔎 Proveedores de "${esc(k)}"</a>` : ''}<a href="${t.o}" target="_blank" rel="noopener">🌐 Entrar</a></div></div>`;
 const PAISES = [['us','🇺🇸','Estados Unidos'],['cn','🇨🇳','China'],['kr','🇰🇷','Corea'],['jp','🇯🇵','Japón'],['la','🇦🇷','Argentina y Brasil'],['eu','🇪🇺','Europa'],['ru','🇷🇺','Rusia'],['mx','🌍','México, Chile y el resto del mundo']];
 const ENV = {si:['si','✅ Envía a Argentina'], cas:['cas','📦 Con casillero en Miami'], mir:['mir','👀 Para mirar precios (consultá el envío)']};
 const ORDEN = {si:0, cas:1, mir:2};
@@ -169,10 +201,13 @@ let VISTA = 'pais';
 function portada(){
   const grupos = VISTA === 'pais' ? PAISES.map(([id, f, n]) => [id, f + ' ' + n, T.filter(t => t.p === id)])
     : [['g', '🏢 Tiendas grandes <small>las gigantes del mundo</small>', T.filter(t => t.s === 'g')], ['m', '🏬 Tiendas medianas <small>especialistas en lo suyo</small>', T.filter(t => t.s === 'm')], ['c', '🏠 Tiendas chicas <small>hecho a mano y diseño de todo el mundo</small>', T.filter(t => t.s === 'c')]];
-  $('secs').innerHTML = `<a href="#" data-vista="pais" style="${VISTA === 'pais' ? 'background:#c8008f;color:#fff' : ''}">🌎 Por país</a><a href="#" data-vista="tam" style="${VISTA === 'tam' ? 'background:#c8008f;color:#fff' : ''}">🏢 Por tamaño</a>` + grupos.map(([id, n]) => `<a href="#p-${id}">${n.replace(/<small>.*<\/small>/, '')}</a>`).join('');
+  $('secs').innerHTML = `<a href="#" data-vista="pais" style="${VISTA === 'pais' ? 'background:#c8008f;color:#fff' : ''}">🌎 Por país</a><a href="#" data-vista="tam" style="${VISTA === 'tam' ? 'background:#c8008f;color:#fff' : ''}">🏢 Por tamaño</a>` + grupos.map(([id, n]) => `<a href="#p-${id}">${n.replace(/<small>.*<\/small>/, '')}</a>`).join('') + '<a href="#importar">🏭 Para importar</a>';
   $('paises').innerHTML = grupos.map(([id, n, L]) => `<h2 id="p-${id}" style="font-size:20px">${n}</h2><div class="res">${L.map(t => tarjeta(t)).join('')}${id === 'c' || (VISTA === 'pais' && id === 'mx') ? SUMA : ''}</div>`).join('');
 }
 portada();
+$('b2b').innerHTML = B2B.map(t => tarjetaB(t)).join('');
+let MODO = 'compra';
+document.addEventListener('click', e => { const m = e.target.closest('[data-modo]'); if(!m) return; MODO = m.dataset.modo; $('mCompra').style.cssText = MODO === 'compra' ? 'background:#c8008f;color:#fff' : ''; $('mImporta').style.cssText = MODO === 'importa' ? 'background:#0369a1;color:#fff' : ''; $('q').placeholder = MODO === 'compra' ? '¿Qué buscás? Ej: masajeador de cuello' : '¿Qué querés importar? Ej: mochilas, vasos térmicos'; decir(MODO === 'compra' ? '🛍️ Modo compras: te busco en las tiendas del mundo.' : '🏭 Modo importar: te busco <b>fábricas y proveedores</b> en los directorios de empresas de China, India, Corea, Europa y más, para que hables directo con ellos.'); });
 document.addEventListener('click', e => { const v = e.target.closest('[data-vista]'); if(v){ e.preventDefault(); VISTA = v.dataset.vista; portada(); } });
 const EJ = ['masajeador de cuello', 'auriculares inalámbricos', 'crema coreana', 'freidora de aire', 'zapatillas running', 'juguetes didácticos', 'vaso térmico', 'reloj inteligente'];
 $('ejem').innerHTML = EJ.map(x => `<button type="button" data-ej="${x}">${x}</button>`).join('');
@@ -187,6 +222,11 @@ async function buscar(q){
   $('q').value = q; decir(`⚡ Buscando <b>${esc(q)}</b> en ${T.length} tiendas del mundo…`);
   let k = {es: q, en: q};
   try{ const r = await fetch('/api/guia?accion=mundo', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({q})}); if(r.ok) k = Object.assign(k, await r.json()); }catch(e){}
+  if(MODO === 'importa'){
+    $('res').innerHTML = B2B.map(t => tarjetaB(t, true, k[t.l] || k.en || q)).join('');
+    decir(`🏭 Te armé la búsqueda de <b>proveedores de ${esc(q)}</b> en ${B2B.length} directorios de empresas del mundo. Hablá con ellos dentro de cada plataforma, pedí precio, cantidad mínima y muestras. Y ojo: nunca pagues por fuera de la plataforma 🛡️`);
+    $('globo').scrollIntoView({behavior: 'smooth', block: 'start'}); return;
+  }
   const L = T.slice().sort((a, b) => ORDEN[a.env] - ORDEN[b.env]);
   $('res').innerHTML = L.map(t => tarjeta(t, true, k[t.l] || k.en || q)).join('');
   const si = L.filter(t => t.env === 'si').slice(0, 3).map(t => t.n).join(', ');
