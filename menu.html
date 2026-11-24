@@ -62,7 +62,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
 .mtop b{font-size:18px;flex:1;color:var(--v)}.mtop .tag{background:#fde7ef;color:var(--v);border-radius:999px;padding:3px 10px;font-weight:700;font-size:14px}
 .mtop button{border:0;background:#fdeef4;color:var(--ink);border-radius:999px;width:38px;height:38px}
 .stage{display:grid;grid-template-columns:118px 1fr;gap:10px;align-items:end;padding:16px 14px 6px}
-.chef.flashyv{width:132px;height:176px;border-radius:20px;overflow:hidden;position:relative;border:3px solid #ff5fc8;box-shadow:0 8px 22px rgba(200,0,143,.35);background:#f6c9e6 url(/flashy/flashy.jpg) center/cover;animation:none}.flashyv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.flashyv .vh{opacity:0;transition:opacity .2s}.flashyv.talk .vh{opacity:1}.flashyv.talk{animation:none;box-shadow:0 0 0 4px rgba(255,95,200,.35),0 8px 22px rgba(200,0,143,.4)}
+.chef.flashyv{width:calc(132px*var(--fl-k,1));height:calc(176px*var(--fl-k,1));overflow:visible;border-radius:20px;overflow:hidden;position:relative;border:3px solid #ff5fc8;box-shadow:0 8px 22px rgba(200,0,143,.35);background:#f6c9e6 url(/flashy/flashy.jpg) center/cover;animation:none}.chef.flashyv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:17px}.flashyv .vh{opacity:0;transition:opacity .2s}.flashyv.talk .vh{opacity:1}.flashyv.talk{animation:none;box-shadow:0 0 0 4px rgba(255,95,200,.35),0 8px 22px rgba(200,0,143,.4)}
 .chef{width:118px;height:162px}.chef .arm{transform-origin:84px 98px;animation:tray 3s ease-in-out infinite}@keyframes tray{50%{transform:rotate(-4deg)}}.chef.talk .mouth{animation:mouth .25s ease-in-out infinite alternate}@keyframes mouth{to{transform:scaleY(.35)}}
 #cajaAsis{position:fixed;left:10px;right:10px;bottom:10px;z-index:50;display:grid;grid-template-columns:84px 1fr auto;gap:8px;align-items:end;background:#fff;border:2px solid var(--line);border-radius:20px;padding:8px 10px;box-shadow:0 10px 30px rgba(194,51,107,.22)}
 #cajaAsis.min{right:auto;grid-template-columns:84px;padding:4px;background:transparent;border:0;box-shadow:none}#cajaAsis.min > :not(#cAva){display:none!important}
@@ -127,6 +127,7 @@ body:has(.mesa){--v:#c2336b;--o:#e2457f;--p:#f4a3c4;--ink:#3a2433;--cream:#fff6f
 </style>
 <script src="/postal.js?v=1" defer></script>
 <script src="/ayudante.js?v=1" defer></script>
+<script src="/flashy/flashy.js"></script>
 </head>
 <body>
 <div id="app"></div>
@@ -148,7 +149,7 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
   function makeAva(o){
     o = o || {};
     if(o.g === 'flashy' && !o.dibujo){ // Flashy de verdad: la chica 3D, en video (saluda quieta y gesticula cuando habla)
-      return `<div class="chef flashyv" aria-hidden="true"><video class="vi" src="/flashy/flashy-saluda.mp4" poster="/flashy/flashy.jpg" autoplay muted loop playsinline preload="auto"></video><video class="vh" src="/flashy/flashy-habla.mp4" poster="/flashy/flashy.jpg" autoplay muted loop playsinline preload="auto"></video></div>`;
+      return `<div class="chef flashyv" aria-hidden="true"><video class="vi" src="/flashy/flashy-saluda.mp4" poster="/flashy/flashy.jpg" autoplay muted loop playsinline preload="auto"></video><video class="vh" src="/flashy/flashy-habla.mp4" poster="/flashy/flashy.jpg" autoplay muted loop playsinline preload="auto"></video><button type="button" class="fltam" aria-label="Cambiar el tamaño de Flashy" title="Tamaño de Flashy">⤢</button></div>`;
     }
     if(o.g === 'flashy'){ // Flashy de mozo: la carita amarilla con traje, moño, bandeja y zapatos
       const nom = esc(String(o.local || '').trim().slice(0, 14)), fs = nom.length > 10 ? 4.2 : nom.length > 7 ? 5 : 6, id = 'fl' + Math.random().toString(36).slice(2, 7);

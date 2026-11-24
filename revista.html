@@ -35,7 +35,7 @@ button{font:inherit;cursor:pointer}
 #bCarro{border:0;background:linear-gradient(135deg,#c8008f,#f020c0);color:#fff;border-radius:999px;padding:10px 14px;font-weight:800;display:none}
 #fla{position:fixed;right:10px;bottom:66px;width:64px;height:84px;z-index:20;cursor:pointer;animation:vive 2.2s ease-in-out infinite;filter:drop-shadow(0 6px 10px rgba(120,40,90,.3))}#fla svg{width:100%;height:100%}#fla.habla{animation:habla .22s ease-in-out infinite alternate}
 @keyframes vive{0%,100%{transform:translateY(0)}40%{transform:translateY(-7px)}}@keyframes habla{from{transform:scale(1)}to{transform:scale(1.07) translateY(-3px)}}
-#globo{position:fixed;right:100px;bottom:76px;max-width:min(300px,70vw);background:#fff;border:2px solid #ffb5e6;border-radius:16px 16px 4px 16px;padding:9px 12px;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.12);z-index:21;display:none}
+#globo{position:fixed;right:calc(16px + 84px*var(--fl-k,1));bottom:76px;max-width:min(300px,70vw);background:#fff;border:2px solid #ffb5e6;border-radius:16px 16px 4px 16px;padding:9px 12px;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.12);z-index:21;display:none}
 #globo b{font-weight:800}
 #fla.salta{animation:salta .7s ease-out 1}
 @keyframes salta{0%{transform:translateY(0) rotate(0)}25%{transform:translateY(-18px) rotate(-8deg)}50%{transform:translateY(0) rotate(6deg)}70%{transform:translateY(-7px) rotate(-3deg)}100%{transform:translateY(0) rotate(0)}}
@@ -45,7 +45,7 @@ button{font:inherit;cursor:pointer}
 .velo.liviano .panel{pointer-events:auto;width:min(340px,94vw);margin:0 8px 150px;border-radius:20px;box-shadow:0 12px 34px rgba(80,10,60,.28);border:2px solid #ffb5e6;max-height:62dvh;padding:12px}
 .velo.liviano .acc{grid-template-columns:1fr 1fr;gap:6px}.velo.liviano .acc button{padding:9px 6px;font-size:13.5px}.velo.liviano h3{font-size:16px}.velo.liviano .t{padding:9px}
 #globo .gacc{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}#globo .gacc button{border:0;border-radius:999px;padding:7px 11px;font-weight:800;font-size:13.5px;background:#ffe0f3;color:#a0006f;cursor:pointer}#globo .gacc button.pri{background:linear-gradient(135deg,#c8008f,#f020c0);color:#fff}
-#fla{width:84px!important;height:84px!important;border-radius:50%;border:3px solid #ff5fc8;background:#f6c9e6 url(/flashy/flashy-cara.jpg) center/cover;overflow:visible}#fla video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 18%;border-radius:50%}#fla .vh{opacity:0;transition:opacity .2s}#fla.habla .vh{opacity:1}#fla.habla{animation:none;box-shadow:0 0 0 5px rgba(255,95,200,.35)}#fla .rayo{position:absolute;right:-6px;top:-8px;font-size:22px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
+#fla{width:calc(84px*var(--fl-k,1))!important;height:calc(84px*var(--fl-k,1))!important;border-radius:50%;border:3px solid #ff5fc8;background:#f6c9e6 url(/flashy/flashy-cara.jpg) center/cover;overflow:visible}#fla video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 18%;border-radius:50%}#fla .vh{opacity:0;transition:opacity .2s}#fla.habla .vh{opacity:1}#fla.habla{animation:none;box-shadow:0 0 0 5px rgba(255,95,200,.35)}#fla .rayo{position:absolute;right:-6px;top:-8px;font-size:22px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
 .chis{position:fixed;z-index:60;pointer-events:none;font-size:14px;animation:chis .9s ease-out forwards}
 @keyframes chis{0%{opacity:1;transform:translate(0,0) scale(1) rotate(0)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3) rotate(140deg)}}
 #fla.vuela{transition:translate .95s cubic-bezier(.45,-.25,.35,1.25),scale .95s cubic-bezier(.3,1.6,.5,1);z-index:55}
@@ -61,12 +61,13 @@ input.t{width:100%;border:1.5px solid #e4cde0;border-radius:12px;padding:11px;fo
 .estrellas{font-size:34px;letter-spacing:4px;text-align:center}.estrellas span{cursor:pointer;filter:grayscale(1);opacity:.45}.estrellas span.on{filter:none;opacity:1}
 #fxEst{position:fixed;inset:0;pointer-events:none;z-index:15;overflow:hidden}#fxEst span{position:absolute;top:-30px;animation:cae linear infinite}@keyframes cae{to{transform:translateY(110vh) rotate(360deg)}}
 .pv{display:block;text-align:center;font-size:11.5px;color:#8a7690;text-decoration:none;margin-top:10px}
-</style></head><body>
+</style><script src="/flashy/flashy.js"></script>
+</head><body>
 <div id="banda" hidden><span id="bandaTx"></span></div>
 <div id="top"><h1 id="tit">Revista</h1><input id="busca" placeholder="🔍 Buscar…" enterkeyhint="search"><button id="bTodo" title="Ver todo">🔍</button><button id="bMus" title="Música" aria-label="Música" hidden>🎵</button></div>
 <div id="libro"></div>
 <div id="pie"><button class="nav" id="bAnt" aria-label="Página anterior">◀</button><div id="pag"></div><button id="bCarro" type="button">🛒 0</button><button class="nav" id="bSig" aria-label="Página siguiente">▶</button></div>
-<div id="fla" title="Flashy te ayuda"><video class="vi" src="/flashy/flashy-saluda.mp4" poster="/flashy/flashy-cara.jpg" autoplay muted loop playsinline preload="auto"></video><video class="vh" src="/flashy/flashy-habla.mp4" autoplay muted loop playsinline preload="auto"></video><span class="rayo">⚡</span></div><div id="globo"></div>
+<div id="fla" title="Flashy te ayuda"><video class="vi" src="/flashy/flashy-saluda.mp4" poster="/flashy/flashy-cara.jpg" autoplay muted loop playsinline preload="auto"></video><video class="vh" src="/flashy/flashy-habla.mp4" autoplay muted loop playsinline preload="auto"></video><span class="rayo">⚡</span><button type="button" class="fltam" aria-label="Cambiar el tamaño de Flashy" title="Tamaño de Flashy">⤢</button></div><div id="globo"></div>
 <script>
 'use strict';
 const $=s=>document.querySelector(s),esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);

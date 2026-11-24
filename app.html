@@ -585,6 +585,7 @@
 
 </script>
 <script>try{var r=new URLSearchParams(location.search).get('ref');if(r&&/^[A-Za-z0-9]{3,16}$/.test(r))localStorage.setItem('v360-ref',JSON.stringify({c:r.toUpperCase(),t:Date.now()}))}catch(e){}</script>
+<script src="/flashy/flashy.js"></script>
 </head>
 <body>
 <title>ShopFlash</title>
@@ -9759,6 +9760,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   const hList = () => { syncOwner(); const h = brand.helpers; const own = ownOn() ? ['duena'] : []; if(Array.isArray(h)) return own.concat(h.filter(id => HELPERS[id] && id !== 'duena')); return own.concat(h === 'ambos' ? ['sofi', 'tomas'] : HELPERS[h] ? [h] : []); };
   const HCOLORS = ['', '#e63946', '#ff8c00', '#2a9d8f', '#1d4ed8', '#7c3aed', '#111827', '#db2777', '#ff2fd6', '#39ff14', '#00e5ff', '#ff6a00', '#f5ff00'];
   function helperSVG(h, shirt){
+    if(h.style === 'flashy' && window.FLASHY_HTML) return FLASHY_HTML();
     if(h.style === 'flashy') return `<svg viewBox="0 0 80 110" aria-hidden="true" class="flashyh"><ellipse cx="40" cy="106" rx="20" ry="4" fill="rgba(0,0,0,.18)"/><defs><radialGradient id="flhg" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fde68a"/><stop offset=".6" stop-color="#facc15"/><stop offset="1" stop-color="#eab308"/></radialGradient></defs><path d="M42 4 31 24h10l-5 13 15-20H40l7-13z" fill="#16a34a" stroke="#14532d" stroke-width="2" stroke-linejoin="round"/><circle cx="40" cy="64" r="32" fill="url(#flhg)" stroke="#ca8a04" stroke-width="2.5"/><g class="heyes"><ellipse cx="29" cy="59" rx="5.5" ry="7.5" fill="#1f2937"/><ellipse cx="51" cy="59" rx="5.5" ry="7.5" fill="#1f2937"/><circle cx="31" cy="56" r="2.2" fill="#fff"/><circle cx="53" cy="56" r="2.2" fill="#fff"/></g><circle cx="20" cy="72" r="5" fill="#fb7185" opacity=".55"/><circle cx="60" cy="72" r="5" fill="#fb7185" opacity=".55"/><g class="hmouth" style="transform-origin:40px 76px"><path d="M30 74q10 11 20 0" fill="#7f1d1d" stroke="#1f2937" stroke-width="2.4" stroke-linecap="round"/><path d="M34 78q6 3.5 12 0" fill="#fb7185"/></g><path d="M10 70q-8-6-4-16" stroke="#ca8a04" stroke-width="4" fill="none" stroke-linecap="round" class="flwave"/></svg>`;
     const tag = esc((brand.name || 'Mi tienda').slice(0, 14));
     const st = h.style;
