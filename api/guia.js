@@ -73,6 +73,16 @@ module.exports = async (req, res) => {
       if (!o || !o.texto) return res.status(200).json({ titulo: '', texto: tx, animo: '📝', riesgo: false });
       return res.status(200).json({ titulo: t(o.titulo, 80), texto: t(o.texto, 6000), animo: t(o.animo, 8), riesgo: !!o.riesgo });
     }
+    if (a === 'aduana') { // ShopRevista Mundial: guía general de trámites de importación por país (orientativa, siempre remite a la aduana oficial)
+      const pais = t(b.pais, 60) || 'Argentina', q = t(b.q, 200).trim();
+      if (!(await cupo())) return res.status(429).json({ error: 'cupo' });
+      const out = await claude('Sos Flashy, guía de comercio exterior de ShopRevista Mundial. Orientás de forma general y prudente sobre cómo importar en cada país: qué organismo controla, qué suele pedirse, qué preguntar y a quién. Nunca inventás números de teléfono, direcciones, montos exactos ni sitios web: si no estás seguro, decís que se confirme en la aduana oficial. No das asesoramiento legal. Devolvé SOLO un objeto JSON, sin comentarios.',
+        `País de la persona: ${pais}. Lo que quiere importar o su duda: "${q || 'importar productos en general'}".\nDevolvé {"organismo":"…","pasos":["…"],"impuestos":["…"],"preguntar":["…"],"ojo":["…"],"profesional":"…"}. "organismo" = nombre del organismo de aduanas del país (y otros organismos que suelen intervenir para ese producto, si aplica). "pasos" = 4 a 6 pasos generales y cortos para importar ese producto como persona o como negocio. "impuestos" = 3 a 5 puntos sobre qué impuestos y cargos suelen pagarse al importar en ese país (aranceles o derechos, IVA u otro impuesto al consumo, tasas, régimen especial para envíos chicos o courier si existe); da porcentajes o montos SOLO si estás seguro y aclarando que pueden cambiar. "preguntar" = 3 o 4 preguntas concretas para hacerle a la aduana o a un despachante. "ojo" = 2 o 3 cuidados (productos prohibidos o con permiso, límites, impuestos) dichos en general, sin cifras que no sean seguras. "profesional" = a qué tipo de profesional conviene consultar (despachante de aduana, agente de carga, etc.). Todo en ${IDI[lang]}, frases cortas y claras.`, 1500);
+      let o = null; try { o = JSON.parse(out.slice(out.indexOf('{'), out.lastIndexOf('}') + 1)); } catch (e) {}
+      if (!o || !Array.isArray(o.pasos)) return res.status(502).json({ error: 'sin guía' });
+      const L = (x, n) => (Array.isArray(x) ? x : []).slice(0, n).map(y => t(y, 220));
+      return res.status(200).json({ organismo: t(o.organismo, 200), pasos: L(o.pasos, 7), impuestos: L(o.impuestos, 6), preguntar: L(o.preguntar, 5), ojo: L(o.ojo, 4), profesional: t(o.profesional, 200) });
+    }
     if (a === 'traducir') { // con memoria compartida por idioma: lo que ya se tradujo una vez sale al instante para todos
       const L = (Array.isArray(b.textos) ? b.textos : []).slice(0, 40).map(x => t(x, 700));
       if (!L.length || lang === 'es' || lang === 'neutro') return res.status(200).json({ textos: L });

@@ -25,6 +25,7 @@ header.top b{font-size:18px;color:#a0006f}header.top small{color:#7a5470;font-we
 .tapa p{margin:8px 0 0;font-size:17px;color:#5a4060}
 .busca{margin:16px 0 8px;background:#fff;border:3px solid #ff5fc8;border-radius:22px;padding:12px;box-shadow:0 10px 30px rgba(200,0,143,.15)}
 .busca form{display:flex;gap:8px}
+.adl{display:inline-block;padding:10px 12px;border-radius:12px;background:#fff;border:2px solid #dbeafe;color:#1e3a8a;font-weight:700;text-decoration:none}.adl small{color:#64748b;font-weight:600}
 .vmas{grid-column:1/-1;border:2px dashed #c8008f;background:#fff7fc;color:#a0006f;border-radius:14px;padding:12px;font:800 15px system-ui;cursor:pointer}
 .sig{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.sig button{border:2px solid #bfdbfe;background:#fff;color:#1e3a8a;border-radius:999px;padding:8px 12px;font:700 14px system-ui;cursor:pointer}.sig button:hover{background:#eff6ff}
 .busca input{flex:1;min-width:0;border:2px solid #ffd0ec;border-radius:14px;padding:13px 14px;font:600 17px system-ui}
@@ -117,12 +118,31 @@ footer{text-align:center;color:#7a5470;padding:26px 0 40px;font-size:14px}
 
   <section class="info" id="infoOtro" hidden style="background:#fefce8;border-color:#fde68a">
     <h3 style="color:#713f12">📦 Antes de comprar en otro país</h3>
-    <ul><li>Cada país tiene sus propias reglas de importación y sus límites sin impuestos: revisalas en la aduana de tu país.</li><li>Fíjate siempre si la tienda envía a tu país y cuánto sale el envío antes de pagar.</li><li>Si importas para vender, necesitas estar inscripto como importador en tu país.</li></ul>
+    <ul><li>Cada país tiene sus propias reglas de importación, impuestos y límites: <a href="#aduana" style="color:#713f12;font-weight:800">🛃 mira la guía de aduana de tu país</a>.</li><li>Fíjate siempre si la tienda envía a tu país y cuánto sale el envío antes de pagar.</li><li>Si importas para vender, necesitas estar inscripto como importador en tu país.</li></ul>
   </section>
 
   <section class="info" id="porque" style="background:#f0fdf4;border-color:#bbf7d0">
     <h3 style="color:#166534">🌎 ¿Por qué ShopRevista Mundial?</h3>
     <ul><li><b>Todo el comercio del mundo en un solo lugar:</b> más de 500 tiendas grandes, medianas y chicas de casi 200 países, fábricas, proveedores y exportadores.</li><li><b>Para los dos lados:</b> compras afuera y también descubres lo mejor de Latinoamérica para el mundo.</li><li><b>En tu idioma, con Flashy:</b> 40 idiomas, te busca en todas las tiendas a la vez y te ahorra horas.</li><li><b>Sin intermediarios:</b> no cobramos comisión ni tocamos tu plata; compras directo en la página oficial.</li></ul>
+  </section>
+
+  <section id="divisas" style="margin:18px 0;padding:16px;border:2px solid #d9f0e3;background:#f6fcf8;border-radius:20px">
+    <h2 style="margin:0 0 6px;color:#166534">💱 Conversor de divisas <small style="color:#64748b">todas las monedas del mundo</small></h2>
+    <p style="margin:0 0 10px;color:#334155">Antes de comprar o importar, mira cuánto es en tu moneda.</p>
+    <div style="display:grid;grid-template-columns:1fr;gap:8px">
+      <input id="dvMonto" type="number" inputmode="decimal" min="0" value="100" aria-label="Monto" style="padding:12px;border:2px solid #d9f0e3;border-radius:14px;font:800 20px system-ui">
+      <div style="display:flex;gap:8px;align-items:center"><select id="dvDe" aria-label="De" class="nt" style="flex:1;min-width:0;padding:12px;border:2px solid #d9f0e3;border-radius:14px;font:16px system-ui"></select><button type="button" id="dvCambia" aria-label="Invertir monedas" style="border:0;border-radius:50%;width:44px;height:44px;background:#dcfce7;font-size:20px;cursor:pointer">⇄</button><select id="dvA" aria-label="A" class="nt" style="flex:1;min-width:0;padding:12px;border:2px solid #d9f0e3;border-radius:14px;font:16px system-ui"></select></div>
+    </div>
+    <div id="dvRes" style="margin-top:12px;font:900 26px system-ui;color:#166534">…</div>
+    <div id="dvInfo" style="font-size:13px;color:#64748b;margin-top:4px"></div>
+  </section>
+
+  <section id="aduana" style="margin:18px 0;padding:16px;border:2px solid #dbeafe;background:#f8fbff;border-radius:20px">
+    <h2 style="margin:0 0 6px;color:#1e3a8a">🛃 Trámites de aduana e importación <small style="color:#64748b">según tu país</small></h2>
+    <p style="margin:0 0 10px;color:#334155">Flashy te orienta: qué organismo controla, qué pasos se suelen seguir, qué preguntar y con quién hablar. <b>🌉 Somos el puente:</b> te guiamos, pero los trámites los haces tú con la aduana o con un despachante de aduana.</p>
+    <div id="adOf"></div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><input id="adQ" placeholder="¿Qué quieres importar? Ej: ropa, repuestos, cosméticos" style="flex:1;min-width:200px;padding:12px;border:2px solid #dbeafe;border-radius:14px;font:16px system-ui"><button type="button" id="adBtn" style="border:0;border-radius:14px;padding:12px 16px;background:#1d4ed8;color:#fff;font:800 15px system-ui;cursor:pointer">🤖 Que Flashy me guíe</button></div>
+    <div id="adRes"></div>
   </section>
 
   <section class="plan" id="plan">
@@ -875,7 +895,7 @@ function traducir(root){
 }
 function aplicarIdioma(){
   document.documentElement.lang = LANG; document.documentElement.dir = ['ar','ur','fa','he'].includes(LANG) ? 'rtl' : 'ltr';
-  traducir(document.body);
+  traducir(document.body); llenarMonedas();
   const ph = {es:'¿Qué buscas? Ej: masajeador de cuello'}; $('q').placeholder = ph[LANG] || '🔎';
 }
 function aplicarPais(){
@@ -886,12 +906,71 @@ function aplicarPais(){
   // a los de afuera de Latinoamérica les mostramos primero lo nuestro
   const lt = $('latam'), dst = lat ? $('importar') : $('res').nextElementSibling;
   [lt, lt.nextElementSibling, lt.nextElementSibling.nextElementSibling].forEach(el => { dst.parentNode.insertBefore(el, dst); });
-  portada(); $('lat').innerHTML = LATAM.map(tarjetaL).join(''); mapaYo(); observar(); { const g = GEO[PAIS]; mapaMarcar(g ? [PAIS] : [], g ? g[2] : 'mundo', g ? '📍 Tú estás aquí' : '🌎 El mundo'); }
+  portada(); $('lat').innerHTML = LATAM.map(tarjetaL).join(''); mapaYo(); observar(); verAduana(); if(TASAS){ const mc = monedaDe(PAIS); if(TASAS[mc]) $('dvA').value = mc; convertir(); } { const g = GEO[PAIS]; mapaMarcar(g ? [PAIS] : [], g ? g[2] : 'mundo', g ? '📍 Tú estás aquí' : '🌎 El mundo'); }
   traducir(document.body);
 }
 $('selLang').onchange = e => { LANG = e.target.value; localStorage.setItem('mundo-lang', LANG); DIC = {}; try{ DIC = JSON.parse(localStorage.getItem(TRV + LANG) || '{}'); }catch(_){} aplicarIdioma(); decir('¡Hola! Soy <b>Flashy</b> 👋 Dime qué quieres comprar y lo busco en todas las tiendas del mundo.'); };
 $('selPais').onchange = e => { PAIS = e.target.value; localStorage.setItem('mundo-pais', PAIS); aplicarPais(); };
 
+
+// ================= TRÁMITES DE ADUANA =================
+const ADU = {AR:['ARCA · Dirección General de Aduanas','https://www.arca.gob.ar/'], UY:['Dirección Nacional de Aduanas','https://www.aduanas.gub.uy/'], PY:['DNIT · Aduanas','https://www.dnit.gov.py/'], BO:['Aduana Nacional de Bolivia','https://www.aduana.gob.bo/'], CL:['Servicio Nacional de Aduanas','https://www.aduana.cl/'], PE:['SUNAT · Aduanas','https://www.sunat.gob.pe/'], CO:['DIAN','https://www.dian.gov.co/'], EC:['SENAE','https://www.aduana.gob.ec/'], VE:['SENIAT','https://www.seniat.gob.ve/'], MX:['ANAM · Agencia Nacional de Aduanas','https://www.anam.gob.mx/'], BR:['Receita Federal','https://www.gov.br/receitafederal/'], CR:['Ministerio de Hacienda · Aduanas','https://www.hacienda.go.cr/'], PA:['Autoridad Nacional de Aduanas','https://www.ana.gob.pa/'], GT:['SAT · Aduanas','https://portal.sat.gob.gt/'], US:['U.S. Customs and Border Protection (CBP)','https://www.cbp.gov/'], CA:['Canada Border Services Agency (CBSA)','https://www.cbsa-asfc.gc.ca/'], GB:['HMRC · importar al Reino Unido','https://www.gov.uk/import-goods-into-uk'], ES:['Agencia Tributaria · Aduanas','https://www.agenciatributaria.es/'], DE:['Zoll (Aduana de Alemania)','https://www.zoll.de/'], FR:['Douane française','https://www.douane.gouv.fr/'], IT:['Agenzia delle Dogane (ADM)','https://www.adm.gov.it/'], CN:['Aduana de China (GACC)','http://english.customs.gov.cn/'], JP:['Japan Customs','https://www.customs.go.jp/'], KR:['Korea Customs Service','https://www.customs.go.kr/'], IN:['CBIC · Aduanas de India','https://www.cbic.gov.in/'], AU:['Australian Border Force','https://www.abf.gov.au/'], NZ:['New Zealand Customs Service','https://www.customs.govt.nz/'], RU:['Servicio Federal de Aduanas','https://customs.gov.ru/'], TR:['Ministerio de Comercio de Turquía','https://www.ticaret.gov.tr/'], SA:['ZATCA','https://zatca.gov.sa/'], ZA:['SARS · Customs','https://www.sars.gov.za/'], NG:['Nigeria Customs Service','https://customs.gov.ng/'], KE:['Kenya Revenue Authority','https://www.kra.go.ke/']};
+const EU = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];
+const nomPais = c => ((PAISV.find(p => p[0] === c) || [, 'tu país'])[1]).replace(/^\S+\s/, '');
+function verAduana(){
+  const c = PAIS, n = nomPais(c), a = ADU[c];
+  const of = a ? `<a href="${a[1]}" target="_blank" rel="noopener" class="adl">🏛️ ${esc(a[0])} <small>página oficial</small></a>` : `<a href="https://www.google.com/search?q=${E('aduana oficial ' + n + ' importación')}" target="_blank" rel="noopener" class="adl">🔎 Buscar la aduana oficial de ${esc(n)}</a>`;
+  const ue = EU.includes(c) ? `<a href="https://taxation-customs.ec.europa.eu/" target="_blank" rel="noopener" class="adl">🇪🇺 Aduanas de la Unión Europea</a>` : '';
+  $('adOf').innerHTML = `<div style="font-weight:800;margin-bottom:6px">📍 ${esc(n)}</div><div style="display:flex;flex-wrap:wrap;gap:8px">${of}${ue}<a href="https://www.google.com/search?q=${E('despachante de aduana ' + n)}" target="_blank" rel="noopener" class="adl">🧑‍💼 Despachantes de aduana en ${esc(n)}</a></div>`;
+  traducir($('adOf'));
+}
+async function guiaAduana(){
+  if(!puede()) return;
+  const q = $('adQ').value.trim(), n = nomPais(PAIS);
+  $('adRes').innerHTML = '<p style="font-weight:700">🤖 Flashy está armando tu guía…</p>';
+  let o = null; try{ const r = await fetch('/api/guia?accion=aduana', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({pais: n, q, lang: LANG === 'es' ? 'neutro' : LANG})}); if(r.ok) o = await r.json(); }catch(e){}
+  if(!o || !Array.isArray(o.pasos)){ $('adRes').innerHTML = '<p>😕 Ahora no pude armar la guía. Prueba en un rato.</p>'; return; }
+  const ul = L => '<ul style="margin:4px 0 10px;padding-left:20px;line-height:1.45">' + L.map(x => `<li>${esc(x)}</li>`).join('') + '</ul>';
+  $('adRes').innerHTML = `<div style="margin-top:12px;padding:14px;background:#fff;border:1px solid #dbeafe;border-radius:16px">
+    <div><b>🏛️ Quién controla:</b> ${esc(o.organismo)}</div>
+    <div style="margin-top:8px"><b>👣 Pasos generales</b></div>${ul(o.pasos)}
+    ${(o.impuestos || []).length ? `<div><b>💰 Impuestos y cargos</b></div>${ul(o.impuestos)}` : ''}
+    <div><b>❓ Qué preguntar en la aduana o al despachante</b></div>${ul(o.preguntar)}
+    <div><b>⚠️ Ojo con</b></div>${ul(o.ojo)}
+    <div><b>🧑‍💼 Con quién hablar:</b> ${esc(o.profesional)}</div>
+    <p style="margin:10px 0 0;font-size:13px;color:#64748b">Es una guía general para orientarte: los impuestos y las reglas cambian, así que confirma siempre en la página oficial de la aduana de tu país o con un despachante. No es asesoramiento legal.</p></div>`;
+  traducir($('adRes'));
+  decir(`🛃 Te armé la guía para importar${q ? ' <b>' + esc(q) + '</b>' : ''} en <b>${esc(n)}</b>. Confírmala siempre con la aduana oficial o con un despachante.`);
+  seguir([['🏭 Buscar fábricas de esto', () => irModo('importa', q || 'productos')], ['🛍️ Verlo en tiendas', () => irModo('compra', q || 'productos')], ['🔎 Otra cosa', otraCosa]]);
+}
+$('adBtn').onclick = guiaAduana; $('adQ').addEventListener('keydown', e => { if(e.key === 'Enter') guiaAduana(); });
+
+// ================= CONVERSOR DE DIVISAS =================
+const MONEDA = {AR:'ARS',UY:'UYU',PY:'PYG',BO:'BOB',CL:'CLP',PE:'PEN',CO:'COP',EC:'USD',VE:'VES',MX:'MXN',BR:'BRL',CR:'CRC',PA:'USD',GT:'GTQ',HN:'HNL',SV:'USD',NI:'NIO',DO:'DOP',CU:'CUP',HT:'HTG',JM:'JMD',TT:'TTD',BS:'BSD',BB:'BBD',BZ:'BZD',GY:'GYD',SR:'SRD',PR:'USD',US:'USD',CA:'CAD',GB:'GBP',CH:'CHF',LI:'CHF',NO:'NOK',SE:'SEK',DK:'DKK',IS:'ISK',PL:'PLN',CZ:'CZK',HU:'HUF',RO:'RON',BG:'BGN',RS:'RSD',BA:'BAM',MK:'MKD',AL:'ALL',MD:'MDL',UA:'UAH',RU:'RUB',BY:'BYN',KZ:'KZT',UZ:'UZS',KG:'KGS',TJ:'TJS',TM:'TMT',GE:'GEL',AM:'AMD',AZ:'AZN',CN:'CNY',HK:'HKD',MO:'MOP',TW:'TWD',JP:'JPY',KR:'KRW',KP:'KPW',MN:'MNT',IN:'INR',PK:'PKR',BD:'BDT',LK:'LKR',NP:'NPR',BT:'BTN',MV:'MVR',AF:'AFN',TH:'THB',VN:'VND',KH:'KHR',LA:'LAK',MM:'MMK',MY:'MYR',SG:'SGD',ID:'IDR',PH:'PHP',BN:'BND',TL:'USD',TR:'TRY',AE:'AED',SA:'SAR',QA:'QAR',KW:'KWD',BH:'BHD',OM:'OMR',YE:'YER',JO:'JOD',LB:'LBP',SY:'SYP',IQ:'IQD',IR:'IRR',IL:'ILS',PS:'ILS',EG:'EGP',MA:'MAD',DZ:'DZD',TN:'TND',LY:'LYD',SD:'SDG',SS:'SSP',NG:'NGN',GH:'GHS',KE:'KES',TZ:'TZS',UG:'UGX',RW:'RWF',BI:'BIF',ET:'ETB',SO:'SOS',DJ:'DJF',ER:'ERN',ZA:'ZAR',NA:'NAD',BW:'BWP',ZW:'ZWG',ZM:'ZMW',MW:'MWK',MZ:'MZN',MG:'MGA',MU:'MUR',SC:'SCR',KM:'KMF',LS:'LSL',SZ:'SZL',AO:'AOA',CD:'CDF',GM:'GMD',GN:'GNF',SL:'SLE',LR:'LRD',CV:'CVE',ST:'STN',MR:'MRU',AU:'AUD',NZ:'NZD',PG:'PGK',FJ:'FJD',SB:'SBD',VU:'VUV',WS:'WST',TO:'TOP',KI:'AUD',TV:'AUD',NR:'AUD',FM:'USD',MH:'USD',PW:'USD',XK:'EUR',ME:'EUR',AD:'EUR',MC:'EUR',SM:'EUR',VA:'EUR'};
+['SN','CI','ML','BF','NE','TG','BJ','GW'].forEach(c => MONEDA[c] = 'XOF'); ['CM','CF','TD','GA','CG','GQ'].forEach(c => MONEDA[c] = 'XAF'); ['AG','DM','GD','KN','LC','VC'].forEach(c => MONEDA[c] = 'XCD');
+let TASAS = null, TFECHA = '';
+const monedaDe = c => MONEDA[c] || (EU.includes(c) ? 'EUR' : 'USD');
+function nomMon(code){ try{ return new Intl.DisplayNames([LANG === 'es' ? 'es' : LANG], {type: 'currency'}).of(code); }catch(e){ return code; } }
+function llenarMonedas(){
+  if(!TASAS) return; const cs = Object.keys(TASAS).sort((a, b) => nomMon(a).localeCompare(nomMon(b)));
+  const op = sel => cs.map(c => `<option value="${c}"${c === sel ? ' selected' : ''}>${c} · ${esc(nomMon(c))}</option>`).join('');
+  const de = $('dvDe').value || 'USD', a = $('dvA').value || monedaDe(PAIS);
+  $('dvDe').innerHTML = op(de); $('dvA').innerHTML = op(TASAS[a] ? a : 'USD'); convertir();
+}
+function convertir(){
+  if(!TASAS) return; const m = parseFloat($('dvMonto').value) || 0, de = $('dvDe').value, a = $('dvA').value;
+  const r = m / TASAS[de] * TASAS[a], f = (v, c) => { try{ return new Intl.NumberFormat(LANG === 'es' ? 'es-AR' : LANG, {style: 'currency', currency: c, maximumFractionDigits: v < 1 ? 4 : 2}).format(v); }catch(e){ return v.toFixed(2) + ' ' + c; } };
+  $('dvRes').textContent = `${f(m, de)} = ${f(r, a)}`;
+  $('dvInfo').innerHTML = `1 ${de} = ${f(TASAS[a] / TASAS[de], a)} · Cotización de referencia${TFECHA ? ' del ' + esc(TFECHA) : ''}. ${a === 'ARS' || de === 'ARS' ? 'En Argentina, al pagar con tarjeta en el exterior se suman impuestos y otros tipos de cambio: el monto final puede ser mayor. ' : ''}Tu banco o la tienda pueden usar otra cotización. <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener" style="color:#64748b">Tasas de ExchangeRate-API</a>`;
+}
+async function cargarTasas(){
+  try{ const c = JSON.parse(localStorage.getItem('mundo-tasas') || 'null'); if(c && Date.now() - c.t < 6 * 3600e3){ TASAS = c.r; TFECHA = c.f; llenarMonedas(); return; } }catch(e){}
+  try{ const r = await fetch('https://open.er-api.com/v6/latest/USD'); const j = await r.json(); if(j.result !== 'success') throw 0; TASAS = j.rates; TFECHA = new Date(j.time_last_update_unix * 1000).toLocaleDateString(); try{ localStorage.setItem('mundo-tasas', JSON.stringify({t: Date.now(), r: TASAS, f: TFECHA})); }catch(e){} llenarMonedas(); }
+  catch(e){ $('dvRes').textContent = '😕'; $('dvInfo').textContent = 'No pude traer las cotizaciones ahora. Prueba en un rato.'; }
+}
+$('dvMonto').oninput = convertir; $('dvDe').onchange = convertir; $('dvA').onchange = convertir;
+$('dvCambia').onclick = () => { const a = $('dvDe').value; $('dvDe').value = $('dvA').value; $('dvA').value = a; convertir(); };
+cargarTasas();
 // ================= MINI MAPA =================
 const RVIS = {mundo:[0,8,360,142,'🌎 El mundo'], us:[40,20,110,60,'🇺🇸 Norteamérica'], la:[60,70,100,95,'🌎 Latinoamérica'], eu:[160,20,60,40,'🇪🇺 Europa'], ru:[190,10,140,60,'🇷🇺 Rusia y Asia Central'], cn:[255,25,70,45,'🇨🇳 China'], kr:[290,40,30,20,'🇰🇷 Corea'], jp:[295,35,35,25,'🇯🇵 Japón'], as:[225,30,110,80,'🌏 Asia'], me:[200,40,60,40,'🕌 Medio Oriente'], oc:[260,85,110,60,'🇦🇺 Oceanía'], af:[150,45,90,90,'🌍 África']};
 const px = (la, lo) => [lo + 180, 90 - la];
@@ -929,6 +1008,7 @@ $('mapa').onclick = () => $('mapa').classList.toggle('gr');
 const NOMREG = {g: ['mundo', '🏢 Tiendas grandes del mundo'], m: ['mundo', '🏬 Tiendas medianas del mundo'], c: ['mundo', '🏠 Tiendas chicas del mundo']};
 function mirarSeccion(id){
   if(id === 'p-tu'){ const g = GEO[PAIS]; mapaMarcar([PAIS], g ? g[2] : 'mundo', '📍 Tu país'); return; }
+  if(id === 'aduana'){ const g = GEO[PAIS]; mapaMarcar(g ? [PAIS] : [], g ? g[2] : 'mundo', '🛃 Aduana de tu país'); return; }
   if(id === 'latam'){ mapaMarcar(LATAMP, 'la', '🌎 Latinoamérica para el mundo'); return; }
   if(id === 'importar'){ mapaMarcar(['CN','IN','KR','TW','TR','VN','DE','US'], 'mundo', '🏭 Fábricas del mundo'); return; }
   const k = id.replace('p-', ''), grp = GRUPOS.find(x => x[0] === k); if(!grp) return;
@@ -936,7 +1016,7 @@ function mirarSeccion(id){
   if(NOMREG[k]) mapaMarcar(ccs, ...NOMREG[k]); else mapaMarcar(ccs, k);
 }
 const obs = new IntersectionObserver(es => { es.filter(e => e.isIntersecting).forEach(e => mirarSeccion(e.target.id)); }, {rootMargin: '-30% 0px -60% 0px'});
-function observar(){ obs.disconnect(); document.querySelectorAll('#paises h2[id], #latam, #importar').forEach(h => obs.observe(h)); }
+function observar(){ obs.disconnect(); document.querySelectorAll('#paises h2[id], #latam, #importar, #aduana').forEach(h => obs.observe(h)); }
 // ---- Flashy habla ----
 let voz = false; document.addEventListener('pointerdown', () => { voz = true; }, {capture: true, once: true});
 function decir(t){ const g = $('globo'); g.innerHTML = t; g.style.display = 'block'; const habla = () => { if(!voz || !('speechSynthesis' in window)) return; try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(g.textContent.replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu, '')); u.lang = VOZ[LANG] || 'es-AR'; window.FLASHY_NO_FORZAR = LANG !== 'es'; speechSynthesis.speak(u); }catch(e){} }; if(LANG === 'es') habla(); else traducir(g).then(habla); }
@@ -1044,7 +1124,7 @@ async function buscar(q){
     const nom = {'🇨🇳':'China','🇹🇼':'Taiwán','🇰🇷':'Corea'};
     decir(emp.length ? `🏭 Para <b>${esc(q)}</b>: ${Object.entries(porPais).map(([f, L]) => `en ${nom[f] || f} tienes <b>${L.slice(0, 3).join(', ')}</b>`).join('; ')}. Entra a su <b>página oficial</b>: ahí está su WhatsApp o su contacto para distribuidores, y hablas directo con ellos. ¿Buscás una fábrica más especial? Abajo te armé la búsqueda en ${B2B.length} directorios de fábricas del mundo 👇 Y ojo: nunca pagues por fuera de la plataforma 🛡️`
       : `🏭 Te armé la búsqueda de <b>fábricas de ${esc(q)}</b> en ${B2B.length} directorios de empresas del mundo. Entra a la que te guste: dentro de cada fábrica está su WhatsApp o su contacto para hablar directo. Pedí precio, cantidad mínima y muestras, y nunca pagues por fuera de la plataforma 🛡️`);
-    ULT = q; seguir([['🛍️ Verlo en tiendas', () => irModo('compra', q)], ['💡 Ideas de negocio', () => irModo('ideas', q)], ['🛡️ ¿Cómo importo seguro?', () => ayuda('importa')], ['🔎 Buscar otra cosa', otraCosa]]);
+    ULT = q; seguir([['🛍️ Verlo en tiendas', () => irModo('compra', q)], ['💡 Ideas de negocio', () => irModo('ideas', q)], ['🛡️ ¿Cómo importo seguro?', () => ayuda('importa')], ['🛃 Trámites de aduana', () => { $('adQ').value = q; $('aduana').scrollIntoView({behavior: 'smooth'}); guiaAduana(); }], ['🔎 Buscar otra cosa', otraCosa]]);
     $('globo').scrollIntoView({behavior: 'smooth', block: 'start'}); traducir($('res')); return;
   }
   const TAMO = {g: 0, m: 1, c: 2}, reg = GEO[PAIS] ? GEO[PAIS][2] : '';
