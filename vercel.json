@@ -145,6 +145,11 @@
       "permanent": false
     },
     {
+      "source": "/mundial",
+      "destination": "/mundial.html",
+      "permanent": false
+    },
+    {
       "source": "/probar-menu",
       "destination": "/probar-menu.html",
       "permanent": false

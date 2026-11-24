@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ShopRevista Mundial · Todas las tiendas del mundo con Flashy</title>
+<meta name="description" content="Las mejores ofertas de la semana de las tiendas más importantes del mundo, en castellano. Flashy te busca lo que quieras en todas a la vez y te dice cuál conviene desde Argentina.">
+<meta name="theme-color" content="#c8008f">
+<script src="/flashy/flashy.js"></script>
+<style>
+*{box-sizing:border-box}html,body{margin:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#2a0f24;background:linear-gradient(180deg,#fff0f8,#fff 420px)}
+a{color:inherit}
+.wrap{max-width:1100px;margin:0 auto;padding:0 14px}
+header.top{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid #ffd0ec}
+header.top .wrap{display:flex;align-items:center;gap:10px;padding-top:8px;padding-bottom:8px}
+header.top b{font-size:18px;color:#a0006f}header.top small{color:#7a5470;font-weight:600}
+.banda{background:linear-gradient(90deg,#c8008f,#ff5fc8,#c8008f);color:#fff;font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden}
+.banda span{display:inline-block;padding:7px 0;animation:corre 38s linear infinite}
+@keyframes corre{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.tapa{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;padding:22px 0 10px}
+.tapa .fl{width:120px;height:120px}
+.tapa h1{margin:0;font-size:clamp(26px,5vw,44px);line-height:1.05}
+.tapa h1 span{color:#c8008f}
+.tapa p{margin:8px 0 0;font-size:17px;color:#5a4060}
+.busca{margin:16px 0 8px;background:#fff;border:3px solid #ff5fc8;border-radius:22px;padding:12px;box-shadow:0 10px 30px rgba(200,0,143,.15)}
+.busca form{display:flex;gap:8px}
+.busca input{flex:1;min-width:0;border:2px solid #ffd0ec;border-radius:14px;padding:13px 14px;font:600 17px system-ui}
+.busca button{border:0;border-radius:14px;padding:0 16px;font:800 16px system-ui;cursor:pointer}
+.busca .ir{background:linear-gradient(135deg,#c8008f,#f020c0);color:#fff}
+.busca .mic{background:#ffe0f3}
+.ejemplos{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.ejemplos button{border:1px solid #ffc4e6;background:#fff7fc;border-radius:999px;padding:6px 11px;font:700 13.5px system-ui;color:#a0006f;cursor:pointer}
+.globo{background:#fff;border:2px solid #ffb5e6;border-radius:18px;padding:12px 14px;font-size:16px;line-height:1.4;margin:10px 0;display:none}
+.res{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin:8px 0 18px}
+.tie{background:#fff;border:1px solid #ffd0ec;border-radius:16px;padding:12px;display:grid;gap:6px;box-shadow:0 4px 14px rgba(120,0,80,.06)}
+.tie .h{display:flex;align-items:center;gap:8px}.tie .h .f{font-size:26px}.tie .h b{font-size:17px}
+.tie .r{font-size:13.5px;color:#6a5065}
+.env{font-size:12.5px;font-weight:800;border-radius:999px;padding:3px 9px;justify-self:start}
+.env.si{background:#dcfce7;color:#166534}.env.cas{background:#fef3c7;color:#92400e}.env.mir{background:#eef2f7;color:#475569}
+.tie .bts{display:flex;gap:6px;flex-wrap:wrap}
+.tie .bts a{text-decoration:none;border-radius:12px;padding:9px 11px;font:800 14px system-ui;background:#ffe0f3;color:#a0006f}
+.tie .bts a.pri{background:linear-gradient(135deg,#c8008f,#f020c0);color:#fff}
+h2{font-size:24px;margin:26px 0 4px}h2 small{font-size:14px;color:#7a5470;font-weight:600}
+.secs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 4px}
+.secs a{text-decoration:none;border-radius:999px;padding:8px 13px;font:800 14px system-ui;background:#fff;border:2px solid #ffd0ec;color:#a0006f}
+.info{background:#f0fdf4;border:2px solid #bbf7d0;border-radius:18px;padding:14px 16px;margin:24px 0}
+.info h3{margin:0 0 6px;color:#14532d}
+.info ul{margin:0;padding-left:20px;line-height:1.6}
+.plan{background:#fff;border:3px solid #ff5fc8;border-radius:22px;padding:18px;margin:24px 0;text-align:center}
+.plan .p{font-size:34px;font-weight:900;color:#a0006f}
+.plan ul{text-align:left;max-width:520px;margin:10px auto;line-height:1.7}
+footer{text-align:center;color:#7a5470;padding:26px 0 40px;font-size:14px}
+#flaFix{position:fixed;right:12px;bottom:12px;width:calc(76px*var(--fl-k,1));height:calc(76px*var(--fl-k,1));z-index:30;cursor:pointer}
+@media (max-width:640px){.tapa{grid-template-columns:1fr;text-align:center}.tapa .fl{margin:0 auto;width:110px;height:110px}.busca form{flex-wrap:wrap}.busca input{flex-basis:100%}.busca button{flex:1;padding:12px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><span style="font-size:24px">🌎</span><span><b>ShopRevista Mundial</b><br><small>Todas las tiendas del mundo, con Flashy</small></span></div></header>
+<div class="banda"><span id="banda"></span></div>
+<main class="wrap">
+  <section class="tapa">
+    <div class="fl" id="flaTapa"></div>
+    <div>
+      <h1>Las mejores ofertas <span>del mundo</span>, en un solo lugar</h1>
+      <p>Amazon, AliExpress, Temu, eBay, Mercado Libre, Shein y muchas más. Decile a Flashy qué buscás y te lo busca en todas las tiendas a la vez, en su idioma, y te dice cuál te conviene desde Argentina.</p>
+    </div>
+  </section>
+
+  <section class="busca" aria-label="Buscar en todas las tiendas">
+    <form id="fBus"><input id="q" placeholder="¿Qué buscás? Ej: masajeador de cuello" enterkeyhint="search" autocomplete="off"><button type="button" class="mic" id="bMic" hidden>🎤</button><button class="ir">⚡ Buscar en el mundo</button></form>
+    <div class="ejemplos" id="ejem"></div>
+  </section>
+  <div class="globo" id="globo" role="status" aria-live="polite"></div>
+  <div class="res" id="res"></div>
+
+  <h2>🔥 Las ofertas de la semana <small>tienda por tienda</small></h2>
+  <div class="secs" id="secs"></div>
+  <div id="paises"></div>
+
+  <section class="info" aria-label="Cómo comprar desde Argentina">
+    <h3>📦 Comprar afuera desde Argentina: lo que tenés que saber</h3>
+    <ul>
+      <li><b>Hasta US$ 400 por envío no pagás derechos de importación</b>, con un máximo de 5 envíos así por año por persona.</li>
+      <li>Por courier podés traer <b>hasta US$ 3.000 por envío</b>, con un máximo de 3 unidades del mismo producto por paquete.</li>
+      <li><b>"Envía a Argentina"</b>: la tienda te lo manda a tu casa. <b>"Con casillero"</b>: necesitás una dirección en Miami de un courier, que te lo reenvía. <b>"Para mirar precios"</b>: sirve para comparar, pero no envía directo.</li>
+      <li>Es para compras personales. Antes de comprar, revisá siempre el envío y el precio final en la tienda.</li>
+    </ul>
+    <p style="margin:8px 0 0;font-size:13px;color:#4b6b55">Reglas de ARCA vigentes a noviembre de 2026. Pueden cambiar.</p>
+  </section>
+
+  <section class="plan" id="plan">
+    <div style="font-size:34px">⚡</div>
+    <h2 style="margin:0">Flashy, tu asistente de compras en el mundo</h2>
+    <p style="margin:6px 0 0;color:#5a4060">Estás en la versión de prueba gratis.</p>
+    <ul>
+      <li>🔎 Busca lo que quieras en todas las tiendas a la vez, en su idioma</li>
+      <li>🏆 Te dice qué tienda te conviene desde Argentina</li>
+      <li>🔥 Las mejores ofertas de cada semana, sin entrar a 20 páginas</li>
+      <li>💬 Le hablás o le escribís, como a una amiga que sabe comprar</li>
+    </ul>
+    <p style="margin:0;font-weight:700">Ganás tiempo y no te perdés las ofertas.</p>
+  </section>
+</main>
+<footer>ShopRevista Mundial · <a href="/provideo" target="_blank" rel="noopener">Pro Video JSRHG</a><br><small>No somos parte de ninguna de estas tiendas: te llevamos a sus páginas oficiales.</small></footer>
+<div id="flaFix" title="Flashy te ayuda"></div>
+<script>
+const $ = id => document.getElementById(id);
+const E = encodeURIComponent;
+// ---- las tiendas del mundo ----
+// env: si = envía a Argentina · cas = con casillero en Miami · mir = para mirar precios
+const G = (dom, q) => 'https://www.google.com/search?q=' + E('site:' + dom + ' ' + q);
+const T = [
+ // Estados Unidos
+ {p:'us', n:'Amazon', s:'g', f:'🇺🇸', r:'De todo: tecnología, hogar, belleza, libros', env:'si', l:'en', b:q=>'https://www.amazon.com/s?k='+E(q), o:'https://www.amazon.com/deals'},
+ {p:'us', n:'eBay', s:'g', f:'🇺🇸', r:'Vendedores de todo el mundo, nuevos y usados', env:'si', l:'en', b:q=>'https://www.ebay.com/sch/i.html?_nkw='+E(q), o:'https://www.ebay.com/deals'},
+ {p:'us', n:'Walmart', s:'g', f:'🇺🇸', r:'Súper e hipermercado de Estados Unidos', env:'cas', l:'en', b:q=>'https://www.walmart.com/search?q='+E(q), o:'https://www.walmart.com/shop/deals'},
+ {p:'us', n:'Target', s:'g', f:'🇺🇸', r:'Hogar, ropa, chicos y bebés', env:'cas', l:'en', b:q=>'https://www.target.com/s?searchTerm='+E(q), o:'https://www.target.com/'},
+ {p:'us', n:'Best Buy', s:'g', f:'🇺🇸', r:'Tecnología y electrodomésticos', env:'cas', l:'en', b:q=>'https://www.bestbuy.com/site/searchpage.jsp?st='+E(q), o:'https://www.bestbuy.com/'},
+ {p:'us', n:'iHerb', s:'m', f:'🇺🇸', r:'Suplementos, vitaminas y cosmética natural', env:'si', l:'en', b:q=>'https://www.iherb.com/search?kw='+E(q), o:'https://www.iherb.com/specials'},
+ {p:'us', n:'Etsy', s:'c', f:'🇺🇸', r:'Hecho a mano, regalos y diseño (según el vendedor)', env:'si', l:'en', b:q=>'https://www.etsy.com/search?q='+E(q), o:'https://www.etsy.com/'},
+ // China
+ {p:'cn', n:'AliExpress', s:'g', f:'🇨🇳', r:'Precios bajos en casi todo', env:'si', l:'es', b:q=>'https://es.aliexpress.com/w/wholesale-'+E(q.trim().replace(/\s+/g,'-'))+'.html', o:'https://es.aliexpress.com/'},
+ {p:'cn', n:'Temu', s:'g', f:'🇨🇳', r:'Hogar, gadgets y ropa muy baratos', env:'si', l:'es', b:q=>'https://www.temu.com/search_result.html?search_key='+E(q), o:'https://www.temu.com/'},
+ {p:'cn', n:'Shein', s:'g', f:'🇨🇳', r:'Moda y accesorios a buen precio', env:'si', l:'es', b:q=>G('shein.com', q), o:'https://ar.shein.com/'},
+ {p:'cn', n:'Banggood', s:'m', f:'🇨🇳', r:'Tecnología, herramientas y hobby', env:'si', l:'en', b:q=>G('banggood.com', q), o:'https://www.banggood.com/'},
+ {p:'cn', n:'DHgate', s:'m', f:'🇨🇳', r:'Por mayor y por menor', env:'si', l:'en', b:q=>G('dhgate.com', q), o:'https://www.dhgate.com/'},
+ {p:'cn', n:'Taobao', s:'g', f:'🇨🇳', r:'El gigante chino (en chino)', env:'mir', l:'zh', b:q=>'https://s.taobao.com/search?q='+E(q), o:'https://www.taobao.com/'},
+ // Corea
+ {p:'kr', n:'YesStyle', s:'m', f:'🇰🇷', r:'Cosmética coreana y moda asiática', env:'si', l:'en', b:q=>G('yesstyle.com', q), o:'https://www.yesstyle.com/es/home.html'},
+ {p:'kr', n:'Olive Young Global', s:'m', f:'🇰🇷', r:'La tienda de belleza más famosa de Corea', env:'si', l:'en', b:q=>G('global.oliveyoung.com', q), o:'https://global.oliveyoung.com/'},
+ {p:'kr', n:'Coupang', s:'g', f:'🇰🇷', r:'El Amazon de Corea (en coreano)', env:'mir', l:'ko', b:q=>'https://www.coupang.com/np/search?q='+E(q), o:'https://www.coupang.com/'},
+ // Japón
+ {p:'jp', n:'Amazon Japón', s:'g', f:'🇯🇵', r:'Productos japoneses; algunos se envían al exterior', env:'si', l:'ja', b:q=>'https://www.amazon.co.jp/s?k='+E(q), o:'https://www.amazon.co.jp/'},
+ {p:'jp', n:'Rakuten', s:'g', f:'🇯🇵', r:'El shopping online de Japón', env:'mir', l:'ja', b:q=>'https://search.rakuten.co.jp/search/mall/'+E(q)+'/', o:'https://www.rakuten.co.jp/'},
+ // Latinoamérica
+ {p:'la', n:'Mercado Libre', s:'g', f:'🇦🇷', r:'Argentina, con compras internacionales incluidas', env:'si', l:'es', b:q=>'https://listado.mercadolibre.com.ar/'+E(q.trim().replace(/\s+/g,'-')), o:'https://www.mercadolibre.com.ar/ofertas'},
+ {p:'la', n:'Mercado Livre', s:'g', f:'🇧🇷', r:'El Mercado Libre de Brasil', env:'mir', l:'pt', b:q=>'https://lista.mercadolivre.com.br/'+E(q.trim().replace(/\s+/g,'-')), o:'https://www.mercadolivre.com.br/ofertas'},
+ {p:'la', n:'Shopee', s:'g', f:'🇧🇷', r:'Muy usado en Brasil, precios bajos', env:'mir', l:'pt', b:q=>'https://shopee.com.br/search?keyword='+E(q), o:'https://shopee.com.br/'},
+ // Europa
+ {p:'eu', n:'Amazon España', s:'g', f:'🇪🇸', r:'En castellano; algunos productos se envían a Argentina', env:'si', l:'es', b:q=>'https://www.amazon.es/s?k='+E(q), o:'https://www.amazon.es/ofertas'},
+ {p:'eu', n:'eBay Reino Unido', s:'g', f:'🇬🇧', r:'Vendedores europeos', env:'si', l:'en', b:q=>'https://www.ebay.co.uk/sch/i.html?_nkw='+E(q), o:'https://www.ebay.co.uk/deals'},
+ {p:'eu', n:'Amazon Alemania', s:'g', f:'🇩🇪', r:'Tecnología y herramientas europeas', env:'si', l:'en', b:q=>'https://www.amazon.de/s?k='+E(q), o:'https://www.amazon.de/'},
+ // Más del mundo
+ {p:'mx', n:'Liverpool', s:'g', f:'🇲🇽', r:'La gran tienda departamental de México', env:'mir', l:'es', b:q=>'https://www.liverpool.com.mx/tienda?s='+E(q), o:'https://www.liverpool.com.mx/'},
+ {p:'mx', n:'Falabella', s:'g', f:'🇨🇱', r:'Tienda departamental de Chile y la región', env:'mir', l:'es', b:q=>'https://www.falabella.com/falabella-cl/search?Ntt='+E(q), o:'https://www.falabella.com/falabella-cl'},
+ {p:'mx', n:'Coppel', s:'m', f:'🇲🇽', r:'Hogar, electro y ropa en México', env:'mir', l:'es', b:q=>G('coppel.com', q), o:'https://www.coppel.com/'},
+ {p:'eu', n:'ASOS', s:'m', f:'🇬🇧', r:'Moda joven del Reino Unido', env:'mir', l:'en', b:q=>'https://www.asos.com/search/?q='+E(q), o:'https://www.asos.com/'},
+ {p:'eu', n:'Cdiscount', s:'g', f:'🇫🇷', r:'El gran marketplace de Francia', env:'mir', l:'en', b:q=>G('cdiscount.com', q), o:'https://www.cdiscount.com/'},
+ {p:'eu', n:'Zalando', s:'g', f:'🇩🇪', r:'Moda y calzado de toda Europa', env:'mir', l:'en', b:q=>G('zalando.com', q), o:'https://www.zalando.com/'},
+ {p:'mx', n:'Trendyol', s:'g', f:'🇹🇷', r:'La tienda online más grande de Turquía', env:'mir', l:'en', b:q=>G('trendyol.com', q), o:'https://www.trendyol.com/en'},
+ {p:'mx', n:'Flipkart', s:'g', f:'🇮🇳', r:'El gigante de las compras en India', env:'mir', l:'en', b:q=>'https://www.flipkart.com/search?q='+E(q), o:'https://www.flipkart.com/'},
+ {p:'mx', n:'Noon', s:'g', f:'🇦🇪', r:'El Amazon de Emiratos y Arabia Saudita', env:'mir', l:'en', b:q=>G('noon.com', q), o:'https://www.noon.com/'},
+ {p:'mx', n:'Lazada', s:'g', f:'🇸🇬', r:'El shopping del sudeste asiático', env:'mir', l:'en', b:q=>G('lazada.sg', q), o:'https://www.lazada.sg/'},
+ {p:'mx', n:'Catch', s:'m', f:'🇦🇺', r:'Ofertas de Australia', env:'mir', l:'en', b:q=>G('catch.com.au', q), o:'https://www.catch.com.au/'},
+ // Rusia
+ {p:'ru', n:'Ozon', s:'g', f:'🇷🇺', r:'El gran marketplace de Rusia (en ruso)', env:'mir', l:'ru', b:q=>'https://www.ozon.ru/search/?text='+E(q), o:'https://www.ozon.ru/'},
+ {p:'ru', n:'Wildberries', s:'g', f:'🇷🇺', r:'La tienda online más grande de Rusia (en ruso)', env:'mir', l:'ru', b:q=>'https://www.wildberries.ru/catalog/0/search.aspx?search='+E(q), o:'https://www.wildberries.ru/'},
+];
+const PAISES = [['us','🇺🇸','Estados Unidos'],['cn','🇨🇳','China'],['kr','🇰🇷','Corea'],['jp','🇯🇵','Japón'],['la','🇦🇷','Argentina y Brasil'],['eu','🇪🇺','Europa'],['ru','🇷🇺','Rusia'],['mx','🌍','México, Chile y el resto del mundo']];
+const ENV = {si:['si','✅ Envía a Argentina'], cas:['cas','📦 Con casillero en Miami'], mir:['mir','👀 Para mirar precios (consultá el envío)']};
+const ORDEN = {si:0, cas:1, mir:2};
+const TAM = {g:'🏢 Tienda grande', m:'🏬 Tienda mediana', c:'🏠 Tienda chica'};
+const tarjeta = (t, q, k) => `<div class="tie"><div class="h"><span class="f">${t.f}</span><b>${t.n}</b></div><div class="r">${t.r}</div><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="env ${ENV[t.env][0]}">${ENV[t.env][1]}</span><span class="env" style="background:#ffe0f3;color:#a0006f">${TAM[t.s]}</span></div><div class="bts">${q ? `<a class="pri" href="${t.b(k)}" target="_blank" rel="noopener">🔎 Ver "${esc(k)}"</a>` : ''}<a href="${t.o}" target="_blank" rel="noopener">🔥 Ofertas</a></div></div>`;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// ---- portada ----
+const SUMA = `<div class="tie" style="border:2px dashed #ff5fc8;background:#fff7fc"><div class="h"><span class="f">✨</span><b>¿Tenés una tienda?</b></div><div class="r">Grande, mediana o chica, de cualquier país: sumala a ShopRevista Mundial y que la conozcan en Argentina y Latinoamérica.</div><div class="bts"><a class="pri" href="https://wa.me/5492235814437?text=${E('¡Hola! Quiero sumar mi tienda a ShopRevista Mundial.')}" target="_blank" rel="noopener">💬 Sumar mi tienda</a></div></div>`;
+let VISTA = 'pais';
+function portada(){
+  const grupos = VISTA === 'pais' ? PAISES.map(([id, f, n]) => [id, f + ' ' + n, T.filter(t => t.p === id)])
+    : [['g', '🏢 Tiendas grandes <small>las gigantes del mundo</small>', T.filter(t => t.s === 'g')], ['m', '🏬 Tiendas medianas <small>especialistas en lo suyo</small>', T.filter(t => t.s === 'm')], ['c', '🏠 Tiendas chicas <small>hecho a mano y diseño de todo el mundo</small>', T.filter(t => t.s === 'c')]];
+  $('secs').innerHTML = `<a href="#" data-vista="pais" style="${VISTA === 'pais' ? 'background:#c8008f;color:#fff' : ''}">🌎 Por país</a><a href="#" data-vista="tam" style="${VISTA === 'tam' ? 'background:#c8008f;color:#fff' : ''}">🏢 Por tamaño</a>` + grupos.map(([id, n]) => `<a href="#p-${id}">${n.replace(/<small>.*<\/small>/, '')}</a>`).join('');
+  $('paises').innerHTML = grupos.map(([id, n, L]) => `<h2 id="p-${id}" style="font-size:20px">${n}</h2><div class="res">${L.map(t => tarjeta(t)).join('')}${id === 'c' || (VISTA === 'pais' && id === 'mx') ? SUMA : ''}</div>`).join('');
+}
+portada();
+document.addEventListener('click', e => { const v = e.target.closest('[data-vista]'); if(v){ e.preventDefault(); VISTA = v.dataset.vista; portada(); } });
+const EJ = ['masajeador de cuello', 'auriculares inalámbricos', 'crema coreana', 'freidora de aire', 'zapatillas running', 'juguetes didácticos', 'vaso térmico', 'reloj inteligente'];
+$('ejem').innerHTML = EJ.map(x => `<button type="button" data-ej="${x}">${x}</button>`).join('');
+$('banda').textContent = ('🔥 Las mejores ofertas de la semana de ' + T.map(t => t.f + ' ' + t.n).join(' · ') + '   ·   ').repeat(2);
+try{ $('flaTapa').innerHTML = FLASHY_HTML({redonda: true}); $('flaFix').innerHTML = FLASHY_HTML({redonda: true}) + (window.FLASHY_BOTON || ''); }catch(e){}
+// ---- Flashy habla ----
+let voz = false; document.addEventListener('pointerdown', () => { voz = true; }, {capture: true, once: true});
+function decir(t){ const g = $('globo'); g.innerHTML = t; g.style.display = 'block'; if(!voz || !('speechSynthesis' in window)) return; try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(g.textContent.replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu, '')); u.lang = 'es-AR'; speechSynthesis.speak(u); }catch(e){} }
+// ---- buscar en todo el mundo ----
+async function buscar(q){
+  q = String(q || '').trim(); if(!q) return;
+  $('q').value = q; decir(`⚡ Buscando <b>${esc(q)}</b> en ${T.length} tiendas del mundo…`);
+  let k = {es: q, en: q};
+  try{ const r = await fetch('/api/guia?accion=mundo', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({q})}); if(r.ok) k = Object.assign(k, await r.json()); }catch(e){}
+  const L = T.slice().sort((a, b) => ORDEN[a.env] - ORDEN[b.env]);
+  $('res').innerHTML = L.map(t => tarjeta(t, true, k[t.l] || k.en || q)).join('');
+  const si = L.filter(t => t.env === 'si').slice(0, 3).map(t => t.n).join(', ');
+  decir(`¡Listo! Te armé la búsqueda de <b>${esc(q)}</b> en todas las tiendas, cada una en su idioma. Para que te llegue a tu casa, empezá por <b>${si}</b> 👇${k.consejo ? '<br>💡 ' + esc(k.consejo) : ''}<br><small>Recordá: hasta US$ 400 por envío no pagás derechos de importación.</small>`);
+  $('globo').scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+$('fBus').onsubmit = e => { e.preventDefault(); buscar($('q').value); };
+document.addEventListener('click', e => { const b = e.target.closest('[data-ej]'); if(b) buscar(b.dataset.ej); });
+$('flaFix').addEventListener('click', e => { if(e.target.closest('.fltam')) return; $('q').focus(); decir('¡Hola! Soy Flashy 👋 Decime qué querés comprar y lo busco en todas las tiendas del mundo.'); });
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+if(SR){ $('bMic').hidden = false; $('bMic').onclick = () => { const r = new SR(); r.lang = 'es-AR'; decir('🎙️ Te escucho… decime qué buscás'); r.onresult = e => buscar(e.results[0][0].transcript); r.start(); }; }
+setTimeout(() => decir('¡Hola! Soy <b>Flashy</b> 👋 Acá tenés las mejores tiendas del mundo. Decime qué querés comprar y lo busco en todas a la vez.'), 600);
+</script>
+</body>
+</html>

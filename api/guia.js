@@ -44,6 +44,15 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Usá POST.' });
   const a = String(req.query.accion || ''), b = cuerpo(req), lang = IDI[b.lang] ? b.lang : 'es';
   try {
+    if (a === 'mundo') { // ShopRevista Mundial: la búsqueda traducida para cada tienda del mundo
+      const q = t(b.q, 120).trim(); if (!q) return res.status(400).json({ error: 'Decime qué buscás 😊' });
+      if (!(await cupo())) return res.status(429).json({ error: 'cupo' });
+      const out = await claude('Convertís lo que alguien quiere comprar en palabras clave cortas para buscar en tiendas online de cada país. Devolvé SOLO un objeto JSON, sin comentarios.', `Producto buscado (en castellano): "${q}"\nDevolvé {"es":"…","en":"…","pt":"…","ru":"…","ja":"…","zh":"…","ko":"…","rubro":"…","consejo":"…"} con 1 a 4 palabras por idioma (como se busca en esa tienda), "rubro" = una palabra en castellano (tecnologia, hogar, belleza, moda, deporte, chicos, mascotas, salud, auto, otros) y "consejo" = un consejo corto de compra en castellano rioplatense (máx. 120 caracteres).`, 600);
+      let o = null; try { o = JSON.parse(out.slice(out.indexOf('{'), out.lastIndexOf('}') + 1)); } catch (e) {}
+      if (!o) o = { es: q, en: q };
+      Object.keys(o).forEach(k => { o[k] = t(o[k], 160); });
+      return res.status(200).json(o);
+    }
     if (a === 'traducir') {
       const L = (Array.isArray(b.textos) ? b.textos : []).slice(0, 30).map(x => t(x, 700));
       if (!L.length || lang === 'es') return res.status(200).json({ textos: L });
