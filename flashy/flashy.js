@@ -36,6 +36,30 @@
     var i = (tamIdx() + 1) % TAMS.length; try{ localStorage.setItem('flashy-tam', i); }catch(_){} aplicarTam();
     var t = document.createElement('div'); t.className = 'fltoast'; t.textContent = '⚡ Flashy ' + NOMS[i]; document.body.appendChild(t); setTimeout(function(){ t.remove(); }, 1300);
   }, true);
+
+  // ---- Flashy es mujer: siempre voz femenina y suave ----
+  var FEM = /smtf\d|[-_]f\d\d\b|x-sfb|x-esf|x-esc|x-eea|x-eec|x-eeb|x-sfg|x-tpf|x-iob|google espa|female|mujer|femen|helena|laura|paulina|monica|mónica|sabina|elvira|dalia|lucia|lucía|camila|isabela|paloma|elena|esperanza|valeria|ximena|sofia|sofía|marisol|luciana|francisca|catalina|elsa|marta|ana\b|samantha|karen|zira|susan|joana|maria|maría|luz\b|tessa|amelie|alice|anna\b/i;
+  var MAS = /smtm\d|[-_]m\d\d\b|x-esd|x-eed|x-eef|x-eee|x-iom|x-tpd|x-iol|\bmale\b|hombre|mascul|jorge|diego|pablo|juan|carlos|enrique|alvaro|álvaro|raul|raúl|tomas|tomás|andres|andrés|jose|josé|daniel|david|mark|alex|felipe|antonio|miguel|gonzalo|alonso|jorge|thomas|luca\b|reed|rocko|grandpa|eddy|fred/i;
+  function hayFlashy(){ return !!document.querySelector('.flashyv, #fla, .flashyh, #gBtn.fv, .flashyHero'); }
+  function vozMujer(lang){
+    var vs = []; try{ vs = speechSynthesis.getVoices() || []; }catch(e){}
+    var l2 = String(lang || 'es').slice(0, 2).toLowerCase();
+    var mias = vs.filter(function(v){ return String(v.lang || '').toLowerCase().indexOf(l2) === 0; });
+    var pt = function(v){ return (FEM.test(v.name + ' ' + v.voiceURI) ? 10 : 0) - (MAS.test(v.name + ' ' + v.voiceURI) ? 20 : 0) + (/^es-(ar|419|us|mx)/i.test(v.lang) ? 2 : 0) + (/natural|neural|online|google/i.test(v.name) ? 1 : 0) + (v.localService ? 0.5 : 0); };
+    return mias.slice().sort(function(a, b){ return pt(b) - pt(a); })[0] || null;
+  }
+  window.FLASHY_VOZ = vozMujer;
+  function aMujer(u){
+    if(!hayFlashy() || window.FLASHY_NO_FORZAR) return;
+    var actual = u.voice, nom = actual ? actual.name + ' ' + actual.voiceURI : '';
+    if(actual && FEM.test(nom) && !MAS.test(nom)) return;              // ya es de mujer
+    var v = vozMujer(u.lang || (actual && actual.lang) || document.documentElement.lang || 'es');
+    if(v){ u.voice = v; u.lang = v.lang; }
+    var n = v ? v.name + ' ' + v.voiceURI : '';
+    if(!v || !FEM.test(n)) u.pitch = Math.max(u.pitch || 1, 1.3);          // no sabemos si es de mujer: tono más agudo
+    if(v && MAS.test(n)) u.pitch = 1.55;                                  // solo hay de hombre: lo más agudo posible
+    if(!u.rate || u.rate > 1.08) u.rate = 1.02;                           // suave, sin apuro
+  }
   // ---- la boca sigue a la voz ----
   var hablando = false, callar = null, pausa = null, hubo = false;
   function bocas(){ return Array.prototype.slice.call(document.querySelectorAll('video.vh')); }
@@ -65,6 +89,7 @@
     if(window.speechSynthesis && !speechSynthesis.__flashy){
       var orig = speechSynthesis.speak.bind(speechSynthesis);
       speechSynthesis.speak = function(u){
+        try{ aMujer(u); }catch(e){}
         try{ u.addEventListener('start', empezar); u.addEventListener('boundary', palabra); u.addEventListener('end', terminar); u.addEventListener('error', terminar); }catch(e){}
         return orig(u);
       };
