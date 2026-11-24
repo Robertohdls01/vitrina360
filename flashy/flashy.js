@@ -89,7 +89,7 @@
     if(window.speechSynthesis && !speechSynthesis.__flashy){
       var orig = speechSynthesis.speak.bind(speechSynthesis);
       speechSynthesis.speak = function(u){
-        try{ aMujer(u); }catch(e){}
+        try{ aMujer(u); if(hayFlashy()) u.volume = 1; }catch(e){}
         try{ u.addEventListener('start', empezar); u.addEventListener('boundary', palabra); u.addEventListener('end', terminar); u.addEventListener('error', terminar); }catch(e){}
         return orig(u);
       };
