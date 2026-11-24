@@ -62,6 +62,7 @@ label{display:grid;gap:4px;font-weight:700;font-size:14px}
 .mtop b{font-size:18px;flex:1;color:var(--v)}.mtop .tag{background:#fde7ef;color:var(--v);border-radius:999px;padding:3px 10px;font-weight:700;font-size:14px}
 .mtop button{border:0;background:#fdeef4;color:var(--ink);border-radius:999px;width:38px;height:38px}
 .stage{display:grid;grid-template-columns:118px 1fr;gap:10px;align-items:end;padding:16px 14px 6px}
+.chef.flashyv{width:132px;height:176px;border-radius:20px;overflow:hidden;position:relative;border:3px solid #ff5fc8;box-shadow:0 8px 22px rgba(200,0,143,.35);background:#f6c9e6 url(/flashy/flashy.jpg) center/cover;animation:none}.flashyv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.flashyv .vh{opacity:0;transition:opacity .2s}.flashyv.talk .vh{opacity:1}.flashyv.talk{animation:none;box-shadow:0 0 0 4px rgba(255,95,200,.35),0 8px 22px rgba(200,0,143,.4)}
 .chef{width:118px;height:162px}.chef .arm{transform-origin:84px 98px;animation:tray 3s ease-in-out infinite}@keyframes tray{50%{transform:rotate(-4deg)}}.chef.talk .mouth{animation:mouth .25s ease-in-out infinite alternate}@keyframes mouth{to{transform:scaleY(.35)}}
 #cajaAsis{position:fixed;left:10px;right:10px;bottom:10px;z-index:50;display:grid;grid-template-columns:84px 1fr auto;gap:8px;align-items:end;background:#fff;border:2px solid var(--line);border-radius:20px;padding:8px 10px;box-shadow:0 10px 30px rgba(194,51,107,.22)}
 #cajaAsis.min{right:auto;grid-template-columns:84px;padding:4px;background:transparent;border:0;box-shadow:none}#cajaAsis.min > :not(#cAva){display:none!important}
@@ -146,6 +147,9 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
   const SKIN = {clara: ['#fde6d4', '#f3c7a7', '#f1c3a1'], media: ['#fcdcc4', '#eebc98', '#eab48e'], morena: ['#e0ac86', '#c48a62', '#bf855c'], oscura: ['#b07850', '#8a5735', '#86553a']};
   function makeAva(o){
     o = o || {};
+    if(o.g === 'flashy' && !o.dibujo){ // Flashy de verdad: la chica 3D, en video (saluda quieta y gesticula cuando habla)
+      return `<div class="chef flashyv" aria-hidden="true"><video class="vi" src="/flashy/flashy-saluda.mp4" poster="/flashy/flashy.jpg" autoplay muted loop playsinline preload="auto"></video><video class="vh" src="/flashy/flashy-habla.mp4" poster="/flashy/flashy.jpg" autoplay muted loop playsinline preload="auto"></video></div>`;
+    }
     if(o.g === 'flashy'){ // Flashy de mozo: la carita amarilla con traje, moño, bandeja y zapatos
       const nom = esc(String(o.local || '').trim().slice(0, 14)), fs = nom.length > 10 ? 4.2 : nom.length > 7 ? 5 : 6, id = 'fl' + Math.random().toString(36).slice(2, 7);
       return `<svg class="chef fly2" viewBox="0 0 120 165" aria-hidden="true"><defs><radialGradient id="${id}" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fde68a"/><stop offset=".6" stop-color="#facc15"/><stop offset="1" stop-color="#eab308"/></radialGradient><clipPath id="${id}c"><circle cx="60" cy="88" r="39"/></clipPath></defs>
@@ -203,7 +207,7 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
   // voz que coincida con el personaje (mujer para la moza, varón para el mozo)
   const FEMV = /female|mujer|femen|paulina|monica|mónica|helena|laura|sabina|elvira|dalia|lucia|lucía|camila|isabela|francisca|paloma|elena|esperanza|valeria|ximena|sofia|sofía|marisol|angelica|angélica|luciana|vitoria|francisca|samantha|karen|zira|susan|joana|maria|maría/i;
   const MASV = /\bmale\b|hombre|mascul|jorge|diego|pablo|juan|carlos|enrique|alvaro|álvaro|raul|raúl|tomas|tomás|andres|andrés|jose|josé|daniel|david|mark|alex|felipe|antonio|miguel/i;
-  const genScore = (v, g) => (g = g === 'flashy' ? 'mozo' : g) === 'moza' ? (FEMV.test(v.name) ? 6 : 0) - (MASV.test(v.name) ? 12 : 0) : g === 'mozo' ? (MASV.test(v.name) ? 6 : 0) - (FEMV.test(v.name) ? 12 : 0) : 0;
+  const genScore = (v, g) => (g = g === 'flashy' ? 'moza' : g) === 'moza' ? (FEMV.test(v.name) ? 6 : 0) - (MASV.test(v.name) ? 12 : 0) : g === 'mozo' ? (MASV.test(v.name) ? 6 : 0) - (FEMV.test(v.name) ? 12 : 0) : 0;
   const avaOpts = m => ({g: m.avatar || (/a$/i.test((m.asistente || 'Lola').trim()) ? 'moza' : 'mozo'), pelo: m.pelo, largo: m.largo, piel: m.piel, barba: m.barba, local: m.nombre});
   let CHEF = makeAva({g: 'mozo'});
   const JEFE = `<svg class="chef jefe" viewBox="0 0 100 115" aria-hidden="true"><path d="M24 34c-9 0-14-7-12-14 2-8 11-11 17-7 2-8 10-12 18-10 6-6 17-5 21 2 8-3 17 2 17 11 7 1 10 9 6 15-3 4-7 4-10 3H24z" fill="#fff" stroke="#e7d7c6" stroke-width="2"/><rect x="24" y="30" width="52" height="10" rx="3" fill="#fff" stroke="#e7d7c6" stroke-width="2"/><circle cx="50" cy="68" r="30" fill="#fcd5b5" stroke="#e2a77c" stroke-width="2"/><g class="eyes"><ellipse cx="39" cy="64" rx="4" ry="5.5" fill="#2a1a12"/><ellipse cx="61" cy="64" rx="4" ry="5.5" fill="#2a1a12"/><circle cx="40.5" cy="62" r="1.6" fill="#fff"/><circle cx="62.5" cy="62" r="1.6" fill="#fff"/></g><circle cx="31" cy="75" r="5" fill="#fb7185" opacity=".45"/><circle cx="69" cy="75" r="5" fill="#fb7185" opacity=".45"/><path class="mouth" d="M41 78q9 9 18 0z" fill="#9f1239"/><path d="M38 99l12 6 12-6-12-5z" fill="#ea580c"/><circle cx="50" cy="99" r="3" fill="#9a3412"/></svg>`;
@@ -406,7 +410,7 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
           <p class="note">Elegí cómo se ve la moza o el mozo que atiende a tus clientes.</p>
           <div style="display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:center"><div id="avaPrev" style="width:120px;height:160px"></div>
           <div style="display:grid;gap:8px">
-            <label>¿Moza o mozo?<select id="fAva"><option value="moza">👩 Moza</option><option value="mozo">👨 Mozo</option><option value="flashy">⚡ Flashy de mozo</option></select></label>
+            <label>¿Moza o mozo?<select id="fAva"><option value="moza">👩 Moza</option><option value="mozo">👨 Mozo</option><option value="flashy">⚡ Flashy (moza)</option></select></label>
             <label>Pelo<select id="fPelo"><option value="castano">Castaño</option><option value="rubio">Rubio</option><option value="negro">Negro</option><option value="colorado">Colorado</option><option value="canoso">Canoso</option></select></label>
             <label id="lLargo">Largo del pelo<select id="fLargo"><option value="largo">Largo</option><option value="corto">Corto</option></select></label>
             <label>Piel<select id="fPiel"><option value="clara">Clara</option><option value="media" selected>Media</option><option value="morena">Morena</option><option value="oscura">Oscura</option></select></label>
