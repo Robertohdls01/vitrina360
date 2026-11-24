@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Probá ShopMenu con un solo celular</title>
+<meta name="description" content="Probá ShopMenu desde un solo celular: pedí como cliente y mirá cómo llega a la caja.">
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#fff0f8;color:#2a0f24}
+body{display:flex;flex-direction:column;height:100dvh}
+header{padding:10px 10px 8px;background:linear-gradient(135deg,#c8008f,#f020c0);color:#fff;box-shadow:0 4px 14px rgba(120,0,80,.25);z-index:2}
+header h1{margin:0 0 2px;font-size:16px;text-align:center}
+header p{margin:0 0 8px;font-size:13px;text-align:center;opacity:.95}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tabs button{border:0;border-radius:14px;padding:11px 6px;font:800 15px system-ui;background:rgba(255,255,255,.22);color:#fff;cursor:pointer;position:relative}
+.tabs button[aria-pressed="true"]{background:#fff;color:#a0006f;box-shadow:0 3px 10px rgba(0,0,0,.18)}
+.tabs .dot{position:absolute;top:-6px;right:-4px;background:#ffd400;color:#3a2500;border-radius:999px;font-size:12px;padding:2px 7px;display:none;animation:lat 1s ease-in-out infinite}
+@keyframes lat{50%{transform:scale(1.15)}}
+.tip{font-size:13px;text-align:center;padding:6px 10px;background:#ffe3f3;color:#7a0055;border-bottom:1px solid #ffc4e6}
+main{flex:1;display:grid;min-height:0}
+iframe{width:100%;height:100%;border:0;background:#fff;display:none}
+iframe.on{display:block}
+@media (min-width:900px){
+  .tabs{display:none}
+  main{grid-template-columns:1fr 1fr;gap:10px;padding:10px}
+  iframe{display:block;border-radius:18px;box-shadow:0 8px 26px rgba(120,0,80,.18)}
+  .tip.mob{display:none}
+}
+.dos{font-size:13px;padding:7px 34px 7px 10px;background:#fff8d6;color:#5a4200;border-bottom:1px solid #f3dd8a;position:relative;line-height:1.35}.dos a{color:#a0006f;font-weight:800}.dos button{position:absolute;right:6px;top:6px;border:0;background:#f3e3a0;border-radius:50%;width:24px;height:24px;cursor:pointer}
+.pv{font-size:12px;text-align:center;padding:4px;color:#a0006f;text-decoration:none;display:block}
+</style>
+</head>
+<body>
+<header>
+  <h1>☕ Probá ShopMenu con un solo celular</h1>
+  <p>Pedí como cliente y después mirá cómo le llega al dueño</p>
+  <div class="tabs" role="group" aria-label="Qué querés ver">
+    <button type="button" id="tCli" aria-pressed="true">📱 Soy el cliente</button>
+    <button type="button" id="tCaja" aria-pressed="false">🧾 Soy el dueño<span class="dot" id="dot">¡Pedido!</span></button>
+  </div>
+</header>
+<div class="dos" id="dos">📱 Esta prueba es para <b>un solo celular</b>. Si tenés <b>otro celular o una compu</b>, queda mejor con dos: abrí <a href="/menu?m=demopublico&e=demo&caja=1" target="_blank" rel="noopener">la caja</a> en uno y escaneá <a href="/qr-muestra" target="_blank" rel="noopener">un QR de mesa</a> con el otro. <button type="button" id="dosX" aria-label="Cerrar">✕</button></div>
+<div class="tip mob" id="tip">1️⃣ Pedí algo con la moza virtual · 2️⃣ Tocá <b>🧾 Soy el dueño</b> para ver cómo llega a la caja</div>
+<main>
+  <iframe id="fCli" class="on" title="La mesa del cliente" src="/menu?m=demopublico&mesa=1" allow="microphone; autoplay"></iframe>
+  <iframe id="fCaja" title="La caja del dueño" src="/menu?m=demopublico&e=demo&caja=1" allow="autoplay"></iframe>
+</main>
+<a class="pv" href="/shopmenu" target="_blank" rel="noopener">ShopMenu · Pro Video JSRHG · Ver toda la información</a>
+<script>
+const $ = id => document.getElementById(id);
+function ver(caja){
+  $('tCli').setAttribute('aria-pressed', String(!caja)); $('tCaja').setAttribute('aria-pressed', String(caja));
+  $('fCli').classList.toggle('on', !caja); $('fCaja').classList.toggle('on', caja);
+  if(caja){ $('dot').style.display = 'none'; $('tip').innerHTML = '🔔 Tocá la pantalla de la caja una vez para que suene el aviso · Volvé a <b>📱 Soy el cliente</b> para pedir otra cosa'; }
+  else $('tip').innerHTML = '1️⃣ Pedí algo con la moza virtual · 2️⃣ Tocá <b>🧾 Soy el dueño</b> para ver cómo llega a la caja';
+}
+$('dosX').onclick = () => $('dos').remove();
+$('tCli').onclick = () => ver(false);
+$('tCaja').onclick = () => ver(true);
+// Cuando el cliente manda un pedido, avisamos en el botón de la caja
+let antes = '';
+setInterval(() => {
+  try{
+    const d = $('fCaja').contentDocument; if(!d) return;
+    const t = ['cPend', 'cCnt', 'cE'].map(k => { const e = d.getElementById(k); return e ? e.textContent : ''; }).join('|');
+    if(antes && t !== antes && !$('fCaja').classList.contains('on')) $('dot').style.display = 'inline-block';
+    antes = t;
+  }catch(e){}
+}, 1500);
+</script>
+</body>
+</html>

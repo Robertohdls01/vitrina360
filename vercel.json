@@ -145,6 +145,11 @@
       "permanent": false
     },
     {
+      "source": "/probar-menu",
+      "destination": "/probar-menu.html",
+      "permanent": false
+    },
+    {
       "source": "/qr-muestra",
       "destination": "/qr-muestra.html",
       "permanent": false
