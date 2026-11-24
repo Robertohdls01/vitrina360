@@ -9,7 +9,7 @@
 <script src="/flashy/flashy.js"></script>
 <style>
 *{box-sizing:border-box}html,body{margin:0}
-body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#2a0f24;background:linear-gradient(180deg,#fff0f8,#fff 420px)}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#2a0f24;background:#fff}
 a{color:inherit}
 .wrap{max-width:1100px;margin:0 auto;padding:0 14px}
 header.top{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid #ffd0ec}
@@ -175,17 +175,16 @@ const T = [
  {p:'eu', n:'eBay Reino Unido', s:'g', f:'🇬🇧', r:'Vendedores europeos', env:'si', l:'en', b:q=>'https://www.ebay.co.uk/sch/i.html?_nkw='+E(q), o:'https://www.ebay.co.uk/deals'},
  {p:'eu', n:'Amazon Alemania', s:'g', f:'🇩🇪', r:'Tecnología y herramientas europeas', env:'si', l:'en', b:q=>'https://www.amazon.de/s?k='+E(q), o:'https://www.amazon.de/'},
  // Más del mundo
- {p:'mx', n:'Liverpool', s:'g', f:'🇲🇽', r:'La gran tienda departamental de México', env:'mir', l:'es', b:q=>'https://www.liverpool.com.mx/tienda?s='+E(q), o:'https://www.liverpool.com.mx/'},
- {p:'mx', n:'Falabella', s:'g', f:'🇨🇱', r:'Tienda departamental de Chile y la región', env:'mir', l:'es', b:q=>'https://www.falabella.com/falabella-cl/search?Ntt='+E(q), o:'https://www.falabella.com/falabella-cl'},
- {p:'mx', n:'Coppel', s:'m', f:'🇲🇽', r:'Hogar, electro y ropa en México', env:'mir', l:'es', b:q=>G('coppel.com', q), o:'https://www.coppel.com/'},
+ {p:'la', n:'Liverpool', s:'g', f:'🇲🇽', r:'La gran tienda departamental de México', env:'mir', l:'es', b:q=>'https://www.liverpool.com.mx/tienda?s='+E(q), o:'https://www.liverpool.com.mx/'},
+ {p:'la', n:'Falabella', s:'g', f:'🇨🇱', r:'Tienda departamental de Chile y la región', env:'mir', l:'es', b:q=>'https://www.falabella.com/falabella-cl/search?Ntt='+E(q), o:'https://www.falabella.com/falabella-cl'},
+ {p:'la', n:'Coppel', s:'m', f:'🇲🇽', r:'Hogar, electro y ropa en México', env:'mir', l:'es', b:q=>G('coppel.com', q), o:'https://www.coppel.com/'},
  {p:'eu', n:'ASOS', s:'m', f:'🇬🇧', r:'Moda joven del Reino Unido', env:'mir', l:'en', b:q=>'https://www.asos.com/search/?q='+E(q), o:'https://www.asos.com/'},
  {p:'eu', n:'Cdiscount', s:'g', f:'🇫🇷', r:'El gran marketplace de Francia', env:'mir', l:'en', b:q=>G('cdiscount.com', q), o:'https://www.cdiscount.com/'},
  {p:'eu', n:'Zalando', s:'g', f:'🇩🇪', r:'Moda y calzado de toda Europa', env:'mir', l:'en', b:q=>G('zalando.com', q), o:'https://www.zalando.com/'},
- {p:'mx', n:'Trendyol', s:'g', f:'🇹🇷', r:'La tienda online más grande de Turquía', env:'mir', l:'en', b:q=>G('trendyol.com', q), o:'https://www.trendyol.com/en'},
- {p:'mx', n:'Flipkart', s:'g', f:'🇮🇳', r:'El gigante de las compras en India', env:'mir', l:'en', b:q=>'https://www.flipkart.com/search?q='+E(q), o:'https://www.flipkart.com/'},
- {p:'mx', n:'Noon', s:'g', f:'🇦🇪', r:'El Amazon de Emiratos y Arabia Saudita', env:'mir', l:'en', b:q=>G('noon.com', q), o:'https://www.noon.com/'},
- {p:'mx', n:'Lazada', s:'g', f:'🇸🇬', r:'El shopping del sudeste asiático', env:'mir', l:'en', b:q=>G('lazada.sg', q), o:'https://www.lazada.sg/'},
- {p:'mx', n:'Catch', s:'m', f:'🇦🇺', r:'Ofertas de Australia', env:'mir', l:'en', b:q=>G('catch.com.au', q), o:'https://www.catch.com.au/'},
+ {p:'me', n:'Trendyol', s:'g', f:'🇹🇷', r:'La tienda online más grande de Turquía', env:'mir', l:'en', b:q=>G('trendyol.com', q), o:'https://www.trendyol.com/en'},
+ {p:'as', n:'Flipkart', s:'g', f:'🇮🇳', r:'El gigante de las compras en India', env:'mir', l:'en', b:q=>'https://www.flipkart.com/search?q='+E(q), o:'https://www.flipkart.com/'},
+ {p:'me', n:'Noon', s:'g', f:'🇦🇪', r:'El Amazon de Emiratos y Arabia Saudita', env:'mir', l:'en', b:q=>G('noon.com', q), o:'https://www.noon.com/'},
+ {p:'as', n:'Lazada', s:'g', f:'🇸🇬', r:'El shopping del sudeste asiático', env:'mir', l:'en', b:q=>G('lazada.sg', q), o:'https://www.lazada.sg/'},
  // Principales e intermedias de más países
  {p:'eu', n:'Amazon Italia', s:'g', f:'🇮🇹', r:'La tienda principal de Italia', env:'mir', l:'en', b:q=>'https://www.amazon.it/s?k='+E(q), o:'https://www.amazon.it/'},
  {p:'eu', n:'Unieuro', s:'m', f:'🇮🇹', r:'Electrónica y electrodomésticos en Italia', env:'mir', l:'en', b:q=>G('unieuro.it', q), o:'https://www.unieuro.it/'},
@@ -200,16 +199,42 @@ const T = [
  {p:'eu', n:'Worten', s:'g', f:'🇵🇹', r:'Electrónica y hogar en Portugal', env:'mir', l:'pt', b:q=>G('worten.pt', q), o:'https://www.worten.pt/'},
  {p:'us', n:'Amazon Canadá', s:'g', f:'🇨🇦', r:'La tienda principal de Canadá', env:'mir', l:'en', b:q=>'https://www.amazon.ca/s?k='+E(q), o:'https://www.amazon.ca/'},
  {p:'us', n:'Canadian Tire', s:'m', f:'🇨🇦', r:'Hogar, auto, deporte y herramientas en Canadá', env:'mir', l:'en', b:q=>G('canadiantire.ca', q), o:'https://www.canadiantire.ca/'},
- {p:'mx', n:'JB Hi-Fi', s:'m', f:'🇦🇺', r:'Tecnología y música en Australia', env:'mir', l:'en', b:q=>G('jbhifi.com.au', q), o:'https://www.jbhifi.com.au/'},
+ {p:'oc', n:'JB Hi-Fi', s:'m', f:'🇦🇺', r:'Tecnología y música en Australia', env:'mir', l:'en', b:q=>G('jbhifi.com.au', q), o:'https://www.jbhifi.com.au/'},
  {p:'jp', n:'Yodobashi', s:'m', f:'🇯🇵', r:'La gran tienda de electrónica de Japón', env:'mir', l:'ja', b:q=>G('yodobashi.com', q), o:'https://www.yodobashi.com/'},
  {p:'kr', n:'Gmarket Global', s:'g', f:'🇰🇷', r:'Marketplace coreano con versión internacional', env:'si', l:'en', b:q=>G('gmarket.co.kr', q), o:'https://global.gmarket.co.kr/'},
- {p:'mx', n:'Myntra', s:'m', f:'🇮🇳', r:'Moda y belleza en India', env:'mir', l:'en', b:q=>G('myntra.com', q), o:'https://www.myntra.com/'},
- {p:'mx', n:'Hepsiburada', s:'m', f:'🇹🇷', r:'Marketplace de Turquía', env:'mir', l:'en', b:q=>G('hepsiburada.com', q), o:'https://www.hepsiburada.com/'},
+ {p:'as', n:'Myntra', s:'m', f:'🇮🇳', r:'Moda y belleza en India', env:'mir', l:'en', b:q=>G('myntra.com', q), o:'https://www.myntra.com/'},
+ {p:'me', n:'Hepsiburada', s:'m', f:'🇹🇷', r:'Marketplace de Turquía', env:'mir', l:'en', b:q=>G('hepsiburada.com', q), o:'https://www.hepsiburada.com/'},
  {p:'ru', n:'Yandex Market', s:'m', f:'🇷🇺', r:'Comparador y tienda de Rusia (en ruso)', env:'mir', l:'ru', b:q=>'https://market.yandex.ru/search?text='+E(q), o:'https://market.yandex.ru/'},
- {p:'mx', n:'Amazon México', s:'g', f:'🇲🇽', r:'La tienda principal de México', env:'mir', l:'es', b:q=>'https://www.amazon.com.mx/s?k='+E(q), o:'https://www.amazon.com.mx/'},
- {p:'mx', n:'Paris', s:'m', f:'🇨🇱', r:'Tienda departamental de Chile', env:'mir', l:'es', b:q=>G('paris.cl', q), o:'https://www.paris.cl/'},
- {p:'mx', n:'Éxito', s:'g', f:'🇨🇴', r:'La gran cadena de Colombia', env:'mir', l:'es', b:q=>G('exito.com', q), o:'https://www.exito.com/'},
+ {p:'la', n:'Amazon México', s:'g', f:'🇲🇽', r:'La tienda principal de México', env:'mir', l:'es', b:q=>'https://www.amazon.com.mx/s?k='+E(q), o:'https://www.amazon.com.mx/'},
+ {p:'la', n:'Paris', s:'m', f:'🇨🇱', r:'Tienda departamental de Chile', env:'mir', l:'es', b:q=>G('paris.cl', q), o:'https://www.paris.cl/'},
+ {p:'la', n:'Éxito', s:'g', f:'🇨🇴', r:'La gran cadena de Colombia', env:'mir', l:'es', b:q=>G('exito.com', q), o:'https://www.exito.com/'},
  {p:'la', n:'Frávega', s:'m', f:'🇦🇷', r:'Electrodomésticos y tecnología en Argentina', env:'si', l:'es', b:q=>G('fravega.com', q), o:'https://www.fravega.com/'},
+ // Oceanía, Asia, Medio Oriente, África y más Europa
+ {p:'oc', n:'Amazon Australia', s:'g', f:'🇦🇺', r:'La tienda principal de Australia', env:'mir', l:'en', b:q=>'https://www.amazon.com.au/s?k='+E(q), o:'https://www.amazon.com.au/'},
+ {p:'oc', n:'Kogan', s:'g', f:'🇦🇺', r:'Tecnología y hogar a buen precio en Australia', env:'mir', l:'en', b:q=>G('kogan.com', q), o:'https://www.kogan.com/au/'},
+ {p:'oc', n:'The Iconic', s:'m', f:'🇦🇺', r:'Moda y zapatillas en Australia', env:'mir', l:'en', b:q=>G('theiconic.com.au', q), o:'https://www.theiconic.com.au/'},
+ {p:'oc', n:'Bunnings', s:'m', f:'🇦🇺', r:'Herramientas, jardín y ferretería en Australia', env:'mir', l:'en', b:q=>G('bunnings.com.au', q), o:'https://www.bunnings.com.au/'},
+ {p:'oc', n:'Trade Me', s:'g', f:'🇳🇿', r:'El gran marketplace de Nueva Zelanda', env:'mir', l:'en', b:q=>G('trademe.co.nz', q), o:'https://www.trademe.co.nz/'},
+ {p:'oc', n:'The Warehouse', s:'m', f:'🇳🇿', r:'Tienda de todo de Nueva Zelanda', env:'mir', l:'en', b:q=>G('thewarehouse.co.nz', q), o:'https://www.thewarehouse.co.nz/'},
+ {p:'as', n:'Amazon India', s:'g', f:'🇮🇳', r:'La tienda principal de India', env:'mir', l:'en', b:q=>'https://www.amazon.in/s?k='+E(q), o:'https://www.amazon.in/'},
+ {p:'as', n:'Shopee', s:'g', f:'🇸🇬', r:'El marketplace más usado del sudeste asiático', env:'mir', l:'en', b:q=>G('shopee.sg', q), o:'https://shopee.sg/'},
+ {p:'as', n:'Tokopedia', s:'g', f:'🇮🇩', r:'El gran marketplace de Indonesia', env:'mir', l:'en', b:q=>G('tokopedia.com', q), o:'https://www.tokopedia.com/'},
+ {p:'as', n:'Tiki', s:'m', f:'🇻🇳', r:'Tienda online de Vietnam', env:'mir', l:'en', b:q=>G('tiki.vn', q), o:'https://tiki.vn/'},
+ {p:'as', n:'Qoo10', s:'m', f:'🇸🇬', r:'Marketplace de Singapur con productos coreanos y japoneses', env:'mir', l:'en', b:q=>G('qoo10.sg', q), o:'https://www.qoo10.sg/'},
+ {p:'as', n:'Daraz', s:'m', f:'🇵🇰', r:'Marketplace de Pakistán, Bangladesh y Sri Lanka', env:'mir', l:'en', b:q=>G('daraz.pk', q), o:'https://www.daraz.pk/'},
+ {p:'me', n:'Amazon Emiratos', s:'g', f:'🇦🇪', r:'La tienda principal de Emiratos', env:'mir', l:'en', b:q=>'https://www.amazon.ae/s?k='+E(q), o:'https://www.amazon.ae/'},
+ {p:'me', n:'Amazon Arabia Saudita', s:'g', f:'🇸🇦', r:'La tienda principal de Arabia Saudita', env:'mir', l:'en', b:q=>'https://www.amazon.sa/s?k='+E(q), o:'https://www.amazon.sa/'},
+ {p:'me', n:'Namshi', s:'m', f:'🇦🇪', r:'Moda y belleza en Medio Oriente', env:'mir', l:'en', b:q=>G('namshi.com', q), o:'https://www.namshi.com/'},
+ {p:'me', n:'Amazon Turquía', s:'g', f:'🇹🇷', r:'Amazon de Turquía', env:'mir', l:'en', b:q=>'https://www.amazon.com.tr/s?k='+E(q), o:'https://www.amazon.com.tr/'},
+ {p:'af', n:'Takealot', s:'g', f:'🇿🇦', r:'La tienda online más grande de Sudáfrica', env:'mir', l:'en', b:q=>G('takealot.com', q), o:'https://www.takealot.com/'},
+ {p:'af', n:'Jumia', s:'g', f:'🇳🇬', r:'El marketplace de África (Nigeria, Egipto, Kenia y más)', env:'mir', l:'en', b:q=>G('jumia.com.ng', q), o:'https://www.jumia.com.ng/'},
+ {p:'af', n:'Amazon Egipto', s:'g', f:'🇪🇬', r:'Amazon de Egipto', env:'mir', l:'en', b:q=>'https://www.amazon.eg/s?k='+E(q), o:'https://www.amazon.eg/'},
+ {p:'af', n:'Kilimall', s:'m', f:'🇰🇪', r:'Marketplace de Kenia', env:'mir', l:'en', b:q=>G('kilimall.co.ke', q), o:'https://www.kilimall.co.ke/'},
+ {p:'eu', n:'Galaxus', s:'g', f:'🇨🇭', r:'La tienda online más grande de Suiza', env:'mir', l:'en', b:q=>G('galaxus.ch', q), o:'https://www.galaxus.ch/'},
+ {p:'eu', n:'Amazon Suecia', s:'g', f:'🇸🇪', r:'Amazon de Suecia', env:'mir', l:'en', b:q=>'https://www.amazon.se/s?k='+E(q), o:'https://www.amazon.se/'},
+ {p:'eu', n:'CDON', s:'m', f:'🇸🇪', r:'Marketplace de los países nórdicos', env:'mir', l:'en', b:q=>G('cdon.se', q), o:'https://cdon.se/'},
+ {p:'eu', n:'Skroutz', s:'g', f:'🇬🇷', r:'El comparador y tienda más usado de Grecia', env:'mir', l:'en', b:q=>G('skroutz.gr', q), o:'https://www.skroutz.gr/'},
+ {p:'eu', n:'Harvey Norman', s:'m', f:'🇮🇪', r:'Electro y hogar en Irlanda', env:'mir', l:'en', b:q=>G('harveynorman.ie', q), o:'https://www.harveynorman.ie/'},
  // Rusia
  {p:'ru', n:'Ozon', s:'g', f:'🇷🇺', r:'El gran marketplace de Rusia (en ruso)', env:'mir', l:'ru', b:q=>'https://www.ozon.ru/search/?text='+E(q), o:'https://www.ozon.ru/'},
  {p:'ru', n:'Wildberries', s:'g', f:'🇷🇺', r:'La tienda online más grande de Rusia (en ruso)', env:'mir', l:'ru', b:q=>'https://www.wildberries.ru/catalog/0/search.aspx?search='+E(q), o:'https://www.wildberries.ru/'},
@@ -217,6 +242,11 @@ const T = [
 // ---- fábricas y proveedores para importar (directorios de empresas exportadoras) ----
 const B2B = [
  {n:'Alibaba', f:'🇨🇳', r:'El directorio de fábricas más grande del mundo. Buscá el sello "Verified" y pagá con Trade Assurance', l:'en', b:q=>'https://www.alibaba.com/trade/search?SearchText='+E(q), o:'https://www.alibaba.com/'},
+ {n:'DHgate', f:'🇨🇳', r:'Mayorista chino para comprar pocas unidades, con protección al comprador', l:'en', b:q=>'https://www.dhgate.com/wholesale/search.do?searchkey='+E(q), o:'https://www.dhgate.com/'},
+ {n:'Yiwugo', f:'🇨🇳', r:'El mercado mayorista de Yiwu, el más grande del mundo en bazar y regalos', l:'en', b:q=>G('en.yiwugo.com', q), o:'https://en.yiwugo.com/'},
+ {n:'Faire', f:'🇺🇸', r:'Mayorista de marcas independientes de Estados Unidos y Europa para tiendas', l:'en', b:q=>G('faire.com', q), o:'https://www.faire.com/'},
+ {n:'Ankorstore', f:'🇪🇺', r:'Mayorista de marcas europeas para tiendas chicas', l:'en', b:q=>G('ankorstore.com', q), o:'https://www.ankorstore.com/'},
+ {n:'TradeKey', f:'🇵🇰', r:'Directorio de exportadores de Pakistán, Medio Oriente y Asia', l:'en', b:q=>G('tradekey.com', q), o:'https://www.tradekey.com/'},
  {n:'Made-in-China', f:'🇨🇳', r:'Fábricas chinas con auditoría', l:'en', b:q=>G('made-in-china.com', q), o:'https://www.made-in-china.com/'},
  {n:'Global Sources', f:'🇨🇳', r:'Proveedores de electrónica, regalos y hogar', l:'en', b:q=>G('globalsources.com', q), o:'https://www.globalsources.com/'},
  {n:'1688', f:'🇨🇳', r:'Precios de fábrica dentro de China (en chino, conviene un agente)', l:'zh', b:q=>G('1688.com', q), o:'https://www.1688.com/'},
@@ -286,7 +316,7 @@ const LATAM = [
 const tarjetaL = t => `<div class="tie" style="border-color:#fde68a"><div class="h"><span class="f">${t.f}</span><b>${t.n}</b></div><div class="r">${t.r}</div><span class="env" style="background:#fef9c3;color:#854d0e">${t.ag ? '🏛️ Agencia oficial · directorio de empresas' : '⭐ Marca reconocida'}</span><div class="bts"><a class="pri" href="${t.w}" target="_blank" rel="noopener">🌐 ${t.ag ? 'Ver sus empresas' : 'Ir a su página oficial'}</a></div></div>`;
 const tarjetaE = t => `<div class="tie" style="border-color:#bfdbfe"><div class="h"><span class="f">${t.f}</span><b>${t.n}</b></div><div class="r">${t.r}<br><small>📍 ${t.c}</small></div><span class="env" style="background:#e0f2fe;color:#075985">🏭 Fabricante · venta por mayor</span><div class="bts"><a class="pri" href="${t.w}" target="_blank" rel="noopener">🌐 Ir a su página oficial</a></div></div>`;
 const tarjetaB = (t, q, k) => `<div class="tie"><div class="h"><span class="f">${t.f}</span><b>${t.n}</b></div><div class="r">${t.r}</div><span class="env" style="background:#e0f2fe;color:#075985">🏭 Fábricas y proveedores</span><div class="bts">${q ? `<a class="pri" href="${t.b(k)}" target="_blank" rel="noopener">🔎 Proveedores de "${esc(k)}"</a>` : ''}<a href="${t.o}" target="_blank" rel="noopener">🌐 Entrar</a></div></div>`;
-const PAISES = [['us','🇺🇸','Estados Unidos'],['cn','🇨🇳','China'],['kr','🇰🇷','Corea'],['jp','🇯🇵','Japón'],['la','🇦🇷','Argentina y Brasil'],['eu','🇪🇺','Europa'],['ru','🇷🇺','Rusia'],['mx','🌍','México, Chile y el resto del mundo']];
+const PAISES = [['us','🇺🇸','Estados Unidos'],['cn','🇨🇳','China'],['kr','🇰🇷','Corea'],['jp','🇯🇵','Japón'],['la','🌎','Latinoamérica'],['eu','🇪🇺','Europa'],['ru','🇷🇺','Rusia'],['as','🌏','India y Sudeste Asiático'],['me','🕌','Medio Oriente y Turquía'],['oc','🇦🇺','Oceanía'],['af','🌍','África']];
 const ENV = {si:['si','✅ Envía a Argentina'], cas:['cas','📦 Con casillero en Miami'], mir:['mir','👀 Para mirar precios (consultá el envío)']};
 const ORDEN = {si:0, cas:1, mir:2};
 const TAM = {g:'🏢 Tienda grande', m:'🏬 Tienda mediana', c:'🏠 Tienda chica'};
@@ -294,7 +324,7 @@ const tarjeta = (t, q, k) => `<div class="tie"><div class="h"><span class="f">${
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // ---- portada ----
 const SUMA = `<div class="tie" style="border:2px dashed #ff5fc8;background:#fff7fc"><div class="h"><span class="f">✨</span><b>¿Tenés una tienda?</b></div><div class="r">Grande, mediana o chica, de cualquier país: sumala a ShopRevista Mundial y que la conozcan en Argentina y Latinoamérica.</div><div class="bts"><a class="pri" href="https://wa.me/5492235814437?text=${E('¡Hola! Quiero sumar mi tienda a ShopRevista Mundial.')}" target="_blank" rel="noopener">💬 Sumar mi tienda</a></div></div>`;
-let VISTA = 'pais';
+let VISTA = 'tam';
 function portada(){
   const grupos = VISTA === 'pais' ? PAISES.map(([id, f, n]) => [id, f + ' ' + n, T.filter(t => t.p === id)])
     : [['g', '🏢 Tiendas grandes <small>las gigantes del mundo</small>', T.filter(t => t.s === 'g')], ['m', '🏬 Tiendas medianas <small>especialistas en lo suyo</small>', T.filter(t => t.s === 'm')], ['c', '🏠 Tiendas chicas <small>hecho a mano y diseño de todo el mundo</small>', T.filter(t => t.s === 'c')]];
