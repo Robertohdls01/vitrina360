@@ -25,6 +25,7 @@ header.top b{font-size:18px;color:#a0006f}header.top small{color:#7a5470;font-we
 .tapa p{margin:8px 0 0;font-size:17px;color:#5a4060}
 .busca{margin:16px 0 8px;background:#fff;border:3px solid #ff5fc8;border-radius:22px;padding:12px;box-shadow:0 10px 30px rgba(200,0,143,.15)}
 .busca form{display:flex;gap:8px}
+.vmas{grid-column:1/-1;border:2px dashed #c8008f;background:#fff7fc;color:#a0006f;border-radius:14px;padding:12px;font:800 15px system-ui;cursor:pointer}
 .sig{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.sig button{border:2px solid #bfdbfe;background:#fff;color:#1e3a8a;border-radius:999px;padding:8px 12px;font:700 14px system-ui;cursor:pointer}.sig button:hover{background:#eff6ff}
 .busca input{flex:1;min-width:0;border:2px solid #ffd0ec;border-radius:14px;padding:13px 14px;font:600 17px system-ui}
 .busca button{border:0;border-radius:14px;padding:0 16px;font:800 16px system-ui;cursor:pointer}
@@ -121,7 +122,7 @@ footer{text-align:center;color:#7a5470;padding:26px 0 40px;font-size:14px}
 
   <section class="info" id="porque" style="background:#f0fdf4;border-color:#bbf7d0">
     <h3 style="color:#166534">🌎 ¿Por qué ShopRevista Mundial?</h3>
-    <ul><li><b>Todo el comercio del mundo en un solo lugar:</b> tiendas grandes, medianas y chicas de más de 30 países, fábricas, proveedores y exportadores.</li><li><b>Para los dos lados:</b> compras afuera y también descubres lo mejor de Latinoamérica para el mundo.</li><li><b>En tu idioma, con Flashy:</b> 12 idiomas, te busca en todas las tiendas a la vez y te ahorra horas.</li><li><b>Sin intermediarios:</b> no cobramos comisión ni tocamos tu plata; compras directo en la página oficial.</li></ul>
+    <ul><li><b>Todo el comercio del mundo en un solo lugar:</b> más de 500 tiendas grandes, medianas y chicas de casi 200 países, fábricas, proveedores y exportadores.</li><li><b>Para los dos lados:</b> compras afuera y también descubres lo mejor de Latinoamérica para el mundo.</li><li><b>En tu idioma, con Flashy:</b> 40 idiomas, te busca en todas las tiendas a la vez y te ahorra horas.</li><li><b>Sin intermediarios:</b> no cobramos comisión ni tocamos tu plata; compras directo en la página oficial.</li></ul>
   </section>
 
   <section class="plan" id="plan">
@@ -164,12 +165,15 @@ footer{text-align:center;color:#7a5470;padding:26px 0 40px;font-size:14px}
  </div>
 </div>
 <style>.pm{display:block;text-align:left;width:100%;border:2px solid #e2e8f0;background:#fff;border-radius:14px;padding:12px 14px;font:16px system-ui;cursor:pointer}.pm small{display:block;color:#64748b;font-size:13px}.pm:hover,.pm.sel{border-color:#15803d;background:#f0fdf4}#pago[hidden]{display:none!important}</style>
+<div id="mapa" title="Dónde estás y qué parte del mundo estás mirando" aria-label="Mapa del mundo"><svg id="mapaSvg" viewBox="0 8 360 142" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="360" height="180" fill="#eaf4fb"/><g id="mTierra" fill="#d9e3d3" stroke="#fff" stroke-width=".25"></g><g id="mPuntos"></g><g id="mYo"></g></svg><div id="mapaTxt">🌎 El mundo</div><button type="button" id="mapaBtn" aria-label="Agrandar o achicar el mapa">⤢</button></div>
+<style>#mapa{position:fixed;right:10px;top:74px;width:156px;height:104px;z-index:40;background:#fff;border:2px solid #dbeafe;border-radius:16px;box-shadow:0 6px 20px rgba(30,58,138,.15);overflow:hidden;transition:width .3s,height .3s}#mapa.gr{width:min(92vw,560px);height:min(62vw,380px)}#mapa svg{width:100%;height:calc(100% - 22px);display:block}#mapa svg #mVista{transition:all .6s}#mapaTxt{font:700 12px system-ui;color:#1e3a8a;text-align:center;line-height:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 22px 0 6px}#mapaBtn{position:absolute;right:4px;bottom:2px;border:0;background:none;font-size:15px;cursor:pointer;color:#1e3a8a}.mp{fill:#e11d74;opacity:.85}.yo{fill:#16a34a;stroke:#fff;stroke-width:.8}@keyframes lat{0%{r:2.2}50%{r:3.6}100%{r:2.2}}.yo{animation:lat 1.6s infinite}@media(max-width:640px){#mapa{top:64px;width:128px;height:88px}}</style>
 <div id="flaFix" title="Flashy te ayuda"></div>
 <script>
 const $ = id => document.getElementById(id);
 const E = encodeURIComponent;
 // ---- las tiendas del mundo ----
 // env: si = envía a Argentina · cas = con casillero en Miami · mir = para mirar precios
+const ccDe = f => [...f].map(c => String.fromCharCode(c.codePointAt(0) - 0x1F1E6 + 65)).join('');
 const G = (dom, q) => 'https://www.google.com/search?q=' + E('site:' + dom + ' ' + q);
 const T = [
  // Estados Unidos
@@ -327,6 +331,401 @@ const T = [
  {p:'la', n:'Diunsa', s:'m', f:'🇭🇳', r:'Tienda departamental de Honduras', env:'mir', l:'es', b:q=>G('diunsa.hn', q), o:'https://www.diunsa.hn/'},
  {p:'la', n:'Plaza Lama', s:'m', f:'🇩🇴', r:'Tienda de todo de República Dominicana', env:'mir', l:'es', b:q=>G('plazalama.com.do', q), o:'https://plazalama.com.do/'},
  {p:'la', n:'Mercado Libre Venezuela', s:'g', f:'🇻🇪', r:'El marketplace de Venezuela', env:'mir', l:'es', b:q=>G('mercadolibre.com.ve', q), o:'https://www.mercadolibre.com.ve/'},
+ // ---- Más de 500 tiendas de casi 200 países ----
+ {p:'us', n:'Costco', s:'g', f:'🇺🇸', r:'Mayorista de todo, compras grandes a buen precio', env:'mir', l:'en', b:q=>G('costco.com', q), o:'https://www.costco.com/'},
+ {p:'us', n:'Home Depot', s:'g', f:'🇺🇸', r:'Herramientas, construcción y jardín', env:'mir', l:'en', b:q=>G('homedepot.com', q), o:'https://www.homedepot.com/'},
+ {p:'us', n:'Lowe\'s', s:'g', f:'🇺🇸', r:'Ferretería, hogar y jardín', env:'mir', l:'en', b:q=>G('lowes.com', q), o:'https://www.lowes.com/'},
+ {p:'us', n:'Macy\'s', s:'g', f:'🇺🇸', r:'Tienda departamental: ropa, hogar y belleza', env:'mir', l:'en', b:q=>G('macys.com', q), o:'https://www.macys.com/'},
+ {p:'us', n:'Kohl\'s', s:'g', f:'🇺🇸', r:'Ropa, hogar y regalos', env:'mir', l:'en', b:q=>G('kohls.com', q), o:'https://www.kohls.com/'},
+ {p:'us', n:'Newegg', s:'m', f:'🇺🇸', r:'Tecnología y componentes de PC', env:'mir', l:'en', b:q=>G('newegg.com', q), o:'https://www.newegg.com/'},
+ {p:'us', n:'B&H Photo', s:'m', f:'🇺🇸', r:'Cámaras, audio y video profesional', env:'mir', l:'en', b:q=>G('bhphotovideo.com', q), o:'https://www.bhphotovideo.com/'},
+ {p:'us', n:'Sephora', s:'m', f:'🇺🇸', r:'Maquillaje y perfumes', env:'mir', l:'en', b:q=>G('sephora.com', q), o:'https://www.sephora.com/'},
+ {p:'us', n:'Ulta Beauty', s:'m', f:'🇺🇸', r:'Belleza y cuidado personal', env:'mir', l:'en', b:q=>G('ulta.com', q), o:'https://www.ulta.com/'},
+ {p:'us', n:'Nordstrom', s:'m', f:'🇺🇸', r:'Moda y calzado premium', env:'mir', l:'en', b:q=>G('nordstrom.com', q), o:'https://www.nordstrom.com/'},
+ {p:'us', n:'Wayfair', s:'g', f:'🇺🇸', r:'Muebles y decoración', env:'mir', l:'en', b:q=>G('wayfair.com', q), o:'https://www.wayfair.com/'},
+ {p:'us', n:'Chewy', s:'m', f:'🇺🇸', r:'Todo para mascotas', env:'mir', l:'en', b:q=>G('chewy.com', q), o:'https://www.chewy.com/'},
+ {p:'us', n:'Nike', s:'m', f:'🇺🇸', r:'Zapatillas y ropa deportiva', env:'mir', l:'en', b:q=>G('nike.com', q), o:'https://www.nike.com/'},
+ {p:'us', n:'Adidas EE.UU.', s:'m', f:'🇺🇸', r:'Zapatillas y ropa deportiva', env:'mir', l:'en', b:q=>G('adidas.com', q), o:'https://www.adidas.com/'},
+ {p:'us', n:'Zappos', s:'m', f:'🇺🇸', r:'Calzado de todas las marcas', env:'mir', l:'en', b:q=>G('zappos.com', q), o:'https://www.zappos.com/'},
+ {p:'us', n:'Dick\'s Sporting Goods', s:'m', f:'🇺🇸', r:'Deportes y camping', env:'mir', l:'en', b:q=>G('dickssportinggoods.com', q), o:'https://www.dickssportinggoods.com/'},
+ {p:'us', n:'REI', s:'m', f:'🇺🇸', r:'Montaña, camping y aire libre', env:'mir', l:'en', b:q=>G('rei.com', q), o:'https://www.rei.com/'},
+ {p:'us', n:'GameStop', s:'m', f:'🇺🇸', r:'Videojuegos y consolas', env:'mir', l:'en', b:q=>G('gamestop.com', q), o:'https://www.gamestop.com/'},
+ {p:'us', n:'Apple', s:'g', f:'🇺🇸', r:'iPhone, Mac y accesorios oficiales', env:'mir', l:'en', b:q=>G('apple.com', q), o:'https://www.apple.com/'},
+ {p:'us', n:'Kroger', s:'g', f:'🇺🇸', r:'Supermercado', env:'mir', l:'en', b:q=>G('kroger.com', q), o:'https://www.kroger.com/'},
+ {p:'us', n:'Michaels', s:'m', f:'🇺🇸', r:'Manualidades y arte', env:'mir', l:'en', b:q=>G('michaels.com', q), o:'https://www.michaels.com/'},
+ {p:'us', n:'Woot', s:'c', f:'🇺🇸', r:'Ofertas del día', env:'mir', l:'en', b:q=>G('woot.com', q), o:'https://www.woot.com/'},
+ {p:'us', n:'Swappa', s:'c', f:'🇺🇸', r:'Celulares usados verificados', env:'mir', l:'en', b:q=>G('swappa.com', q), o:'https://www.swappa.com/'},
+ {p:'us', n:'Uncommon Goods', s:'c', f:'🇺🇸', r:'Regalos originales hechos por artistas', env:'mir', l:'en', b:q=>G('uncommongoods.com', q), o:'https://www.uncommongoods.com/'},
+ {p:'us', n:'Poshmark', s:'c', f:'🇺🇸', r:'Ropa usada y de diseño', env:'mir', l:'en', b:q=>G('poshmark.com', q), o:'https://www.poshmark.com/'},
+ {p:'us', n:'Vitacost', s:'c', f:'🇺🇸', r:'Vitaminas y productos naturales', env:'mir', l:'en', b:q=>G('vitacost.com', q), o:'https://www.vitacost.com/'},
+ {p:'us', n:'Sweetwater', s:'m', f:'🇺🇸', r:'Instrumentos musicales', env:'mir', l:'en', b:q=>G('sweetwater.com', q), o:'https://www.sweetwater.com/'},
+ {p:'us', n:'Guitar Center', s:'m', f:'🇺🇸', r:'Instrumentos y audio', env:'mir', l:'en', b:q=>G('guitarcenter.com', q), o:'https://www.guitarcenter.com/'},
+ {p:'us', n:'Barnes & Noble', s:'m', f:'🇺🇸', r:'Libros', env:'mir', l:'en', b:q=>G('barnesandnoble.com', q), o:'https://www.barnesandnoble.com/'},
+ {p:'us', n:'Staples', s:'m', f:'🇺🇸', r:'Oficina y escolar', env:'mir', l:'en', b:q=>G('staples.com', q), o:'https://www.staples.com/'},
+ {p:'us', n:'Petco', s:'m', f:'🇺🇸', r:'Mascotas', env:'mir', l:'en', b:q=>G('petco.com', q), o:'https://www.petco.com/'},
+ {p:'us', n:'Crate & Barrel', s:'m', f:'🇺🇸', r:'Cocina y muebles de diseño', env:'mir', l:'en', b:q=>G('crateandbarrel.com', q), o:'https://www.crateandbarrel.com/'},
+ {p:'us', n:'Williams Sonoma', s:'m', f:'🇺🇸', r:'Cocina premium', env:'mir', l:'en', b:q=>G('williams-sonoma.com', q), o:'https://www.williams-sonoma.com/'},
+ {p:'us', n:'Walmart Canadá', s:'g', f:'🇨🇦', r:'Tienda de todo en Canadá', env:'mir', l:'en', b:q=>G('walmart.ca', q), o:'https://www.walmart.ca/'},
+ {p:'us', n:'Best Buy Canadá', s:'g', f:'🇨🇦', r:'Electrónica en Canadá', env:'mir', l:'en', b:q=>G('bestbuy.ca', q), o:'https://www.bestbuy.ca/'},
+ {p:'us', n:'Simons', s:'m', f:'🇨🇦', r:'Moda canadiense', env:'mir', l:'en', b:q=>G('simons.ca', q), o:'https://www.simons.ca/'},
+ {p:'us', n:'Sport Chek', s:'m', f:'🇨🇦', r:'Deportes en Canadá', env:'mir', l:'en', b:q=>G('sportchek.ca', q), o:'https://www.sportchek.ca/'},
+ {p:'us', n:'Indigo', s:'m', f:'🇨🇦', r:'Libros y regalos en Canadá', env:'mir', l:'en', b:q=>G('indigo.ca', q), o:'https://www.indigo.ca/'},
+ {p:'us', n:'Memory Express', s:'m', f:'🇨🇦', r:'Computación en Canadá', env:'mir', l:'en', b:q=>G('memoryexpress.com', q), o:'https://www.memoryexpress.com/'},
+ {p:'us', n:'Roots', s:'c', f:'🇨🇦', r:'Ropa canadiense', env:'mir', l:'en', b:q=>G('roots.com', q), o:'https://www.roots.com/'},
+ {p:'la', n:'Walmart México', s:'g', f:'🇲🇽', r:'Tienda de todo en México', env:'mir', l:'es', b:q=>G('walmart.com.mx', q), o:'https://walmart.com.mx/'},
+ {p:'la', n:'Mercado Libre México', s:'g', f:'🇲🇽', r:'El marketplace más grande de México', env:'mir', l:'es', b:q=>G('mercadolibre.com.mx', q), o:'https://mercadolibre.com.mx/'},
+ {p:'la', n:'Elektra', s:'m', f:'🇲🇽', r:'Electro y motos en México', env:'mir', l:'es', b:q=>G('elektra.com.mx', q), o:'https://elektra.com.mx/'},
+ {p:'la', n:'Sanborns', s:'m', f:'🇲🇽', r:'Tienda departamental y regalos', env:'mir', l:'es', b:q=>G('sanborns.com.mx', q), o:'https://sanborns.com.mx/'},
+ {p:'la', n:'Palacio de Hierro', s:'m', f:'🇲🇽', r:'Tienda departamental premium', env:'mir', l:'es', b:q=>G('elpalaciodehierro.com', q), o:'https://www.elpalaciodehierro.com/'},
+ {p:'la', n:'Sears México', s:'m', f:'🇲🇽', r:'Tienda departamental', env:'mir', l:'es', b:q=>G('sears.com.mx', q), o:'https://sears.com.mx/'},
+ {p:'la', n:'Cyberpuerta', s:'m', f:'🇲🇽', r:'Computación en México', env:'mir', l:'es', b:q=>G('cyberpuerta.mx', q), o:'https://www.cyberpuerta.mx/'},
+ {p:'la', n:'Petco México', s:'c', f:'🇲🇽', r:'Mascotas en México', env:'mir', l:'es', b:q=>G('petco.com.mx', q), o:'https://petco.com.mx/'},
+ {p:'la', n:'Musimundo', s:'m', f:'🇦🇷', r:'Tecnología y electro en Argentina', env:'si', l:'es', b:q=>G('musimundo.com', q), o:'https://www.musimundo.com/'},
+ {p:'la', n:'Dexter', s:'m', f:'🇦🇷', r:'Zapatillas deportivas', env:'si', l:'es', b:q=>G('dexter.com.ar', q), o:'https://dexter.com.ar/'},
+ {p:'la', n:'Easy', s:'g', f:'🇦🇷', r:'Hogar y construcción', env:'si', l:'es', b:q=>G('easy.com.ar', q), o:'https://easy.com.ar/'},
+ {p:'la', n:'Carrefour Argentina', s:'g', f:'🇦🇷', r:'Supermercado y electro', env:'si', l:'es', b:q=>G('carrefour.com.ar', q), o:'https://carrefour.com.ar/'},
+ {p:'la', n:'Amazon Brasil', s:'g', f:'🇧🇷', r:'La tienda principal de Brasil', env:'mir', l:'pt', b:q=>G('amazon.com.br', q), o:'https://amazon.com.br/'},
+ {p:'la', n:'Magazine Luiza', s:'g', f:'🇧🇷', r:'Gigante brasileño de electro y hogar', env:'mir', l:'pt', b:q=>G('magazineluiza.com.br', q), o:'https://magazineluiza.com.br/'},
+ {p:'la', n:'Americanas', s:'g', f:'🇧🇷', r:'Tienda de todo en Brasil', env:'mir', l:'pt', b:q=>G('americanas.com.br', q), o:'https://americanas.com.br/'},
+ {p:'la', n:'Casas Bahia', s:'g', f:'🇧🇷', r:'Electro y muebles en Brasil', env:'mir', l:'pt', b:q=>G('casasbahia.com.br', q), o:'https://casasbahia.com.br/'},
+ {p:'la', n:'Netshoes', s:'m', f:'🇧🇷', r:'Deportes en Brasil', env:'mir', l:'pt', b:q=>G('netshoes.com.br', q), o:'https://netshoes.com.br/'},
+ {p:'la', n:'Kabum', s:'m', f:'🇧🇷', r:'Tecnología y gamer en Brasil', env:'mir', l:'pt', b:q=>G('kabum.com.br', q), o:'https://kabum.com.br/'},
+ {p:'la', n:'Centauro', s:'m', f:'🇧🇷', r:'Deportes en Brasil', env:'mir', l:'pt', b:q=>G('centauro.com.br', q), o:'https://centauro.com.br/'},
+ {p:'la', n:'Renner', s:'m', f:'🇧🇷', r:'Moda en Brasil', env:'mir', l:'pt', b:q=>G('lojasrenner.com.br', q), o:'https://lojasrenner.com.br/'},
+ {p:'la', n:'O Boticário', s:'m', f:'🇧🇷', r:'Perfumes y belleza de Brasil', env:'mir', l:'pt', b:q=>G('boticario.com.br', q), o:'https://boticario.com.br/'},
+ {p:'la', n:'Elo7', s:'c', f:'🇧🇷', r:'Hecho a mano en Brasil', env:'mir', l:'pt', b:q=>G('elo7.com.br', q), o:'https://elo7.com.br/'},
+ {p:'la', n:'Mercado Libre Chile', s:'g', f:'🇨🇱', r:'Marketplace de Chile', env:'mir', l:'es', b:q=>G('mercadolibre.cl', q), o:'https://www.mercadolibre.cl/'},
+ {p:'la', n:'Ripley Chile', s:'g', f:'🇨🇱', r:'Tienda departamental de Chile', env:'mir', l:'es', b:q=>G('simple.ripley.cl', q), o:'https://simple.ripley.cl/'},
+ {p:'la', n:'Lider', s:'g', f:'🇨🇱', r:'Supermercado y tienda de todo', env:'mir', l:'es', b:q=>G('lider.cl', q), o:'https://www.lider.cl/'},
+ {p:'la', n:'Sodimac Chile', s:'g', f:'🇨🇱', r:'Construcción y hogar', env:'mir', l:'es', b:q=>G('sodimac.cl', q), o:'https://www.sodimac.cl/'},
+ {p:'la', n:'PC Factory', s:'m', f:'🇨🇱', r:'Computación en Chile', env:'mir', l:'es', b:q=>G('pcfactory.cl', q), o:'https://www.pcfactory.cl/'},
+ {p:'la', n:'Hites', s:'m', f:'🇨🇱', r:'Tienda departamental', env:'mir', l:'es', b:q=>G('hites.com', q), o:'https://www.hites.com/'},
+ {p:'la', n:'Mercado Libre Colombia', s:'g', f:'🇨🇴', r:'Marketplace de Colombia', env:'mir', l:'es', b:q=>G('mercadolibre.com.co', q), o:'https://mercadolibre.com.co/'},
+ {p:'la', n:'Alkosto', s:'g', f:'🇨🇴', r:'Electro y tecnología en Colombia', env:'mir', l:'es', b:q=>G('alkosto.com', q), o:'https://www.alkosto.com/'},
+ {p:'la', n:'Falabella Colombia', s:'g', f:'🇨🇴', r:'Tienda departamental', env:'mir', l:'es', b:q=>G('falabella.com.co', q), o:'https://falabella.com.co/'},
+ {p:'la', n:'Ktronix', s:'m', f:'🇨🇴', r:'Tecnología en Colombia', env:'mir', l:'es', b:q=>G('ktronix.com', q), o:'https://www.ktronix.com/'},
+ {p:'la', n:'Homecenter', s:'g', f:'🇨🇴', r:'Construcción y hogar', env:'mir', l:'es', b:q=>G('homecenter.com.co', q), o:'https://homecenter.com.co/'},
+ {p:'la', n:'Mercado Libre Perú', s:'g', f:'🇵🇪', r:'Marketplace de Perú', env:'mir', l:'es', b:q=>G('mercadolibre.com.pe', q), o:'https://mercadolibre.com.pe/'},
+ {p:'la', n:'Falabella Perú', s:'g', f:'🇵🇪', r:'Tienda departamental', env:'mir', l:'es', b:q=>G('falabella.com.pe', q), o:'https://falabella.com.pe/'},
+ {p:'la', n:'Plaza Vea', s:'g', f:'🇵🇪', r:'Supermercado y tienda de todo', env:'mir', l:'es', b:q=>G('plazavea.com.pe', q), o:'https://plazavea.com.pe/'},
+ {p:'la', n:'Promart', s:'m', f:'🇵🇪', r:'Hogar y construcción', env:'mir', l:'es', b:q=>G('promart.pe', q), o:'https://www.promart.pe/'},
+ {p:'la', n:'Oechsle', s:'m', f:'🇵🇪', r:'Tienda departamental', env:'mir', l:'es', b:q=>G('oechsle.pe', q), o:'https://www.oechsle.pe/'},
+ {p:'la', n:'Mercado Libre Uruguay', s:'g', f:'🇺🇾', r:'Marketplace de Uruguay', env:'mir', l:'es', b:q=>G('mercadolibre.com.uy', q), o:'https://mercadolibre.com.uy/'},
+ {p:'la', n:'Divino', s:'m', f:'🇺🇾', r:'Hogar y muebles en Uruguay', env:'mir', l:'es', b:q=>G('divino.com.uy', q), o:'https://divino.com.uy/'},
+ {p:'la', n:'Mercado Libre Paraguay', s:'g', f:'🇵🇾', r:'Marketplace de Paraguay', env:'mir', l:'es', b:q=>G('mercadolibre.com.py', q), o:'https://mercadolibre.com.py/'},
+ {p:'la', n:'Gonzalez Gimenez', s:'m', f:'🇵🇾', r:'Electro y hogar en Paraguay', env:'mir', l:'es', b:q=>G('gonzalezgimenez.com.py', q), o:'https://gonzalezgimenez.com.py/'},
+ {p:'la', n:'Mercado Libre Bolivia', s:'g', f:'🇧🇴', r:'Marketplace de Bolivia', env:'mir', l:'es', b:q=>G('mercadolibre.com.bo', q), o:'https://mercadolibre.com.bo/'},
+ {p:'la', n:'Hipermaxi', s:'m', f:'🇧🇴', r:'Supermercado en Bolivia', env:'mir', l:'es', b:q=>G('hipermaxi.com', q), o:'https://www.hipermaxi.com/'},
+ {p:'la', n:'Mercado Libre Ecuador', s:'g', f:'🇪🇨', r:'Marketplace de Ecuador', env:'mir', l:'es', b:q=>G('mercadolibre.com.ec', q), o:'https://mercadolibre.com.ec/'},
+ {p:'la', n:'Créditos Económicos', s:'m', f:'🇪🇨', r:'Electro en Ecuador', env:'mir', l:'es', b:q=>G('creditoseconomicos.com', q), o:'https://www.creditoseconomicos.com/'},
+ {p:'la', n:'Kywi', s:'m', f:'🇪🇨', r:'Ferretería y hogar', env:'mir', l:'es', b:q=>G('kywi.com.ec', q), o:'https://kywi.com.ec/'},
+ {p:'la', n:'Farmatodo', s:'m', f:'🇻🇪', r:'Farmacia y cuidado personal', env:'mir', l:'es', b:q=>G('farmatodo.com.ve', q), o:'https://farmatodo.com.ve/'},
+ {p:'la', n:'Mercado Libre Costa Rica', s:'g', f:'🇨🇷', r:'Marketplace de Costa Rica', env:'mir', l:'es', b:q=>G('mercadolibre.co.cr', q), o:'https://mercadolibre.co.cr/'},
+ {p:'la', n:'EPA', s:'m', f:'🇨🇷', r:'Construcción y hogar', env:'mir', l:'es', b:q=>G('epa.cr', q), o:'https://www.epa.cr/'},
+ {p:'la', n:'Mercado Libre Panamá', s:'g', f:'🇵🇦', r:'Marketplace de Panamá', env:'mir', l:'es', b:q=>G('mercadolibre.com.pa', q), o:'https://mercadolibre.com.pa/'},
+ {p:'la', n:'Novey', s:'m', f:'🇵🇦', r:'Ferretería y hogar', env:'mir', l:'es', b:q=>G('novey.com.pa', q), o:'https://novey.com.pa/'},
+ {p:'la', n:'Multimax', s:'m', f:'🇵🇦', r:'Electro y hogar', env:'mir', l:'es', b:q=>G('multimax.net', q), o:'https://www.multimax.net/'},
+ {p:'la', n:'Mercado Libre Guatemala', s:'g', f:'🇬🇹', r:'Marketplace de Guatemala', env:'mir', l:'es', b:q=>G('mercadolibre.com.gt', q), o:'https://mercadolibre.com.gt/'},
+ {p:'la', n:'Elektra Guatemala', s:'m', f:'🇬🇹', r:'Electro y motos', env:'mir', l:'es', b:q=>G('elektra.com.gt', q), o:'https://elektra.com.gt/'},
+ {p:'la', n:'Mercado Libre Honduras', s:'g', f:'🇭🇳', r:'Marketplace de Honduras', env:'mir', l:'es', b:q=>G('mercadolibre.com.hn', q), o:'https://mercadolibre.com.hn/'},
+ {p:'la', n:'Mercado Libre El Salvador', s:'g', f:'🇸🇻', r:'Marketplace de El Salvador', env:'mir', l:'es', b:q=>G('mercadolibre.com.sv', q), o:'https://mercadolibre.com.sv/'},
+ {p:'la', n:'Almacenes Bomba', s:'m', f:'🇸🇻', r:'Electro y hogar', env:'mir', l:'es', b:q=>G('almacenesbomba.com', q), o:'https://www.almacenesbomba.com/'},
+ {p:'la', n:'Mercado Libre Nicaragua', s:'g', f:'🇳🇮', r:'Marketplace de Nicaragua', env:'mir', l:'es', b:q=>G('mercadolibre.com.ni', q), o:'https://mercadolibre.com.ni/'},
+ {p:'la', n:'Gallo más Gallo', s:'m', f:'🇳🇮', r:'Electro y hogar en Nicaragua', env:'mir', l:'es', b:q=>G('gallomasgallo.com', q), o:'https://www.gallomasgallo.com/'},
+ {p:'la', n:'Mercado Libre Rep. Dominicana', s:'g', f:'🇩🇴', r:'Marketplace dominicano', env:'mir', l:'es', b:q=>G('mercadolibre.com.do', q), o:'https://mercadolibre.com.do/'},
+ {p:'la', n:'La Sirena', s:'g', f:'🇩🇴', r:'Tienda de todo', env:'mir', l:'es', b:q=>G('sirena.do', q), o:'https://www.sirena.do/'},
+ {p:'la', n:'Corripio', s:'m', f:'🇩🇴', r:'Electro y hogar', env:'mir', l:'es', b:q=>G('corripio.com.do', q), o:'https://corripio.com.do/'},
+ {p:'la', n:'Revolico', s:'c', f:'🇨🇺', r:'Avisos clasificados de Cuba', env:'mir', l:'es', b:q=>G('revolico.com', q), o:'https://www.revolico.com/'},
+ {p:'la', n:'Courts Jamaica', s:'m', f:'🇯🇲', r:'Electro y muebles en Jamaica', env:'mir', l:'es', b:q=>G('courts.com.jm', q), o:'https://courts.com.jm/'},
+ {p:'la', n:'Courts Trinidad', s:'m', f:'🇹🇹', r:'Electro y muebles', env:'mir', l:'es', b:q=>G('courtstt.com', q), o:'https://www.courtstt.com/'},
+ {p:'la', n:'Amazon (Puerto Rico)', s:'g', f:'🇵🇷', r:'Recibe envíos de Amazon EE.UU.', env:'mir', l:'es', b:q=>G('amazon.com', q), o:'https://www.amazon.com/'},
+ {p:'eu', n:'Amazon Reino Unido', s:'g', f:'🇬🇧', r:'La tienda principal del Reino Unido', env:'mir', l:'en', b:q=>G('amazon.co.uk', q), o:'https://amazon.co.uk/'},
+ {p:'eu', n:'Argos', s:'g', f:'🇬🇧', r:'Tienda de todo del Reino Unido', env:'mir', l:'en', b:q=>G('argos.co.uk', q), o:'https://argos.co.uk/'},
+ {p:'eu', n:'Currys', s:'g', f:'🇬🇧', r:'Electro y tecnología', env:'mir', l:'en', b:q=>G('currys.co.uk', q), o:'https://currys.co.uk/'},
+ {p:'eu', n:'John Lewis', s:'g', f:'🇬🇧', r:'Tienda departamental', env:'mir', l:'en', b:q=>G('johnlewis.com', q), o:'https://www.johnlewis.com/'},
+ {p:'eu', n:'Tesco', s:'g', f:'🇬🇧', r:'Supermercado', env:'mir', l:'en', b:q=>G('tesco.com', q), o:'https://www.tesco.com/'},
+ {p:'eu', n:'Marks & Spencer', s:'g', f:'🇬🇧', r:'Ropa, hogar y comida', env:'mir', l:'en', b:q=>G('marksandspencer.com', q), o:'https://www.marksandspencer.com/'},
+ {p:'eu', n:'Boots', s:'m', f:'🇬🇧', r:'Farmacia y belleza', env:'mir', l:'en', b:q=>G('boots.com', q), o:'https://www.boots.com/'},
+ {p:'eu', n:'Next', s:'m', f:'🇬🇧', r:'Moda y hogar', env:'mir', l:'en', b:q=>G('next.co.uk', q), o:'https://next.co.uk/'},
+ {p:'eu', n:'JD Sports', s:'m', f:'🇬🇧', r:'Zapatillas y deporte', env:'mir', l:'en', b:q=>G('jdsports.co.uk', q), o:'https://jdsports.co.uk/'},
+ {p:'eu', n:'Very', s:'m', f:'🇬🇧', r:'Tienda de todo', env:'mir', l:'en', b:q=>G('very.co.uk', q), o:'https://very.co.uk/'},
+ {p:'eu', n:'Screwfix', s:'m', f:'🇬🇧', r:'Herramientas', env:'mir', l:'en', b:q=>G('screwfix.com', q), o:'https://www.screwfix.com/'},
+ {p:'eu', n:'Lush', s:'c', f:'🇬🇧', r:'Cosmética artesanal', env:'mir', l:'en', b:q=>G('lush.com', q), o:'https://www.lush.com/'},
+ {p:'eu', n:'Not On The High Street', s:'c', f:'🇬🇧', r:'Regalos de tiendas chicas británicas', env:'mir', l:'en', b:q=>G('notonthehighstreet.com', q), o:'https://www.notonthehighstreet.com/'},
+ {p:'eu', n:'Depop', s:'c', f:'🇬🇧', r:'Ropa vintage y usada', env:'mir', l:'en', b:q=>G('depop.com', q), o:'https://www.depop.com/'},
+ {p:'eu', n:'Littlewoods Ireland', s:'m', f:'🇮🇪', r:'Tienda de todo en Irlanda', env:'mir', l:'en', b:q=>G('littlewoodsireland.ie', q), o:'https://www.littlewoodsireland.ie/'},
+ {p:'eu', n:'DoneDeal', s:'c', f:'🇮🇪', r:'Avisos clasificados de Irlanda', env:'mir', l:'en', b:q=>G('donedeal.ie', q), o:'https://www.donedeal.ie/'},
+ {p:'eu', n:'Arnotts', s:'m', f:'🇮🇪', r:'Tienda departamental de Dublín', env:'mir', l:'en', b:q=>G('arnotts.ie', q), o:'https://www.arnotts.ie/'},
+ {p:'eu', n:'Amazon Francia', s:'g', f:'🇫🇷', r:'La tienda principal de Francia', env:'mir', l:'en', b:q=>G('amazon.fr', q), o:'https://www.amazon.fr/'},
+ {p:'eu', n:'Carrefour Francia', s:'g', f:'🇫🇷', r:'Supermercado y electro', env:'mir', l:'en', b:q=>G('carrefour.fr', q), o:'https://www.carrefour.fr/'},
+ {p:'eu', n:'Boulanger', s:'g', f:'🇫🇷', r:'Electrodomésticos', env:'mir', l:'en', b:q=>G('boulanger.com', q), o:'https://www.boulanger.com/'},
+ {p:'eu', n:'Leroy Merlin', s:'g', f:'🇫🇷', r:'Bricolaje y hogar', env:'mir', l:'en', b:q=>G('leroymerlin.fr', q), o:'https://www.leroymerlin.fr/'},
+ {p:'eu', n:'Decathlon', s:'g', f:'🇫🇷', r:'Deportes al mejor precio', env:'mir', l:'en', b:q=>G('decathlon.fr', q), o:'https://www.decathlon.fr/'},
+ {p:'eu', n:'Galeries Lafayette', s:'m', f:'🇫🇷', r:'Tienda departamental de lujo', env:'mir', l:'en', b:q=>G('galerieslafayette.com', q), o:'https://www.galerieslafayette.com/'},
+ {p:'eu', n:'Leboncoin', s:'m', f:'🇫🇷', r:'Avisos clasificados de Francia', env:'mir', l:'en', b:q=>G('leboncoin.fr', q), o:'https://www.leboncoin.fr/'},
+ {p:'eu', n:'La Redoute', s:'m', f:'🇫🇷', r:'Moda y hogar', env:'mir', l:'en', b:q=>G('laredoute.fr', q), o:'https://www.laredoute.fr/'},
+ {p:'eu', n:'Sephora Francia', s:'m', f:'🇫🇷', r:'Belleza', env:'mir', l:'en', b:q=>G('sephora.fr', q), o:'https://www.sephora.fr/'},
+ {p:'eu', n:'Vinted', s:'c', f:'🇫🇷', r:'Ropa usada de Europa', env:'mir', l:'en', b:q=>G('vinted.fr', q), o:'https://www.vinted.fr/'},
+ {p:'eu', n:'Rakuten Francia', s:'m', f:'🇫🇷', r:'Marketplace', env:'mir', l:'en', b:q=>G('fr.shopping.rakuten.com', q), o:'https://fr.shopping.rakuten.com/'},
+ {p:'eu', n:'eBay Alemania', s:'g', f:'🇩🇪', r:'Marketplace', env:'mir', l:'en', b:q=>G('ebay.de', q), o:'https://www.ebay.de/'},
+ {p:'eu', n:'Kaufland', s:'g', f:'🇩🇪', r:'Marketplace y supermercado', env:'mir', l:'en', b:q=>G('kaufland.de', q), o:'https://www.kaufland.de/'},
+ {p:'eu', n:'Saturn', s:'m', f:'🇩🇪', r:'Electrónica', env:'mir', l:'en', b:q=>G('saturn.de', q), o:'https://www.saturn.de/'},
+ {p:'eu', n:'Thomann', s:'g', f:'🇩🇪', r:'La tienda de música más grande de Europa', env:'mir', l:'en', b:q=>G('thomann.de', q), o:'https://www.thomann.de/'},
+ {p:'eu', n:'Douglas', s:'m', f:'🇩🇪', r:'Perfumería', env:'mir', l:'en', b:q=>G('douglas.de', q), o:'https://www.douglas.de/'},
+ {p:'eu', n:'dm', s:'m', f:'🇩🇪', r:'Droguería y cuidado personal', env:'mir', l:'en', b:q=>G('dm.de', q), o:'https://www.dm.de/'},
+ {p:'eu', n:'Lidl Alemania', s:'g', f:'🇩🇪', r:'Supermercado y ofertas', env:'mir', l:'en', b:q=>G('lidl.de', q), o:'https://www.lidl.de/'},
+ {p:'eu', n:'IKEA Alemania', s:'g', f:'🇩🇪', r:'Muebles y hogar', env:'mir', l:'en', b:q=>G('ikea.com', q), o:'https://www.ikea.com/'},
+ {p:'eu', n:'Conrad', s:'m', f:'🇩🇪', r:'Electrónica y técnica', env:'mir', l:'en', b:q=>G('conrad.de', q), o:'https://www.conrad.de/'},
+ {p:'eu', n:'Notebooksbilliger', s:'m', f:'🇩🇪', r:'Computación', env:'mir', l:'en', b:q=>G('notebooksbilliger.de', q), o:'https://www.notebooksbilliger.de/'},
+ {p:'eu', n:'Tchibo', s:'c', f:'🇩🇪', r:'Café y ofertas semanales', env:'mir', l:'en', b:q=>G('tchibo.de', q), o:'https://www.tchibo.de/'},
+ {p:'eu', n:'Hood.de', s:'c', f:'🇩🇪', r:'Marketplace de tiendas chicas', env:'mir', l:'en', b:q=>G('hood.de', q), o:'https://www.hood.de/'},
+ {p:'eu', n:'Carrefour España', s:'g', f:'🇪🇸', r:'Supermercado y electro', env:'mir', l:'es', b:q=>G('carrefour.es', q), o:'https://www.carrefour.es/'},
+ {p:'eu', n:'MediaMarkt España', s:'g', f:'🇪🇸', r:'Electrónica', env:'mir', l:'es', b:q=>G('mediamarkt.es', q), o:'https://www.mediamarkt.es/'},
+ {p:'eu', n:'Decathlon España', s:'g', f:'🇪🇸', r:'Deportes', env:'mir', l:'es', b:q=>G('decathlon.es', q), o:'https://www.decathlon.es/'},
+ {p:'eu', n:'Leroy Merlin España', s:'g', f:'🇪🇸', r:'Bricolaje', env:'mir', l:'es', b:q=>G('leroymerlin.es', q), o:'https://www.leroymerlin.es/'},
+ {p:'eu', n:'Zara', s:'g', f:'🇪🇸', r:'Moda española', env:'mir', l:'es', b:q=>G('zara.com', q), o:'https://www.zara.com/'},
+ {p:'eu', n:'Mango', s:'m', f:'🇪🇸', r:'Moda española', env:'mir', l:'es', b:q=>G('mango.com', q), o:'https://www.mango.com/'},
+ {p:'eu', n:'Druni', s:'m', f:'🇪🇸', r:'Perfumería', env:'mir', l:'es', b:q=>G('druni.es', q), o:'https://www.druni.es/'},
+ {p:'eu', n:'Wallapop', s:'c', f:'🇪🇸', r:'Compra y venta de segunda mano', env:'mir', l:'es', b:q=>G('wallapop.com', q), o:'https://www.wallapop.com/'},
+ {p:'eu', n:'eBay Italia', s:'g', f:'🇮🇹', r:'Marketplace', env:'mir', l:'en', b:q=>G('ebay.it', q), o:'https://www.ebay.it/'},
+ {p:'eu', n:'MediaWorld', s:'g', f:'🇮🇹', r:'Electrónica', env:'mir', l:'en', b:q=>G('mediaworld.it', q), o:'https://www.mediaworld.it/'},
+ {p:'eu', n:'Euronics Italia', s:'m', f:'🇮🇹', r:'Electro', env:'mir', l:'en', b:q=>G('euronics.it', q), o:'https://www.euronics.it/'},
+ {p:'eu', n:'Yoox', s:'m', f:'🇮🇹', r:'Moda de diseño', env:'mir', l:'en', b:q=>G('yoox.com', q), o:'https://www.yoox.com/'},
+ {p:'eu', n:'Subito', s:'c', f:'🇮🇹', r:'Avisos clasificados de Italia', env:'mir', l:'en', b:q=>G('subito.it', q), o:'https://www.subito.it/'},
+ {p:'eu', n:'Coolblue Países Bajos', s:'g', f:'🇳🇱', r:'Electro y tecnología', env:'mir', l:'en', b:q=>G('coolblue.nl', q), o:'https://www.coolblue.nl/'},
+ {p:'eu', n:'Wehkamp', s:'m', f:'🇳🇱', r:'Moda y hogar', env:'mir', l:'en', b:q=>G('wehkamp.nl', q), o:'https://www.wehkamp.nl/'},
+ {p:'eu', n:'HEMA', s:'m', f:'🇳🇱', r:'Hogar y regalos holandeses', env:'mir', l:'en', b:q=>G('hema.nl', q), o:'https://www.hema.nl/'},
+ {p:'eu', n:'Marktplaats', s:'c', f:'🇳🇱', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('marktplaats.nl', q), o:'https://www.marktplaats.nl/'},
+ {p:'eu', n:'Albert Heijn', s:'g', f:'🇳🇱', r:'Supermercado', env:'mir', l:'en', b:q=>G('ah.nl', q), o:'https://www.ah.nl/'},
+ {p:'eu', n:'Bol.com Bélgica', s:'g', f:'🇧🇪', r:'Marketplace', env:'mir', l:'en', b:q=>G('bol.com', q), o:'https://www.bol.com/'},
+ {p:'eu', n:'Vanden Borre', s:'m', f:'🇧🇪', r:'Electro', env:'mir', l:'en', b:q=>G('vandenborre.be', q), o:'https://www.vandenborre.be/'},
+ {p:'eu', n:'2dehands', s:'c', f:'🇧🇪', r:'Segunda mano', env:'mir', l:'en', b:q=>G('2dehands.be', q), o:'https://www.2dehands.be/'},
+ {p:'eu', n:'Cactus', s:'m', f:'🇱🇺', r:'Supermercado de Luxemburgo', env:'mir', l:'en', b:q=>G('cactus.lu', q), o:'https://www.cactus.lu/'},
+ {p:'eu', n:'Digitec', s:'g', f:'🇨🇭', r:'Tecnología en Suiza', env:'mir', l:'en', b:q=>G('digitec.ch', q), o:'https://www.digitec.ch/'},
+ {p:'eu', n:'Brack', s:'m', f:'🇨🇭', r:'Tienda de todo en Suiza', env:'mir', l:'en', b:q=>G('brack.ch', q), o:'https://www.brack.ch/'},
+ {p:'eu', n:'Manor', s:'m', f:'🇨🇭', r:'Tienda departamental', env:'mir', l:'en', b:q=>G('manor.ch', q), o:'https://www.manor.ch/'},
+ {p:'eu', n:'Ricardo', s:'c', f:'🇨🇭', r:'Subastas y segunda mano', env:'mir', l:'en', b:q=>G('ricardo.ch', q), o:'https://www.ricardo.ch/'},
+ {p:'eu', n:'Amazon (Austria)', s:'g', f:'🇦🇹', r:'Amazon Alemania envía a Austria', env:'mir', l:'en', b:q=>G('amazon.de', q), o:'https://www.amazon.de/'},
+ {p:'eu', n:'willhaben', s:'c', f:'🇦🇹', r:'Avisos clasificados de Austria', env:'mir', l:'en', b:q=>G('willhaben.at', q), o:'https://www.willhaben.at/'},
+ {p:'eu', n:'Cyberport', s:'m', f:'🇦🇹', r:'Tecnología', env:'mir', l:'en', b:q=>G('cyberport.at', q), o:'https://www.cyberport.at/'},
+ {p:'eu', n:'Bilka', s:'g', f:'🇩🇰', r:'Hipermercado', env:'mir', l:'en', b:q=>G('bilka.dk', q), o:'https://www.bilka.dk/'},
+ {p:'eu', n:'Proshop', s:'m', f:'🇩🇰', r:'Computación', env:'mir', l:'en', b:q=>G('proshop.dk', q), o:'https://www.proshop.dk/'},
+ {p:'eu', n:'DBA', s:'c', f:'🇩🇰', r:'Segunda mano', env:'mir', l:'en', b:q=>G('dba.dk', q), o:'https://www.dba.dk/'},
+ {p:'eu', n:'Elgiganten Suecia', s:'g', f:'🇸🇪', r:'Electro', env:'mir', l:'en', b:q=>G('elgiganten.se', q), o:'https://www.elgiganten.se/'},
+ {p:'eu', n:'Clas Ohlson', s:'m', f:'🇸🇪', r:'Hogar y ferretería', env:'mir', l:'en', b:q=>G('clasohlson.com', q), o:'https://www.clasohlson.com/'},
+ {p:'eu', n:'Apotea', s:'m', f:'🇸🇪', r:'Farmacia online', env:'mir', l:'en', b:q=>G('apotea.se', q), o:'https://www.apotea.se/'},
+ {p:'eu', n:'Blocket', s:'c', f:'🇸🇪', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('blocket.se', q), o:'https://www.blocket.se/'},
+ {p:'eu', n:'H&M', s:'g', f:'🇸🇪', r:'Moda sueca', env:'mir', l:'en', b:q=>G('hm.com', q), o:'https://www.hm.com/'},
+ {p:'eu', n:'IKEA Suecia', s:'g', f:'🇸🇪', r:'Muebles suecos', env:'mir', l:'en', b:q=>G('ikea.com', q), o:'https://www.ikea.com/'},
+ {p:'eu', n:'Elkjøp', s:'g', f:'🇳🇴', r:'Electro en Noruega', env:'mir', l:'en', b:q=>G('elkjop.no', q), o:'https://www.elkjop.no/'},
+ {p:'eu', n:'Power', s:'m', f:'🇳🇴', r:'Electro', env:'mir', l:'en', b:q=>G('power.no', q), o:'https://www.power.no/'},
+ {p:'eu', n:'Finn.no', s:'c', f:'🇳🇴', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('finn.no', q), o:'https://www.finn.no/'},
+ {p:'eu', n:'Gigantti', s:'g', f:'🇫🇮', r:'Electro en Finlandia', env:'mir', l:'en', b:q=>G('gigantti.fi', q), o:'https://www.gigantti.fi/'},
+ {p:'eu', n:'Tori.fi', s:'c', f:'🇫🇮', r:'Segunda mano', env:'mir', l:'en', b:q=>G('tori.fi', q), o:'https://www.tori.fi/'},
+ {p:'eu', n:'Stockmann', s:'m', f:'🇫🇮', r:'Tienda departamental', env:'mir', l:'en', b:q=>G('stockmann.com', q), o:'https://www.stockmann.com/'},
+ {p:'eu', n:'Hagkaup', s:'m', f:'🇮🇸', r:'Tienda de todo en Islandia', env:'mir', l:'en', b:q=>G('hagkaup.is', q), o:'https://www.hagkaup.is/'},
+ {p:'eu', n:'Media Expert', s:'g', f:'🇵🇱', r:'Electro en Polonia', env:'mir', l:'en', b:q=>G('mediaexpert.pl', q), o:'https://www.mediaexpert.pl/'},
+ {p:'eu', n:'x-kom', s:'m', f:'🇵🇱', r:'Computación', env:'mir', l:'en', b:q=>G('x-kom.pl', q), o:'https://www.x-kom.pl/'},
+ {p:'eu', n:'Empik', s:'m', f:'🇵🇱', r:'Libros y cultura', env:'mir', l:'en', b:q=>G('empik.com', q), o:'https://www.empik.com/'},
+ {p:'eu', n:'OLX Polonia', s:'c', f:'🇵🇱', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('olx.pl', q), o:'https://www.olx.pl/'},
+ {p:'eu', n:'Allegro Chequia', s:'m', f:'🇨🇿', r:'Tienda de todo', env:'mir', l:'en', b:q=>G('allegro.cz', q), o:'https://www.allegro.cz/'},
+ {p:'eu', n:'Bazos', s:'c', f:'🇨🇿', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('bazos.cz', q), o:'https://www.bazos.cz/'},
+ {p:'eu', n:'Notino', s:'m', f:'🇨🇿', r:'Perfumes de Europa', env:'mir', l:'en', b:q=>G('notino.cz', q), o:'https://www.notino.cz/'},
+ {p:'eu', n:'Nay', s:'m', f:'🇸🇰', r:'Electro', env:'mir', l:'en', b:q=>G('nay.sk', q), o:'https://www.nay.sk/'},
+ {p:'eu', n:'Media Markt Hungría', s:'m', f:'🇭🇺', r:'Electro', env:'mir', l:'en', b:q=>G('mediamarkt.hu', q), o:'https://www.mediamarkt.hu/'},
+ {p:'eu', n:'Jófogás', s:'c', f:'🇭🇺', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('jofogas.hu', q), o:'https://www.jofogas.hu/'},
+ {p:'eu', n:'Altex', s:'m', f:'🇷🇴', r:'Electro', env:'mir', l:'en', b:q=>G('altex.ro', q), o:'https://www.altex.ro/'},
+ {p:'eu', n:'OLX Rumania', s:'c', f:'🇷🇴', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('olx.ro', q), o:'https://www.olx.ro/'},
+ {p:'eu', n:'Technopolis', s:'m', f:'🇧🇬', r:'Electro', env:'mir', l:'en', b:q=>G('technopolis.bg', q), o:'https://www.technopolis.bg/'},
+ {p:'eu', n:'OLX Bulgaria', s:'c', f:'🇧🇬', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('olx.bg', q), o:'https://www.olx.bg/'},
+ {p:'eu', n:'Public', s:'m', f:'🇬🇷', r:'Tecnología y libros', env:'mir', l:'en', b:q=>G('public.gr', q), o:'https://www.public.gr/'},
+ {p:'eu', n:'Kotsovolos', s:'m', f:'🇬🇷', r:'Electro', env:'mir', l:'en', b:q=>G('kotsovolos.gr', q), o:'https://www.kotsovolos.gr/'},
+ {p:'eu', n:'Links', s:'m', f:'🇭🇷', r:'Computación', env:'mir', l:'en', b:q=>G('links.hr', q), o:'https://www.links.hr/'},
+ {p:'eu', n:'Bolha', s:'c', f:'🇸🇮', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('bolha.com', q), o:'https://www.bolha.com/'},
+ {p:'eu', n:'KupujemProdajem', s:'c', f:'🇷🇸', r:'Avisos clasificados de Serbia', env:'mir', l:'en', b:q=>G('kupujemprodajem.com', q), o:'https://www.kupujemprodajem.com/'},
+ {p:'eu', n:'Tehnomax', s:'m', f:'🇲🇪', r:'Electro en Montenegro', env:'mir', l:'en', b:q=>G('tehnomax.me', q), o:'https://www.tehnomax.me/'},
+ {p:'eu', n:'Merrjep', s:'c', f:'🇦🇱', r:'Avisos clasificados de Albania', env:'mir', l:'en', b:q=>G('merrjep.al', q), o:'https://www.merrjep.al/'},
+ {p:'eu', n:'Gjirafa50', s:'m', f:'🇽🇰', r:'Tienda online de Kosovo y Albania', env:'mir', l:'en', b:q=>G('gjirafa50.com', q), o:'https://www.gjirafa50.com/'},
+ {p:'eu', n:'Prom.ua', s:'g', f:'🇺🇦', r:'Marketplace de Ucrania', env:'mir', l:'ru', b:q=>G('prom.ua', q), o:'https://www.prom.ua/'},
+ {p:'eu', n:'Comfy', s:'m', f:'🇺🇦', r:'Electro', env:'mir', l:'ru', b:q=>G('comfy.ua', q), o:'https://www.comfy.ua/'},
+ {p:'eu', n:'OLX Ucrania', s:'c', f:'🇺🇦', r:'Avisos clasificados', env:'mir', l:'ru', b:q=>G('olx.ua', q), o:'https://www.olx.ua/'},
+ {p:'eu', n:'Varle', s:'m', f:'🇱🇹', r:'Tienda de todo', env:'mir', l:'en', b:q=>G('varle.lt', q), o:'https://www.varle.lt/'},
+ {p:'eu', n:'SS.lv', s:'c', f:'🇱🇻', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('ss.lv', q), o:'https://www.ss.lv/'},
+ {p:'eu', n:'Hansapost', s:'m', f:'🇪🇪', r:'Tienda de todo', env:'mir', l:'en', b:q=>G('hansapost.ee', q), o:'https://www.hansapost.ee/'},
+ {p:'eu', n:'Maltapark', s:'c', f:'🇲🇹', r:'Avisos clasificados de Malta', env:'mir', l:'en', b:q=>G('maltapark.com', q), o:'https://www.maltapark.com/'},
+ {p:'eu', n:'Darwin', s:'m', f:'🇲🇩', r:'Tecnología en Moldavia', env:'mir', l:'en', b:q=>G('darwin.md', q), o:'https://www.darwin.md/'},
+ {p:'eu', n:'Amazon Francia (Mónaco)', s:'g', f:'🇲🇨', r:'Recibe envíos de Amazon Francia', env:'mir', l:'en', b:q=>G('amazon.fr', q), o:'https://www.amazon.fr/'},
+ {p:'eu', n:'Amazon Italia (San Marino)', s:'g', f:'🇸🇲', r:'Recibe envíos de Amazon Italia', env:'mir', l:'en', b:q=>G('amazon.it', q), o:'https://www.amazon.it/'},
+ {p:'eu', n:'Galaxus (Liechtenstein)', s:'g', f:'🇱🇮', r:'Envía desde Suiza', env:'mir', l:'en', b:q=>G('galaxus.ch', q), o:'https://www.galaxus.ch/'},
+ {p:'eu', n:'Amazon Italia (Vaticano)', s:'g', f:'🇻🇦', r:'Recibe envíos de Amazon Italia', env:'mir', l:'en', b:q=>G('amazon.it', q), o:'https://www.amazon.it/'},
+ {p:'eu', n:'Stephanis', s:'m', f:'🇨🇾', r:'Electro en Chipre', env:'mir', l:'en', b:q=>G('stephanis.com.cy', q), o:'https://stephanis.com.cy/'},
+ {p:'ru', n:'Avito', s:'g', f:'🇷🇺', r:'Avisos clasificados más grande de Rusia', env:'mir', l:'ru', b:q=>G('avito.ru', q), o:'https://www.avito.ru/'},
+ {p:'ru', n:'M.Video', s:'m', f:'🇷🇺', r:'Electro', env:'mir', l:'ru', b:q=>G('mvideo.ru', q), o:'https://www.mvideo.ru/'},
+ {p:'ru', n:'DNS', s:'m', f:'🇷🇺', r:'Computación', env:'mir', l:'ru', b:q=>G('dns-shop.ru', q), o:'https://www.dns-shop.ru/'},
+ {p:'ru', n:'Lamoda', s:'m', f:'🇷🇺', r:'Moda', env:'mir', l:'ru', b:q=>G('lamoda.ru', q), o:'https://www.lamoda.ru/'},
+ {p:'ru', n:'Megamarket', s:'g', f:'🇷🇺', r:'Marketplace', env:'mir', l:'ru', b:q=>G('megamarket.ru', q), o:'https://www.megamarket.ru/'},
+ {p:'ru', n:'Onliner', s:'m', f:'🇧🇾', r:'Comparador y tienda', env:'mir', l:'ru', b:q=>G('onliner.by', q), o:'https://www.onliner.by/'},
+ {p:'ru', n:'Technodom', s:'m', f:'🇰🇿', r:'Electro', env:'mir', l:'ru', b:q=>G('technodom.kz', q), o:'https://www.technodom.kz/'},
+ {p:'ru', n:'OLX Kazajistán', s:'c', f:'🇰🇿', r:'Avisos clasificados', env:'mir', l:'ru', b:q=>G('olx.kz', q), o:'https://www.olx.kz/'},
+ {p:'ru', n:'OLX Uzbekistán', s:'c', f:'🇺🇿', r:'Avisos clasificados', env:'mir', l:'ru', b:q=>G('olx.uz', q), o:'https://www.olx.uz/'},
+ {p:'ru', n:'Lalafo', s:'c', f:'🇰🇬', r:'Avisos clasificados de Kirguistán', env:'mir', l:'ru', b:q=>G('lalafo.kg', q), o:'https://www.lalafo.kg/'},
+ {p:'ru', n:'Somon', s:'c', f:'🇹🇯', r:'Avisos clasificados de Tayikistán', env:'mir', l:'ru', b:q=>G('somon.tj', q), o:'https://www.somon.tj/'},
+ {p:'ru', n:'Tmcars', s:'c', f:'🇹🇲', r:'Avisos clasificados de Turkmenistán', env:'mir', l:'ru', b:q=>G('tmcars.info', q), o:'https://www.tmcars.info/'},
+ {p:'ru', n:'MyMarket', s:'m', f:'🇬🇪', r:'Marketplace de Georgia', env:'mir', l:'en', b:q=>G('mymarket.ge', q), o:'https://www.mymarket.ge/'},
+ {p:'ru', n:'Kontakt Home', s:'m', f:'🇦🇿', r:'Electro en Azerbaiyán', env:'mir', l:'en', b:q=>G('kontakt.az', q), o:'https://www.kontakt.az/'},
+ {p:'cn', n:'JD.com', s:'g', f:'🇨🇳', r:'Uno de los gigantes de China', env:'mir', l:'zh', b:q=>G('jd.com', q), o:'https://www.jd.com/'},
+ {p:'cn', n:'Tmall', s:'g', f:'🇨🇳', r:'Tiendas oficiales de marcas en China', env:'mir', l:'zh', b:q=>G('tmall.com', q), o:'https://www.tmall.com/'},
+ {p:'cn', n:'Pinduoduo', s:'g', f:'🇨🇳', r:'Compras en grupo y precios bajos', env:'mir', l:'zh', b:q=>G('pinduoduo.com', q), o:'https://www.pinduoduo.com/'},
+ {p:'cn', n:'Xiaomi', s:'m', f:'🇨🇳', r:'Tienda oficial de Xiaomi', env:'mir', l:'zh', b:q=>G('mi.com', q), o:'https://www.mi.com/'},
+ {p:'cn', n:'Superbuy', s:'c', f:'🇨🇳', r:'Agente de compras para Taobao y 1688', env:'mir', l:'zh', b:q=>G('superbuy.com', q), o:'https://www.superbuy.com/'},
+ {p:'kr', n:'11st', s:'g', f:'🇰🇷', r:'Marketplace coreano', env:'mir', l:'ko', b:q=>G('11st.co.kr', q), o:'https://11st.co.kr/'},
+ {p:'kr', n:'SSG', s:'g', f:'🇰🇷', r:'Tienda de todo de Shinsegae', env:'mir', l:'ko', b:q=>G('ssg.com', q), o:'https://www.ssg.com/'},
+ {p:'kr', n:'Musinsa', s:'m', f:'🇰🇷', r:'Moda urbana coreana', env:'mir', l:'ko', b:q=>G('musinsa.com', q), o:'https://www.musinsa.com/'},
+ {p:'kr', n:'Stylevana', s:'m', f:'🇰🇷', r:'Cosmética coreana', env:'mir', l:'ko', b:q=>G('stylevana.com', q), o:'https://www.stylevana.com/'},
+ {p:'kr', n:'Jolse', s:'c', f:'🇰🇷', r:'Cosmética coreana', env:'mir', l:'ko', b:q=>G('jolse.com', q), o:'https://www.jolse.com/'},
+ {p:'kr', n:'Naver Shopping', s:'g', f:'🇰🇷', r:'Comparador de Corea', env:'mir', l:'ko', b:q=>G('shopping.naver.com', q), o:'https://shopping.naver.com/'},
+ {p:'jp', n:'Mercari Japón', s:'g', f:'🇯🇵', r:'Segunda mano de Japón', env:'mir', l:'ja', b:q=>G('jp.mercari.com', q), o:'https://jp.mercari.com/'},
+ {p:'jp', n:'Yahoo Shopping Japón', s:'g', f:'🇯🇵', r:'Marketplace', env:'mir', l:'ja', b:q=>G('shopping.yahoo.co.jp', q), o:'https://shopping.yahoo.co.jp/'},
+ {p:'jp', n:'Bic Camera', s:'m', f:'🇯🇵', r:'Electrónica', env:'mir', l:'ja', b:q=>G('biccamera.com', q), o:'https://www.biccamera.com/'},
+ {p:'jp', n:'Uniqlo', s:'g', f:'🇯🇵', r:'Ropa japonesa', env:'mir', l:'ja', b:q=>G('uniqlo.com', q), o:'https://www.uniqlo.com/'},
+ {p:'jp', n:'Muji', s:'m', f:'🇯🇵', r:'Diseño simple japonés', env:'mir', l:'ja', b:q=>G('muji.com', q), o:'https://www.muji.com/'},
+ {p:'jp', n:'Zenmarket', s:'c', f:'🇯🇵', r:'Agente para comprar en Japón', env:'mir', l:'ja', b:q=>G('zenmarket.jp', q), o:'https://www.zenmarket.jp/'},
+ {p:'jp', n:'Tokyo Otaku Mode', s:'c', f:'🇯🇵', r:'Anime y figuras', env:'mir', l:'ja', b:q=>G('otakumode.com', q), o:'https://www.otakumode.com/'},
+ {p:'jp', n:'Kinokuniya', s:'m', f:'🇯🇵', r:'Libros y manga', env:'mir', l:'ja', b:q=>G('kinokuniya.co.jp', q), o:'https://kinokuniya.co.jp/'},
+ {p:'as', n:'Reliance Digital', s:'m', f:'🇮🇳', r:'Electrónica', env:'mir', l:'en', b:q=>G('reliancedigital.in', q), o:'https://www.reliancedigital.in/'},
+ {p:'as', n:'Croma', s:'m', f:'🇮🇳', r:'Electrónica', env:'mir', l:'en', b:q=>G('croma.com', q), o:'https://www.croma.com/'},
+ {p:'as', n:'Meesho', s:'g', f:'🇮🇳', r:'Marketplace barato de India', env:'mir', l:'en', b:q=>G('meesho.com', q), o:'https://www.meesho.com/'},
+ {p:'as', n:'Nykaa', s:'m', f:'🇮🇳', r:'Belleza', env:'mir', l:'en', b:q=>G('nykaa.com', q), o:'https://www.nykaa.com/'},
+ {p:'as', n:'Ajio', s:'m', f:'🇮🇳', r:'Moda', env:'mir', l:'en', b:q=>G('ajio.com', q), o:'https://www.ajio.com/'},
+ {p:'as', n:'Snapdeal', s:'m', f:'🇮🇳', r:'Marketplace', env:'mir', l:'en', b:q=>G('snapdeal.com', q), o:'https://www.snapdeal.com/'},
+ {p:'as', n:'FirstCry', s:'m', f:'🇮🇳', r:'Bebés y chicos', env:'mir', l:'en', b:q=>G('firstcry.com', q), o:'https://www.firstcry.com/'},
+ {p:'as', n:'Tata Cliq', s:'m', f:'🇮🇳', r:'Marketplace', env:'mir', l:'en', b:q=>G('tatacliq.com', q), o:'https://www.tatacliq.com/'},
+ {p:'as', n:'Daraz Pakistán', s:'g', f:'🇵🇰', r:'Marketplace de Pakistán', env:'mir', l:'en', b:q=>G('daraz.pk', q), o:'https://www.daraz.pk/'},
+ {p:'as', n:'Telemart', s:'m', f:'🇵🇰', r:'Tecnología', env:'mir', l:'en', b:q=>G('telemart.pk', q), o:'https://www.telemart.pk/'},
+ {p:'as', n:'Pickaboo', s:'m', f:'🇧🇩', r:'Tecnología', env:'mir', l:'en', b:q=>G('pickaboo.com', q), o:'https://www.pickaboo.com/'},
+ {p:'as', n:'Chaldal', s:'m', f:'🇧🇩', r:'Supermercado', env:'mir', l:'en', b:q=>G('chaldal.com', q), o:'https://www.chaldal.com/'},
+ {p:'as', n:'Kapruka', s:'m', f:'🇱🇰', r:'Regalos y tienda de todo', env:'mir', l:'en', b:q=>G('kapruka.com', q), o:'https://www.kapruka.com/'},
+ {p:'as', n:'Sastodeal', s:'m', f:'🇳🇵', r:'Marketplace de Nepal', env:'mir', l:'en', b:q=>G('sastodeal.com', q), o:'https://www.sastodeal.com/'},
+ {p:'as', n:'Amazon India (Bután)', s:'g', f:'🇧🇹', r:'Recibe envíos desde India', env:'mir', l:'en', b:q=>G('amazon.in', q), o:'https://www.amazon.in/'},
+ {p:'as', n:'Shoppy.mn', s:'m', f:'🇲🇳', r:'Marketplace de Mongolia', env:'mir', l:'en', b:q=>G('shoppy.mn', q), o:'https://www.shoppy.mn/'},
+ {p:'as', n:'Shopee Tailandia', s:'g', f:'🇹🇭', r:'Marketplace', env:'mir', l:'en', b:q=>G('shopee.co.th', q), o:'https://shopee.co.th/'},
+ {p:'as', n:'Central', s:'m', f:'🇹🇭', r:'Tienda departamental', env:'mir', l:'en', b:q=>G('central.co.th', q), o:'https://central.co.th/'},
+ {p:'as', n:'Power Buy', s:'m', f:'🇹🇭', r:'Electro', env:'mir', l:'en', b:q=>G('powerbuy.co.th', q), o:'https://powerbuy.co.th/'},
+ {p:'as', n:'Shopee Vietnam', s:'g', f:'🇻🇳', r:'Marketplace', env:'mir', l:'en', b:q=>G('shopee.vn', q), o:'https://www.shopee.vn/'},
+ {p:'as', n:'Thế Giới Di Động', s:'g', f:'🇻🇳', r:'Celulares y electro', env:'mir', l:'en', b:q=>G('thegioididong.com', q), o:'https://www.thegioididong.com/'},
+ {p:'as', n:'Lazada Vietnam', s:'g', f:'🇻🇳', r:'Marketplace', env:'mir', l:'en', b:q=>G('lazada.vn', q), o:'https://www.lazada.vn/'},
+ {p:'as', n:'Lazada Malasia', s:'g', f:'🇲🇾', r:'Marketplace', env:'mir', l:'en', b:q=>G('lazada.com.my', q), o:'https://lazada.com.my/'},
+ {p:'as', n:'Zalora', s:'m', f:'🇲🇾', r:'Moda del sudeste asiático', env:'mir', l:'en', b:q=>G('zalora.com.my', q), o:'https://zalora.com.my/'},
+ {p:'as', n:'Mudah', s:'c', f:'🇲🇾', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('mudah.my', q), o:'https://www.mudah.my/'},
+ {p:'as', n:'Amazon Singapur', s:'g', f:'🇸🇬', r:'Amazon de Singapur', env:'mir', l:'en', b:q=>G('amazon.sg', q), o:'https://www.amazon.sg/'},
+ {p:'as', n:'Courts Singapur', s:'m', f:'🇸🇬', r:'Electro', env:'mir', l:'en', b:q=>G('courts.com.sg', q), o:'https://courts.com.sg/'},
+ {p:'as', n:'Carousell', s:'c', f:'🇸🇬', r:'Segunda mano de Asia', env:'mir', l:'en', b:q=>G('carousell.sg', q), o:'https://www.carousell.sg/'},
+ {p:'as', n:'Shopee Indonesia', s:'g', f:'🇮🇩', r:'Marketplace', env:'mir', l:'en', b:q=>G('shopee.co.id', q), o:'https://shopee.co.id/'},
+ {p:'as', n:'Blibli', s:'g', f:'🇮🇩', r:'Marketplace', env:'mir', l:'en', b:q=>G('blibli.com', q), o:'https://www.blibli.com/'},
+ {p:'as', n:'Zalora Indonesia', s:'m', f:'🇮🇩', r:'Moda', env:'mir', l:'en', b:q=>G('zalora.co.id', q), o:'https://zalora.co.id/'},
+ {p:'as', n:'Lazada Filipinas', s:'g', f:'🇵🇭', r:'Marketplace', env:'mir', l:'en', b:q=>G('lazada.com.ph', q), o:'https://lazada.com.ph/'},
+ {p:'as', n:'Zalora Filipinas', s:'m', f:'🇵🇭', r:'Moda', env:'mir', l:'en', b:q=>G('zalora.com.ph', q), o:'https://zalora.com.ph/'},
+ {p:'as', n:'PChome 24h', s:'g', f:'🇹🇼', r:'Marketplace de Taiwán', env:'mir', l:'zh', b:q=>G('24h.pchome.com.tw', q), o:'https://24h.pchome.com.tw/'},
+ {p:'as', n:'Shopee Taiwán', s:'g', f:'🇹🇼', r:'Marketplace', env:'mir', l:'zh', b:q=>G('shopee.tw', q), o:'https://www.shopee.tw/'},
+ {p:'as', n:'Fortress', s:'m', f:'🇭🇰', r:'Electro de Hong Kong', env:'mir', l:'zh', b:q=>G('fortress.com.hk', q), o:'https://fortress.com.hk/'},
+ {p:'as', n:'Carousell Hong Kong', s:'c', f:'🇭🇰', r:'Segunda mano', env:'mir', l:'zh', b:q=>G('carousell.com.hk', q), o:'https://carousell.com.hk/'},
+ {p:'me', n:'N11', s:'m', f:'🇹🇷', r:'Marketplace turco', env:'mir', l:'en', b:q=>G('n11.com', q), o:'https://www.n11.com/'},
+ {p:'me', n:'MediaMarkt Turquía', s:'m', f:'🇹🇷', r:'Electro', env:'mir', l:'en', b:q=>G('mediamarkt.com.tr', q), o:'https://mediamarkt.com.tr/'},
+ {p:'me', n:'LC Waikiki', s:'m', f:'🇹🇷', r:'Ropa turca', env:'mir', l:'en', b:q=>G('lcwaikiki.com', q), o:'https://www.lcwaikiki.com/'},
+ {p:'me', n:'Çiçeksepeti', s:'c', f:'🇹🇷', r:'Flores y regalos', env:'mir', l:'en', b:q=>G('ciceksepeti.com', q), o:'https://www.ciceksepeti.com/'},
+ {p:'me', n:'Sharaf DG', s:'m', f:'🇦🇪', r:'Electro en Emiratos', env:'mir', l:'en', b:q=>G('uae.sharafdg.com', q), o:'https://uae.sharafdg.com/'},
+ {p:'me', n:'Carrefour Emiratos', s:'g', f:'🇦🇪', r:'Supermercado y electro', env:'mir', l:'en', b:q=>G('carrefouruae.com', q), o:'https://www.carrefouruae.com/'},
+ {p:'me', n:'Dubizzle', s:'c', f:'🇦🇪', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('dubizzle.com', q), o:'https://www.dubizzle.com/'},
+ {p:'me', n:'Jarir', s:'g', f:'🇸🇦', r:'Libros, tecnología y oficina', env:'mir', l:'en', b:q=>G('jarir.com', q), o:'https://www.jarir.com/'},
+ {p:'me', n:'Extra', s:'m', f:'🇸🇦', r:'Electro', env:'mir', l:'en', b:q=>G('extra.com', q), o:'https://www.extra.com/'},
+ {p:'me', n:'Haraj', s:'c', f:'🇸🇦', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('haraj.com.sa', q), o:'https://haraj.com.sa/'},
+ {p:'me', n:'Lulu Qatar', s:'g', f:'🇶🇦', r:'Hipermercado', env:'mir', l:'en', b:q=>G('luluhypermarket.com', q), o:'https://www.luluhypermarket.com/'},
+ {p:'me', n:'Blink', s:'m', f:'🇰🇼', r:'Electro', env:'mir', l:'en', b:q=>G('blink.com.kw', q), o:'https://blink.com.kw/'},
+ {p:'me', n:'Sharaf DG Baréin', s:'m', f:'🇧🇭', r:'Electro', env:'mir', l:'en', b:q=>G('bahrain.sharafdg.com', q), o:'https://bahrain.sharafdg.com/'},
+ {p:'me', n:'Lulu Omán', s:'g', f:'🇴🇲', r:'Hipermercado', env:'mir', l:'en', b:q=>G('luluhypermarket.com', q), o:'https://www.luluhypermarket.com/'},
+ {p:'me', n:'OpenSooq Yemen', s:'c', f:'🇾🇪', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('ye.opensooq.com', q), o:'https://ye.opensooq.com/'},
+ {p:'me', n:'Smartbuy', s:'m', f:'🇯🇴', r:'Tecnología en Jordania', env:'mir', l:'en', b:q=>G('smartbuy-me.com', q), o:'https://www.smartbuy-me.com/'},
+ {p:'me', n:'ABC', s:'m', f:'🇱🇧', r:'Tienda departamental de Líbano', env:'mir', l:'en', b:q=>G('abc.com.lb', q), o:'https://abc.com.lb/'},
+ {p:'me', n:'OpenSooq Siria', s:'c', f:'🇸🇾', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('sy.opensooq.com', q), o:'https://sy.opensooq.com/'},
+ {p:'me', n:'Miswag', s:'m', f:'🇮🇶', r:'Marketplace de Irak', env:'mir', l:'en', b:q=>G('miswag.com', q), o:'https://www.miswag.com/'},
+ {p:'me', n:'Digikala', s:'g', f:'🇮🇷', r:'El marketplace más grande de Irán', env:'mir', l:'en', b:q=>G('digikala.com', q), o:'https://www.digikala.com/'},
+ {p:'me', n:'Ivory', s:'m', f:'🇮🇱', r:'Computación', env:'mir', l:'en', b:q=>G('ivory.co.il', q), o:'https://ivory.co.il/'},
+ {p:'me', n:'Yad2', s:'c', f:'🇮🇱', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('yad2.co.il', q), o:'https://yad2.co.il/'},
+ {p:'me', n:'OpenSooq Palestina', s:'c', f:'🇵🇸', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('ps.opensooq.com', q), o:'https://ps.opensooq.com/'},
+ {p:'af', n:'Noon Egipto', s:'g', f:'🇪🇬', r:'Marketplace', env:'mir', l:'en', b:q=>G('noon.com', q), o:'https://www.noon.com/'},
+ {p:'af', n:'Jumia Egipto', s:'g', f:'🇪🇬', r:'Marketplace', env:'mir', l:'en', b:q=>G('jumia.com.eg', q), o:'https://jumia.com.eg/'},
+ {p:'af', n:'B.TECH', s:'m', f:'🇪🇬', r:'Electro', env:'mir', l:'en', b:q=>G('btech.com', q), o:'https://www.btech.com/'},
+ {p:'af', n:'Electroplanet', s:'m', f:'🇲🇦', r:'Electro', env:'mir', l:'en', b:q=>G('electroplanet.ma', q), o:'https://www.electroplanet.ma/'},
+ {p:'af', n:'Avito Marruecos', s:'c', f:'🇲🇦', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('avito.ma', q), o:'https://www.avito.ma/'},
+ {p:'af', n:'Tunisianet', s:'m', f:'🇹🇳', r:'Tecnología', env:'mir', l:'en', b:q=>G('tunisianet.com.tn', q), o:'https://tunisianet.com.tn/'},
+ {p:'af', n:'OpenSooq Libia', s:'c', f:'🇱🇾', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('ly.opensooq.com', q), o:'https://ly.opensooq.com/'},
+ {p:'af', n:'OpenSooq Sudán', s:'c', f:'🇸🇩', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('sd.opensooq.com', q), o:'https://sd.opensooq.com/'},
+ {p:'af', n:'Konga', s:'g', f:'🇳🇬', r:'Marketplace', env:'mir', l:'en', b:q=>G('konga.com', q), o:'https://www.konga.com/'},
+ {p:'af', n:'Slot', s:'m', f:'🇳🇬', r:'Celulares', env:'mir', l:'en', b:q=>G('slot.ng', q), o:'https://www.slot.ng/'},
+ {p:'af', n:'Jiji Nigeria', s:'c', f:'🇳🇬', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('jiji.ng', q), o:'https://www.jiji.ng/'},
+ {p:'af', n:'Melcom', s:'m', f:'🇬🇭', r:'Tienda de todo', env:'mir', l:'en', b:q=>G('melcom.com', q), o:'https://www.melcom.com/'},
+ {p:'af', n:'Jiji Ghana', s:'c', f:'🇬🇭', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('jiji.com.gh', q), o:'https://jiji.com.gh/'},
+ {p:'af', n:'Coin Afrique', s:'c', f:'🇨🇮', r:'Avisos clasificados de África francófona', env:'mir', l:'en', b:q=>G('coinafrique.com', q), o:'https://www.coinafrique.com/'},
+ {p:'af', n:'Expat-Dakar', s:'c', f:'🇸🇳', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('expat-dakar.com', q), o:'https://www.expat-dakar.com/'},
+ {p:'af', n:'Coin Afrique Malí', s:'c', f:'🇲🇱', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('coinafrique.com', q), o:'https://www.coinafrique.com/'},
+ {p:'af', n:'Coin Afrique Burkina Faso', s:'c', f:'🇧🇫', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('coinafrique.com', q), o:'https://www.coinafrique.com/'},
+ {p:'af', n:'Coin Afrique Níger', s:'c', f:'🇳🇪', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('coinafrique.com', q), o:'https://www.coinafrique.com/'},
+ {p:'af', n:'Coin Afrique Chad', s:'c', f:'🇹🇩', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('coinafrique.com', q), o:'https://www.coinafrique.com/'},
+ {p:'af', n:'Coin Afrique Mauritania', s:'c', f:'🇲🇷', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('coinafrique.com', q), o:'https://www.coinafrique.com/'},
+ {p:'af', n:'Coin Afrique Guinea', s:'c', f:'🇬🇳', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('coinafrique.com', q), o:'https://www.coinafrique.com/'},
+ {p:'af', n:'Coin Afrique Guinea-Bisáu', s:'c', f:'🇬🇼', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('coinafrique.com', q), o:'https://www.coinafrique.com/'},
+ {p:'af', n:'Coin Afrique Togo', s:'c', f:'🇹🇬', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('coinafrique.com', q), o:'https://www.coinafrique.com/'},
+ {p:'af', n:'Coin Afrique Benín', s:'c', f:'🇧🇯', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('coinafrique.com', q), o:'https://www.coinafrique.com/'},
+ {p:'af', n:'OLX (Cabo Verde)', s:'c', f:'🇨🇻', r:'Compras regionales', env:'mir', l:'en', b:q=>G('olx.pt', q), o:'https://www.olx.pt/'},
+ {p:'af', n:'Coin Afrique Camerún', s:'c', f:'🇨🇲', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('coinafrique.com', q), o:'https://www.coinafrique.com/'},
+ {p:'af', n:'Coin Afrique (Centroáfrica)', s:'c', f:'🇨🇫', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('coinafrique.com', q), o:'https://www.coinafrique.com/'},
+ {p:'af', n:'Coin Afrique Gabón', s:'c', f:'🇬🇦', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('coinafrique.com', q), o:'https://www.coinafrique.com/'},
+ {p:'af', n:'Coin Afrique Congo', s:'c', f:'🇨🇬', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('coinafrique.com', q), o:'https://www.coinafrique.com/'},
+ {p:'af', n:'Coin Afrique RD Congo', s:'c', f:'🇨🇩', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('coinafrique.com', q), o:'https://www.coinafrique.com/'},
+ {p:'af', n:'Coin Afrique (Guinea Ecuatorial)', s:'c', f:'🇬🇶', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('coinafrique.com', q), o:'https://www.coinafrique.com/'},
+ {p:'af', n:'OLX (Santo Tomé)', s:'c', f:'🇸🇹', r:'Compras regionales', env:'mir', l:'en', b:q=>G('olx.pt', q), o:'https://www.olx.pt/'},
+ {p:'af', n:'Jiji Angola', s:'c', f:'🇦🇴', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('jiji.co.ao', q), o:'https://jiji.co.ao/'},
+ {p:'af', n:'Qefira', s:'c', f:'🇪🇹', r:'Avisos clasificados de Etiopía', env:'mir', l:'en', b:q=>G('qefira.com', q), o:'https://www.qefira.com/'},
+ {p:'af', n:'Jumia Kenia', s:'g', f:'🇰🇪', r:'Marketplace', env:'mir', l:'en', b:q=>G('jumia.co.ke', q), o:'https://jumia.co.ke/'},
+ {p:'af', n:'Jiji Kenia', s:'c', f:'🇰🇪', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('jiji.co.ke', q), o:'https://jiji.co.ke/'},
+ {p:'af', n:'Carrefour Kenia', s:'g', f:'🇰🇪', r:'Supermercado', env:'mir', l:'en', b:q=>G('carrefour.ke', q), o:'https://www.carrefour.ke/'},
+ {p:'af', n:'Jumia Uganda', s:'g', f:'🇺🇬', r:'Marketplace', env:'mir', l:'en', b:q=>G('jumia.ug', q), o:'https://www.jumia.ug/'},
+ {p:'af', n:'Coin Afrique Yibuti', s:'c', f:'🇩🇯', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('coinafrique.com', q), o:'https://www.coinafrique.com/'},
+ {p:'af', n:'Makro', s:'g', f:'🇿🇦', r:'Mayorista y electro', env:'mir', l:'en', b:q=>G('makro.co.za', q), o:'https://makro.co.za/'},
+ {p:'af', n:'Game', s:'m', f:'🇿🇦', r:'Electro y hogar', env:'mir', l:'en', b:q=>G('game.co.za', q), o:'https://game.co.za/'},
+ {p:'af', n:'Superbalist', s:'m', f:'🇿🇦', r:'Moda', env:'mir', l:'en', b:q=>G('superbalist.com', q), o:'https://www.superbalist.com/'},
+ {p:'af', n:'Bob Shop', s:'c', f:'🇿🇦', r:'Marketplace de tiendas chicas', env:'mir', l:'en', b:q=>G('bobshop.co.za', q), o:'https://bobshop.co.za/'},
+ {p:'af', n:'Amazon Sudáfrica', s:'g', f:'🇿🇦', r:'Amazon de Sudáfrica', env:'mir', l:'en', b:q=>G('amazon.co.za', q), o:'https://amazon.co.za/'},
+ {p:'af', n:'Takealot (Namibia)', s:'g', f:'🇳🇦', r:'Envía desde Sudáfrica', env:'mir', l:'en', b:q=>G('takealot.com', q), o:'https://www.takealot.com/'},
+ {p:'af', n:'Takealot (Botsuana)', s:'g', f:'🇧🇼', r:'Envía desde Sudáfrica', env:'mir', l:'en', b:q=>G('takealot.com', q), o:'https://www.takealot.com/'},
+ {p:'af', n:'Classifieds Zimbabue', s:'c', f:'🇿🇼', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('classifieds.co.zw', q), o:'https://classifieds.co.zw/'},
+ {p:'af', n:'Courts Mauricio', s:'m', f:'🇲🇺', r:'Electro y muebles', env:'mir', l:'en', b:q=>G('courts.mu', q), o:'https://www.courts.mu/'},
+ {p:'af', n:'Coin Afrique Comoras', s:'c', f:'🇰🇲', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('coinafrique.com', q), o:'https://www.coinafrique.com/'},
+ {p:'af', n:'Takealot (Lesoto)', s:'g', f:'🇱🇸', r:'Envía desde Sudáfrica', env:'mir', l:'en', b:q=>G('takealot.com', q), o:'https://www.takealot.com/'},
+ {p:'af', n:'Takealot (Esuatini)', s:'g', f:'🇸🇿', r:'Envía desde Sudáfrica', env:'mir', l:'en', b:q=>G('takealot.com', q), o:'https://www.takealot.com/'},
+ {p:'oc', n:'eBay Australia', s:'g', f:'🇦🇺', r:'Marketplace', env:'mir', l:'en', b:q=>G('ebay.com.au', q), o:'https://ebay.com.au/'},
+ {p:'oc', n:'Big W', s:'g', f:'🇦🇺', r:'Tienda de todo', env:'mir', l:'en', b:q=>G('bigw.com.au', q), o:'https://bigw.com.au/'},
+ {p:'oc', n:'Kmart Australia', s:'g', f:'🇦🇺', r:'Hogar y ropa barata', env:'mir', l:'en', b:q=>G('kmart.com.au', q), o:'https://kmart.com.au/'},
+ {p:'oc', n:'Harvey Norman Australia', s:'g', f:'🇦🇺', r:'Electro y muebles', env:'mir', l:'en', b:q=>G('harveynorman.com.au', q), o:'https://harveynorman.com.au/'},
+ {p:'oc', n:'Officeworks', s:'m', f:'🇦🇺', r:'Oficina y tecnología', env:'mir', l:'en', b:q=>G('officeworks.com.au', q), o:'https://officeworks.com.au/'},
+ {p:'oc', n:'Myer', s:'m', f:'🇦🇺', r:'Tienda departamental', env:'mir', l:'en', b:q=>G('myer.com.au', q), o:'https://myer.com.au/'},
+ {p:'oc', n:'Chemist Warehouse', s:'m', f:'🇦🇺', r:'Farmacia y belleza', env:'mir', l:'en', b:q=>G('chemistwarehouse.com.au', q), o:'https://chemistwarehouse.com.au/'},
+ {p:'oc', n:'Gumtree Australia', s:'c', f:'🇦🇺', r:'Avisos clasificados', env:'mir', l:'en', b:q=>G('gumtree.com.au', q), o:'https://gumtree.com.au/'},
+ {p:'oc', n:'Noel Leeming', s:'m', f:'🇳🇿', r:'Electro', env:'mir', l:'en', b:q=>G('noelleeming.co.nz', q), o:'https://noelleeming.co.nz/'},
+ {p:'oc', n:'PB Tech', s:'m', f:'🇳🇿', r:'Computación', env:'mir', l:'en', b:q=>G('pbtech.co.nz', q), o:'https://pbtech.co.nz/'},
+ {p:'oc', n:'Mighty Ape', s:'m', f:'🇳🇿', r:'Tienda de todo', env:'mir', l:'en', b:q=>G('mightyape.co.nz', q), o:'https://mightyape.co.nz/'},
+ {p:'oc', n:'Brian Bell', s:'m', f:'🇵🇬', r:'Hogar y electro en Papúa Nueva Guinea', env:'mir', l:'en', b:q=>G('brianbell.com.pg', q), o:'https://brianbell.com.pg/'},
+ {p:'oc', n:'Courts Fiyi', s:'m', f:'🇫🇯', r:'Electro y muebles', env:'mir', l:'en', b:q=>G('courts.com.fj', q), o:'https://courts.com.fj/'},
+ {p:'oc', n:'Amazon Australia (Islas Salomón)', s:'g', f:'🇸🇧', r:'Envíos desde Australia', env:'mir', l:'en', b:q=>G('amazon.com.au', q), o:'https://amazon.com.au/'},
+ {p:'oc', n:'Amazon Australia (Vanuatu)', s:'g', f:'🇻🇺', r:'Envíos desde Australia', env:'mir', l:'en', b:q=>G('amazon.com.au', q), o:'https://amazon.com.au/'},
+ {p:'oc', n:'Amazon Australia (Samoa)', s:'g', f:'🇼🇸', r:'Envíos desde Australia', env:'mir', l:'en', b:q=>G('amazon.com.au', q), o:'https://amazon.com.au/'},
+ {p:'oc', n:'Amazon Australia (Tonga)', s:'g', f:'🇹🇴', r:'Envíos desde Australia', env:'mir', l:'en', b:q=>G('amazon.com.au', q), o:'https://amazon.com.au/'},
+ {p:'oc', n:'Amazon Australia (Kiribati)', s:'g', f:'🇰🇮', r:'Envíos desde Australia', env:'mir', l:'en', b:q=>G('amazon.com.au', q), o:'https://amazon.com.au/'},
+ {p:'oc', n:'Amazon EE.UU. (Micronesia)', s:'g', f:'🇫🇲', r:'Recibe envíos de Estados Unidos', env:'mir', l:'en', b:q=>G('amazon.com', q), o:'https://www.amazon.com/'},
+ {p:'oc', n:'Amazon EE.UU. (Islas Marshall)', s:'g', f:'🇲🇭', r:'Recibe envíos de Estados Unidos', env:'mir', l:'en', b:q=>G('amazon.com', q), o:'https://www.amazon.com/'},
+ {p:'oc', n:'Amazon EE.UU. (Palaos)', s:'g', f:'🇵🇼', r:'Recibe envíos de Estados Unidos', env:'mir', l:'en', b:q=>G('amazon.com', q), o:'https://www.amazon.com/'},
+ {p:'oc', n:'Amazon Australia (Nauru)', s:'g', f:'🇳🇷', r:'Envíos desde Australia', env:'mir', l:'en', b:q=>G('amazon.com.au', q), o:'https://amazon.com.au/'},
+ {p:'oc', n:'Amazon Australia (Tuvalu)', s:'g', f:'🇹🇻', r:'Envíos desde Australia', env:'mir', l:'en', b:q=>G('amazon.com.au', q), o:'https://amazon.com.au/'},
  // Rusia
  {p:'ru', n:'Ozon', s:'g', f:'🇷🇺', r:'El gran marketplace de Rusia (en ruso)', env:'mir', l:'ru', b:q=>'https://www.ozon.ru/search/?text='+E(q), o:'https://www.ozon.ru/'},
  {p:'ru', n:'Wildberries', s:'g', f:'🇷🇺', r:'La tienda online más grande de Rusia (en ruso)', env:'mir', l:'ru', b:q=>'https://www.wildberries.ru/catalog/0/search.aspx?search='+E(q), o:'https://www.wildberries.ru/'},
@@ -416,30 +815,35 @@ const tarjeta = (t, q, k) => `<div class="tie"><div class="h"><span class="f">${
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // ---- portada ----
 const SUMA = `<div class="tie" style="border:2px dashed #ff5fc8;background:#fff7fc"><div class="h"><span class="f">✨</span><b>¿Tienes una tienda?</b></div><div class="r">Grande, mediana o chica, de cualquier país: sumala a ShopRevista Mundial y que la conozcan en Argentina y Latinoamérica.</div><div class="bts"><a class="pri" href="https://wa.me/5492235814437?text=${E('¡Hola! Quiero sumar mi tienda a ShopRevista Mundial.')}" target="_blank" rel="noopener">💬 Sumar mi tienda</a></div></div>`;
-let VISTA = 'tam';
+let VISTA = 'tam', GRUPOS = [];
+document.addEventListener('click', e => { const b = e.target.closest('.vmas'); if(!b) return; const g = GRUPOS.find(x => x[0] === b.dataset.g); if(!g) return; const box = b.parentElement; b.remove(); box.insertAdjacentHTML('afterbegin', ''); box.innerHTML = g[2].map(t => tarjeta(t)).join('') + (g[0] === 'c' ? SUMA : ''); traducir(box); });
 function portada(){
   const grupos = VISTA === 'pais' ? PAISES.map(([id, f, n]) => [id, f + ' ' + n, T.filter(t => t.p === id)])
     : [['g', '🏢 Tiendas grandes <small>las gigantes del mundo</small>', T.filter(t => t.s === 'g')], ['m', '🏬 Tiendas medianas <small>especialistas en lo suyo</small>', T.filter(t => t.s === 'm')], ['c', '🏠 Tiendas chicas <small>hecho a mano y diseño de todo el mundo</small>', T.filter(t => t.s === 'c')]];
   $('secs').innerHTML = `<a href="#" data-vista="pais" style="${VISTA === 'pais' ? 'background:#c8008f;color:#fff' : ''}">🌎 Por país</a><a href="#" data-vista="tam" style="${VISTA === 'tam' ? 'background:#c8008f;color:#fff' : ''}">🏢 Por tamaño</a>` + grupos.map(([id, n]) => `<a href="#p-${id}">${n.replace(/<small>.*<\/small>/, '')}</a>`).join('') + '<a href="#importar">🏭 Para importar</a>';
-  $('paises').innerHTML = grupos.map(([id, n, L]) => `<h2 id="p-${id}" style="font-size:20px">${n}</h2><div class="res">${L.map(t => tarjeta(t)).join('')}${id === 'c' || (VISTA === 'pais' && id === 'mx') ? SUMA : ''}</div>`).join('');
+  const mias = T.filter(t => ccDe(t.f) === PAIS), pn = (PAISV.find(p => p[0] === PAIS) || [, '🌍 tu país'])[1];
+  const reg = GEO[PAIS] ? T.filter(t => t.p === GEO[PAIS][2] && t.s === 'g').slice(0, 6) : [];
+  const tuyo = PAIS === 'XX' ? '' : `<h2 id="p-tu" style="font-size:20px">📍 ${pn} <small>${mias.length ? 'tiendas de tu país' : 'tu país todavía no tiene tiendas online propias: estas tiendas de tu región te sirven'}</small></h2><div class="res">${(mias.length ? mias : reg).map(t => tarjeta(t)).join('')}</div>`;
+  $('paises').innerHTML = tuyo + grupos.map(([id, n, L]) => `<h2 id="p-${id}" style="font-size:20px">${n} <small>(${L.length})</small></h2><div class="res" data-total="${L.length}">${L.slice(0, 12).map(t => tarjeta(t)).join('')}${L.length > 12 ? `<button type="button" class="vmas" data-g="${id}">➕ Ver las ${L.length} tiendas</button>` : ''}${id === 'c' ? SUMA : ''}</div>`).join('');
+  GRUPOS = grupos;
 }
-portada();
 $('b2b').innerHTML = B2B.map(t => tarjetaB(t)).join('');
 $('emp').innerHTML = EMP.map(tarjetaE).join('');
 $('lat').innerHTML = LATAM.map(tarjetaL).join('');
 let MODO = 'compra';
 document.addEventListener('click', e => { const m = e.target.closest('[data-modo]'); if(!m) return; MODO = m.dataset.modo; $('mCompra').style.cssText = MODO === 'compra' ? 'background:#c8008f;color:#fff' : ''; $('mImporta').style.cssText = MODO === 'importa' ? 'background:#0369a1;color:#fff' : ''; $('mIdeas').style.cssText = MODO === 'ideas' ? 'background:#15803d;color:#fff' : ''; $('q').placeholder = MODO === 'compra' ? '¿Qué buscas? Ej: masajeador de cuello' : MODO === 'ideas' ? '¿De qué rubro? Ej: mascotas, cocina, bebés (o déjalo vacío)' : '¿Qué quieres importar? Ej: mochilas, vasos térmicos'; if(MODO === 'ideas'){ decir('💡 Ideas para tu negocio: dime un rubro (o toca Buscar sin escribir nada) y te muestro productos novedosos del mundo que todavía casi no se venden en tu país, dónde conseguirlos y cómo venderlos.'); return; } decir(MODO === 'compra' ? '🛍️ Modo compras: te busco en las tiendas del mundo.' : '🏭 Modo importar: te busco <b>fábricas y proveedores</b> en los directorios de empresas de China, India, Corea, Europa y más, para que hables directo con ellos.'); });
-document.addEventListener('click', e => { const v = e.target.closest('[data-vista]'); if(v){ e.preventDefault(); VISTA = v.dataset.vista; portada(); traducir($('paises')); } });
+document.addEventListener('click', e => { const v = e.target.closest('[data-vista]'); if(v){ e.preventDefault(); VISTA = v.dataset.vista; portada(); observar(); traducir($('paises')); } });
 const EJ = ['masajeador de cuello', 'auriculares inalámbricos', 'crema coreana', 'freidora de aire', 'zapatillas running', 'juguetes didácticos', 'vaso térmico', 'reloj inteligente'];
 $('ejem').innerHTML = EJ.map(x => `<button type="button" data-ej="${x}">${x}</button>`).join('');
 $('banda').textContent = ('🔥 Las mejores ofertas de la semana de ' + T.map(t => t.f + ' ' + t.n).join(' · ') + '   ·   ').repeat(2);
 try{ $('flaTapa').innerHTML = FLASHY_HTML({redonda: true}); $('flaFix').innerHTML = FLASHY_HTML({redonda: true}) + (window.FLASHY_BOTON || ''); }catch(e){}
 
 // ================= IDIOMAS Y PAÍS DEL VISITANTE =================
-const IDIOMAS = [['es','🇦🇷 Español'],['en','🇺🇸 English'],['pt','🇧🇷 Português'],['fr','🇫🇷 Français'],['it','🇮🇹 Italiano'],['de','🇩🇪 Deutsch'],['ru','🇷🇺 Русский'],['zh','🇨🇳 中文'],['ja','🇯🇵 日本語'],['ko','🇰🇷 한국어'],['hi','🇮🇳 हिन्दी'],['ar','🇸🇦 العربية'],['tr','🇹🇷 Türkçe'],['id','🇮🇩 Indonesia'],['vi','🇻🇳 Tiếng Việt'],['th','🇹🇭 ไทย'],['pl','🇵🇱 Polski'],['uk','🇺🇦 Українська'],['nl','🇳🇱 Nederlands'],['sw','🇰🇪 Kiswahili'],['ha','🇳🇬 Hausa'],['am','🇪🇹 አማርኛ'],['bn','🇧🇩 বাংলা'],['ur','🇵🇰 اردو'],['fa','🇮🇷 فارسی']];
-const VOZ = {es:'es-AR',en:'en-US',pt:'pt-BR',fr:'fr-FR',it:'it-IT',de:'de-DE',ru:'ru-RU',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR',hi:'hi-IN',ar:'ar-SA',tr:'tr-TR',id:'id-ID',vi:'vi-VN',th:'th-TH',pl:'pl-PL',uk:'uk-UA',nl:'nl-NL',sw:'sw-KE',ha:'ha-NG',am:'am-ET',bn:'bn-BD',ur:'ur-PK',fa:'fa-IR'};
-const PAISV = [['AR','🇦🇷 Argentina'],['UY','🇺🇾 Uruguay'],['PY','🇵🇾 Paraguay'],['BO','🇧🇴 Bolivia'],['PE','🇵🇪 Perú'],['CL','🇨🇱 Chile'],['CO','🇨🇴 Colombia'],['EC','🇪🇨 Ecuador'],['MX','🇲🇽 México'],['BR','🇧🇷 Brasil'],['US','🇺🇸 Estados Unidos'],['ES','🇪🇸 España'],['GB','🇬🇧 Reino Unido'],['DE','🇩🇪 Alemania'],['FR','🇫🇷 Francia'],['IT','🇮🇹 Italia'],['RU','🇷🇺 Rusia'],['CN','🇨🇳 China'],['JP','🇯🇵 Japón'],['KR','🇰🇷 Corea'],['IN','🇮🇳 India'],['AE','🇦🇪 Emiratos'],['SA','🇸🇦 Arabia Saudita'],['XX','🌍 Otro país']];
-const LATAMP = ['AR','UY','PY','BO','PE','CL','CO','EC','MX','BR'];
+const IDIOMAS = [['es','🇦🇷 Español'],['en','🇺🇸 English'],['pt','🇧🇷 Português'],['fr','🇫🇷 Français'],['it','🇮🇹 Italiano'],['de','🇩🇪 Deutsch'],['ru','🇷🇺 Русский'],['zh','🇨🇳 中文'],['ja','🇯🇵 日本語'],['ko','🇰🇷 한국어'],['hi','🇮🇳 हिन्दी'],['ar','🇸🇦 العربية'],['tr','🇹🇷 Türkçe'],['id','🇮🇩 Indonesia'],['vi','🇻🇳 Tiếng Việt'],['th','🇹🇭 ไทย'],['pl','🇵🇱 Polski'],['uk','🇺🇦 Українська'],['nl','🇳🇱 Nederlands'],['sw','🇰🇪 Kiswahili'],['ha','🇳🇬 Hausa'],['am','🇪🇹 አማርኛ'],['bn','🇧🇩 বাংলা'],['ur','🇵🇰 اردو'],['fa','🇮🇷 فارسی'],['ms','🇲🇾 Melayu'],['tl','🇵🇭 Filipino'],['el','🇬🇷 Ελληνικά'],['cs','🇨🇿 Čeština'],['ro','🇷🇴 Română'],['hu','🇭🇺 Magyar'],['sv','🇸🇪 Svenska'],['da','🇩🇰 Dansk'],['nb','🇳🇴 Norsk'],['fi','🇫🇮 Suomi'],['he','🇮🇱 עברית'],['ta','🇱🇰 தமிழ்'],['sr','🇷🇸 Srpski'],['yo','🇳🇬 Yorùbá'],['zu','🇿🇦 isiZulu']];
+const VOZ = {es:'es-AR',en:'en-US',pt:'pt-BR',fr:'fr-FR',it:'it-IT',de:'de-DE',ru:'ru-RU',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR',hi:'hi-IN',ar:'ar-SA',tr:'tr-TR',id:'id-ID',vi:'vi-VN',th:'th-TH',pl:'pl-PL',uk:'uk-UA',nl:'nl-NL',sw:'sw-KE',ha:'ha-NG',am:'am-ET',bn:'bn-BD',ur:'ur-PK',fa:'fa-IR',ms:'ms-MY',tl:'fil-PH',el:'el-GR',cs:'cs-CZ',ro:'ro-RO',hu:'hu-HU',sv:'sv-SE',da:'da-DK',nb:'nb-NO',fi:'fi-FI',he:'he-IL',ta:'ta-IN',sr:'sr-RS',yo:'yo-NG',zu:'zu-ZA'};
+const PAISV = [["AF", "🇦🇫 Afganistán"], ["AL", "🇦🇱 Albania"], ["DE", "🇩🇪 Alemania"], ["AD", "🇦🇩 Andorra"], ["AO", "🇦🇴 Angola"], ["AG", "🇦🇬 Antigua y Barbuda"], ["SA", "🇸🇦 Arabia Saudita"], ["DZ", "🇩🇿 Argelia"], ["AR", "🇦🇷 Argentina"], ["AM", "🇦🇲 Armenia"], ["AU", "🇦🇺 Australia"], ["AT", "🇦🇹 Austria"], ["AZ", "🇦🇿 Azerbaiyán"], ["BS", "🇧🇸 Bahamas"], ["BD", "🇧🇩 Bangladés"], ["BB", "🇧🇧 Barbados"], ["BH", "🇧🇭 Baréin"], ["BZ", "🇧🇿 Belice"], ["BJ", "🇧🇯 Benín"], ["BY", "🇧🇾 Bielorrusia"], ["BO", "🇧🇴 Bolivia"], ["BA", "🇧🇦 Bosnia y Herzegovina"], ["BW", "🇧🇼 Botsuana"], ["BR", "🇧🇷 Brasil"], ["BN", "🇧🇳 Brunéi"], ["BG", "🇧🇬 Bulgaria"], ["BF", "🇧🇫 Burkina Faso"], ["BI", "🇧🇮 Burundi"], ["BT", "🇧🇹 Bután"], ["BE", "🇧🇪 Bélgica"], ["CV", "🇨🇻 Cabo Verde"], ["KH", "🇰🇭 Camboya"], ["CM", "🇨🇲 Camerún"], ["CA", "🇨🇦 Canadá"], ["TD", "🇹🇩 Chad"], ["CZ", "🇨🇿 Chequia"], ["CL", "🇨🇱 Chile"], ["CN", "🇨🇳 China"], ["CY", "🇨🇾 Chipre"], ["VA", "🇻🇦 Ciudad del Vaticano"], ["CO", "🇨🇴 Colombia"], ["KM", "🇰🇲 Comoras"], ["CG", "🇨🇬 Congo"], ["KP", "🇰🇵 Corea del Norte"], ["KR", "🇰🇷 Corea del Sur"], ["CR", "🇨🇷 Costa Rica"], ["CI", "🇨🇮 Costa de Marfil"], ["HR", "🇭🇷 Croacia"], ["CU", "🇨🇺 Cuba"], ["DK", "🇩🇰 Dinamarca"], ["DM", "🇩🇲 Dominica"], ["EC", "🇪🇨 Ecuador"], ["EG", "🇪🇬 Egipto"], ["SV", "🇸🇻 El Salvador"], ["AE", "🇦🇪 Emiratos Árabes Unidos"], ["ER", "🇪🇷 Eritrea"], ["SK", "🇸🇰 Eslovaquia"], ["SI", "🇸🇮 Eslovenia"], ["ES", "🇪🇸 España"], ["US", "🇺🇸 Estados Unidos"], ["EE", "🇪🇪 Estonia"], ["SZ", "🇸🇿 Esuatini"], ["ET", "🇪🇹 Etiopía"], ["PH", "🇵🇭 Filipinas"], ["FI", "🇫🇮 Finlandia"], ["FJ", "🇫🇯 Fiyi"], ["FR", "🇫🇷 Francia"], ["GA", "🇬🇦 Gabón"], ["GM", "🇬🇲 Gambia"], ["GE", "🇬🇪 Georgia"], ["GH", "🇬🇭 Ghana"], ["GD", "🇬🇩 Granada"], ["GR", "🇬🇷 Grecia"], ["GT", "🇬🇹 Guatemala"], ["GN", "🇬🇳 Guinea"], ["GQ", "🇬🇶 Guinea Ecuatorial"], ["GW", "🇬🇼 Guinea-Bisáu"], ["GY", "🇬🇾 Guyana"], ["HT", "🇭🇹 Haití"], ["HN", "🇭🇳 Honduras"], ["HK", "🇭🇰 Hong Kong"], ["HU", "🇭🇺 Hungría"], ["IN", "🇮🇳 India"], ["ID", "🇮🇩 Indonesia"], ["IQ", "🇮🇶 Irak"], ["IE", "🇮🇪 Irlanda"], ["IR", "🇮🇷 Irán"], ["IS", "🇮🇸 Islandia"], ["MH", "🇲🇭 Islas Marshall"], ["SB", "🇸🇧 Islas Salomón"], ["IL", "🇮🇱 Israel"], ["IT", "🇮🇹 Italia"], ["JM", "🇯🇲 Jamaica"], ["JP", "🇯🇵 Japón"], ["JO", "🇯🇴 Jordania"], ["KZ", "🇰🇿 Kazajistán"], ["KE", "🇰🇪 Kenia"], ["KG", "🇰🇬 Kirguistán"], ["KI", "🇰🇮 Kiribati"], ["XK", "🇽🇰 Kosovo"], ["KW", "🇰🇼 Kuwait"], ["LA", "🇱🇦 Laos"], ["LS", "🇱🇸 Lesoto"], ["LV", "🇱🇻 Letonia"], ["LR", "🇱🇷 Liberia"], ["LY", "🇱🇾 Libia"], ["LI", "🇱🇮 Liechtenstein"], ["LT", "🇱🇹 Lituania"], ["LU", "🇱🇺 Luxemburgo"], ["LB", "🇱🇧 Líbano"], ["MO", "🇲🇴 Macao"], ["MK", "🇲🇰 Macedonia del Norte"], ["MG", "🇲🇬 Madagascar"], ["MY", "🇲🇾 Malasia"], ["MW", "🇲🇼 Malaui"], ["MV", "🇲🇻 Maldivas"], ["MT", "🇲🇹 Malta"], ["ML", "🇲🇱 Malí"], ["MA", "🇲🇦 Marruecos"], ["MU", "🇲🇺 Mauricio"], ["MR", "🇲🇷 Mauritania"], ["FM", "🇫🇲 Micronesia"], ["MD", "🇲🇩 Moldavia"], ["MN", "🇲🇳 Mongolia"], ["ME", "🇲🇪 Montenegro"], ["MZ", "🇲🇿 Mozambique"], ["MM", "🇲🇲 Myanmar"], ["MX", "🇲🇽 México"], ["MC", "🇲🇨 Mónaco"], ["NA", "🇳🇦 Namibia"], ["NR", "🇳🇷 Nauru"], ["NP", "🇳🇵 Nepal"], ["NI", "🇳🇮 Nicaragua"], ["NG", "🇳🇬 Nigeria"], ["NO", "🇳🇴 Noruega"], ["NZ", "🇳🇿 Nueva Zelanda"], ["NE", "🇳🇪 Níger"], ["OM", "🇴🇲 Omán"], ["PK", "🇵🇰 Pakistán"], ["PW", "🇵🇼 Palaos"], ["PS", "🇵🇸 Palestina"], ["PA", "🇵🇦 Panamá"], ["PG", "🇵🇬 Papúa Nueva Guinea"], ["PY", "🇵🇾 Paraguay"], ["NL", "🇳🇱 Países Bajos"], ["PE", "🇵🇪 Perú"], ["PL", "🇵🇱 Polonia"], ["PT", "🇵🇹 Portugal"], ["PR", "🇵🇷 Puerto Rico"], ["QA", "🇶🇦 Qatar"], ["GB", "🇬🇧 Reino Unido"], ["CF", "🇨🇫 República Centroafricana"], ["CD", "🇨🇩 República Democrática del Congo"], ["DO", "🇩🇴 República Dominicana"], ["RW", "🇷🇼 Ruanda"], ["RO", "🇷🇴 Rumania"], ["RU", "🇷🇺 Rusia"], ["WS", "🇼🇸 Samoa"], ["KN", "🇰🇳 San Cristóbal y Nieves"], ["SM", "🇸🇲 San Marino"], ["VC", "🇻🇨 San Vicente y las Granadinas"], ["LC", "🇱🇨 Santa Lucía"], ["ST", "🇸🇹 Santo Tomé y Príncipe"], ["SN", "🇸🇳 Senegal"], ["RS", "🇷🇸 Serbia"], ["SC", "🇸🇨 Seychelles"], ["SL", "🇸🇱 Sierra Leona"], ["SG", "🇸🇬 Singapur"], ["SY", "🇸🇾 Siria"], ["SO", "🇸🇴 Somalia"], ["LK", "🇱🇰 Sri Lanka"], ["ZA", "🇿🇦 Sudáfrica"], ["SD", "🇸🇩 Sudán"], ["SS", "🇸🇸 Sudán del Sur"], ["SE", "🇸🇪 Suecia"], ["CH", "🇨🇭 Suiza"], ["SR", "🇸🇷 Surinam"], ["TH", "🇹🇭 Tailandia"], ["TW", "🇹🇼 Taiwán"], ["TZ", "🇹🇿 Tanzania"], ["TJ", "🇹🇯 Tayikistán"], ["TL", "🇹🇱 Timor Oriental"], ["TG", "🇹🇬 Togo"], ["TO", "🇹🇴 Tonga"], ["TT", "🇹🇹 Trinidad y Tobago"], ["TM", "🇹🇲 Turkmenistán"], ["TR", "🇹🇷 Turquía"], ["TV", "🇹🇻 Tuvalu"], ["TN", "🇹🇳 Túnez"], ["UA", "🇺🇦 Ucrania"], ["UG", "🇺🇬 Uganda"], ["UY", "🇺🇾 Uruguay"], ["UZ", "🇺🇿 Uzbekistán"], ["VU", "🇻🇺 Vanuatu"], ["VE", "🇻🇪 Venezuela"], ["VN", "🇻🇳 Vietnam"], ["YE", "🇾🇪 Yemen"], ["DJ", "🇩🇯 Yibuti"], ["ZM", "🇿🇲 Zambia"], ["ZW", "🇿🇼 Zimbabue"], ["XX", "🌍 Otro país"]];
+const GEO = {"AR": [-34.0, -64.0, "la"], "BO": [-17.0, -65.0, "la"], "BR": [-10.0, -52.0, "la"], "CL": [-33.0, -71.0, "la"], "CO": [4.0, -73.0, "la"], "CR": [10.0, -84.0, "la"], "CU": [22.0, -79.0, "la"], "DO": [19.0, -70.0, "la"], "EC": [-1.5, -78.0, "la"], "SV": [13.8, -89.0, "la"], "GT": [15.5, -90.0, "la"], "HT": [19.0, -72.5, "la"], "HN": [15.0, -86.5, "la"], "MX": [23.0, -102.0, "la"], "NI": [12.9, -85.0, "la"], "PA": [8.5, -80.0, "la"], "PY": [-23.0, -58.0, "la"], "PE": [-10.0, -76.0, "la"], "UY": [-33.0, -56.0, "la"], "VE": [7.0, -66.0, "la"], "JM": [18.1, -77.3, "la"], "TT": [10.5, -61.3, "la"], "BS": [24.5, -77.5, "la"], "BB": [13.2, -59.5, "la"], "BZ": [17.2, -88.7, "la"], "GY": [5.0, -59.0, "la"], "SR": [4.0, -56.0, "la"], "AG": [17.1, -61.8, "la"], "DM": [15.4, -61.4, "la"], "GD": [12.1, -61.7, "la"], "KN": [17.3, -62.7, "la"], "LC": [13.9, -61.0, "la"], "VC": [13.2, -61.2, "la"], "PR": [18.2, -66.5, "la"], "US": [39.0, -98.0, "us"], "CA": [57.0, -101.0, "us"], "GB": [54.0, -2.0, "eu"], "IE": [53.4, -8.0, "eu"], "FR": [46.5, 2.5, "eu"], "DE": [51.0, 10.0, "eu"], "ES": [40.0, -4.0, "eu"], "PT": [39.5, -8.0, "eu"], "IT": [42.8, 12.5, "eu"], "NL": [52.2, 5.5, "eu"], "BE": [50.6, 4.6, "eu"], "LU": [49.8, 6.1, "eu"], "CH": [46.8, 8.2, "eu"], "AT": [47.5, 14.5, "eu"], "DK": [56.0, 10.0, "eu"], "SE": [62.0, 15.0, "eu"], "NO": [61.0, 9.0, "eu"], "FI": [64.0, 26.0, "eu"], "IS": [65.0, -18.0, "eu"], "PL": [52.0, 19.0, "eu"], "CZ": [49.8, 15.5, "eu"], "SK": [48.7, 19.5, "eu"], "HU": [47.2, 19.5, "eu"], "RO": [46.0, 25.0, "eu"], "BG": [42.7, 25.5, "eu"], "GR": [39.0, 22.0, "eu"], "HR": [45.1, 15.5, "eu"], "SI": [46.1, 14.8, "eu"], "RS": [44.0, 20.8, "eu"], "BA": [44.0, 17.8, "eu"], "ME": [42.7, 19.3, "eu"], "MK": [41.6, 21.7, "eu"], "AL": [41.0, 20.0, "eu"], "XK": [42.6, 20.9, "eu"], "MD": [47.0, 28.5, "eu"], "UA": [49.0, 32.0, "eu"], "LT": [55.2, 24.0, "eu"], "LV": [56.9, 24.6, "eu"], "EE": [58.7, 25.5, "eu"], "CY": [35.0, 33.0, "eu"], "MT": [35.9, 14.4, "eu"], "MC": [43.7, 7.4, "eu"], "AD": [42.5, 1.5, "eu"], "SM": [43.9, 12.4, "eu"], "LI": [47.2, 9.5, "eu"], "VA": [41.9, 12.45, "eu"], "RU": [60.0, 90.0, "ru"], "BY": [53.7, 28.0, "ru"], "KZ": [48.0, 67.0, "ru"], "UZ": [41.5, 64.0, "ru"], "KG": [41.5, 74.5, "ru"], "TJ": [38.8, 71.0, "ru"], "TM": [39.0, 59.5, "ru"], "GE": [42.2, 43.5, "ru"], "AM": [40.2, 45.0, "ru"], "AZ": [40.3, 47.7, "ru"], "CN": [35.0, 104.0, "cn"], "KR": [36.5, 127.8, "kr"], "KP": [40.2, 127.5, "kr"], "JP": [36.5, 138.0, "jp"], "TW": [23.7, 121.0, "as"], "HK": [22.3, 114.2, "as"], "MO": [22.2, 113.55, "as"], "MN": [46.8, 103.0, "as"], "IN": [22.0, 79.0, "as"], "PK": [30.0, 70.0, "as"], "BD": [23.7, 90.3, "as"], "LK": [7.8, 80.7, "as"], "NP": [28.3, 84.0, "as"], "BT": [27.5, 90.4, "as"], "MV": [3.2, 73.2, "as"], "AF": [33.9, 67.7, "as"], "TH": [15.5, 101.0, "as"], "VN": [16.0, 107.5, "as"], "KH": [12.6, 105.0, "as"], "LA": [19.8, 102.5, "as"], "MM": [21.0, 96.0, "as"], "MY": [4.2, 102.0, "as"], "SG": [1.35, 103.8, "as"], "ID": [-2.5, 118.0, "as"], "PH": [12.9, 122.0, "as"], "BN": [4.5, 114.7, "as"], "TL": [-8.8, 125.7, "as"], "TR": [39.0, 35.0, "me"], "AE": [24.0, 54.0, "me"], "SA": [24.0, 45.0, "me"], "QA": [25.3, 51.2, "me"], "KW": [29.3, 47.7, "me"], "BH": [26.0, 50.55, "me"], "OM": [21.0, 57.0, "me"], "YE": [15.5, 48.0, "me"], "JO": [31.0, 36.5, "me"], "LB": [33.9, 35.9, "me"], "SY": [35.0, 38.5, "me"], "IQ": [33.0, 44.0, "me"], "IR": [32.5, 54.0, "me"], "IL": [31.3, 34.9, "me"], "PS": [31.9, 35.2, "me"], "EG": [26.8, 30.0, "af"], "MA": [31.8, -7.0, "af"], "DZ": [28.0, 2.6, "af"], "TN": [34.0, 9.5, "af"], "LY": [27.0, 17.0, "af"], "SD": [15.5, 30.0, "af"], "SS": [7.0, 30.0, "af"], "NG": [9.0, 8.0, "af"], "GH": [7.9, -1.0, "af"], "CI": [7.5, -5.5, "af"], "SN": [14.5, -14.5, "af"], "ML": [17.5, -4.0, "af"], "BF": [12.3, -1.6, "af"], "NE": [17.6, 8.0, "af"], "TD": [15.5, 18.7, "af"], "MR": [21.0, -10.9, "af"], "GM": [13.4, -15.3, "af"], "GN": [10.4, -10.9, "af"], "GW": [12.0, -15.0, "af"], "SL": [8.5, -11.8, "af"], "LR": [6.4, -9.4, "af"], "TG": [8.6, 1.0, "af"], "BJ": [9.3, 2.3, "af"], "CV": [16.0, -24.0, "af"], "CM": [5.7, 12.4, "af"], "CF": [6.6, 20.9, "af"], "GA": [-0.8, 11.6, "af"], "CG": [-0.7, 15.0, "af"], "CD": [-2.9, 23.6, "af"], "GQ": [1.6, 10.3, "af"], "ST": [0.2, 6.6, "af"], "AO": [-12.3, 17.5, "af"], "ET": [9.0, 39.5, "af"], "KE": [0.2, 37.9, "af"], "TZ": [-6.4, 34.9, "af"], "UG": [1.4, 32.3, "af"], "RW": [-2.0, 29.9, "af"], "BI": [-3.4, 29.9, "af"], "SO": [5.2, 46.2, "af"], "DJ": [11.8, 42.6, "af"], "ER": [15.2, 39.8, "af"], "ZA": [-29.0, 25.0, "af"], "NA": [-22.6, 17.1, "af"], "BW": [-22.3, 24.7, "af"], "ZW": [-19.0, 29.2, "af"], "ZM": [-13.1, 27.8, "af"], "MW": [-13.3, 34.3, "af"], "MZ": [-18.7, 35.5, "af"], "MG": [-19.0, 46.9, "af"], "MU": [-20.3, 57.6, "af"], "SC": [-4.7, 55.5, "af"], "KM": [-11.9, 43.9, "af"], "LS": [-29.6, 28.2, "af"], "SZ": [-26.5, 31.5, "af"], "AU": [-25.0, 134.0, "oc"], "NZ": [-41.0, 174.0, "oc"], "PG": [-6.3, 145.0, "oc"], "FJ": [-17.7, 178.0, "oc"], "SB": [-9.6, 160.0, "oc"], "VU": [-15.4, 166.9, "oc"], "WS": [-13.8, -172.0, "oc"], "TO": [-21.2, -175.2, "oc"], "KI": [1.9, -157.4, "oc"], "FM": [7.4, 150.5, "oc"], "MH": [7.1, 171.2, "oc"], "PW": [7.5, 134.6, "oc"], "NR": [-0.5, 166.9, "oc"], "TV": [-7.1, 177.6, "oc"]};
+const LATAMP = Object.keys(GEO).filter(k => GEO[k][2] === 'la');
 const nav = (navigator.language || 'es-AR');
 let LANG = (localStorage.getItem('mundo-lang') || nav.slice(0, 2)).toLowerCase(); if(!VOZ[LANG]) LANG = 'es';
 let PAIS = localStorage.getItem('mundo-pais') || (nav.split('-')[1] || '').toUpperCase(); if(!PAISV.some(p => p[0] === PAIS)) PAIS = LANG === 'es' ? 'AR' : 'XX';
@@ -466,7 +870,7 @@ function traducir(root){
   return trCola;
 }
 function aplicarIdioma(){
-  document.documentElement.lang = LANG; document.documentElement.dir = ['ar','ur','fa'].includes(LANG) ? 'rtl' : 'ltr';
+  document.documentElement.lang = LANG; document.documentElement.dir = ['ar','ur','fa','he'].includes(LANG) ? 'rtl' : 'ltr';
   traducir(document.body);
   const ph = {es:'¿Qué buscas? Ej: masajeador de cuello'}; $('q').placeholder = ph[LANG] || '🔎';
 }
@@ -478,11 +882,57 @@ function aplicarPais(){
   // a los de afuera de Latinoamérica les mostramos primero lo nuestro
   const lt = $('latam'), dst = lat ? $('importar') : $('res').nextElementSibling;
   [lt, lt.nextElementSibling, lt.nextElementSibling.nextElementSibling].forEach(el => { dst.parentNode.insertBefore(el, dst); });
-  portada(); $('lat').innerHTML = LATAM.map(tarjetaL).join('');
+  portada(); $('lat').innerHTML = LATAM.map(tarjetaL).join(''); mapaYo(); observar(); { const g = GEO[PAIS]; mapaMarcar(g ? [PAIS] : [], g ? g[2] : 'mundo', g ? '📍 Tú estás aquí' : '🌎 El mundo'); }
   traducir(document.body);
 }
 $('selLang').onchange = e => { LANG = e.target.value; localStorage.setItem('mundo-lang', LANG); DIC = {}; try{ DIC = JSON.parse(localStorage.getItem('mundo-tr-' + LANG) || '{}'); }catch(_){} aplicarIdioma(); decir('¡Hola! Soy <b>Flashy</b> 👋 Dime qué quieres comprar y lo busco en todas las tiendas del mundo.'); };
 $('selPais').onchange = e => { PAIS = e.target.value; localStorage.setItem('mundo-pais', PAIS); aplicarPais(); };
+
+// ================= MINI MAPA =================
+const RVIS = {mundo:[0,8,360,142,'🌎 El mundo'], us:[40,20,110,60,'🇺🇸 Norteamérica'], la:[60,70,100,95,'🌎 Latinoamérica'], eu:[160,20,60,40,'🇪🇺 Europa'], ru:[190,10,140,60,'🇷🇺 Rusia y Asia Central'], cn:[255,25,70,45,'🇨🇳 China'], kr:[290,40,30,20,'🇰🇷 Corea'], jp:[295,35,35,25,'🇯🇵 Japón'], as:[225,30,110,80,'🌏 Asia'], me:[200,40,60,40,'🕌 Medio Oriente'], oc:[260,85,110,60,'🇦🇺 Oceanía'], af:[150,45,90,90,'🌍 África']};
+const px = (la, lo) => [lo + 180, 90 - la];
+let MAPA_REG = 'mundo';
+function mapaVer(reg, txt){
+  const v = RVIS[reg] || RVIS.mundo; MAPA_REG = reg;
+  const svg = $('mapaSvg'), a = (svg.getAttribute('viewBox') || '0 8 360 142').split(' ').map(Number), b = v.slice(0, 4), t0 = performance.now();
+  (function paso(t){ const k = Math.min(1, (t - t0) / 500), e = k * (2 - k); svg.setAttribute('viewBox', a.map((x, i) => (x + (b[i] - x) * e).toFixed(2)).join(' ')); if(k < 1) requestAnimationFrame(paso); })(t0);
+  $('mapaTxt').textContent = txt || v[4];
+  const r = Math.max(.8, b[2] / 120); document.querySelectorAll('#mPuntos circle').forEach(c => c.setAttribute('r', r)); const y = $('mYo').firstChild; if(y) y.setAttribute('r', r * 1.6);
+}
+function mapaMarcar(ccs, reg, txt){
+  $('mPuntos').innerHTML = ccs.filter(c => GEO[c]).map(c => { const [x, y] = px(GEO[c][0], GEO[c][1]); return `<circle class="mp" cx="${x}" cy="${y}" r="1.2"><title>${(PAISV.find(p => p[0] === c) || [, c])[1]}</title></circle>`; }).join('');
+  mapaVer(reg || 'mundo', txt);
+}
+function mapaYo(){ const g = GEO[PAIS]; if(!g){ $('mYo').innerHTML = ''; return; } const [x, y] = px(g[0], g[1]); $('mYo').innerHTML = `<circle class="yo" cx="${x}" cy="${y}" r="2.2"><title>📍 Tú estás aquí</title></circle>`; }
+function mapaPos(){ const h = document.querySelector('header.top'); if(!h) return; const r = h.getBoundingClientRect(); $('mapa').style.top = Math.max(8, r.bottom + 8) + 'px'; }
+addEventListener('scroll', mapaPos, {passive: true}); addEventListener('resize', mapaPos); setTimeout(mapaPos, 50);
+$('mapaBtn').onclick = e => { e.stopPropagation(); $('mapa').classList.toggle('gr'); };
+$('mapa').onclick = () => $('mapa').classList.toggle('gr');
+// el mapa del mundo (países del mundo, Natural Earth) se dibuja liviano en el celular
+(async () => {
+  try{
+    const r = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json'); const tj = await r.json();
+    const [sx, sy] = tj.transform.scale, [tx, ty] = tj.transform.translate;
+    const arcs = tj.arcs.map(a => { let x = 0, y = 0; return a.map(([dx, dy]) => { x += dx; y += dy; return [x * sx + tx, y * sy + ty]; }); });
+    const arc = i => i < 0 ? arcs[~i].slice().reverse() : arcs[i];
+    const anillo = R => { let pts = []; R.forEach(i => { const a = arc(i); pts = pts.concat(pts.length ? a.slice(1) : a); }); return 'M' + pts.map(([lo, la]) => (lo + 180).toFixed(1) + ',' + (90 - la).toFixed(1)).join('L') + 'Z'; };
+    let d = ''; const geo = g => { if(g.type === 'Polygon') g.arcs.forEach(R => d += anillo(R)); else if(g.type === 'MultiPolygon') g.arcs.forEach(P => P.forEach(R => d += anillo(R))); else if(g.geometries) g.geometries.forEach(geo); };
+    Object.values(tj.objects).forEach(geo);
+    $('mTierra').innerHTML = `<path d="${d}"/>`;
+  }catch(e){}
+})();
+// a medida que bajas por la página, el mapa te muestra qué parte del mundo estás mirando
+const NOMREG = {g: ['mundo', '🏢 Tiendas grandes del mundo'], m: ['mundo', '🏬 Tiendas medianas del mundo'], c: ['mundo', '🏠 Tiendas chicas del mundo']};
+function mirarSeccion(id){
+  if(id === 'p-tu'){ const g = GEO[PAIS]; mapaMarcar([PAIS], g ? g[2] : 'mundo', '📍 Tu país'); return; }
+  if(id === 'latam'){ mapaMarcar(LATAMP, 'la', '🌎 Latinoamérica para el mundo'); return; }
+  if(id === 'importar'){ mapaMarcar(['CN','IN','KR','TW','TR','VN','DE','US'], 'mundo', '🏭 Fábricas del mundo'); return; }
+  const k = id.replace('p-', ''), grp = GRUPOS.find(x => x[0] === k); if(!grp) return;
+  const ccs = [...new Set(grp[2].map(t => ccDe(t.f)))];
+  if(NOMREG[k]) mapaMarcar(ccs, ...NOMREG[k]); else mapaMarcar(ccs, k);
+}
+const obs = new IntersectionObserver(es => { es.filter(e => e.isIntersecting).forEach(e => mirarSeccion(e.target.id)); }, {rootMargin: '-30% 0px -60% 0px'});
+function observar(){ obs.disconnect(); document.querySelectorAll('#paises h2[id], #latam, #importar').forEach(h => obs.observe(h)); }
 // ---- Flashy habla ----
 let voz = false; document.addEventListener('pointerdown', () => { voz = true; }, {capture: true, once: true});
 function decir(t){ const g = $('globo'); g.innerHTML = t; g.style.display = 'block'; const habla = () => { if(!voz || !('speechSynthesis' in window)) return; try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(g.textContent.replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu, '')); u.lang = VOZ[LANG] || 'es-AR'; window.FLASHY_NO_FORZAR = LANG !== 'es'; speechSynthesis.speak(u); }catch(e){} }; if(LANG === 'es') habla(); else traducir(g).then(habla); }
@@ -593,11 +1043,16 @@ async function buscar(q){
     ULT = q; seguir([['🛍️ Verlo en tiendas', () => irModo('compra', q)], ['💡 Ideas de negocio', () => irModo('ideas', q)], ['🛡️ ¿Cómo importo seguro?', () => ayuda('importa')], ['🔎 Buscar otra cosa', otraCosa]]);
     $('globo').scrollIntoView({behavior: 'smooth', block: 'start'}); traducir($('res')); return;
   }
-  const L = T.slice().sort((a, b) => ORDEN[a.env] - ORDEN[b.env]);
-  $('res').innerHTML = L.map(t => tarjeta(t, true, k[t.l] || k.en || q)).join('');
+  const TAMO = {g: 0, m: 1, c: 2}, reg = GEO[PAIS] ? GEO[PAIS][2] : '';
+  const pts = t => (ccDe(t.f) === PAIS ? 0 : 10) + ORDEN[t.env] * 3 + (t.p === reg ? 0 : 2) + TAMO[t.s];
+  const L = T.slice().sort((a, b) => pts(a) - pts(b));
+  const tar = t => tarjeta(t, true, k[t.l] || k.en || q);
+  $('res').innerHTML = L.slice(0, 40).map(tar).join('') + (L.length > 40 ? `<button type="button" class="vmas" id="resMas">➕ Ver las ${L.length} tiendas del mundo</button>` : '');
+  if($('resMas')) $('resMas').onclick = () => { $('resMas').remove(); $('res').insertAdjacentHTML('beforeend', L.slice(40).map(tar).join('')); traducir($('res')); };
+  mapaMarcar([...new Set(L.slice(0, 40).map(t => ccDe(t.f)))], 'mundo');
   const si = L.filter(t => t.env === 'si').slice(0, 3).map(t => t.n).join(', ');
   ULT = q;
-  decir(`¡Listo! Te armé la búsqueda de <b>${esc(q)}</b> en ${T.length} tiendas del mundo, cada una en su idioma. ${PAIS === 'AR' ? `Para que te llegue a tu casa, empieza por <b>${si}</b>.` : 'Fíjate en cada tienda si envía a tu país.'} Toca <b>🔎 Ver</b> en cada tienda y compara precios 👇${k.consejo ? '<br>💡 ' + esc(k.consejo) : ''}${PAIS === 'AR' ? '<br><small>Recuerda: hasta US$ 400 por envío no pagas derechos de importación.</small>' : ''}`);
+  decir(`¡Listo! Te armé la búsqueda de <b>${esc(q)}</b> en ${T.length} tiendas de ${new Set(T.map(t => t.f)).size} países, cada una en su idioma. ${PAIS === 'AR' ? `Para que te llegue a tu casa, empieza por <b>${si}</b>.` : 'Fíjate en cada tienda si envía a tu país.'} Toca <b>🔎 Ver</b> en cada tienda y compara precios 👇${k.consejo ? '<br>💡 ' + esc(k.consejo) : ''}${PAIS === 'AR' ? '<br><small>Recuerda: hasta US$ 400 por envío no pagas derechos de importación.</small>' : ''}`);
   seguir([['🏭 Ver fábricas de esto', () => irModo('importa', q)], ['💡 Ideas de negocio con esto', () => irModo('ideas', q)], ['🛡️ ¿Cómo compro seguro?', () => ayuda('compra')], ['🔎 Buscar otra cosa', otraCosa]]);
   $('globo').scrollIntoView({behavior: 'smooth', block: 'start'}); traducir($('res'));
 }
