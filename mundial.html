@@ -850,22 +850,26 @@ let PAIS = localStorage.getItem('mundo-pais') || (nav.split('-')[1] || '').toUpp
 $('selLang').innerHTML = IDIOMAS.map(([k, n]) => `<option value="${k}"${k === LANG ? ' selected' : ''}>${n}</option>`).join('');
 $('selPais').innerHTML = PAISV.map(([k, n]) => `<option value="${k}"${k === PAIS ? ' selected' : ''}>${n}</option>`).join('');
 // --- traductor de la página (traduce una vez y lo guarda en el celular) ---
-let DIC = {}; try{ DIC = JSON.parse(localStorage.getItem('mundo-tr-' + LANG) || '{}'); }catch(e){}
+const TRV = 'mundo-tr2-'; try{ Object.keys(localStorage).filter(k => k.startsWith('mundo-tr-')).forEach(k => localStorage.removeItem(k)); }catch(e){}
+let DIC = {}; try{ DIC = JSON.parse(localStorage.getItem(TRV + LANG) || '{}'); }catch(e){}
 const ORIG = new WeakMap();
 const salta = n => { const p = n.parentElement; return !p || p.closest('script,style,select,option,.nt,input,textarea') || !/[A-Za-zÁÉÍÓÚáéíóúñÑ]{2}/.test(n.nodeValue); };
 function textos(root){ const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); const L = []; let n; while((n = w.nextNode())){ if(salta(n)) continue; if(!ORIG.has(n)) ORIG.set(n, n.nodeValue); L.push(n); } return L; }
+function poner(L){ L.forEach(n => { const o = ORIG.get(n), t = o.trim(); if(LANG === 'es') n.nodeValue = o; else if(DIC[t]) n.nodeValue = o.replace(t, DIC[t]); }); }
 let trCola = Promise.resolve();
 function traducir(root){
   trCola = trCola.then(async () => {
-    const L = textos(root || document.body);
-    if(LANG === 'es'){ L.forEach(n => { n.nodeValue = ORIG.get(n); }); return; }
+    const L = textos(root || document.body), lang = LANG;
+    if(lang === 'es'){ poner(L); return; }
+    poner(L);
     const faltan = [...new Set(L.map(n => ORIG.get(n).trim()).filter(t => t && !(t in DIC)))];
-    for(let i = 0; i < faltan.length; i += 30){
-      const lote = faltan.slice(i, i + 30);
-      try{ const r = await fetch('/api/guia?accion=traducir', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({lang: LANG, textos: lote})}); const j = await r.json(); (j.textos || []).forEach((t, k) => { if(t) DIC[lote[k]] = t; }); }catch(e){ break; }
-    }
-    try{ localStorage.setItem('mundo-tr-' + LANG, JSON.stringify(DIC)); }catch(e){}
-    L.forEach(n => { const o = ORIG.get(n), t = o.trim(); if(DIC[t]) n.nodeValue = o.replace(t, DIC[t]); });
+    const lotes = []; for(let i = 0; i < faltan.length; i += 40) lotes.push(faltan.slice(i, i + 40));
+    let k = 0;
+    const trabajador = async () => { while(k < lotes.length && LANG === lang){ const lote = lotes[k++];
+      try{ const r = await fetch('/api/guia?accion=traducir', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({lang, textos: lote})}); if(!r.ok) continue; const j = await r.json();
+        if(LANG !== lang) return; (j.textos || []).forEach((t, i) => { if(t) DIC[lote[i]] = t; }); poner(L); try{ localStorage.setItem(TRV + lang, JSON.stringify(DIC)); }catch(e){}
+      }catch(e){} } };
+    await Promise.all([trabajador(), trabajador(), trabajador()]);
   });
   return trCola;
 }
@@ -885,7 +889,7 @@ function aplicarPais(){
   portada(); $('lat').innerHTML = LATAM.map(tarjetaL).join(''); mapaYo(); observar(); { const g = GEO[PAIS]; mapaMarcar(g ? [PAIS] : [], g ? g[2] : 'mundo', g ? '📍 Tú estás aquí' : '🌎 El mundo'); }
   traducir(document.body);
 }
-$('selLang').onchange = e => { LANG = e.target.value; localStorage.setItem('mundo-lang', LANG); DIC = {}; try{ DIC = JSON.parse(localStorage.getItem('mundo-tr-' + LANG) || '{}'); }catch(_){} aplicarIdioma(); decir('¡Hola! Soy <b>Flashy</b> 👋 Dime qué quieres comprar y lo busco en todas las tiendas del mundo.'); };
+$('selLang').onchange = e => { LANG = e.target.value; localStorage.setItem('mundo-lang', LANG); DIC = {}; try{ DIC = JSON.parse(localStorage.getItem(TRV + LANG) || '{}'); }catch(_){} aplicarIdioma(); decir('¡Hola! Soy <b>Flashy</b> 👋 Dime qué quieres comprar y lo busco en todas las tiendas del mundo.'); };
 $('selPais').onchange = e => { PAIS = e.target.value; localStorage.setItem('mundo-pais', PAIS); aplicarPais(); };
 
 // ================= MINI MAPA =================

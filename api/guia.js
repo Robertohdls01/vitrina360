@@ -64,13 +64,29 @@ module.exports = async (req, res) => {
       o.intro = t(o.intro, 240);
       return res.status(200).json(o);
     }
-    if (a === 'traducir') {
-      const L = (Array.isArray(b.textos) ? b.textos : []).slice(0, 30).map(x => t(x, 700));
-      if (!L.length || lang === 'es') return res.status(200).json({ textos: L });
+    if (a === 'diario') { // Mi Diario con Flashy: pasa en limpio lo que la persona contó de su día (no se guarda nada en el servidor)
+      const tx = t(b.texto, 4000).trim(); if (!tx) return res.status(400).json({ error: 'Contame qué hiciste hoy 😊' });
       if (!(await cupo())) return res.status(429).json({ error: 'cupo' });
-      const out = await claude('Sos traductor. Devolvé SOLO un array JSON de strings, mismo orden y cantidad, sin comentarios.', `Traducí al ${IDI[lang]} manteniendo nombres propios y emojis:\n${JSON.stringify(L)}`, 2500);
-      let arr = null; try { arr = JSON.parse(out.slice(out.indexOf('['), out.lastIndexOf(']') + 1)); } catch (e) {}
-      return res.status(200).json({ textos: Array.isArray(arr) && arr.length === L.length ? arr.map(x => t(x, 900)) : L });
+      const out = await claude('Sos Flashy y ayudás a escribir un diario íntimo. Pasás en limpio lo que la persona te contó de su día, en primera persona (como si lo escribiera ella), con calidez y sin inventar nada que no haya dicho. Corregís la ortografía y ordenás las ideas, sin agregar consejos ni juicios. Devolvé SOLO un objeto JSON, sin comentarios.',
+        `Fecha: ${t(b.fecha, 40)}.\nLo que contó (puede venir dictado por voz, con errores):\n«${tx}»\nDevolvé {"titulo":"…","texto":"…","animo":"…","riesgo":false}. "titulo" = título corto y lindo para el día (máx. 6 palabras). "texto" = el día pasado en limpio, en ${IDI[lang]}, en párrafos cortos, misma extensión aproximada. "animo" = UN emoji que refleje cómo se sintió. "riesgo" = true SOLO si la persona expresa que quiere hacerse daño, no quiere vivir o está en peligro.`, 1500);
+      let o = null; try { o = JSON.parse(out.slice(out.indexOf('{'), out.lastIndexOf('}') + 1)); } catch (e) {}
+      if (!o || !o.texto) return res.status(200).json({ titulo: '', texto: tx, animo: '📝', riesgo: false });
+      return res.status(200).json({ titulo: t(o.titulo, 80), texto: t(o.texto, 6000), animo: t(o.animo, 8), riesgo: !!o.riesgo });
+    }
+    if (a === 'traducir') { // con memoria compartida por idioma: lo que ya se tradujo una vez sale al instante para todos
+      const L = (Array.isArray(b.textos) ? b.textos : []).slice(0, 40).map(x => t(x, 700));
+      if (!L.length || lang === 'es' || lang === 'neutro') return res.status(200).json({ textos: L });
+      const pc = 'guia/tr/' + lang + '.json', C = (await leer(pc)) || {};
+      const faltan = [...new Set(L.filter(x => !(x in C)))], nuevos = {};
+      const lotes = []; for (let i = 0; i < faltan.length; i += 12) lotes.push(faltan.slice(i, i + 12));
+      await Promise.all(lotes.map(async lo => {
+        if (!(await cupo())) return;
+        const out = await claude('Sos traductor profesional. Devolvé SOLO un array JSON de strings, mismo orden y misma cantidad de elementos que el original, sin comentarios ni texto extra.', `Traducí cada elemento al ${IDI[lang]}. Mantené nombres propios, marcas, números y emojis.\n${JSON.stringify(lo)}`, 3500);
+        let arr = null; try { arr = JSON.parse(out.slice(out.indexOf('['), out.lastIndexOf(']') + 1)); } catch (e) {}
+        if (Array.isArray(arr) && arr.length === lo.length) lo.forEach((x, i) => { if (typeof arr[i] === 'string' && arr[i].trim()) nuevos[x] = t(arr[i], 900); });
+      }));
+      if (Object.keys(nuevos).length) { const C2 = Object.assign((await leer(pc)) || {}, nuevos); try { await guardar(pc, C2); } catch (e) {} Object.assign(C, nuevos); }
+      return res.status(200).json({ textos: L.map(x => (x in C ? C[x] : null)) });
     }
     if (a === 'preguntar') {
       const q = t(b.q, 400).trim(); if (!q) return res.status(400).json({ error: 'Preguntame algo 😊' });

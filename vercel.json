@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/diario",
+      "destination": "/diario.html"
+    },
+    {
       "source": "/r/:slug",
       "destination": "/revista.html"
     },

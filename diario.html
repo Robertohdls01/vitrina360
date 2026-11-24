@@ -1,0 +1,209 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mi Diario con Flashy</title>
+<meta name="description" content="Tu diario íntimo: le contás tu día a Flashy, guardás tus fotos y lo leés como un libro. Con PIN, solo en tu celular.">
+<meta name="theme-color" content="#f6efe6">
+<style>
+*{box-sizing:border-box}html,body{margin:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#3b3340;background:#f7f2ea;min-height:100vh}
+.wrap{max-width:560px;margin:0 auto;padding:14px 14px 90px}
+header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fffaf3;border-bottom:1px solid #eadfce;position:sticky;top:0;z-index:20}
+header b{font-size:18px;color:#6b5a7a}header small{color:#9a8a8f}
+.fl{width:calc(64px*var(--fl-k,1));height:calc(64px*var(--fl-k,1));flex:none;position:relative}
+.btn{border:0;border-radius:16px;padding:14px 16px;font:800 16px system-ui;cursor:pointer;background:#e9e1f2;color:#4b3d5c}
+.btn.pri{background:#8fbfa4;color:#fff}.btn.rosa{background:#efc6d6;color:#5b3a48}.btn:disabled{opacity:.5}
+.card{background:#fffdf9;border:1px solid #eadfce;border-radius:20px;padding:16px;margin:12px 0;box-shadow:0 4px 14px rgba(120,100,80,.08)}
+textarea{width:100%;min-height:150px;border:2px solid #eadfce;border-radius:14px;padding:12px;font:17px/1.45 Georgia,serif;color:#3b3340;background:#fffdf9;resize:vertical}
+.fila{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.fila .btn{flex:1}
+.globo{background:#fff;border:2px solid #e9e1f2;border-radius:18px;padding:10px 14px;font-size:16px;line-height:1.4;flex:1}
+.fotos{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.fotos img{width:84px;height:84px;object-fit:cover;border-radius:12px;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.fotos .ft{position:relative}.fotos .ft button{position:absolute;top:-6px;right:-6px;border:0;border-radius:50%;width:24px;height:24px;background:#c98a9f;color:#fff;cursor:pointer}
+nav.tabs{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fffaf3;border-top:1px solid #eadfce;z-index:30;padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs button{flex:1;border:0;background:none;padding:12px 4px;font:700 14px system-ui;color:#8a7a86;cursor:pointer}nav.tabs button.on{color:#4b3d5c;background:#f3ecf8}
+/* candado */
+#lock{position:fixed;inset:0;background:#f7f2ea;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+#lock h1{font:700 26px Georgia,serif;color:#6b5a7a;margin:12px 0 4px}#lock p{color:#7a6a76;margin:4px 0 16px;max-width:340px}
+.pin{display:flex;gap:12px;margin:10px 0 16px}.pin span{width:18px;height:18px;border-radius:50%;border:2px solid #b7a6c6}.pin span.ok{background:#b7a6c6}
+.tec{display:grid;grid-template-columns:repeat(3,72px);gap:12px}.tec button{height:72px;border-radius:50%;border:0;background:#fffdf9;box-shadow:0 3px 10px rgba(120,100,80,.12);font:700 26px system-ui;color:#4b3d5c;cursor:pointer}
+#lockMsg{color:#b5546f;font-weight:700;min-height:22px}
+/* libro */
+.libro{perspective:1400px;margin-top:10px}
+.hoja{background:#fffaf0 repeating-linear-gradient(transparent 0 31px,#efe4d2 31px 32px);border:1px solid #e3d5bf;border-radius:6px 18px 18px 6px;box-shadow:inset 14px 0 18px -14px rgba(120,90,60,.35),0 8px 24px rgba(120,100,80,.18);padding:22px 20px 26px 28px;min-height:60vh;transform-origin:left center;transition:transform .55s ease,opacity .55s}
+.hoja.va{transform:rotateY(-80deg);opacity:.2}.hoja.vuelve{transform:rotateY(80deg);opacity:.2;transform-origin:right center}
+.hoja .fecha{font:700 14px system-ui;color:#9a7f6a}.hoja h2{font:700 24px/1.2 Georgia,serif;color:#5b4a6a;margin:6px 0 10px}
+.hoja .txt{font:18px/32px Georgia,serif;white-space:pre-wrap;color:#3b3340}
+.hoja .fotos img{width:46%;height:auto;max-height:240px;transform:rotate(-1.5deg)}.hoja .fotos img:nth-child(2n){transform:rotate(1.8deg)}
+.pasar{display:flex;gap:8px;margin-top:12px;align-items:center}.pasar .btn{flex:1;padding:12px 8px}
+.vacio{text-align:center;color:#8a7a86;padding:40px 10px}
+.lista a{display:flex;gap:10px;align-items:center;padding:12px;border-bottom:1px solid #efe4d2;text-decoration:none;color:#3b3340}.lista a b{flex:1}.lista small{color:#9a8a8f}
+input[type=search],input[type=date]{width:100%;padding:12px;border:2px solid #eadfce;border-radius:14px;font:16px system-ui;background:#fffdf9}
+.aviso{background:#eef6f1;border:1px solid #cfe5d8;border-radius:14px;padding:10px 12px;font-size:14px;color:#3f6b52}
+.ayuda{background:#fdf1f4;border:2px solid #efc6d6;border-radius:16px;padding:14px;margin:12px 0;color:#5b3a48;line-height:1.45}
+.mic.on{background:#c98a9f;color:#fff;animation:lat 1.2s infinite}@keyframes lat{50%{transform:scale(1.04)}}
+footer{text-align:center;color:#a89aa0;font-size:12px;margin-top:20px}
+[hidden]{display:none!important}
+</style><script src="/flashy/flashy.js"></script></head><body>
+
+<div id="lock">
+  <div class="fl" id="flLock" style="width:110px;height:110px"></div>
+  <h1>Mi Diario con Flashy</h1>
+  <p id="lockTxt">Elegí un PIN de 4 números para que nadie más pueda abrir tu diario.</p>
+  <div class="pin" id="pinDots"><span></span><span></span><span></span><span></span></div>
+  <div id="lockMsg"></div>
+  <div class="tec" id="tec"></div>
+  <p style="font-size:13px;margin-top:18px">🔒 Tu diario se guarda <b>cifrado y solo en este celular</b>. Nadie puede leerlo, ni nosotros. Si te olvidás el PIN no se puede recuperar.</p>
+</div>
+
+<header><div class="fl" id="flTop"></div><div style="flex:1"><b>Mi Diario con Flashy</b><br><small id="hoyTxt"></small></div><button type="button" class="btn" id="bCerrar" style="padding:8px 12px;font-size:14px" title="Cerrar con PIN">🔒</button></header>
+
+<main class="wrap">
+ <!-- HOY -->
+ <section id="vHoy">
+  <div class="card" style="display:flex;gap:12px;align-items:flex-start"><div class="globo" id="globo">¡Hola! 😊 Contame qué hiciste hoy: tocá el micrófono y hablame, o escribilo. Yo lo paso en limpio y lo guardo en tu diario.</div></div>
+  <div class="card">
+   <label for="fDia" style="font-weight:700;color:#6b5a7a">📅 Día</label> <input type="date" id="fDia" style="margin:6px 0 10px">
+   <textarea id="tx" placeholder="Hoy fui a…"></textarea>
+   <div class="fila"><button type="button" class="btn rosa mic" id="bMic">🎤 Hablarle a Flashy</button><label class="btn" style="text-align:center">📷 Fotos<input type="file" id="fFoto" accept="image/*" multiple hidden></label></div>
+   <div class="fotos" id="fotosHoy"></div>
+   <label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:15px"><input type="checkbox" id="chLimpio" checked style="width:20px;height:20px"> ✨ Que Flashy lo pase en limpio</label>
+   <div class="fila"><button type="button" class="btn pri" id="bGuardar">💾 Guardar en mi diario</button></div>
+  </div>
+  <div id="ayuda" class="ayuda" hidden>💛 Gracias por contármelo. Lo que sentís importa, y no tenés que pasarlo solo/a. Hablá hoy con alguien de confianza o con un profesional. En Argentina podés llamar gratis al <b>135</b> (CABA y GBA) o al <b>(011) 5275-1135</b> (todo el país), las 24 horas. Si estás en peligro ahora, llamá al <b>911</b>.</div>
+ </section>
+
+ <!-- LIBRO -->
+ <section id="vLibro" hidden>
+  <div class="libro"><div class="hoja" id="hoja"></div></div>
+  <div class="pasar"><button type="button" class="btn" id="bAnt">◀ Antes</button><button type="button" class="btn rosa" id="bLeer">🔊 Que Flashy me lo lea</button><button type="button" class="btn" id="bSig">Después ▶</button></div>
+  <div class="fila"><button type="button" class="btn" id="bEditar" style="font-size:14px">✏️ Editar este día</button><button type="button" class="btn" id="bBorrar" style="font-size:14px">🗑️ Borrar</button></div>
+ </section>
+
+ <!-- BUSCAR -->
+ <section id="vBuscar" hidden>
+  <div class="card"><input type="search" id="qBus" placeholder="Buscar: playa, cumpleaños, mamá…"><div class="fila"><input type="date" id="qFecha"></div></div>
+  <div class="card lista" id="lista"></div>
+ </section>
+ <footer>Mi Diario con Flashy · <a href="/provideo" style="color:#a89aa0">Pro Video JSRHG</a></footer>
+</main>
+
+<nav class="tabs"><button type="button" data-v="vHoy" class="on">✍️ Hoy</button><button type="button" data-v="vLibro">📖 Mi libro</button><button type="button" data-v="vBuscar">🔎 Buscar</button></nav>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+['flLock','flTop'].forEach(id => $(id).innerHTML = FLASHY_HTML({redonda: true}));
+const hoyISO = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const lindo = iso => { const s = new Date(iso + "T12:00:00").toLocaleDateString("es-AR", {weekday: "long", day: "numeric", month: "long", year: "numeric"}); return s.charAt(0).toUpperCase() + s.slice(1); };
+$('hoyTxt').textContent = lindo(hoyISO()); $('fDia').value = hoyISO();
+
+// ================= cifrado: todo queda en este celular, cifrado con tu PIN =================
+const enc = new TextEncoder(), dec = new TextDecoder();
+const b64 = u => btoa(String.fromCharCode(...new Uint8Array(u))), unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+let KEY = null;
+async function claveDe(pin, sal){ const base = await crypto.subtle.importKey('raw', enc.encode(pin), 'PBKDF2', false, ['deriveKey']); return crypto.subtle.deriveKey({name: 'PBKDF2', salt: sal, iterations: 150000, hash: 'SHA-256'}, base, {name: 'AES-GCM', length: 256}, false, ['encrypt', 'decrypt']); }
+async function cifrar(obj){ const iv = crypto.getRandomValues(new Uint8Array(12)); const c = await crypto.subtle.encrypt({name: 'AES-GCM', iv}, KEY, enc.encode(JSON.stringify(obj))); return {iv: b64(iv), c: b64(c)}; }
+async function descifrar(x){ const p = await crypto.subtle.decrypt({name: 'AES-GCM', iv: unb64(x.iv)}, KEY, unb64(x.c)); return JSON.parse(dec.decode(p)); }
+// IndexedDB
+let DB;
+function abrirDB(){ return new Promise((ok, mal) => { const r = indexedDB.open('mi-diario-flashy', 1); r.onupgradeneeded = () => r.result.createObjectStore('dias'); r.onsuccess = () => { DB = r.result; ok(); }; r.onerror = () => mal(r.error); }); }
+const tx_ = (m, f) => new Promise((ok, mal) => { const t = DB.transaction('dias', m), s = t.objectStore('dias'), r = f(s); t.oncomplete = () => ok(r && r.result); t.onerror = () => mal(t.error); });
+const dbPut = (k, v) => tx_('readwrite', s => s.put(v, k)), dbDel = k => tx_('readwrite', s => s.delete(k)), dbGet = k => tx_('readonly', s => s.get(k)), dbKeys = () => tx_('readonly', s => s.getAllKeys());
+
+// ================= candado con PIN =================
+let pin = '', primero = null;
+const conf = () => { try{ return JSON.parse(localStorage.getItem('diario-conf') || 'null'); }catch(e){ return null; } };
+$('tec').innerHTML = [1,2,3,4,5,6,7,8,9,'⌫',0,'✓'].map(n => `<button type="button" data-n="${n}">${n}</button>`).join('');
+function puntos(){ [...$('pinDots').children].forEach((s, i) => s.classList.toggle('ok', i < pin.length)); }
+function textoLock(){ const c = conf(); $('lockTxt').textContent = c ? 'Escribí tu PIN para abrir tu diario.' : primero ? 'Repetí el PIN para confirmarlo.' : 'Elegí un PIN de 4 números para que nadie más pueda abrir tu diario.'; }
+textoLock();
+$('tec').onclick = async e => {
+  const b = e.target.closest('button'); if(!b) return; const n = b.dataset.n; $('lockMsg').textContent = '';
+  if(n === '⌫'){ pin = pin.slice(0, -1); puntos(); return; }
+  if(n !== '✓'){ if(pin.length < 4){ pin += n; puntos(); } if(pin.length < 4) return; }
+  if(pin.length < 4) return;
+  const c = conf();
+  if(!c){
+    if(!primero){ primero = pin; pin = ''; puntos(); textoLock(); return; }
+    if(pin !== primero){ $('lockMsg').textContent = 'Los PIN no coinciden. Probá de nuevo.'; primero = null; pin = ''; puntos(); textoLock(); return; }
+    const sal = crypto.getRandomValues(new Uint8Array(16)); KEY = await claveDe(pin, sal);
+    const prueba = await cifrar({ok: 1}); localStorage.setItem('diario-conf', JSON.stringify({sal: b64(sal), prueba}));
+    abrir(); return;
+  }
+  try{ KEY = await claveDe(pin, unb64(c.sal)); await descifrar(c.prueba); abrir(); }
+  catch(_){ KEY = null; $('lockMsg').textContent = 'PIN incorrecto.'; pin = ''; puntos(); }
+};
+function abrir(){ pin = ''; primero = null; puntos(); $('lock').hidden = true; textoLock(); cargarIndice(); }
+$('bCerrar').onclick = () => { KEY = null; IDX = []; $('lock').hidden = false; callar(); };
+
+// ================= Flashy habla =================
+function decir(t, hablar){ $('globo').innerHTML = t; if(hablar) leer($('globo').textContent); }
+function leer(t){ if(!('speechSynthesis' in window)) return; speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t.replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu, '')); u.lang = 'es-AR'; u.rate = .98; speechSynthesis.speak(u); }
+function callar(){ if('speechSynthesis' in window) speechSynthesis.cancel(); }
+
+// ================= HOY: contar el día =================
+let FOTOS = [], EDITANDO = null;
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition; let rec = null, base = '';
+$('bMic').onclick = () => {
+  if(!SR){ decir('Tu celular no me deja escucharte desde aquí 😕 Escribilo, o usá el micrófono del teclado.'); return; }
+  if(rec){ rec.stop(); return; }
+  rec = new SR(); rec.lang = 'es-AR'; rec.continuous = true; rec.interimResults = true; base = $('tx').value ? $('tx').value.trim() + ' ' : '';
+  rec.onresult = e => { let fin = '', tmp = ''; for(let i = 0; i < e.results.length; i++){ (e.results[i].isFinal ? (fin += e.results[i][0].transcript) : (tmp += e.results[i][0].transcript)); } $('tx').value = base + fin + tmp; };
+  rec.onend = () => { rec = null; $('bMic').classList.remove('on'); $('bMic').textContent = '🎤 Hablarle a Flashy'; };
+  rec.onerror = () => {}; rec.start(); $('bMic').classList.add('on'); $('bMic').textContent = '⏹️ Listo, terminé'; decir('Te escucho… contame tu día 💛');
+};
+function achicar(file){ return new Promise(ok => { const img = new Image(); img.onload = () => { const m = 1280, k = Math.min(1, m / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = img.width * k; c.height = img.height * k; c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', .8)); URL.revokeObjectURL(img.src); }; img.onerror = () => ok(null); img.src = URL.createObjectURL(file); }); }
+function verFotos(){ $('fotosHoy').innerHTML = FOTOS.map((f, i) => `<div class="ft"><img src="${f}" alt="Foto ${i + 1}"><button type="button" data-q="${i}" aria-label="Quitar foto">✕</button></div>`).join(''); }
+$('fFoto').onchange = async e => { for(const f of [...e.target.files].slice(0, 8)){ const d = await achicar(f); if(d) FOTOS.push(d); } FOTOS = FOTOS.slice(0, 8); verFotos(); e.target.value = ''; decir(`📷 ¡Qué lindo! Ya tenés ${FOTOS.length} foto${FOTOS.length > 1 ? 's' : ''} para este día.`); };
+$('fotosHoy').onclick = e => { const b = e.target.closest('[data-q]'); if(b){ FOTOS.splice(+b.dataset.q, 1); verFotos(); } };
+$('bGuardar').onclick = async () => {
+  const texto = $('tx').value.trim(), dia = $('fDia').value || hoyISO();
+  if(!texto && !FOTOS.length){ decir('Contame algo o agregá una foto, y lo guardo 😊'); return; }
+  $('bGuardar').disabled = true; $('ayuda').hidden = true;
+  let titulo = '', limpio = texto, animo = '📝';
+  if(texto && $('chLimpio').checked){
+    decir('✨ Pasándolo en limpio…');
+    try{ const r = await fetch('/api/guia?accion=diario', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({texto, fecha: lindo(dia)})}); if(r.ok){ const j = await r.json(); titulo = j.titulo || ''; limpio = j.texto || texto; animo = j.animo || animo; if(j.riesgo) $('ayuda').hidden = false; } }catch(e){}
+  }
+  const prev = EDITANDO === dia ? await leerDia(dia) : await leerDia(dia);
+  const entrada = prev ? {titulo: titulo || prev.titulo, texto: prev.texto && !EDITANDO ? prev.texto + '\n\n' + limpio : limpio, animo, fotos: (EDITANDO ? [] : prev.fotos || []).concat(FOTOS).slice(0, 12)} : {titulo, texto: limpio, animo, fotos: FOTOS};
+  await dbPut(dia, await cifrar(entrada));
+  $('tx').value = ''; FOTOS = []; verFotos(); EDITANDO = null; $('bGuardar').disabled = false;
+  await cargarIndice(); POS = IDX.indexOf(dia);
+  decir(`💾 ¡Listo! Guardé <b>${esc(titulo || lindo(dia))}</b> en tu diario. Lo podés ver en <b>📖 Mi libro</b>.`, true);
+};
+
+// ================= LIBRO =================
+let IDX = [], POS = -1;
+async function cargarIndice(){ IDX = ((await dbKeys()) || []).map(String).sort(); if(POS < 0 || POS >= IDX.length) POS = IDX.length - 1; }
+async function leerDia(dia){ const x = await dbGet(dia); if(!x) return null; try{ return await descifrar(x); }catch(e){ return null; } }
+async function verPagina(dir){
+  const h = $('hoja');
+  if(!IDX.length){ h.innerHTML = '<div class="vacio">📖 Tu libro todavía está en blanco.<br><br>Contale tu primer día a Flashy en <b>✍️ Hoy</b>.</div>'; return; }
+  if(dir){ h.classList.add(dir > 0 ? 'va' : 'vuelve'); await new Promise(r => setTimeout(r, 300)); }
+  const dia = IDX[POS], e = await leerDia(dia) || {};
+  h.innerHTML = `<div class="fecha">${e.animo || '📝'} ${esc(lindo(dia))}</div><h2>${esc(e.titulo || 'Mi día')}</h2><div class="txt">${esc(e.texto || '')}</div><div class="fotos">${(e.fotos || []).map((f, i) => `<img src="${f}" alt="Foto ${i + 1} del día">`).join('')}</div><div style="text-align:right;color:#b8a48e;font:13px Georgia,serif;margin-top:14px">Página ${POS + 1} de ${IDX.length}</div>`;
+  h.classList.remove('va', 'vuelve');
+  $('bAnt').disabled = POS <= 0; $('bSig').disabled = POS >= IDX.length - 1;
+}
+$('bAnt').onclick = () => { if(POS > 0){ POS--; callar(); verPagina(-1); } };
+$('bSig').onclick = () => { if(POS < IDX.length - 1){ POS++; callar(); verPagina(1); } };
+let x0 = null; $('hoja').addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, {passive: true});
+$('hoja').addEventListener('touchend', e => { if(x0 === null) return; const d = e.changedTouches[0].clientX - x0; x0 = null; if(d < -60) $('bSig').click(); else if(d > 60) $('bAnt').click(); });
+$('bLeer').onclick = async () => { if(!IDX.length) return; const e = await leerDia(IDX[POS]) || {}; leer(`${lindo(IDX[POS])}. ${e.titulo || ''}. ${e.texto || ''}`); };
+$('bEditar').onclick = async () => { if(!IDX.length) return; const dia = IDX[POS], e = await leerDia(dia) || {}; EDITANDO = dia; $('fDia').value = dia; $('tx').value = e.texto || ''; FOTOS = e.fotos || []; verFotos(); $('chLimpio').checked = false; ir('vHoy'); decir('✏️ Cambiá lo que quieras y tocá <b>Guardar</b>.'); };
+$('bBorrar').onclick = async () => { if(!IDX.length) return; const dia = IDX[POS]; if(!confirm('¿Borrar el día ' + lindo(dia) + '? No se puede deshacer.')) return; await dbDel(dia); await cargarIndice(); verPagina(); };
+
+// ================= BUSCAR =================
+async function buscar(){
+  const q = $('qBus').value.trim().toLowerCase(), f = $('qFecha').value, L = [];
+  for(const dia of IDX.slice().reverse()){ if(f && dia !== f) continue; const e = await leerDia(dia) || {}; const t = ((e.titulo || '') + ' ' + (e.texto || '')).toLowerCase(); if(q && !t.includes(q)) continue; L.push([dia, e]); if(L.length >= 60) break; }
+  $('lista').innerHTML = L.length ? L.map(([d, e]) => `<a href="#" data-d="${d}"><span style="font-size:26px">${e.animo || '📝'}</span><b>${esc(e.titulo || 'Mi día')}<br><small>${esc(lindo(d))}${(e.fotos || []).length ? ' · 📷 ' + e.fotos.length : ''}</small></b>›</a>`).join('') : `<div class="vacio">${IDX.length ? 'No encontré días con eso 🤔' : 'Todavía no hay días guardados.'}</div>`;
+}
+$('qBus').oninput = () => buscar(); $('qFecha').onchange = () => buscar();
+$('lista').onclick = e => { const a = e.target.closest('[data-d]'); if(!a) return; e.preventDefault(); POS = IDX.indexOf(a.dataset.d); ir('vLibro'); };
+
+// ================= pestañas =================
+function ir(v){ document.querySelectorAll('main > section').forEach(s => s.hidden = s.id !== v); document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.v === v)); callar(); if(v === 'vLibro') verPagina(); if(v === 'vBuscar') buscar(); scrollTo(0, 0); }
+document.querySelector('nav.tabs').onclick = e => { const b = e.target.closest('[data-v]'); if(b) ir(b.dataset.v); };
+abrirDB().catch(() => { $('lockMsg').textContent = 'Este navegador no permite guardar el diario (¿modo incógnito?).'; });
+</script>
+</body></html>

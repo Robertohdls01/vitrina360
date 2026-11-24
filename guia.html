@@ -110,7 +110,7 @@ function opciones(ops){const o=$('#opts');o.innerHTML='';ops.forEach(([tx,fn,pri
 // ---------- traducción de los textos de los lugares (una sola vez por idioma, queda guardada) ----------
 let TR={};try{TR=JSON.parse(localStorage.getItem('guiaTR')||'{}')||{};}catch(e){}
 async function tx(id){const x=L[id];if(LANG==='es')return x.tx;const k=LANG+':'+id;if(TR[k])return TR[k];
- try{const ids=Object.keys(L);const r=await fetch('/api/guia?accion=traducir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lang:LANG,textos:ids.map(i=>L[i].tx)})});const j=await r.json();(j.textos||[]).forEach((t,i)=>TR[LANG+':'+ids[i]]=t);try{localStorage.setItem('guiaTR',JSON.stringify(TR));}catch(e){}}catch(e){}
+ try{const ids=Object.keys(L);const r=await fetch('/api/guia?accion=traducir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lang:LANG,textos:ids.map(i=>L[i].tx)})});const j=await r.json();(j.textos||[]).forEach((t,i)=>{if(t)TR[LANG+':'+ids[i]]=t;});try{localStorage.setItem('guiaTR',JSON.stringify(TR));}catch(e){}}catch(e){}
  return TR[k]||x.tx;}
 // ---------- GPS ----------
 let POS=null,watchId=null;
