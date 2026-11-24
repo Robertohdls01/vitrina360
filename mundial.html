@@ -80,6 +80,9 @@ footer{text-align:center;color:#7a5470;padding:26px 0 40px;font-size:14px}
   <div id="paises"></div>
 
   <h2 id="importar">🏭 Para importar: fábricas y proveedores del mundo <small>hablá directo con las empresas</small></h2>
+  <h3 style="margin:10px 0 4px">⭐ Fabricantes conocidos <small style="color:#7a5470">entrá a su página oficial: ahí está su WhatsApp o contacto</small></h3>
+  <div class="res" id="emp"></div>
+  <h3 style="margin:10px 0 4px">🔎 Directorios de fábricas del mundo</h3>
   <div class="res" id="b2b"></div>
   <section class="info" style="background:#eff6ff;border-color:#bfdbfe" aria-label="Importar seguro">
     <h3 style="color:#1e3a8a">🛡️ Importar sin que te estafen</h3>
@@ -188,6 +191,37 @@ const B2B = [
  {n:'Kompass', f:'🌍', r:'Directorio de empresas de todo el mundo', l:'en', b:q=>G('kompass.com', q), o:'https://www.kompass.com/'},
  {n:'ApexBrasil', f:'🇧🇷', r:'Agencia oficial de exportaciones de Brasil', l:'pt', b:q=>G('apexbrasil.com.br', q), o:'https://apexbrasil.com.br/'},
 ];
+// ---- empresas y fabricantes conocidos (con su página oficial: ahí está su WhatsApp o contacto) ----
+const EMP = [
+ {n:'Xiaomi', f:'🇨🇳', c:'Pekín', ru:['tecnologia','hogar'], r:'Celulares, auriculares, relojes, scooters y casa inteligente', w:'https://www.mi.com/global/'},
+ {n:'Anker', f:'🇨🇳', c:'Changsha', ru:['tecnologia'], r:'Cargadores, power banks, auriculares (Soundcore) y parlantes', w:'https://www.anker.com/'},
+ {n:'Ugreen', f:'🇨🇳', c:'Shenzhen', ru:['tecnologia'], r:'Cables, cargadores, adaptadores y accesorios', w:'https://www.ugreen.com/'},
+ {n:'Baseus', f:'🇨🇳', c:'Shenzhen', ru:['tecnologia','auto'], r:'Accesorios para celular y para el auto', w:'https://www.baseus.com/'},
+ {n:'Lenovo', f:'🇨🇳', c:'Pekín', ru:['tecnologia'], r:'Notebooks, tablets y computadoras', w:'https://www.lenovo.com/'},
+ {n:'Huawei', f:'🇨🇳', c:'Shenzhen', ru:['tecnologia'], r:'Celulares, relojes y tablets', w:'https://consumer.huawei.com/'},
+ {n:'OPPO', f:'🇨🇳', c:'Dongguan', ru:['tecnologia'], r:'Celulares y auriculares', w:'https://www.oppo.com/'},
+ {n:'realme', f:'🇨🇳', c:'Shenzhen', ru:['tecnologia'], r:'Celulares y accesorios económicos', w:'https://www.realme.com/'},
+ {n:'DJI', f:'🇨🇳', c:'Shenzhen', ru:['tecnologia','deporte'], r:'Drones, cámaras de acción y estabilizadores', w:'https://www.dji.com/'},
+ {n:'Insta360', f:'🇨🇳', c:'Shenzhen', ru:['tecnologia','deporte'], r:'Cámaras 360 y de acción', w:'https://www.insta360.com/'},
+ {n:'Midea', f:'🇨🇳', c:'Foshan', ru:['hogar'], r:'Aires acondicionados, heladeras, microondas y freidoras de aire', w:'https://www.midea.com/'},
+ {n:'Haier', f:'🇨🇳', c:'Qingdao', ru:['hogar'], r:'Lavarropas, heladeras y electrodomésticos', w:'https://www.haier.com/'},
+ {n:'Hisense', f:'🇨🇳', c:'Qingdao', ru:['hogar','tecnologia'], r:'Televisores, heladeras y aires acondicionados', w:'https://www.hisense.com/'},
+ {n:'TCL', f:'🇨🇳', c:'Huizhou', ru:['hogar','tecnologia'], r:'Televisores, celulares y aires acondicionados', w:'https://www.tcl.com/'},
+ {n:'Gree', f:'🇨🇳', c:'Zhuhai', ru:['hogar'], r:'Aires acondicionados', w:'https://www.gree.com/'},
+ {n:'Roborock', f:'🇨🇳', c:'Pekín', ru:['hogar'], r:'Robots aspiradores', w:'https://www.roborock.com/'},
+ {n:'Ecovacs', f:'🇨🇳', c:'Suzhou', ru:['hogar'], r:'Robots aspiradores y limpiavidrios', w:'https://www.ecovacs.com/'},
+ {n:'Dreame', f:'🇨🇳', c:'Suzhou', ru:['hogar','belleza'], r:'Robots aspiradores, aspiradoras y secadores de pelo', w:'https://www.dreametech.com/'},
+ {n:'BYD', f:'🇨🇳', c:'Shenzhen', ru:['auto'], r:'Autos eléctricos y baterías', w:'https://www.byd.com/'},
+ {n:'ASUS', f:'🇹🇼', c:'Taipéi', ru:['tecnologia'], r:'Notebooks, placas, monitores y routers', w:'https://www.asus.com/'},
+ {n:'Acer', f:'🇹🇼', c:'Nuevo Taipéi', ru:['tecnologia'], r:'Notebooks, monitores y proyectores', w:'https://www.acer.com/'},
+ {n:'MSI', f:'🇹🇼', c:'Nuevo Taipéi', ru:['tecnologia'], r:'Notebooks y equipos gamer', w:'https://www.msi.com/'},
+ {n:'Gigabyte', f:'🇹🇼', c:'Nuevo Taipéi', ru:['tecnologia'], r:'Placas, placas de video y notebooks', w:'https://www.gigabyte.com/'},
+ {n:'Giant', f:'🇹🇼', c:'Taichung', ru:['deporte'], r:'Bicicletas (el fabricante más grande del mundo)', w:'https://www.giant-bicycles.com/'},
+ {n:'Merida', f:'🇹🇼', c:'Changhua', ru:['deporte'], r:'Bicicletas de ruta y montaña', w:'https://www.merida-bikes.com/'},
+ {n:'Samsung', f:'🇰🇷', c:'Suwon', ru:['tecnologia','hogar'], r:'Celulares, televisores y electrodomésticos', w:'https://www.samsung.com/'},
+ {n:'LG', f:'🇰🇷', c:'Seúl', ru:['tecnologia','hogar'], r:'Televisores, lavarropas, heladeras y aires', w:'https://www.lg.com/'},
+];
+const tarjetaE = t => `<div class="tie" style="border-color:#bfdbfe"><div class="h"><span class="f">${t.f}</span><b>${t.n}</b></div><div class="r">${t.r}<br><small>📍 ${t.c}</small></div><span class="env" style="background:#e0f2fe;color:#075985">🏭 Fabricante · venta por mayor</span><div class="bts"><a class="pri" href="${t.w}" target="_blank" rel="noopener">🌐 Ir a su página oficial</a></div></div>`;
 const tarjetaB = (t, q, k) => `<div class="tie"><div class="h"><span class="f">${t.f}</span><b>${t.n}</b></div><div class="r">${t.r}</div><span class="env" style="background:#e0f2fe;color:#075985">🏭 Fábricas y proveedores</span><div class="bts">${q ? `<a class="pri" href="${t.b(k)}" target="_blank" rel="noopener">🔎 Proveedores de "${esc(k)}"</a>` : ''}<a href="${t.o}" target="_blank" rel="noopener">🌐 Entrar</a></div></div>`;
 const PAISES = [['us','🇺🇸','Estados Unidos'],['cn','🇨🇳','China'],['kr','🇰🇷','Corea'],['jp','🇯🇵','Japón'],['la','🇦🇷','Argentina y Brasil'],['eu','🇪🇺','Europa'],['ru','🇷🇺','Rusia'],['mx','🌍','México, Chile y el resto del mundo']];
 const ENV = {si:['si','✅ Envía a Argentina'], cas:['cas','📦 Con casillero en Miami'], mir:['mir','👀 Para mirar precios (consultá el envío)']};
@@ -206,6 +240,7 @@ function portada(){
 }
 portada();
 $('b2b').innerHTML = B2B.map(t => tarjetaB(t)).join('');
+$('emp').innerHTML = EMP.map(tarjetaE).join('');
 let MODO = 'compra';
 document.addEventListener('click', e => { const m = e.target.closest('[data-modo]'); if(!m) return; MODO = m.dataset.modo; $('mCompra').style.cssText = MODO === 'compra' ? 'background:#c8008f;color:#fff' : ''; $('mImporta').style.cssText = MODO === 'importa' ? 'background:#0369a1;color:#fff' : ''; $('q').placeholder = MODO === 'compra' ? '¿Qué buscás? Ej: masajeador de cuello' : '¿Qué querés importar? Ej: mochilas, vasos térmicos'; decir(MODO === 'compra' ? '🛍️ Modo compras: te busco en las tiendas del mundo.' : '🏭 Modo importar: te busco <b>fábricas y proveedores</b> en los directorios de empresas de China, India, Corea, Europa y más, para que hables directo con ellos.'); });
 document.addEventListener('click', e => { const v = e.target.closest('[data-vista]'); if(v){ e.preventDefault(); VISTA = v.dataset.vista; portada(); } });
@@ -223,8 +258,13 @@ async function buscar(q){
   let k = {es: q, en: q};
   try{ const r = await fetch('/api/guia?accion=mundo', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({q})}); if(r.ok) k = Object.assign(k, await r.json()); }catch(e){}
   if(MODO === 'importa'){
-    $('res').innerHTML = B2B.map(t => tarjetaB(t, true, k[t.l] || k.en || q)).join('');
-    decir(`🏭 Te armé la búsqueda de <b>proveedores de ${esc(q)}</b> en ${B2B.length} directorios de empresas del mundo. Hablá con ellos dentro de cada plataforma, pedí precio, cantidad mínima y muestras. Y ojo: nunca pagues por fuera de la plataforma 🛡️`);
+    const nq = q.toLowerCase(), rub = String(k.rubro || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const emp = EMP.filter(t => t.ru.includes(rub) || nq.split(/\s+/).some(w => w.length > 3 && t.r.toLowerCase().includes(w.replace(/s$/, '')))).slice(0, 8);
+    $('res').innerHTML = (emp.length ? `<div style="grid-column:1/-1;font-weight:800;color:#075985">🏭 Fabricantes conocidos para esto</div>` + emp.map(tarjetaE).join('') + `<div style="grid-column:1/-1;font-weight:800;color:#075985;margin-top:6px">🔎 Más fábricas en los directorios del mundo</div>` : '') + B2B.map(t => tarjetaB(t, true, k[t.l] || k.en || q)).join('');
+    const porPais = {}; emp.forEach(t => { (porPais[t.f] = porPais[t.f] || []).push(t.n); });
+    const nom = {'🇨🇳':'China','🇹🇼':'Taiwán','🇰🇷':'Corea'};
+    decir(emp.length ? `🏭 Para <b>${esc(q)}</b>: ${Object.entries(porPais).map(([f, L]) => `en ${nom[f] || f} tenés <b>${L.slice(0, 3).join(', ')}</b>`).join('; ')}. Entrá a su <b>página oficial</b>: ahí está su WhatsApp o su contacto para distribuidores, y hablás directo con ellos. ¿Buscás una fábrica más especial? Abajo te armé la búsqueda en ${B2B.length} directorios de fábricas del mundo 👇 Y ojo: nunca pagues por fuera de la plataforma 🛡️`
+      : `🏭 Te armé la búsqueda de <b>fábricas de ${esc(q)}</b> en ${B2B.length} directorios de empresas del mundo. Entrá a la que te guste: dentro de cada fábrica está su WhatsApp o su contacto para hablar directo. Pedí precio, cantidad mínima y muestras, y nunca pagues por fuera de la plataforma 🛡️`);
     $('globo').scrollIntoView({behavior: 'smooth', block: 'start'}); return;
   }
   const L = T.slice().sort((a, b) => ORDEN[a.env] - ORDEN[b.env]);
