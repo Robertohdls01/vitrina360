@@ -10,7 +10,7 @@ const BUCKET = 'pedidos';
 const base = () => String(process.env.SUPABASE_URL || '').replace(/\/+$/, '') + '/storage/v1';
 const head = extra => { const k = process.env.SUPABASE_SERVICE_KEY, h = Object.assign({ apikey: k }, extra || {}); if (String(k).startsWith('eyJ')) h.Authorization = 'Bearer ' + k; return h; };
 const t = (v, n) => String(v == null ? '' : v).slice(0, n);
-const IDI = { es: 'castellano rioplatense (Argentina), cálido y simple', en: 'English', pt: 'português do Brasil', fr: 'français', it: 'italiano', de: 'Deutsch' };
+const IDI = { es: 'castellano rioplatense (Argentina), cálido y simple', en: 'English', pt: 'português do Brasil', fr: 'français', it: 'italiano', de: 'Deutsch', ru: 'русский', zh: '简体中文', ja: '日本語', ko: '한국어', hi: 'हिन्दी', ar: 'العربية' };
 
 async function leer(path) { try { const r = await fetch(base() + '/object/' + BUCKET + '/' + path, { headers: head({ 'cache-control': 'no-cache' }) }); return r.ok ? await r.json() : null; } catch (e) { return null; } }
 async function guardar(path, obj) { try { await fetch(base() + '/object/' + BUCKET + '/' + path, { method: 'POST', headers: head({ 'Content-Type': 'application/json', 'x-upsert': 'true', 'cache-control': 'no-cache' }), body: JSON.stringify(obj) }); } catch (e) {} }
@@ -47,7 +47,7 @@ module.exports = async (req, res) => {
     if (a === 'mundo') { // ShopRevista Mundial: la búsqueda traducida para cada tienda del mundo
       const q = t(b.q, 120).trim(); if (!q) return res.status(400).json({ error: 'Decime qué buscás 😊' });
       if (!(await cupo())) return res.status(429).json({ error: 'cupo' });
-      const out = await claude('Convertís lo que alguien quiere comprar en palabras clave cortas para buscar en tiendas online de cada país. Devolvé SOLO un objeto JSON, sin comentarios.', `Producto buscado (en castellano): "${q}"\nDevolvé {"es":"…","en":"…","pt":"…","ru":"…","ja":"…","zh":"…","ko":"…","rubro":"…","consejo":"…"} con 1 a 4 palabras por idioma (como se busca en esa tienda), "rubro" = una palabra en castellano (tecnologia, hogar, belleza, moda, deporte, chicos, mascotas, salud, auto, otros) y "consejo" = un consejo corto de compra en castellano rioplatense (máx. 120 caracteres).`, 600);
+      const out = await claude('Convertís lo que alguien quiere comprar en palabras clave cortas para buscar en tiendas online de cada país. Devolvé SOLO un objeto JSON, sin comentarios.', `Producto buscado (puede estar en cualquier idioma): "${q}"\nDevolvé {"es":"…","en":"…","pt":"…","ru":"…","ja":"…","zh":"…","ko":"…","rubro":"…","consejo":"…"} con 1 a 4 palabras por idioma (como se busca en esa tienda), "rubro" = una palabra en castellano (tecnologia, hogar, belleza, moda, deporte, chicos, mascotas, salud, auto, otros) y "consejo" = un consejo corto de compra (máx. 120 caracteres) escrito en ${IDI[lang]}.`, 600);
       let o = null; try { o = JSON.parse(out.slice(out.indexOf('{'), out.lastIndexOf('}') + 1)); } catch (e) {}
       if (!o) o = { es: q, en: q };
       Object.keys(o).forEach(k => { o[k] = t(o[k], 160); });

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ShopRevista Mundial · Todas las tiendas del mundo con Flashy</title>
+<title>ShopRevista Mundial · El comercio mundial en tus manos</title>
 <meta name="description" content="Las mejores ofertas de la semana de las tiendas más importantes del mundo, en castellano. Flashy te busca lo que quieras en todas a la vez y te dice cuál conviene desde Argentina.">
 <meta name="theme-color" content="#c8008f">
 <script src="/flashy/flashy.js"></script>
@@ -56,12 +56,15 @@ footer{text-align:center;color:#7a5470;padding:26px 0 40px;font-size:14px}
 </style>
 </head>
 <body>
-<header class="top"><div class="wrap"><span style="font-size:24px">🌎</span><span><b>ShopRevista Mundial</b><br><small>Todas las tiendas del mundo, con Flashy</small></span></div></header>
+<header class="top"><div class="wrap"><span style="font-size:24px">🌎</span><span style="flex:1;min-width:0"><b>ShopRevista Mundial</b><br><small>El comercio mundial en tus manos</small></span>
+  <select id="selLang" aria-label="Idioma" class="nt" style="border:2px solid #ffd0ec;border-radius:12px;padding:6px;font:700 14px system-ui;max-width:118px"></select>
+  <select id="selPais" aria-label="¿Desde dónde comprás?" style="border:2px solid #ffd0ec;border-radius:12px;padding:6px;font:700 14px system-ui;max-width:130px"></select></div></header>
 <div class="banda"><span id="banda"></span></div>
 <main class="wrap">
   <section class="tapa">
     <div class="fl" id="flaTapa"></div>
     <div>
+      <div style="font-weight:900;color:#c8008f;letter-spacing:.5px;margin-bottom:4px">🌎 EL COMERCIO MUNDIAL EN TUS MANOS</div>
       <h1>Las mejores ofertas <span>del mundo</span>, en un solo lugar</h1>
       <p>Amazon, AliExpress, Temu, eBay, Mercado Libre, Shein y muchas más. Decile a Flashy qué buscás y te lo busca en todas las tiendas a la vez, en su idioma, y te dice cuál te conviene desde Argentina.</p>
     </div>
@@ -79,6 +82,10 @@ footer{text-align:center;color:#7a5470;padding:26px 0 40px;font-size:14px}
   <div class="secs" id="secs"></div>
   <div id="paises"></div>
 
+  <h2 id="latam">🌎 Latinoamérica para el mundo <small>las mejores empresas de Argentina, Uruguay, Perú, Bolivia, Chile, Colombia, Brasil y más</small></h2>
+  <p style="margin:0 0 6px;color:#5a4060">Cada agencia oficial de exportación tiene el directorio de las empresas de su país: entrá y ahí está el contacto de cada una para hablar directo.</p>
+  <div class="res" id="lat"></div>
+
   <h2 id="importar">🏭 Para importar: fábricas y proveedores del mundo <small>hablá directo con las empresas</small></h2>
   <h3 style="margin:10px 0 4px">⭐ Fabricantes conocidos <small style="color:#7a5470">entrá a su página oficial: ahí está su WhatsApp o contacto</small></h3>
   <div class="res" id="emp"></div>
@@ -94,7 +101,7 @@ footer{text-align:center;color:#7a5470;padding:26px 0 40px;font-size:14px}
     </ul>
   </section>
 
-  <section class="info" aria-label="Cómo comprar desde Argentina">
+  <section class="info" id="infoAR" aria-label="Cómo comprar desde Argentina">
     <h3>📦 Comprar afuera desde Argentina: lo que tenés que saber</h3>
     <ul>
       <li><b>Hasta US$ 400 por envío no pagás derechos de importación</b>, con un máximo de 5 envíos así por año por persona.</li>
@@ -103,6 +110,11 @@ footer{text-align:center;color:#7a5470;padding:26px 0 40px;font-size:14px}
       <li>Es para compras personales. Antes de comprar, revisá siempre el envío y el precio final en la tienda.</li>
     </ul>
     <p style="margin:8px 0 0;font-size:13px;color:#4b6b55">Reglas de ARCA vigentes a noviembre de 2026. Pueden cambiar.</p>
+  </section>
+
+  <section class="info" id="infoOtro" hidden style="background:#fefce8;border-color:#fde68a">
+    <h3 style="color:#713f12">📦 Antes de comprar en otro país</h3>
+    <ul><li>Cada país tiene sus propias reglas de importación y sus límites sin impuestos: revisalas en la aduana de tu país.</li><li>Fijate siempre si la tienda envía a tu país y cuánto sale el envío antes de pagar.</li><li>Si importás para vender, necesitás estar inscripto como importador en tu país.</li></ul>
   </section>
 
   <section class="plan" id="plan">
@@ -169,6 +181,30 @@ const T = [
  {p:'mx', n:'Noon', s:'g', f:'🇦🇪', r:'El Amazon de Emiratos y Arabia Saudita', env:'mir', l:'en', b:q=>G('noon.com', q), o:'https://www.noon.com/'},
  {p:'mx', n:'Lazada', s:'g', f:'🇸🇬', r:'El shopping del sudeste asiático', env:'mir', l:'en', b:q=>G('lazada.sg', q), o:'https://www.lazada.sg/'},
  {p:'mx', n:'Catch', s:'m', f:'🇦🇺', r:'Ofertas de Australia', env:'mir', l:'en', b:q=>G('catch.com.au', q), o:'https://www.catch.com.au/'},
+ // Principales e intermedias de más países
+ {p:'eu', n:'Amazon Italia', s:'g', f:'🇮🇹', r:'La tienda principal de Italia', env:'mir', l:'en', b:q=>'https://www.amazon.it/s?k='+E(q), o:'https://www.amazon.it/'},
+ {p:'eu', n:'Unieuro', s:'m', f:'🇮🇹', r:'Electrónica y electrodomésticos en Italia', env:'mir', l:'en', b:q=>G('unieuro.it', q), o:'https://www.unieuro.it/'},
+ {p:'eu', n:'Fnac', s:'g', f:'🇫🇷', r:'Tecnología, libros y cultura en Francia', env:'mir', l:'en', b:q=>G('fnac.com', q), o:'https://www.fnac.com/'},
+ {p:'eu', n:'Darty', s:'m', f:'🇫🇷', r:'Electrodomésticos en Francia', env:'mir', l:'en', b:q=>G('darty.com', q), o:'https://www.darty.com/'},
+ {p:'eu', n:'El Corte Inglés', s:'g', f:'🇪🇸', r:'La gran tienda departamental de España', env:'mir', l:'es', b:q=>G('elcorteingles.es', q), o:'https://www.elcorteingles.es/'},
+ {p:'eu', n:'PcComponentes', s:'m', f:'🇪🇸', r:'Tecnología e informática en España', env:'mir', l:'es', b:q=>G('pccomponentes.com', q), o:'https://www.pccomponentes.com/'},
+ {p:'eu', n:'Otto', s:'g', f:'🇩🇪', r:'Una de las tiendas online más grandes de Alemania', env:'mir', l:'en', b:q=>G('otto.de', q), o:'https://www.otto.de/'},
+ {p:'eu', n:'MediaMarkt', s:'m', f:'🇩🇪', r:'Electrónica en Alemania y Europa', env:'mir', l:'en', b:q=>G('mediamarkt.de', q), o:'https://www.mediamarkt.de/'},
+ {p:'eu', n:'Bol.com', s:'g', f:'🇳🇱', r:'La tienda principal de Países Bajos y Bélgica', env:'mir', l:'en', b:q=>G('bol.com', q), o:'https://www.bol.com/'},
+ {p:'eu', n:'Allegro', s:'g', f:'🇵🇱', r:'El gran marketplace de Polonia', env:'mir', l:'en', b:q=>G('allegro.pl', q), o:'https://allegro.pl/'},
+ {p:'eu', n:'Worten', s:'g', f:'🇵🇹', r:'Electrónica y hogar en Portugal', env:'mir', l:'pt', b:q=>G('worten.pt', q), o:'https://www.worten.pt/'},
+ {p:'us', n:'Amazon Canadá', s:'g', f:'🇨🇦', r:'La tienda principal de Canadá', env:'mir', l:'en', b:q=>'https://www.amazon.ca/s?k='+E(q), o:'https://www.amazon.ca/'},
+ {p:'us', n:'Canadian Tire', s:'m', f:'🇨🇦', r:'Hogar, auto, deporte y herramientas en Canadá', env:'mir', l:'en', b:q=>G('canadiantire.ca', q), o:'https://www.canadiantire.ca/'},
+ {p:'mx', n:'JB Hi-Fi', s:'m', f:'🇦🇺', r:'Tecnología y música en Australia', env:'mir', l:'en', b:q=>G('jbhifi.com.au', q), o:'https://www.jbhifi.com.au/'},
+ {p:'jp', n:'Yodobashi', s:'m', f:'🇯🇵', r:'La gran tienda de electrónica de Japón', env:'mir', l:'ja', b:q=>G('yodobashi.com', q), o:'https://www.yodobashi.com/'},
+ {p:'kr', n:'Gmarket Global', s:'g', f:'🇰🇷', r:'Marketplace coreano con versión internacional', env:'si', l:'en', b:q=>G('gmarket.co.kr', q), o:'https://global.gmarket.co.kr/'},
+ {p:'mx', n:'Myntra', s:'m', f:'🇮🇳', r:'Moda y belleza en India', env:'mir', l:'en', b:q=>G('myntra.com', q), o:'https://www.myntra.com/'},
+ {p:'mx', n:'Hepsiburada', s:'m', f:'🇹🇷', r:'Marketplace de Turquía', env:'mir', l:'en', b:q=>G('hepsiburada.com', q), o:'https://www.hepsiburada.com/'},
+ {p:'ru', n:'Yandex Market', s:'m', f:'🇷🇺', r:'Comparador y tienda de Rusia (en ruso)', env:'mir', l:'ru', b:q=>'https://market.yandex.ru/search?text='+E(q), o:'https://market.yandex.ru/'},
+ {p:'mx', n:'Amazon México', s:'g', f:'🇲🇽', r:'La tienda principal de México', env:'mir', l:'es', b:q=>'https://www.amazon.com.mx/s?k='+E(q), o:'https://www.amazon.com.mx/'},
+ {p:'mx', n:'Paris', s:'m', f:'🇨🇱', r:'Tienda departamental de Chile', env:'mir', l:'es', b:q=>G('paris.cl', q), o:'https://www.paris.cl/'},
+ {p:'mx', n:'Éxito', s:'g', f:'🇨🇴', r:'La gran cadena de Colombia', env:'mir', l:'es', b:q=>G('exito.com', q), o:'https://www.exito.com/'},
+ {p:'la', n:'Frávega', s:'m', f:'🇦🇷', r:'Electrodomésticos y tecnología en Argentina', env:'si', l:'es', b:q=>G('fravega.com', q), o:'https://www.fravega.com/'},
  // Rusia
  {p:'ru', n:'Ozon', s:'g', f:'🇷🇺', r:'El gran marketplace de Rusia (en ruso)', env:'mir', l:'ru', b:q=>'https://www.ozon.ru/search/?text='+E(q), o:'https://www.ozon.ru/'},
  {p:'ru', n:'Wildberries', s:'g', f:'🇷🇺', r:'La tienda online más grande de Rusia (en ruso)', env:'mir', l:'ru', b:q=>'https://www.wildberries.ru/catalog/0/search.aspx?search='+E(q), o:'https://www.wildberries.ru/'},
@@ -221,6 +257,28 @@ const EMP = [
  {n:'Samsung', f:'🇰🇷', c:'Suwon', ru:['tecnologia','hogar'], r:'Celulares, televisores y electrodomésticos', w:'https://www.samsung.com/'},
  {n:'LG', f:'🇰🇷', c:'Seúl', ru:['tecnologia','hogar'], r:'Televisores, lavarropas, heladeras y aires', w:'https://www.lg.com/'},
 ];
+// ---- Latinoamérica para el mundo: agencias oficiales de exportación y marcas conocidas ----
+const GQ = q => 'https://www.google.com/search?q=' + E(q);
+const LATAM = [
+ {n:'Directorio de Exportadores Argentinos', f:'🇦🇷', r:'Cancillería Argentina: más de 1.400 empresas exportadoras (alimentos, agro, maquinaria, industrias creativas y servicios)', w:'https://www.cancilleria.gob.ar/es/argentinatradenet/directorio-de-contactos/directorio-de-exportadores', ag:1},
+ {n:'Santa Fe Global', f:'🇦🇷', r:'Catálogo de empresas exportadoras de la provincia de Santa Fe', w:'https://www.santafe.gob.ar/santafeglobal/', ag:1},
+ {n:'Uruguay XXI', f:'🇺🇾', r:'Agencia oficial de exportaciones de Uruguay, con su directorio de exportadores', w:'https://www.uruguayxxi.gub.uy/', ag:1},
+ {n:'PROMPERÚ', f:'🇵🇪', r:'Agencia oficial de exportaciones de Perú: alpaca, café, cacao, superalimentos y artesanías', w:'https://www.gob.pe/institucion/promperu/tema/exportaciones', ag:1},
+ {n:'PROMUEVE Bolivia', f:'🇧🇴', r:'Agencia oficial de exportaciones y turismo de Bolivia, con directorio de exportadores', w:GQ('PROMUEVE Bolivia directorio de exportadores'), ag:1},
+ {n:'REDIEX Paraguay', f:'🇵🇾', r:'Red de Inversiones y Exportaciones de Paraguay', w:GQ('REDIEX Paraguay exportadores'), ag:1},
+ {n:'ProChile', f:'🇨🇱', r:'Agencia oficial de exportaciones de Chile: vinos, frutas, salmón y más', w:'https://www.prochile.gob.cl/', ag:1},
+ {n:'ProColombia', f:'🇨🇴', r:'Agencia oficial de exportaciones de Colombia: café, flores, moda y más', w:'https://procolombia.co/', ag:1},
+ {n:'Pro Ecuador', f:'🇪🇨', r:'Agencia oficial de exportaciones de Ecuador: banano, cacao, camarón y flores', w:'https://www.proecuador.gob.ec/', ag:1},
+ {n:'ApexBrasil', f:'🇧🇷', r:'Agencia oficial de exportaciones de Brasil', w:'https://apexbrasil.com.br/', ag:1},
+ {n:'Catena Zapata', f:'🇦🇷', r:'Uno de los vinos argentinos más premiados del mundo (Mendoza)', w:'https://www.catenawines.com/'},
+ {n:'Havanna', f:'🇦🇷', r:'Los alfajores más famosos de Argentina, con locales en el exterior', w:'https://www.havanna.com.ar/'},
+ {n:'Bodega Garzón', f:'🇺🇾', r:'Vinos de Uruguay reconocidos en el mundo', w:'https://bodegagarzon.com/'},
+ {n:'Concha y Toro', f:'🇨🇱', r:'La viña más grande de Latinoamérica', w:'https://conchaytoro.com/'},
+ {n:'Juan Valdez', f:'🇨🇴', r:'Café de Colombia, con tiendas en muchos países', w:'https://www.juanvaldezcafe.com/'},
+ {n:'Havaianas', f:'🇧🇷', r:'Las ojotas de Brasil que se venden en todo el mundo', w:'https://www.havaianas.com/'},
+ {n:'Natura', f:'🇧🇷', r:'Cosmética de Brasil con ingredientes de la Amazonia', w:'https://www.natura.com.br/'},
+];
+const tarjetaL = t => `<div class="tie" style="border-color:#fde68a"><div class="h"><span class="f">${t.f}</span><b>${t.n}</b></div><div class="r">${t.r}</div><span class="env" style="background:#fef9c3;color:#854d0e">${t.ag ? '🏛️ Agencia oficial · directorio de empresas' : '⭐ Marca reconocida'}</span><div class="bts"><a class="pri" href="${t.w}" target="_blank" rel="noopener">🌐 ${t.ag ? 'Ver sus empresas' : 'Ir a su página oficial'}</a></div></div>`;
 const tarjetaE = t => `<div class="tie" style="border-color:#bfdbfe"><div class="h"><span class="f">${t.f}</span><b>${t.n}</b></div><div class="r">${t.r}<br><small>📍 ${t.c}</small></div><span class="env" style="background:#e0f2fe;color:#075985">🏭 Fabricante · venta por mayor</span><div class="bts"><a class="pri" href="${t.w}" target="_blank" rel="noopener">🌐 Ir a su página oficial</a></div></div>`;
 const tarjetaB = (t, q, k) => `<div class="tie"><div class="h"><span class="f">${t.f}</span><b>${t.n}</b></div><div class="r">${t.r}</div><span class="env" style="background:#e0f2fe;color:#075985">🏭 Fábricas y proveedores</span><div class="bts">${q ? `<a class="pri" href="${t.b(k)}" target="_blank" rel="noopener">🔎 Proveedores de "${esc(k)}"</a>` : ''}<a href="${t.o}" target="_blank" rel="noopener">🌐 Entrar</a></div></div>`;
 const PAISES = [['us','🇺🇸','Estados Unidos'],['cn','🇨🇳','China'],['kr','🇰🇷','Corea'],['jp','🇯🇵','Japón'],['la','🇦🇷','Argentina y Brasil'],['eu','🇪🇺','Europa'],['ru','🇷🇺','Rusia'],['mx','🌍','México, Chile y el resto del mundo']];
@@ -241,43 +299,94 @@ function portada(){
 portada();
 $('b2b').innerHTML = B2B.map(t => tarjetaB(t)).join('');
 $('emp').innerHTML = EMP.map(tarjetaE).join('');
+$('lat').innerHTML = LATAM.map(tarjetaL).join('');
 let MODO = 'compra';
 document.addEventListener('click', e => { const m = e.target.closest('[data-modo]'); if(!m) return; MODO = m.dataset.modo; $('mCompra').style.cssText = MODO === 'compra' ? 'background:#c8008f;color:#fff' : ''; $('mImporta').style.cssText = MODO === 'importa' ? 'background:#0369a1;color:#fff' : ''; $('q').placeholder = MODO === 'compra' ? '¿Qué buscás? Ej: masajeador de cuello' : '¿Qué querés importar? Ej: mochilas, vasos térmicos'; decir(MODO === 'compra' ? '🛍️ Modo compras: te busco en las tiendas del mundo.' : '🏭 Modo importar: te busco <b>fábricas y proveedores</b> en los directorios de empresas de China, India, Corea, Europa y más, para que hables directo con ellos.'); });
-document.addEventListener('click', e => { const v = e.target.closest('[data-vista]'); if(v){ e.preventDefault(); VISTA = v.dataset.vista; portada(); } });
+document.addEventListener('click', e => { const v = e.target.closest('[data-vista]'); if(v){ e.preventDefault(); VISTA = v.dataset.vista; portada(); traducir($('paises')); } });
 const EJ = ['masajeador de cuello', 'auriculares inalámbricos', 'crema coreana', 'freidora de aire', 'zapatillas running', 'juguetes didácticos', 'vaso térmico', 'reloj inteligente'];
 $('ejem').innerHTML = EJ.map(x => `<button type="button" data-ej="${x}">${x}</button>`).join('');
 $('banda').textContent = ('🔥 Las mejores ofertas de la semana de ' + T.map(t => t.f + ' ' + t.n).join(' · ') + '   ·   ').repeat(2);
 try{ $('flaTapa').innerHTML = FLASHY_HTML({redonda: true}); $('flaFix').innerHTML = FLASHY_HTML({redonda: true}) + (window.FLASHY_BOTON || ''); }catch(e){}
+
+// ================= IDIOMAS Y PAÍS DEL VISITANTE =================
+const IDIOMAS = [['es','🇦🇷 Español'],['en','🇺🇸 English'],['pt','🇧🇷 Português'],['fr','🇫🇷 Français'],['it','🇮🇹 Italiano'],['de','🇩🇪 Deutsch'],['ru','🇷🇺 Русский'],['zh','🇨🇳 中文'],['ja','🇯🇵 日本語'],['ko','🇰🇷 한국어'],['hi','🇮🇳 हिन्दी'],['ar','🇸🇦 العربية']];
+const VOZ = {es:'es-AR',en:'en-US',pt:'pt-BR',fr:'fr-FR',it:'it-IT',de:'de-DE',ru:'ru-RU',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR',hi:'hi-IN',ar:'ar-SA'};
+const PAISV = [['AR','🇦🇷 Argentina'],['UY','🇺🇾 Uruguay'],['PY','🇵🇾 Paraguay'],['BO','🇧🇴 Bolivia'],['PE','🇵🇪 Perú'],['CL','🇨🇱 Chile'],['CO','🇨🇴 Colombia'],['EC','🇪🇨 Ecuador'],['MX','🇲🇽 México'],['BR','🇧🇷 Brasil'],['US','🇺🇸 Estados Unidos'],['ES','🇪🇸 España'],['GB','🇬🇧 Reino Unido'],['DE','🇩🇪 Alemania'],['FR','🇫🇷 Francia'],['IT','🇮🇹 Italia'],['RU','🇷🇺 Rusia'],['CN','🇨🇳 China'],['JP','🇯🇵 Japón'],['KR','🇰🇷 Corea'],['IN','🇮🇳 India'],['AE','🇦🇪 Emiratos'],['SA','🇸🇦 Arabia Saudita'],['XX','🌍 Otro país']];
+const LATAMP = ['AR','UY','PY','BO','PE','CL','CO','EC','MX','BR'];
+const nav = (navigator.language || 'es-AR');
+let LANG = (localStorage.getItem('mundo-lang') || nav.slice(0, 2)).toLowerCase(); if(!VOZ[LANG]) LANG = 'es';
+let PAIS = localStorage.getItem('mundo-pais') || (nav.split('-')[1] || '').toUpperCase(); if(!PAISV.some(p => p[0] === PAIS)) PAIS = LANG === 'es' ? 'AR' : 'XX';
+$('selLang').innerHTML = IDIOMAS.map(([k, n]) => `<option value="${k}"${k === LANG ? ' selected' : ''}>${n}</option>`).join('');
+$('selPais').innerHTML = PAISV.map(([k, n]) => `<option value="${k}"${k === PAIS ? ' selected' : ''}>${n}</option>`).join('');
+// --- traductor de la página (traduce una vez y lo guarda en el celular) ---
+let DIC = {}; try{ DIC = JSON.parse(localStorage.getItem('mundo-tr-' + LANG) || '{}'); }catch(e){}
+const ORIG = new WeakMap();
+const salta = n => { const p = n.parentElement; return !p || p.closest('script,style,select,option,.nt,input,textarea') || !/[A-Za-zÁÉÍÓÚáéíóúñÑ]{2}/.test(n.nodeValue); };
+function textos(root){ const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); const L = []; let n; while((n = w.nextNode())){ if(salta(n)) continue; if(!ORIG.has(n)) ORIG.set(n, n.nodeValue); L.push(n); } return L; }
+let trCola = Promise.resolve();
+function traducir(root){
+  trCola = trCola.then(async () => {
+    const L = textos(root || document.body);
+    if(LANG === 'es'){ L.forEach(n => { n.nodeValue = ORIG.get(n); }); return; }
+    const faltan = [...new Set(L.map(n => ORIG.get(n).trim()).filter(t => t && !(t in DIC)))];
+    for(let i = 0; i < faltan.length; i += 30){
+      const lote = faltan.slice(i, i + 30);
+      try{ const r = await fetch('/api/guia?accion=traducir', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({lang: LANG, textos: lote})}); const j = await r.json(); (j.textos || []).forEach((t, k) => { if(t) DIC[lote[k]] = t; }); }catch(e){ break; }
+    }
+    try{ localStorage.setItem('mundo-tr-' + LANG, JSON.stringify(DIC)); }catch(e){}
+    L.forEach(n => { const o = ORIG.get(n), t = o.trim(); if(DIC[t]) n.nodeValue = o.replace(t, DIC[t]); });
+  });
+  return trCola;
+}
+function aplicarIdioma(){
+  document.documentElement.lang = LANG; document.documentElement.dir = LANG === 'ar' ? 'rtl' : 'ltr';
+  traducir(document.body);
+  const ph = {es:'¿Qué buscás? Ej: masajeador de cuello'}; $('q').placeholder = ph[LANG] || '🔎';
+}
+function aplicarPais(){
+  const ar = PAIS === 'AR', lat = LATAMP.includes(PAIS);
+  $('infoAR').hidden = !ar; $('infoOtro').hidden = ar;
+  ENV.si[1] = ar ? '✅ Envía a Argentina' : '🌍 Envío internacional (consultá a tu país)';
+  ENV.cas[1] = ar ? '📦 Con casillero en Miami' : '📦 Con reenvío desde Estados Unidos';
+  // a los de afuera de Latinoamérica les mostramos primero lo nuestro
+  const lt = $('latam'), dst = lat ? $('importar') : $('res').nextElementSibling;
+  [lt, lt.nextElementSibling, lt.nextElementSibling.nextElementSibling].forEach(el => { dst.parentNode.insertBefore(el, dst); });
+  portada(); $('lat').innerHTML = LATAM.map(tarjetaL).join('');
+  traducir(document.body);
+}
+$('selLang').onchange = e => { LANG = e.target.value; localStorage.setItem('mundo-lang', LANG); DIC = {}; try{ DIC = JSON.parse(localStorage.getItem('mundo-tr-' + LANG) || '{}'); }catch(_){} aplicarIdioma(); decir('¡Hola! Soy <b>Flashy</b> 👋 Decime qué querés comprar y lo busco en todas las tiendas del mundo.'); };
+$('selPais').onchange = e => { PAIS = e.target.value; localStorage.setItem('mundo-pais', PAIS); aplicarPais(); };
 // ---- Flashy habla ----
 let voz = false; document.addEventListener('pointerdown', () => { voz = true; }, {capture: true, once: true});
-function decir(t){ const g = $('globo'); g.innerHTML = t; g.style.display = 'block'; if(!voz || !('speechSynthesis' in window)) return; try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(g.textContent.replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu, '')); u.lang = 'es-AR'; speechSynthesis.speak(u); }catch(e){} }
+function decir(t){ const g = $('globo'); g.innerHTML = t; g.style.display = 'block'; const habla = () => { if(!voz || !('speechSynthesis' in window)) return; try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(g.textContent.replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu, '')); u.lang = VOZ[LANG] || 'es-AR'; window.FLASHY_NO_FORZAR = LANG !== 'es'; speechSynthesis.speak(u); }catch(e){} }; if(LANG === 'es') habla(); else traducir(g).then(habla); }
 // ---- buscar en todo el mundo ----
 async function buscar(q){
   q = String(q || '').trim(); if(!q) return;
   $('q').value = q; decir(`⚡ Buscando <b>${esc(q)}</b> en ${T.length} tiendas del mundo…`);
   let k = {es: q, en: q};
-  try{ const r = await fetch('/api/guia?accion=mundo', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({q})}); if(r.ok) k = Object.assign(k, await r.json()); }catch(e){}
+  try{ const r = await fetch('/api/guia?accion=mundo', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({q, lang: LANG})}); if(r.ok) k = Object.assign(k, await r.json()); }catch(e){}
   if(MODO === 'importa'){
     const nq = q.toLowerCase(), rub = String(k.rubro || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const emp = EMP.filter(t => t.ru.includes(rub) || nq.split(/\s+/).some(w => w.length > 3 && t.r.toLowerCase().includes(w.replace(/s$/, '')))).slice(0, 8);
-    $('res').innerHTML = (emp.length ? `<div style="grid-column:1/-1;font-weight:800;color:#075985">🏭 Fabricantes conocidos para esto</div>` + emp.map(tarjetaE).join('') + `<div style="grid-column:1/-1;font-weight:800;color:#075985;margin-top:6px">🔎 Más fábricas en los directorios del mundo</div>` : '') + B2B.map(t => tarjetaB(t, true, k[t.l] || k.en || q)).join('');
+    $('res').innerHTML = (emp.length ? `<div style="grid-column:1/-1;font-weight:800;color:#075985">🏭 Fabricantes conocidos para esto</div>` + emp.map(tarjetaE).join('') + `<div style="grid-column:1/-1;font-weight:800;color:#075985;margin-top:6px">🔎 Más fábricas en los directorios del mundo</div>` : '') + B2B.map(t => tarjetaB(t, true, k[t.l] || k.en || q)).join('') + `<div style="grid-column:1/-1;font-weight:800;color:#854d0e;margin-top:6px">🌎 Exportadores de Latinoamérica</div>` + LATAM.filter(t => t.ag).map(tarjetaL).join('');
     const porPais = {}; emp.forEach(t => { (porPais[t.f] = porPais[t.f] || []).push(t.n); });
     const nom = {'🇨🇳':'China','🇹🇼':'Taiwán','🇰🇷':'Corea'};
     decir(emp.length ? `🏭 Para <b>${esc(q)}</b>: ${Object.entries(porPais).map(([f, L]) => `en ${nom[f] || f} tenés <b>${L.slice(0, 3).join(', ')}</b>`).join('; ')}. Entrá a su <b>página oficial</b>: ahí está su WhatsApp o su contacto para distribuidores, y hablás directo con ellos. ¿Buscás una fábrica más especial? Abajo te armé la búsqueda en ${B2B.length} directorios de fábricas del mundo 👇 Y ojo: nunca pagues por fuera de la plataforma 🛡️`
       : `🏭 Te armé la búsqueda de <b>fábricas de ${esc(q)}</b> en ${B2B.length} directorios de empresas del mundo. Entrá a la que te guste: dentro de cada fábrica está su WhatsApp o su contacto para hablar directo. Pedí precio, cantidad mínima y muestras, y nunca pagues por fuera de la plataforma 🛡️`);
-    $('globo').scrollIntoView({behavior: 'smooth', block: 'start'}); return;
+    $('globo').scrollIntoView({behavior: 'smooth', block: 'start'}); traducir($('res')); return;
   }
   const L = T.slice().sort((a, b) => ORDEN[a.env] - ORDEN[b.env]);
   $('res').innerHTML = L.map(t => tarjeta(t, true, k[t.l] || k.en || q)).join('');
   const si = L.filter(t => t.env === 'si').slice(0, 3).map(t => t.n).join(', ');
   decir(`¡Listo! Te armé la búsqueda de <b>${esc(q)}</b> en todas las tiendas, cada una en su idioma. Para que te llegue a tu casa, empezá por <b>${si}</b> 👇${k.consejo ? '<br>💡 ' + esc(k.consejo) : ''}<br><small>Recordá: hasta US$ 400 por envío no pagás derechos de importación.</small>`);
-  $('globo').scrollIntoView({behavior: 'smooth', block: 'start'});
+  $('globo').scrollIntoView({behavior: 'smooth', block: 'start'}); traducir($('res'));
 }
 $('fBus').onsubmit = e => { e.preventDefault(); buscar($('q').value); };
 document.addEventListener('click', e => { const b = e.target.closest('[data-ej]'); if(b) buscar(b.dataset.ej); });
 $('flaFix').addEventListener('click', e => { if(e.target.closest('.fltam')) return; $('q').focus(); decir('¡Hola! Soy Flashy 👋 Decime qué querés comprar y lo busco en todas las tiendas del mundo.'); });
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 if(SR){ $('bMic').hidden = false; $('bMic').onclick = () => { const r = new SR(); r.lang = 'es-AR'; decir('🎙️ Te escucho… decime qué buscás'); r.onresult = e => buscar(e.results[0][0].transcript); r.start(); }; }
+aplicarPais(); aplicarIdioma();
 setTimeout(() => decir('¡Hola! Soy <b>Flashy</b> 👋 Acá tenés las mejores tiendas del mundo. Decime qué querés comprar y lo busco en todas a la vez.'), 600);
 </script>
 </body>
