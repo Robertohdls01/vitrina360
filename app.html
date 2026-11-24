@@ -2647,6 +2647,8 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
       </span>
       <button class="btn" type="button" id="ballBtn" hidden>🔮 Bola</button>
       <button class="btn" type="button" id="seasonBtn" aria-expanded="false" aria-controls="seasonBar">🎉 Temporada</button>
+      <button class="btn" type="button" id="mejBtn" aria-expanded="false" aria-controls="mejBar">✨ Mejorar con IA</button>
+      <div class="bgbar mejbar" id="mejBar" hidden role="group" aria-label="Mejorar productos con IA"></div>
       <div class="bgbar seasonbar" id="seasonBar" hidden role="group" aria-label="Modo temporada"></div>
       <span class="zoom homesize" role="group" aria-label="Tamaño de las vitrinas">
         <button type="button" id="homeSizeDn" aria-label="Achicar todas">−</button>
@@ -2834,6 +2836,10 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
         <label for="f-feats">Características <small>Se completan solas al subir la foto. Una por línea; “Clave: valor” se ve como ficha.</small>
           <textarea id="f-feats" placeholder="Material: cuero vacuno&#10;Talles: S a XL&#10;Color: marrón tabaco&#10;Forro térmico desmontable"></textarea>
         </label>
+        <label for="f-desc">Frase de venta <small>Opcional. Una línea que dé ganas de comprarlo. La IA te la escribe.</small>
+          <input type="text" id="f-desc" maxlength="140" placeholder="Ej: Ideal para el mate de todos los días, rinde un montón">
+        </label>
+        <div class="row" style="align-items:center;gap:8px;flex-wrap:wrap"><button type="button" class="btn" id="mejUno">✨ Mejorar con IA</button><button type="button" class="btn" id="mejUndo" hidden>↩ Dejarlo como estaba</button><span class="note" id="mejUnoMsg" role="status" style="margin:0"></span></div>
         <div class="digbox">
           <label class="digchk"><input type="checkbox" id="f-service"> <strong>🗓 Es un servicio</strong> <small>Corte de pelo, peluquería de mascotas, clases, turnos… El cliente elige día y horario en vez de envío.</small></label>
           <label for="f-dur" id="durRow" hidden>Duración <small>Opcional. Ej: 1 hora</small><input type="text" id="f-dur" maxlength="40" placeholder="1 hora"></label>
@@ -3462,6 +3468,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
     e.preventDefault(); e.stopPropagation(); tr._go(+it.dataset.si);
   }, true);
   function renderHome(){
+    try{ aplicarLetra(); }catch(e){}
     const cp = capProds(), full = isFinite(cp) ? cats.filter(c => products.filter(p => p.cat === c.id).length > cp) : [];
     const wn = $('waNote'); if(wn) wn.hidden = PUBLIC || clientMode || !!String(brand.wa || '').replace(/\D/g, '');
     const ln = $('limitNote');
@@ -3821,6 +3828,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
         ${unitsHTML(p, 'data-act', false)}
         ${p.featured ? `<label class="ownerbtn promobox" for="promoIn">🗣 Lo que dice la voz de este destacado <small>Ej: “20% de descuento”, “2x1 hasta el domingo”. Se escucha si está prendido “La voz anuncia los destacados”.</small>
           <span class="row" style="flex-wrap:nowrap"><input type="text" id="promoIn" maxlength="80" value="${esc(p.promo || '')}" placeholder="20% de descuento"><button class="btn" type="button" data-act="hear">▶</button></span></label>` : ''}
+        ${p.desc ? `<p class="pdesc" style="margin:6px 0 8px;font-size:16px;font-style:italic">${esc(p.desc)}</p>` : ''}
         ${feats ? `<ul class="feats">${feats}</ul>` : `<p class="nofeat">Sin características cargadas. Tocá “Editar” para agregarlas.</p>`}
         <div class="socialbox" id="socialBox" hidden></div>
         <div class="actions">
@@ -3987,6 +3995,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
         ${variantOf(p) ? `<div class="vedit"><input type="text" id="mv-name" maxlength="40" value="${esc(variantOf(p).name)}" aria-label="Nombre del modelo"><input type="text" id="mv-price" maxlength="20" value="${esc(variantOf(p).price || '')}" placeholder="Precio (si cambia)" aria-label="Precio del modelo"></div>
           <button class="linkbtn" type="button" data-m="delvar" style="color:var(--danger);justify-self:start">${delArmed ? '¿Seguro? Tocá de nuevo' : 'Quitar este modelo'}</button>` : ''}
         <p class="note" id="varMsg" role="status"></p>
+        ${p.desc ? `<p class="pdesc" style="margin:6px 0 8px;font-size:16px;font-style:italic">${esc(p.desc)}</p>` : ''}
         ${feats ? `<ul class="feats">${feats}</ul>` : `<p class="nofeat">Este producto todavía no tiene características.</p>`}
         <div class="actions">
           ${p.stock != null && +p.stock <= 0 ? `<button class="btn" type="button" disabled>${esc(L('Sin stock', 'Out of stock', 'Sem estoque'))}</button>` : `<button class="btn primary" type="button" data-m="cart">＋ Agregar al pedido</button>`}
@@ -4665,6 +4674,107 @@ Respondé SOLO con JSON: {"letras": [ ... ]} con ${n} letra${n === 1 ? '' : 's'}
 
   // Reconocimiento automático: Claude mira la foto y escribe nombre + características
   let sampler = null, aiCtl = null, recognizing = false;
+
+  // ---------- ✨ Mejorar con IA: nombre más lindo, frase de venta, características prolijas y letra linda ----------
+  let mejPrev = null;
+  const LETRAS = [
+    {id: '', n: 'Clásica', f: ''},
+    {id: 'moderna', n: 'Moderna', f: 'Poppins', q: 'Poppins:wght@600;800'},
+    {id: 'elegante', n: 'Elegante', f: 'Playfair Display', q: 'Playfair+Display:wght@700;900'},
+    {id: 'divertida', n: 'Divertida', f: 'Baloo 2', q: 'Baloo+2:wght@600;800'},
+    {id: 'manuscrita', n: 'Manuscrita', f: 'Pacifico', q: 'Pacifico'},
+    {id: 'fuerte', n: 'Fuerte', f: 'Anton', q: 'Anton'}];
+  const cargaLetra = l => { if(!l || !l.q || document.getElementById('lt-' + l.id)) return; const k = document.createElement('link'); k.id = 'lt-' + l.id; k.rel = 'stylesheet'; k.href = 'https://fonts.googleapis.com/css2?family=' + l.q + '&display=swap'; document.head.appendChild(k); };
+  function aplicarLetra(){
+    const l = LETRAS.find(x => x.id === (brand.font || '')) || LETRAS[0];
+    cargaLetra(l);
+    if(l.f) document.documentElement.style.setProperty('--display', `"${l.f}", "Plus Jakarta Sans", system-ui, sans-serif`); else document.documentElement.style.removeProperty('--display');
+  }
+  async function mejSampler(){
+    if(!sampler){ try{ const sm = await window.claude?.use?.('sample'); if(sm) sampler = sm; }catch(e){} }
+    return sampler;
+  }
+  async function mejPedir(list){
+    const rubro = (cats.find(c => c.id === (list[0] || {}).cat) || {}).name || brand.name || '';
+    const lang = L('español rioplatense (Argentina), con voseo', 'English', 'português do Brasil');
+    const datos = list.map(p => ({id: p.id, nombre: p.name, frase: p.desc || '', caracteristicas: (p.features || []).filter(Boolean)}));
+    const r = await sampler.json(`Sos redactor de una tienda online (${rubro}). Mejorá cómo se presentan estos productos para que den ganas de comprarlos, escribiendo en ${lang}.
+REGLAS: no inventes nada. No cambies medidas, marcas, contenido, talles, modelos ni precios, y no agregues características que no estén. Corregí la ortografía.
+Para cada producto devolvé:
+- name: nombre claro y atractivo, máximo 6 palabras, mayúscula solo al principio y en marcas, sin emojis ni signos de exclamación. Si ya está bien, dejalo casi igual.
+- desc: una frase de venta corta (máximo 90 caracteres), cálida y concreta, sin exagerar ni prometer lo que no se sabe.
+- features: las mismas características, prolijas, en formato "Clave: valor" (máximo 6). Si no hay, [].
+Respondé SOLO con JSON así: {"items":[{"id":"...","name":"...","desc":"...","features":["..."]}]}
+Productos:
+${JSON.stringify(datos)}`);
+    return Array.isArray(r && r.items) ? r.items : [];
+  }
+  function mejAplicar(p, it){
+    if(!it) return false;
+    const nm = String(it.name || '').trim().slice(0, 80), ds = String(it.desc || '').trim().slice(0, 140);
+    const keep = (p.features || []).filter(x => /^(código|codigo|marca|sku)\s*:/i.test(x));
+    const fs = Array.isArray(it.features) ? it.features.map(x => String(x).trim()).filter(Boolean).slice(0, 8) : null;
+    if(nm) p.name = nm;
+    if(ds) p.desc = ds;
+    if(fs && (fs.length || !(p.features || []).length)) p.features = [...keep, ...fs.filter(x => !keep.some(k => k.split(':')[0].toLowerCase() === x.split(':')[0].toLowerCase()))];
+    p.mej = 1;
+    return true;
+  }
+  // mejora una lista de productos de a tandas; guarda copia para deshacer
+  window.v360Mejorar = async (list, opt = {}) => {
+    list = (list || []).filter(p => p && !p.sample && (!opt.auto || !p.mej));
+    const msg = $('mejMsg');
+    const say = t => { if(msg) msg.textContent = t; if(opt.auto && $('formMsg')) $('formMsg').textContent = t; };
+    if(!list.length){ if(!opt.auto) say('No hay productos para mejorar todavía.'); return 0; }
+    if(!await mejSampler()){ if(!opt.auto) say('La IA no está disponible en este momento. Probá en un rato.'); return 0; }
+    const copia = list.map(p => ({id: p.id, name: p.name, desc: p.desc, features: (p.features || []).slice(), mej: p.mej}));
+    let hechos = 0;
+    for(let i = 0; i < list.length; i += 12){
+      const tanda = list.slice(i, i + 12);
+      say(`✨ Mejorando ${Math.min(i + tanda.length, list.length)} de ${list.length}…`);
+      try{ const its = await mejPedir(tanda); tanda.forEach(p => { if(mejAplicar(p, its.find(x => String(x.id) === String(p.id)))) hechos++; }); }catch(e){ say(e && e.code === 'no_credit' ? 'Se terminó el crédito de IA por hoy.' : 'La IA no respondió bien; probá de nuevo.'); break; }
+    }
+    if(hechos){
+      try{ localStorage.setItem('v360-mej-undo', JSON.stringify(copia)); }catch(e){}
+      save(); renderHome();
+      say(`Listo: mejoré ${hechos} producto${hechos === 1 ? '' : 's'} ✨`);
+      if(msg && !opt.auto){ const u = document.createElement('button'); u.type = 'button'; u.className = 'btn'; u.textContent = '↩ Deshacer'; u.onclick = () => { let c = []; try{ c = JSON.parse(localStorage.getItem('v360-mej-undo') || '[]'); }catch(e){} c.forEach(o => { const p = products.find(x => x.id === o.id); if(!p) return; p.name = o.name; if(o.desc) p.desc = o.desc; else delete p.desc; p.features = o.features; if(o.mej) p.mej = o.mej; else delete p.mej; }); save(); renderHome(); msg.textContent = 'Listo, quedaron como estaban.'; }; msg.append(' ', u); }
+    }
+    return hechos;
+  };
+  function renderMejBar(){
+    const bar = $('mejBar'); if(!bar) return;
+    LETRAS.forEach(cargaLetra);
+    bar.innerHTML = `<div style="display:grid;gap:10px;width:100%">
+      <div><strong>Que la IA embellezca tus productos</strong><br><span class="note" style="margin:0">Les pone un nombre más lindo, una frase de venta y ordena las características. No inventa datos ni toca los precios. Si no te gusta, lo deshacés.</span></div>
+      <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center"><button type="button" class="btn primary" id="mejTodos">✨ Mejorar todos (${products.filter(p => !p.sample).length})</button><button type="button" class="btn" id="mejVitrina">Solo esta vitrina</button></div>
+      <span class="note" id="mejMsg" role="status" style="margin:0"></span>
+      <label class="digchk" style="margin:0"><input type="checkbox" id="mejAuto" ${brand.autoMejorar ? 'checked' : ''}> <strong>Mejorar solo cada producto nuevo que suba</strong></label>
+      <div><strong>Letra de la tienda</strong></div>
+      <div class="row" style="gap:6px;flex-wrap:wrap">${LETRAS.map(l => `<button type="button" class="btn" data-letra="${l.id}" aria-pressed="${(brand.font || '') === l.id}" style="${l.f ? `font-family:'${l.f}',sans-serif;` : ''}font-size:16px">${l.n}</button>`).join('')}</div>
+    </div>`;
+    $('mejTodos').onclick = () => window.v360Mejorar(products.slice());
+    $('mejVitrina').onclick = () => window.v360Mejorar(products.filter(p => p.cat === currentCat));
+    $('mejAuto').onchange = e => { brand.autoMejorar = e.target.checked; if(!brand.autoMejorar) delete brand.autoMejorar; save(); };
+    bar.querySelectorAll('[data-letra]').forEach(b => b.onclick = () => { if(b.dataset.letra) brand.font = b.dataset.letra; else delete brand.font; save(); aplicarLetra(); bar.querySelectorAll('[data-letra]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); });
+  }
+  try{ aplicarLetra(); }catch(e){}
+  if($('mejBtn')) $('mejBtn').onclick = () => { const open = $('mejBar').hidden; $('mejBar').hidden = !open; $('mejBtn').setAttribute('aria-expanded', String(open)); if(open) renderMejBar(); };
+  if($('mejUno')) $('mejUno').onclick = async () => {
+    const m = $('mejUnoMsg'), b = $('mejUno');
+    const tmp = {id: 'x', cat: $('f-cat').value, name: $('f-name').value.trim(), desc: $('f-desc').value.trim(), features: $('f-feats').value.split('\n').map(x => x.trim()).filter(Boolean)};
+    if(!tmp.name && !tmp.features.length){ m.textContent = 'Primero subí la foto o escribí el nombre.'; return; }
+    if(!await mejSampler()){ m.textContent = 'La IA no está disponible en este momento.'; return; }
+    b.disabled = true; m.textContent = '✨ Mejorando…';
+    try{
+      const its = await mejPedir([tmp]);
+      mejPrev = {name: $('f-name').value, desc: $('f-desc').value, feats: $('f-feats').value};
+      if(mejAplicar(tmp, its[0])){ $('f-name').value = tmp.name; $('f-desc').value = tmp.desc || ''; $('f-feats').value = tmp.features.join('\n'); $('mejUndo').hidden = false; m.textContent = 'Listo. Revisalo y tocá Guardar.'; }
+      else m.textContent = 'No pude mejorarlo, probá de nuevo.';
+    }catch(e){ m.textContent = 'La IA no respondió; probá de nuevo.'; }
+    b.disabled = false;
+  };
+  if($('mejUndo')) $('mejUndo').onclick = () => { if(!mejPrev) return; $('f-name').value = mejPrev.name; $('f-desc').value = mejPrev.desc; $('f-feats').value = mejPrev.feats; mejPrev = null; $('mejUndo').hidden = true; $('mejUnoMsg').textContent = 'Volvió a como estaba.'; };
   window.claude?.use?.('sample').then(async s => {
     if(!s) return;
     const lim = await s.limits().catch(() => null);
@@ -5081,7 +5191,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     $('formTitle').textContent = 'Editar producto';
     $('submitBtn').textContent = 'Guardar cambios';
     $('cancelEdit').hidden = false;
-    $('f-name').value = p.name; $('f-price').value = p.price || ''; $('f-feats').value = (p.features||[]).join('\n'); $('f-stock').value = p.stock != null ? p.stock : '';
+    $('f-name').value = p.name; if($('f-desc')) $('f-desc').value = p.desc || ''; mejPrev = null; if($('mejUndo')) $('mejUndo').hidden = true; if($('mejUnoMsg')) $('mejUnoMsg').textContent = ''; $('f-price').value = p.price || ''; $('f-feats').value = (p.features||[]).join('\n'); $('f-stock').value = p.stock != null ? p.stock : '';
     fillCatSelect(p.cat);
     updateSuggestBtn(); $('suggestBox').hidden = true;
     $('thumb').innerHTML = `<img src="${p.img}" alt="">`;
@@ -5096,6 +5206,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     else { delete p.service; delete p.duration; }
   }
   function resetForm(){
+    try{ $('f-desc').value = ''; $('mejUndo').hidden = true; $('mejUnoMsg').textContent = ''; mejPrev = null; }catch(e){}
     aiCtl?.abort(); aiCtl = null;
     try{ digForm(null); }catch(e){}
     editingId = null; pending = [];
@@ -5119,7 +5230,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     const name =$('f-name').value.trim(), price = $('f-price').value.trim();
     const stockTxt = String($('f-stock').value || '').trim(), stock = stockTxt === '' ? null : Math.max(0, parseInt(stockTxt, 10) || 0);
     const setStock = p => { if(stock == null) delete p.stock; else p.stock = stock; };
-    const features = $('f-feats').value.split('\n').map(s => s.trim()).filter(Boolean);
+    const features = $('f-feats').value.split('\n').map(s => s.trim()).filter(Boolean); const desc = (($('f-desc') || {}).value || '').trim();
     let newId = null;
     let cat = $('f-cat').value || currentCat;
     const autoCat = cat === '__auto';
@@ -5128,7 +5239,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       const p = products.find(x => x.id === editingId);
       if(!p){ resetForm(); return; }
       if(!name){ $('formMsg').textContent = 'Escribí el nombre del producto.'; $('f-name').focus(); return; }
-      Object.assign(p, {name, price, features, cat, sample:false});
+      Object.assign(p, {name, price, features, cat, sample:false}); if(desc) p.desc = desc; else delete p.desc;
       setStock(p);
       digApply(p);
       delete p.review;
@@ -5145,7 +5256,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
           name: pending.length === 1 ? (name || ai.name || ph.name) : (ai.name || ph.name),
           price: pending.length === 1 ? price : '',
           features: pending.length === 1 ? features : (ai.features || [])};
-        if(pending.length === 1){ digApply(p); setStock(p); }
+        if(pending.length === 1){ digApply(p); setStock(p); if(desc) p.desc = desc; }
         products.push(p); created.push(p); if(i === 0) newId = p.id;
       });
       // Vitrina con el nombre que trajo la plantilla (ej. "Alimento perros"), todavía sin productos propios, y lo cargado es de otro rubro (ej. autitos): le ponemos el nombre que corresponde
@@ -5168,6 +5279,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
       $('formMsg').textContent = pending.length > 1 ? `${pending.length} productos agregados a ${where}. Ahora poné los precios abajo.` : `${name || pending[0].name} ya está en ${where}.`;
       if(renamed.length) $('formMsg').textContent += ` Como no era de ese rubro, le cambié el nombre a la vitrina: ${renamed.join(', ')}. Si no te gusta, lo cambiás tocando el nombre.`;
       if(created.length > 1 || (created.length === 1 && !created[0].price)) showBulkPrices(created);
+      if(brand.autoMejorar) setTimeout(() => window.v360Mejorar && window.v360Mejorar(created, {auto: 1}), 400);
       if(newCatNames.length){ fillCatSelect(created[0].cat); $('formMsg').textContent += ' ' + L(`Vitrinas armadas solas: ${newCatNames.join(', ')}.`, `Showcases created automatically: ${newCatNames.join(', ')}.`, `Vitrines criadas sozinhas: ${newCatNames.join(', ')}.`); newCatNames = []; }
       cat = created[0].cat;
     }
@@ -5248,6 +5360,7 @@ Poné solo lo que se ve en la foto o es muy evidente. No inventes precios, garan
     if(created.length) showBulkPrices(created, $('qPrices'), $('qMsg'));
   });
   function showBulkPrices(list, box, msgEl){
+    if(brand.autoMejorar && list && list.length) setTimeout(() => window.v360Mejorar && window.v360Mejorar(list, {auto: 1}), 400);
     box = box || $('bulkPrices'); msgEl = msgEl || $('formMsg');
     box.innerHTML = `<strong>Poné los precios</strong><span class="note">Escribí el precio de cada uno y tocá “Guardar precios”. Los que dejes vacíos quedan “a consultar”.</span>
       <ul class="bplist">${list.map(p => `<li><img src="${p.img}" alt=""><div style="min-width:0">${p.review ? `<input type="text" class="bpname" data-bn="${p.id}" maxlength="80" value="${esc(p.name)}" aria-label="Nombre">` : `<div class="nm">${esc(p.name)}</div>`}<div class="note">${esc(p._where || (catOf(p.cat) || {}).name || '')}${p.review ? ` · <span class="review">⚠ ${L('Revisá el nombre', 'Check the name', 'Confira o nome')}</span>` : ''}</div></div>
