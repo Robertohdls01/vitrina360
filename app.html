@@ -2652,6 +2652,7 @@ body.modo-rev #homegrid, body.modo-rev .hometools .scope, body.modo-rev #ballBtn
 
   <section id="homeView" aria-label="Todas las vitrinas">
     <section class="panel revbox" id="rvBox" hidden aria-label="Tu revista"></section>
+    <div id="rvFrameBox" hidden style="display:grid;gap:6px;justify-items:center"><p class="note" style="margin:0;text-align:center">👆 Así la ven tus clientes. <b>Tocá un producto para cambiarlo.</b></p><iframe id="rvFrame" title="Tu revista" style="width:100%;max-width:430px;height:min(780px,calc(100vh - 120px));border:0;border-radius:22px;box-shadow:0 10px 30px rgba(0,0,0,.18);background:#fff"></iframe></div>
     <div class="hometools">
       <span class="scope" role="group" aria-label="Forma de mostrar las vitrinas">
         <button type="button" id="layoutGrid" aria-pressed="true">▦ Grilla</button>
@@ -4790,9 +4791,20 @@ ${JSON.stringify(datos)}`);
     if(brand.app === 'revista' && location.pathname.replace(/\/+$/, '') === '/panel'){ location.replace('/shoprevista'); return false; }
     return false;
   }
+
+  let rvSig = '', rvTimer = null, rvOyendo = false;
+  function revFrame(url, hay){
+    const fb = $('rvFrameBox'), fr = $('rvFrame'); if(!fb || !fr) return;
+    fb.hidden = !(url && hay);
+    if(fb.hidden) return;
+    if(!rvOyendo){ rvOyendo = true; window.addEventListener('message', e => { const id = e.data && e.data.rvEdit; if(!id || !document.body.classList.contains('modo-rev')) return; const p = products.find(x => String(x.id) === String(id)); if(!p) return; openCat(p.cat); setTimeout(() => { try{ startEdit(p); $('formPanel').scrollIntoView({behavior: 'smooth', block: 'start'}); }catch(err){} }, 120); }); }
+    let sig = ''; try{ sig = JSON.stringify([brand, cats, products.map(p => [p.id, p.name, p.price, p.img, p.cat, p.desc, p.featured])]); }catch(e){}
+    if(!fr.getAttribute('src')){ rvSig = sig; fr.src = url + '?editar=1'; return; }
+    if(sig !== rvSig){ rvSig = sig; clearTimeout(rvTimer); rvTimer = setTimeout(() => { fr.src = url + '?editar=1&v=' + Date.now(); }, 2500); }
+  }
   function renderRevBox(){
     const box = $('rvBox'); if(!box) return;
-    if(!revModo()){ box.hidden = true; return; }
+    if(!revModo()){ box.hidden = true; if($('rvFrameBox')) $('rvFrameBox').hidden = true; return; }
     box.hidden = false;
     if($('quickPanel') && !box.dataset.abierto){ box.dataset.abierto = '1'; $('quickPanel').hidden = false; }
     if($('back')) $('back').textContent = '← Mi revista';
@@ -4815,7 +4827,8 @@ ${JSON.stringify(datos)}`);
             <input type="text" id="rvBanda" maxlength="160" value="${esc(brand.revBanda || '')}" placeholder="Ej: 🔥 Todo con 20% OFF este fin de semana"></label>
           <p class="note" style="margin:0">La letra y el ✨ mejorar productos están en el botón <b>✨ Mejorar con IA</b>.</p>
         </div></details>
-      ${secs.length ? secs.map(({c, ps}) => `<div class="rvsec"><strong>${esc(c.name)} <small class="note">${ps.length}</small></strong><div class="rvgrid">${ps.map(p => `<button type="button" class="rvp" data-rvp="${esc(p.id)}">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy">` : ''}<b>${esc(p.name || 'Sin nombre')}</b><span>${esc(p.price || 'Sin precio')}</span></button>`).join('')}</div></div>`).join('') : '<p class="note" style="margin:0">Todavía no hay productos. Empezá subiendo fotos 👇</p>'}`;
+      ${secs.length && url ? '<details id="rvListDet"><summary style="cursor:pointer;font-weight:800">📋 Lista de productos</summary><div style="display:grid;gap:12px;margin-top:10px">' : ''}${secs.length ? secs.map(({c, ps}) => `<div class="rvsec"><strong>${esc(c.name)} <small class="note">${ps.length}</small></strong><div class="rvgrid">${ps.map(p => `<button type="button" class="rvp" data-rvp="${esc(p.id)}">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy">` : ''}<b>${esc(p.name || 'Sin nombre')}</b><span>${esc(p.price || 'Sin precio')}</span></button>`).join('')}</div></div>`).join('') : '<p class="note" style="margin:0">Todavía no hay productos. Empezá subiendo fotos 👇</p>'}${secs.length && url ? '</div></details>' : ''}`;
+    revFrame(url, secs.length);
     const det = box.querySelector('details'); if(box.dataset.det === '1') det.open = true; det.querySelector('summary').onclick = e => { e.preventDefault(); box.dataset.det = det.open ? '' : '1'; det.open = !det.open; };
     box.querySelectorAll('[data-rv]').forEach(b => b.onclick = () => { brand[b.dataset.rv] = b.dataset.val; save(); renderRevBox(); });
     const bi = $('rvBanda'); if(bi) bi.onchange = () => { const v = bi.value.trim(); if(v) brand.revBanda = v; else delete brand.revBanda; save(); };
@@ -8950,6 +8963,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
   }
   function musicStart(){
     const m = brand.music || {}; if(!m.style) return;
+    try{ (window.__bcMus || (window.__bcMus = new BroadcastChannel('v360-musica'))).postMessage('suena'); }catch(e){}
     musicStop();
     try{ if(mediaAnyOpen()) mediaClose(); }catch(e){}
     if(m.style === 'file'){
@@ -8968,6 +8982,7 @@ Respondé SOLO con JSON: {"min": número, "max": número, "suggested": número}.
       music.on = true; $('musicFab').setAttribute('aria-pressed', 'true'); adsSchedule();
     }catch(e){}
   }
+  try{ (window.__bcMus || (window.__bcMus = new BroadcastChannel('v360-musica'))).onmessage = e => { if(e.data === 'suena' && music.on) musicStop(); }; }catch(e){}
   const musicMuted = () => { try{ return localStorage.getItem('vitrina360-mute') === '1'; }catch(e){ return false; } };
   function renderMusic(){
     const m = brand.music || {}, cur = m.style || '';
