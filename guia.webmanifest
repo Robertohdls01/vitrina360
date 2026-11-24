@@ -1,0 +1,23 @@
+{
+ "name": "ShopGuía · Flashy",
+ "short_name": "ShopGuía",
+ "id": "/guia",
+ "start_url": "/guia",
+ "scope": "/guia",
+ "display": "standalone",
+ "background_color": "#fff4fc",
+ "theme_color": "#c8008f",
+ "lang": "es",
+ "icons": [
+  {
+   "src": "/icons/menu-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "/icons/menu-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  }
+ ]
+}

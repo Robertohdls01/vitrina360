@@ -1,0 +1,246 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ShopGuía · Flashy, tu guía de Mar del Plata</title>
+<meta name="description" content="Flashy te guía por Mar del Plata: te arma el paseo, te cuenta la historia, te dice dónde comer y te cuida. En tu idioma, sin bajar nada.">
+<meta property="og:title" content="ShopGuía · Flashy, tu guía de Mar del Plata"><meta property="og:description" content="Te guía, te cuida y te dice qué comer. Escaneá y probalo."><meta property="og:image" content="https://www.vitrina360app.com.ar/pv-logo-180.jpg?v=2">
+<meta name="theme-color" content="#c8008f"><link rel="manifest" href="/guia.webmanifest">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#fff4fc;color:#2a1630;-webkit-tap-highlight-color:transparent}
+button{font:inherit;cursor:pointer}a{color:inherit}
+#top{display:flex;align-items:center;gap:8px;padding:10px 12px 4px}#top h1{margin:0;font-size:19px;color:#c8008f;flex:1}#top select,#top button{border:1.5px solid #ffb5e6;background:#fff;border-radius:999px;padding:5px 9px;font-size:13px}
+#hero{display:flex;gap:10px;align-items:flex-end;padding:4px 12px 0}
+#fla{width:96px;height:132px;flex:none;animation:vive 2.2s ease-in-out infinite;filter:drop-shadow(0 10px 12px rgba(120,40,90,.22))}#fla svg{width:100%;height:100%}#fla.habla{animation:habla .22s ease-in-out infinite alternate}
+@keyframes vive{0%,100%{transform:translateY(0)}35%{transform:translateY(-9px)}65%{transform:translateY(0)}}@keyframes habla{from{transform:translateY(0) scale(1)}to{transform:translateY(-4px) scale(1.04)}}
+#say{flex:1;background:#fff;border:2px solid #ffb5e6;border-radius:18px 18px 18px 4px;padding:11px 13px;font-size:16.5px;line-height:1.4;margin-bottom:14px;min-height:64px;white-space:pre-line}
+#opts{display:flex;flex-wrap:wrap;gap:8px;padding:8px 12px}
+.ch{border:2px solid #ffb5e6;background:#fff;border-radius:999px;padding:9px 14px;font-size:15px;color:#2a1630}.ch.pri{background:linear-gradient(135deg,#c8008f,#f020c0);color:#fff;border-color:transparent;font-weight:700}.ch.sel{background:#ffe3f6;border-color:#c8008f;font-weight:700}
+#main{padding:0 12px 120px}.card{background:#fff;border:2px solid #ffd3ef;border-radius:16px;padding:12px 13px;margin:9px 0}.card h3{margin:0 0 4px;color:#c8008f;font-size:17px}.card p{margin:4px 0;font-size:14.5px;line-height:1.45}.muted{color:#7a5a80;font-size:13px}
+.row{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}.btn{border:0;border-radius:12px;padding:9px 12px;background:#ffe3f6;color:#8a005f;font-weight:700;font-size:14px;text-decoration:none;display:inline-block}.btn.pri{background:linear-gradient(135deg,#c8008f,#f020c0);color:#fff}
+.paso{display:flex;gap:9px;align-items:flex-start;padding:6px 0;border-bottom:1px dashed #ffd3ef}.paso:last-child{border:0}.paso b.n{flex:none;width:26px;height:26px;border-radius:50%;background:#ffe3f6;color:#c8008f;display:grid;place-items:center;font-size:13px}.paso.hecho b.n{background:#c8008f;color:#fff}.paso.act{background:#fff8fd}
+#bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:2px solid #ffd3ef;padding:8px 10px calc(8px + env(safe-area-inset-bottom));display:flex;gap:7px;align-items:center}
+#bar input{flex:1;min-width:0;border:2px solid #ffb5e6;border-radius:999px;padding:10px 13px;font-size:15px}#bar button{border:0;width:44px;height:44px;border-radius:50%;background:#ffe3f6;font-size:20px;flex:none}#bMic.on{background:#c8008f;color:#fff;animation:habla .4s infinite alternate}
+#tocame{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:#c8008f;color:#fff;border-radius:999px;padding:6px 14px;font-size:14px;z-index:9;box-shadow:0 4px 14px rgba(200,0,143,.3)}
+.pv{display:block;text-align:center;font-size:12px;color:#7a5a80;margin:18px 0 4px;text-decoration:none}.pv img{width:22px;height:22px;border-radius:50%;vertical-align:middle;margin-right:5px}
+</style></head><body>
+<div id="top"><h1>🗺️ ShopGuía</h1><select id="lang" aria-label="Idioma"><option value="es">Español</option><option value="en">English</option><option value="pt">Português</option></select><button id="bVoz" type="button" title="Voz">🔊</button></div>
+<div id="hero"><div id="fla"><svg viewBox="0 0 80 110" aria-hidden="true" class="flsvg"><ellipse cx="40" cy="106" rx="20" ry="4" fill="rgba(0,0,0,.18)"/><defs><radialGradient id="flhg" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fde68a"/><stop offset=".6" stop-color="#facc15"/><stop offset="1" stop-color="#eab308"/></radialGradient></defs><path d="M42 4 31 24h10l-5 13 15-20H40l7-13z" fill="#f020c0" stroke="#c8008f" stroke-width="2" stroke-linejoin="round"/><circle cx="40" cy="64" r="32" fill="url(#flhg)" stroke="#ca8a04" stroke-width="2.5"/><g class="heyes"><ellipse cx="29" cy="59" rx="5.5" ry="7.5" fill="#1f2937"/><ellipse cx="51" cy="59" rx="5.5" ry="7.5" fill="#1f2937"/><circle cx="31" cy="56" r="2.2" fill="#fff"/><circle cx="53" cy="56" r="2.2" fill="#fff"/></g><circle cx="20" cy="72" r="5" fill="#fb7185" opacity=".55"/><circle cx="60" cy="72" r="5" fill="#fb7185" opacity=".55"/><g class="hmouth" style="transform-origin:40px 76px"><path d="M30 74q10 11 20 0" fill="#7f1d1d" stroke="#1f2937" stroke-width="2.4" stroke-linecap="round"/><path d="M34 78q6 3.5 12 0" fill="#fb7185"/></g><path d="M10 70q-8-6-4-16" stroke="#ca8a04" stroke-width="4" fill="none" stroke-linecap="round" class="flwave"/><rect x="30" y="92" width="5" height="11" rx="2" fill="#ca8a04"/><rect x="45" y="92" width="5" height="11" rx="2" fill="#ca8a04"/><ellipse cx="30" cy="104" rx="6.5" ry="3.6" fill="#374151"/><ellipse cx="50" cy="104" rx="6.5" ry="3.6" fill="#374151"/><ellipse cx="27.5" cy="102.8" rx="2.4" ry=".9" fill="#9ca3af" opacity=".7"/><ellipse cx="47.5" cy="102.8" rx="2.4" ry=".9" fill="#9ca3af" opacity=".7"/></svg></div><div id="say"></div></div>
+<div id="opts"></div>
+<div id="main"></div>
+<div id="bar"><button id="bFoto" type="button" title="¿Qué es esto? (foto de un plato o una carta)">📷</button><input id="txt" placeholder="Preguntale a Flashy…" enterkeyhint="send"><button id="bMic" type="button" title="Hablar">🎙️</button></div>
+<input type="file" id="fFoto" accept="image/*" capture="environment" hidden>
+<script>
+'use strict';
+const FL='';
+const $=s=>document.querySelector(s), esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const CIUDAD='Mar del Plata';
+// ---------- idioma ----------
+let LANG=(()=>{try{const g=localStorage.getItem('guiaLang');if(g)return g;}catch(e){}const n=(navigator.language||'es').slice(0,2);return ['es','en','pt'].includes(n)?n:'es';})();
+const T=(es,en,pt)=>LANG==='en'?(en||es):LANG==='pt'?(pt||es):es;
+// ---------- perfil del viajero ----------
+let P={};try{P=JSON.parse(localStorage.getItem('guiaPerfil')||'{}')||{};}catch(e){}
+const guardaP=()=>{try{localStorage.setItem('guiaPerfil',JSON.stringify(P));}catch(e){}};
+// ---------- lugares (coordenadas aproximadas: "Cómo llego" busca por nombre en Google Maps) ----------
+const L={
+ rambla:{n:'Rambla y Casino Central',ll:[-38.0049,-57.5426],tg:['historia','playa','chicos','mayores','clasico'],min:40,acc:1,
+  tx:'La Rambla es el corazón de Mar del Plata. El Casino y el Hotel Provincial, frente al mar, son obra del arquitecto Alejandro Bustillo, de fines de los años treinta. Caminá hasta los famosos lobos marinos de piedra: son la foto obligada de la ciudad.'},
+ lobos:{n:'Lobos marinos de la Rambla',ll:[-38.0057,-57.5431],tg:['historia','chicos','clasico','foto'],min:15,acc:1,
+  tx:'Los dos lobos marinos gigantes de piedra son del escultor José Fioravanti y cuidan la Rambla desde hace más de 80 años. Tip: la mejor foto sale desde la escalinata, con el mar de fondo.'},
+ torreon:{n:'Torreón del Monje',ll:[-38.0128,-57.5318],tg:['historia','foto','clasico','pareja','mayores'],min:30,acc:1,
+  tx:'El Torreón del Monje es de 1904 y parece un castillo medieval colgado sobre el mar. Lo mandó a construir Ernesto Tornquist, y la leyenda habla de un monje. Asomate a la baranda: es uno de los miradores más lindos de la costa.'},
+ victoria:{n:'Villa Victoria (Victoria Ocampo)',ll:[-38.0157,-57.5427],tg:['historia','cultura','mayores','pareja'],min:45,acc:1,
+  tx:'Villa Victoria fue la casa de veraneo de la escritora Victoria Ocampo. Es una casa de madera que se armó con piezas traídas de Inglaterra, a principios del siglo veinte. Hoy es centro cultural, con jardines muy lindos para pasear.'},
+ basualdo:{n:'Villa Ortiz Basualdo (Museo Castagnino)',ll:[-38.0124,-57.5413],tg:['historia','cultura','mayores'],min:45,acc:0,
+  tx:'Esta villa de estilo normando, de 1909, es una de las joyas de la Mar del Plata aristocrática. Hoy funciona el Museo Castagnino, con arte argentino y el mobiliario original.'},
+ guemes:{n:'Calle Güemes',ll:[-38.0153,-57.5466],tg:['comer','compras','pareja','amigos','cafe'],min:60,acc:1,
+  tx:'Güemes es la calle de las compras, los cafés y las heladerías. Ideal para una merienda o para caminar a la tardecita.'},
+ troncos:{n:'Barrio Los Troncos',ll:[-38.0185,-57.5395],tg:['historia','pareja','tranquilo'],min:30,acc:1,
+  tx:'Los Troncos es un barrio de chalets de piedra y tejas, con calles arboladas. Es el estilo "chalet marplatense", típico de la ciudad. Caminalo tranquilo y mirá los jardines.'},
+ playagrande:{n:'Playa Grande',ll:[-38.0296,-57.5320],tg:['playa','chicos','amigos','pareja','clasico'],min:120,acc:1,
+  tx:'Playa Grande es una de las playas más elegantes y famosas, con balnearios, escolleras y surfistas. Respetá siempre la bandera del guardavidas: roja quiere decir que no se puede entrar al agua.'},
+ cabo:{n:'Cabo Corrientes y Paseo Dávila',ll:[-38.0175,-57.5302],tg:['foto','pareja','clasico','mayores'],min:25,acc:1,
+  tx:'En Cabo Corrientes la costa se mete en el mar y hay vista para los dos lados. A la tarde, el atardecer acá es espectacular.'},
+ puerto:{n:'Puerto y lanchas amarillas',ll:[-38.0430,-57.5420],tg:['comer','historia','chicos','foto','clasico'],min:60,acc:1,
+  tx:'El Puerto es uno de los lugares más pintorescos: las lanchas amarillas de los pescadores, gaviotas y el olor a mar. Alrededor hay muchos restaurantes de pescado y mariscos.'},
+ reservalobos:{n:'Reserva de lobos marinos (Puerto)',ll:[-38.0470,-57.5350],tg:['chicos','naturaleza','foto'],min:30,acc:1,
+  tx:'Cerca de la escollera del Puerto vive una colonia de lobos marinos de verdad. Se los ve tomando sol y peleándose por el lugar. Miralos desde la baranda, sin acercarte ni darles comida.'},
+ catedral:{n:'Catedral y Plaza San Martín',ll:[-37.9995,-57.5484],tg:['historia','mayores','cultura'],min:30,acc:1,
+  tx:'La Catedral de los Santos Pedro y Cecilia es de estilo neogótico y está frente a la Plaza San Martín, en pleno centro. Por dentro tiene vitrales muy lindos.'},
+ mogotes:{n:'Faro y playas de Punta Mogotes',ll:[-38.0930,-57.5420],tg:['playa','chicos','foto'],min:120,acc:1,
+  tx:'Punta Mogotes tiene un complejo de balnearios grande, ideal para ir con chicos, y el faro, uno de los símbolos de la costa sur de la ciudad.'},
+ aquarium:{n:'Aquarium Mar del Plata',ll:[-38.0890,-57.5432],tg:['chicos','diversion'],min:150,acc:1,
+  tx:'El Aquarium es un parque marino con animales y espectáculos, pensado para ir en familia. Consultá horarios y entradas antes de ir.'},
+ mar:{n:'Museo MAR (arte contemporáneo)',ll:[-37.9700,-57.5480],tg:['cultura','lluvia','chicos','mayores'],min:60,acc:1,
+  tx:'El Museo MAR es un edificio moderno frente al mar, con muestras de arte contemporáneo y actividades para chicos. Es un gran plan para un día de lluvia.'},
+ camet:{n:'Parque Camet',ll:[-37.9230,-57.5320],tg:['naturaleza','chicos','picnic','amigos'],min:90,acc:1,
+  tx:'El Parque Camet es un pulmón verde enorme al norte de la ciudad. Ideal para hacer picnic, andar en bici o dejar que los chicos corran.'},
+ sierra:{n:'Sierra de los Padres',ll:[-37.9430,-57.7790],tg:['naturaleza','auto','tranquilo','pareja'],min:150,acc:0,auto:1,
+  tx:'La Sierra de los Padres está a unos veinte minutos en auto. Son sierras bajas, con aire de campo, casas de té y senderos para caminar. Un cambio total de paisaje.'},
+ laguna:{n:'Laguna de los Padres',ll:[-37.9430,-57.7400],tg:['naturaleza','auto','picnic','camping','chicos'],min:150,acc:1,auto:1,
+  tx:'La Laguna de los Padres es una reserva natural con parrillas, zona de picnic y lugar para pescar o andar en kayak. Ahí cerca está el Museo José Hernández.'},
+ peralta:{n:'Bosque Peralta Ramos',ll:[-38.0650,-57.5650],tg:['naturaleza','tranquilo','pareja'],min:60,acc:1,auto:1,
+  tx:'El Bosque Peralta Ramos es un barrio entre pinos, a pocos minutos de la costa sur. Ideal para un paseo tranquilo con olor a bosque.'},
+};
+// ---------- paseos ----------
+const PASEOS=[
+ {id:'clasico',e:'🌊',n:T('Clásico de la costa','Coastal classic','Clássico da costa'),tg:['clasico','historia','playa','mayores','pareja','chicos'],p:['rambla','lobos','torreon','cabo','playagrande'],comer:'Playa Grande o Güemes',h:4},
+ {id:'puerto',e:'🦭',n:T('Puerto y lobos marinos','Harbor & sea lions','Porto e lobos-marinhos'),tg:['chicos','comer','foto','clasico'],p:['puerto','reservalobos'],comer:'el Puerto (pescados y mariscos)',h:3},
+ {id:'historia',e:'🏛️',n:T('Historia y chalets','History & villas','História e casarões'),tg:['historia','cultura','mayores','pareja','tranquilo'],p:['catedral','victoria','basualdo','troncos','guemes'],comer:'un café en Güemes',h:4},
+ {id:'chicos',e:'👨‍👩‍👧',n:T('Día con chicos','Day with kids','Dia com crianças'),tg:['chicos','diversion','playa'],p:['lobos','puerto','reservalobos','aquarium'],comer:'el Puerto o Punta Mogotes',h:6},
+ {id:'verde',e:'🌲',n:T('Escapada verde (en auto)','Green escape (by car)','Escapada verde (de carro)'),tg:['naturaleza','auto','picnic','camping','tranquilo'],p:['sierra','laguna'],comer:'una casa de té en la Sierra',h:5,auto:1},
+ {id:'lluvia',e:'☔',n:T('Plan para día de lluvia','Rainy-day plan','Plano para dia de chuva'),tg:['lluvia','cultura','mayores','chicos'],p:['mar','catedral','basualdo','guemes'],comer:'un café con medialunas en Güemes',h:4},
+ {id:'sur',e:'🏖️',n:T('Playas del sur','Southern beaches','Praias do sul'),tg:['playa','chicos','amigos','naturaleza'],p:['playagrande','mogotes','peralta'],comer:'un parador en Punta Mogotes',h:6},
+];
+// ---------- voz ----------
+let VOZ=true,despierto=false,pend='';
+try{VOZ=localStorage.getItem('guiaVoz')!=='0';}catch(e){}
+const limpiar=s=>String(s).replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu,'').replace(/\s+/g,' ');
+function decir(txt){
+ if(!VOZ||!('speechSynthesis' in window))return; if(!despierto){pend=txt;if(!$('#tocame')){const d=document.createElement('div');d.id='tocame';d.textContent=T('🔊 Tocá la pantalla para escuchar a Flashy','🔊 Tap the screen to hear Flashy','🔊 Toque a tela para ouvir a Flashy');document.body.appendChild(d);}return;}
+ try{speechSynthesis.cancel();const loc=LANG==='en'?'en-US':LANG==='pt'?'pt-BR':'es-AR';
+  // frases cortas: si una falla, siguen las demás
+  const partes=limpiar(txt).match(/[^.!?¿¡]+[.!?]*/g)||[limpiar(txt)];
+  const vs=speechSynthesis.getVoices().filter(v=>v.lang&&v.lang.slice(0,2)===LANG);const v=vs.find(v=>v.lang===loc&&/google|natural|online/i.test(v.name))||vs.find(v=>v.lang===loc)||vs[0];
+  partes.forEach((p,i)=>{const u=new SpeechSynthesisUtterance(p.trim());u.lang=loc;if(v)u.voice=v;u.rate=1.04;u.pitch=1.12;if(i===0)u.onstart=()=>$('#fla').classList.add('habla');if(i===partes.length-1)u.onend=u.onerror=()=>$('#fla').classList.remove('habla');speechSynthesis.speak(u);});
+ }catch(e){}
+}
+function despertar(){if(despierto)return;despierto=true;const t=$('#tocame');if(t)t.remove();try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}if(pend){const p=pend;pend='';setTimeout(()=>decir(p),120);}}
+document.addEventListener('pointerdown',despertar,{capture:true});
+function hablar(txt,ops){$('#say').textContent=txt;decir(txt);opciones(ops||[]);}
+function opciones(ops){const o=$('#opts');o.innerHTML='';ops.forEach(([tx,fn,pri])=>{const b=document.createElement('button');b.type='button';b.className='ch'+(pri?' pri':'');b.textContent=tx;b.onclick=fn;o.appendChild(b);});}
+// ---------- traducción de los textos de los lugares (una sola vez por idioma, queda guardada) ----------
+let TR={};try{TR=JSON.parse(localStorage.getItem('guiaTR')||'{}')||{};}catch(e){}
+async function tx(id){const x=L[id];if(LANG==='es')return x.tx;const k=LANG+':'+id;if(TR[k])return TR[k];
+ try{const ids=Object.keys(L);const r=await fetch('/api/guia?accion=traducir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lang:LANG,textos:ids.map(i=>L[i].tx)})});const j=await r.json();(j.textos||[]).forEach((t,i)=>TR[LANG+':'+ids[i]]=t);try{localStorage.setItem('guiaTR',JSON.stringify(TR));}catch(e){}}catch(e){}
+ return TR[k]||x.tx;}
+// ---------- GPS ----------
+let POS=null,watchId=null;
+function gps(cb){if(!navigator.geolocation){cb&&cb(null);return;}navigator.geolocation.getCurrentPosition(p=>{POS=[p.coords.latitude,p.coords.longitude];cb&&cb(POS);},()=>cb&&cb(null),{enableHighAccuracy:true,timeout:12000,maximumAge:30000});}
+function seguir(){if(watchId||!navigator.geolocation)return;watchId=navigator.geolocation.watchPosition(p=>{POS=[p.coords.latitude,p.coords.longitude];revisarCerca();},()=>{},{enableHighAccuracy:false,maximumAge:45000,timeout:20000});}
+const dist=(a,b)=>{const R=6371e3,r=Math.PI/180,dl=(b[0]-a[0])*r,dg=(b[1]-a[1])*r,x=Math.sin(dl/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dg/2)**2;return 2*R*Math.asin(Math.sqrt(x));};
+const fmtD=m=>m<1000?Math.round(m/10)*10+' m':(m/1000).toFixed(m<10000?1:0)+' km';
+const enCiudad=()=>POS&&dist(POS,[-38.0,-57.56])<40000;
+const mapa=(id,modo)=>'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(L[id].n+', '+CIUDAD+', Argentina')+'&travelmode='+(modo||((P.mov==='auto'||L[id].auto)?'driving':'walking'));
+// ---------- pantallas ----------
+const main=$('#main');
+function inicio(){
+ main.innerHTML='';
+ hablar(T(`¡Hola! Soy Flashy, tu guía de ${CIUDAD} 🌊 ¿Qué hacemos?`,`Hi! I'm Flashy, your ${CIUDAD} guide 🌊 What shall we do?`,`Oi! Eu sou a Flashy, sua guia de ${CIUDAD} 🌊 O que vamos fazer?`),[
+  ['🗺️ '+T('Armame un paseo','Plan a tour for me','Monte um passeio'),armar,true],
+  ['📍 '+T('¿Dónde estoy? ¿Qué hay cerca?','Where am I? What is nearby?','Onde estou? O que tem perto?'),cerca],
+  ['🍽️ '+T('¿Dónde como?','Where can I eat?','Onde eu como?'),comer],
+  ['📷 '+T('¿Qué es esto? (plato o carta)','What is this? (dish or menu)','O que é isto? (prato ou cardápio)'),()=>$('#fFoto').click()],
+  ['🛡️ '+T('Flashy te cuida','Flashy keeps you safe','Flashy cuida de você'),cuida],
+  ['🧳 '+T('Mis datos de viaje','My travel info','Meus dados de viagem'),perfil],
+ ]);
+ if(PASEO_ACT) main.innerHTML=`<div class="card"><h3>${esc(PASEO_ACT.e+' '+PASEO_ACT.n)}</h3><p class="muted">${T('Tenés un paseo en curso.','You have a tour in progress.','Você tem um passeio em andamento.')}</p><div class="row"><button class="btn pri" id="bSeguir">▶️ ${T('Seguir el paseo','Continue the tour','Continuar o passeio')}</button></div></div>`,$('#bSeguir').onclick=verPaseo;
+ main.insertAdjacentHTML('beforeend',`<a class="pv" href="/provideo" target="_blank" rel="noopener"><img src="/pv-logo-180.jpg?v=2" alt="">ShopGuía · Pro Video JSRHG</a>`);
+}
+// --- armar paseo: preguntas cortas ---
+let A={};
+function armar(){A={};preg1();}
+function preg1(){hablar(T('¿Con quién venís?','Who are you traveling with?','Com quem você está?'),[['🙋 '+T('Solo/a','Alone','Sozinho'),()=>{A.con='solo';preg2();}],['💑 '+T('En pareja','As a couple','Em casal'),()=>{A.con='pareja';preg2();}],['👨‍👩‍👧 '+T('Con chicos','With kids','Com crianças'),()=>{A.con='chicos';preg2();}],['👵 '+T('Con personas mayores','With older people','Com idosos'),()=>{A.con='mayores';preg2();}],['🎉 '+T('Con amigos','With friends','Com amigos'),()=>{A.con='amigos';preg2();}]]);main.innerHTML='';}
+function preg2(quieto){A.gan=A.gan||[];const G=[['playa','🏖️ '+T('Playa','Beach','Praia')],['historia','🏛️ '+T('Historia y cultura','History & culture','História e cultura')],['naturaleza','🌲 '+T('Naturaleza','Nature','Natureza')],['comer','🍽️ '+T('Comer rico','Good food','Comer bem')],['diversion','🎡 '+T('Divertirnos','Have fun','Diversão')],['foto','📸 '+T('Lugares para fotos','Photo spots','Lugares para fotos')],['lluvia','☔ '+T('Está lloviendo','It is raining','Está chovendo')]];
+ (quieto?(m,o)=>opciones(o):hablar)(T('¿Qué tienen ganas de hacer? Podés elegir varias y después tocá "Listo".','What do you feel like doing? Pick a few, then tap "Done".','O que vocês querem fazer? Escolha várias e toque "Pronto".'),G.map(([k,tx])=>[(A.gan.includes(k)?'✅ ':'')+tx,()=>{A.gan=A.gan.includes(k)?A.gan.filter(x=>x!==k):A.gan.concat(k);preg2(true);}]).concat([['✔️ '+T('Listo','Done','Pronto'),preg3,true]]));}
+function preg3(){hablar(T('¿Cómo se mueven?','How are you getting around?','Como vocês vão se locomover?'),[['🚶 '+T('Caminando','Walking','A pé'),()=>{A.mov='caminando';preg4();}],['🚗 '+T('En auto','By car','De carro'),()=>{A.mov='auto';preg4();}],['🚌 '+T('En colectivo / taxi','Bus / taxi','Ônibus / táxi'),()=>{A.mov='colectivo';preg4();}]]);}
+function preg4(){hablar(T('¿Cuánto tiempo tienen?','How much time do you have?','Quanto tempo vocês têm?'),[['⏱️ '+T('2 o 3 horas','2–3 hours','2–3 horas'),()=>{A.h=3;proponer();}],['🌤️ '+T('Medio día','Half a day','Meio dia'),()=>{A.h=5;proponer();}],['☀️ '+T('Todo el día','All day','O dia todo'),()=>{A.h=9;proponer();}]]);}
+function proponer(){
+ P.con=A.con;P.mov=A.mov;guardaP();
+ const pts=PASEOS.map(x=>{let s=0;x.tg.forEach(t=>{if((A.gan||[]).includes(t))s+=3;if(t===A.con)s+=2;});if(x.auto&&A.mov==='caminando')s-=6;if(x.h>A.h+2)s-=2;if(A.con==='mayores'&&x.p.some(i=>!L[i].acc))s-=1;if((A.gan||[]).includes('lluvia'))s+=x.tg.includes('lluvia')?6:-3;return [s,x];}).sort((a,b)=>b[0]-a[0]).slice(0,5).map(a=>a[1]);
+ hablar(T('¡Listo! Te armé 5 opciones. Elegí la que más te guste y yo te llevo paso a paso.','Done! Here are 5 options. Pick one and I will guide you step by step.','Pronto! Montei 5 opções. Escolha uma e eu te levo passo a passo.'),[['🔁 '+T('Empezar de nuevo','Start over','Recomeçar'),armar]]);
+ main.innerHTML=pts.map((x,i)=>`<div class="card"><h3>${i+1}. ${esc(x.e+' '+x.n)}</h3><p>${x.p.map(id=>esc(L[id].n)).join(' → ')}</p><p class="muted">🍽️ ${T('Para comer','To eat','Para comer')}: ${esc(x.comer)} · ⏱️ ~${x.h} h${x.auto?' · 🚗':''}</p>${A.con==='mayores'&&x.p.some(id=>!L[id].acc)?`<p class="muted">♿ ${T('Algún lugar tiene escaleras.','Some places have stairs.','Algum lugar tem escadas.')}</p>`:''}<div class="row"><button class="btn pri" data-p="${x.id}">▶️ ${T('Elegir este','Choose this','Escolher este')}</button></div></div>`).join('');
+ main.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>empezar(b.dataset.p));
+}
+// --- paseo en curso ---
+let PASEO_ACT=null,PASO=0,avisado={};
+try{const g=JSON.parse(localStorage.getItem('guiaPaseo')||'null');if(g){PASEO_ACT=PASEOS.find(x=>x.id===g.id)||null;PASO=g.paso||0;}}catch(e){}
+const guardaPaseo=()=>{try{localStorage.setItem('guiaPaseo',JSON.stringify(PASEO_ACT?{id:PASEO_ACT.id,paso:PASO}:null));}catch(e){}};
+function empezar(id){PASEO_ACT=PASEOS.find(x=>x.id===id);PASO=0;avisado={};guardaPaseo();seguir();gps(()=>verPaseo());}
+async function verPaseo(){
+ if(!PASEO_ACT)return inicio();const x=PASEO_ACT;
+ if(PASO>=x.p.length){hablar(T(`¡Terminamos el paseo! 🎉 Espero que lo hayas disfrutado. Para comer te recomiendo ${x.comer}.`,`Tour finished! 🎉 Hope you enjoyed it. To eat, try ${x.comer}.`,`Terminamos o passeio! 🎉 Para comer, recomendo ${x.comer}.`),[['🏠 '+T('Inicio','Home','Início'),()=>{PASEO_ACT=null;guardaPaseo();inicio();},true],['🍽️ '+T('¿Dónde como?','Where can I eat?','Onde eu como?'),comer]]);main.innerHTML='';return;}
+ const id=x.p[PASO],l=L[id],d=POS?dist(POS,l.ll):null;
+ main.innerHTML=`<div class="card"><h3>${esc(x.e+' '+x.n)}</h3>${x.p.map((p,i)=>`<div class="paso ${i<PASO?'hecho':i===PASO?'act':''}"><b class="n">${i<PASO?'✓':i+1}</b><div><b>${esc(L[p].n)}</b>${i===PASO&&d!=null?`<div class="muted">📍 ${T('Estás a','You are','Você está a')} ${fmtD(d)}</div>`:''}</div></div>`).join('')}</div>`;
+ const intro=d!=null&&d<120?T(`¡Llegamos a ${l.n}!`,`We are at ${l.n}!`,`Chegamos em ${l.n}!`):T(`Próxima parada: ${l.n}.`,`Next stop: ${l.n}.`,`Próxima parada: ${l.n}.`)+(d!=null?' '+T(`Estás a ${fmtD(d)}.`,`It is ${fmtD(d)} away.`,`Fica a ${fmtD(d)}.`):'');
+ hablar(intro+(d!=null&&d<120?' '+await tx(id):''),[
+  ['🧭 '+T('Cómo llego','Directions','Como chegar'),()=>window.open(mapa(id),'_blank','noopener'),true],
+  ['📖 '+T('Contame de este lugar','Tell me about it','Me conte sobre ele'),async()=>{hablar(await tx(id),opcPaseo());}],
+  ['✅ '+T('Ya estoy acá / Siguiente','I am here / Next','Já estou aqui / Próximo'),siguiente],
+  ['🏠 '+T('Salir del paseo','Leave tour','Sair do passeio'),()=>{PASEO_ACT=null;guardaPaseo();inicio();}],
+ ]);
+}
+const opcPaseo=()=>[['➡️ '+T('Siguiente parada','Next stop','Próxima parada'),siguiente,true],['🧭 '+T('Cómo llego','Directions','Como chegar'),()=>window.open(mapa(PASEO_ACT.p[PASO]),'_blank','noopener')],['🍽️ '+T('¿Dónde como?','Where can I eat?','Onde eu como?'),comer],['🔄 '+T('Cambiar el plan','Change plan','Mudar o plano'),armar],['🏠 '+T('Salir del paseo','Leave tour','Sair do passeio'),()=>{PASEO_ACT=null;guardaPaseo();inicio();}]];
+function siguiente(){PASO++;guardaPaseo();verPaseo();}
+function revisarCerca(){if(!PASEO_ACT||!POS)return;const id=PASEO_ACT.p[PASO];if(!id||avisado[id])return;if(dist(POS,L[id].ll)<90){avisado[id]=1;tx(id).then(t=>hablar(T(`¡Llegamos a ${L[id].n}! `,`We are at ${L[id].n}! `,`Chegamos em ${L[id].n}! `)+t,opcPaseo()));if(navigator.vibrate)navigator.vibrate(200);}}
+// --- cerca ---
+function cerca(){
+ hablar(T('Dejame ver dónde estás… 📍','Let me see where you are… 📍','Deixa eu ver onde você está… 📍'),[]);
+ gps(p=>{
+  if(!p){hablar(T('No pude ver tu ubicación. Fijate que el GPS esté prendido y que le diste permiso a la página.','I could not get your location. Check that GPS is on and the page has permission.','Não consegui ver sua localização. Verifique o GPS e a permissão.'),[['🔁 '+T('Probar de nuevo','Try again','Tentar de novo'),cerca,true],['🏠 '+T('Inicio','Home','Início'),inicio]]);return;}
+  const lista=Object.keys(L).map(id=>[dist(p,L[id].ll),id]).sort((a,b)=>a[0]-b[0]).slice(0,5);
+  if(!enCiudad()){hablar(T(`Parece que no estás en ${CIUDAD} todavía. Cuando llegues, te cuento todo lo que tenés cerca. Mientras, podés armar tu paseo.`,`Looks like you are not in ${CIUDAD} yet. When you arrive I will show you what is nearby.`,`Parece que você ainda não está em ${CIUDAD}.`),[['🗺️ '+T('Armar un paseo','Plan a tour','Montar um passeio'),armar,true],['🏠 '+T('Inicio','Home','Início'),inicio]]);main.innerHTML='';return;}
+  const [d0,id0]=lista[0];
+  hablar(T(`Estás cerca de ${L[id0].n}, a ${fmtD(d0)}. Mirá lo que tenés alrededor 👇`,`You are near ${L[id0].n}, ${fmtD(d0)} away. Here is what is around 👇`,`Você está perto de ${L[id0].n}, a ${fmtD(d0)}. Veja o que tem por perto 👇`),[['🍽️ '+T('¿Dónde como?','Where can I eat?','Onde eu como?'),comer],['🏠 '+T('Inicio','Home','Início'),inicio]]);
+  main.innerHTML=lista.map(([d,id])=>`<div class="card"><h3>${esc(L[id].n)}</h3><p class="muted">📍 ${fmtD(d)}</p><div class="row"><button class="btn" data-c="${id}">📖 ${T('Contame','Tell me','Me conte')}</button><a class="btn pri" href="${mapa(id)}" target="_blank" rel="noopener">🧭 ${T('Cómo llego','Directions','Como chegar')}</a></div></div>`).join('');
+  main.querySelectorAll('[data-c]').forEach(b=>b.onclick=async()=>hablar(await tx(b.dataset.c),[['📍 '+T('Ver lo que hay cerca','What is nearby','O que tem perto'),cerca],['🏠 '+T('Inicio','Home','Início'),inicio]]));
+ });
+}
+// --- comer ---
+function comer(){
+ const q=c=>'https://www.google.com/maps/search/'+encodeURIComponent(c)+(POS?'/@'+POS[0]+','+POS[1]+',16z':'');
+ hablar(T('¿Qué tenés ganas de comer? Te abro Google Maps con los lugares abiertos más cerca.','What do you feel like eating? I will open Google Maps with the closest open places.','O que você quer comer? Vou abrir o Google Maps com os lugares mais perto.'),[['🏠 '+T('Inicio','Home','Início'),inicio]]);
+ const C=[['☕','café y medialunas','Café'],['🐟','pescados y mariscos','Peixe'],['🍕','pizzería','Pizza'],['🥩','parrilla','Churrascaria'],['🍦','heladería','Sorvete'],['🌱','comida vegetariana sin TACC','Vegetariano']];
+ main.innerHTML=`<div class="card"><h3>🍽️ ${T('Dónde comer cerca','Where to eat nearby','Onde comer perto')}</h3><div class="row">${C.map(([e,es])=>`<a class="btn" target="_blank" rel="noopener" href="${q(es+' cerca')}">${e} ${esc(es)}</a>`).join('')}</div><p class="muted">💡 ${T('Probá algo típico: rabas en el Puerto, alfajores marplatenses y churros en la costa.','Try something local: fried squid (rabas) at the harbor, local alfajores and churros.','Prove algo típico: lulas fritas (rabas) no porto, alfajores e churros.')}</p>${P.dieta?`<p class="muted">⚠️ ${T('Recordá avisar al mozo','Remember to tell the waiter','Lembre de avisar o garçom')}: ${esc(P.dieta)}</p>`:''}</div>`;
+}
+// --- cuida ---
+function cuida(){
+ hablar(T('Te dejo lo importante para que la pases bien y seguro 🛡️','Here is what matters to stay safe 🛡️','Aqui está o importante para você ficar seguro 🛡️'),[['🏠 '+T('Inicio','Home','Início'),inicio]]);
+ const it=[
+  ['☀️',T('Sol','Sun','Sol'),T('Entre las 11 y las 16 el sol pega fuerte. Protector, gorra y mucha agua, sobre todo los chicos y las personas mayores.','From 11am to 4pm the sun is strong. Sunscreen, hat and plenty of water.','Das 11h às 16h o sol é forte. Protetor, boné e muita água.')],
+  ['🚩',T('Banderas en la playa','Beach flags','Bandeiras na praia'),T('Roja: no se puede entrar al agua. Amarilla: precaución. Bañate siempre donde haya guardavidas.','Red: no swimming. Yellow: caution. Always swim where there is a lifeguard.','Vermelha: proibido entrar na água. Amarela: cuidado. Nade onde houver salva-vidas.')],
+  ['🚰',T('Agua','Water','Água'),T('El agua de la red de la ciudad es potable. Igual, llevá siempre una botellita encima.','City tap water is drinkable. Still, always carry a bottle.','A água da torneira da cidade é potável. Leve sempre uma garrafinha.')],
+  ['👧',T('Chicos en la playa','Kids at the beach','Crianças na praia'),T('Acordá un punto de encuentro, por ejemplo la casilla del guardavidas. Con ShopVida le ponés un QR de emergencia a cada chico.','Agree on a meeting point, like the lifeguard tower. With ShopVida each kid can wear an emergency QR.','Combine um ponto de encontro. Com o ShopVida cada criança leva um QR de emergência.'),'/vida'],
+  ['🆘',T('Emergencias','Emergencies','Emergências'),T('Policía 911 · Ambulancia 107 · Bomberos 100.','Police 911 · Ambulance 107 · Fire 100.','Polícia 911 · Ambulância 107 · Bombeiros 100.')],
+  ['🌬️',T('Clima','Weather','Clima'),T('En la costa refresca rápido a la tarde y hay viento. Llevá un abrigo liviano aunque haga calor.','It cools down fast in the evening and it gets windy. Bring a light jacket.','Esfria rápido à tarde e venta. Leve um casaco leve.')],
+ ];
+ main.innerHTML=it.map(([e,t,d,u])=>`<div class="card"><h3>${e} ${esc(t)}</h3><p>${esc(d)}</p>${u?`<a class="btn" href="${u}" target="_blank" rel="noopener">${T('Ver ShopVida','See ShopVida','Ver ShopVida')}</a>`:''}${e==='🆘'?`<div class="row"><a class="btn pri" href="tel:911">📞 911</a><a class="btn pri" href="tel:107">🚑 107</a></div>`:''}</div>`).join('')+`<p class="muted">${T('Son consejos generales. Ante cualquier problema de salud, consultá a un médico.','General advice only. For any health issue, see a doctor.','Conselhos gerais. Em caso de problema de saúde, procure um médico.')}</p>`;
+}
+// --- perfil ---
+function perfil(){
+ hablar(T('Contame un poco de vos y te recomiendo mejor. Queda guardado solo en tu celular.','Tell me a bit about you so I can recommend better. It stays only on your phone.','Me conte um pouco sobre você. Fica salvo só no seu celular.'),[['🏠 '+T('Inicio','Home','Início'),inicio]]);
+ main.innerHTML=`<div class="card"><h3>🧳 ${T('Mis datos de viaje','My travel info','Meus dados de viagem')}</h3><p class="muted">${T('Alergias o dieta (ej: celíaco, vegetariano, alergia al maní)','Allergies or diet (e.g. celiac, vegetarian, peanut allergy)','Alergias ou dieta (ex: celíaco, vegetariano)')}</p><input id="pDieta" style="width:100%;border:2px solid #ffb5e6;border-radius:12px;padding:10px;font-size:15px" value="${esc(P.dieta||'')}"><div class="row"><button class="btn pri" id="pOk">💾 ${T('Guardar','Save','Salvar')}</button></div></div>`;
+ $('#pOk').onclick=()=>{P.dieta=$('#pDieta').value.trim().slice(0,120);guardaP();hablar(T('¡Listo! Lo voy a tener en cuenta en cada recomendación.','Done! I will keep it in mind.','Pronto! Vou levar isso em conta.'),[['🏠 '+T('Inicio','Home','Início'),inicio,true]]);};
+}
+// --- preguntas libres ---
+let HIST=[];
+async function preguntar(q){
+ q=String(q||'').trim();if(!q)return;$('#txt').value='';
+ hablar('🤔 '+T('Dejame pensar…','Let me think…','Deixa eu pensar…'),[]);
+ const cercanos=POS?Object.keys(L).map(id=>[dist(POS,L[id].ll),L[id].n]).sort((a,b)=>a[0]-b[0]).slice(0,5).map(a=>a[1]+' ('+fmtD(a[0])+')'):[];
+ try{const r=await fetch('/api/guia?accion=preguntar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q,lang:LANG,ciudad:CIUDAD,cerca:cercanos,hist:HIST,perfil:P})});const j=await r.json();if(!r.ok)throw new Error(j.error||'');
+  HIST=HIST.concat([{role:'user',content:q},{role:'assistant',content:j.texto}]).slice(-6);hablar(j.texto,PASEO_ACT?opcPaseo():[['🗺️ '+T('Armame un paseo','Plan a tour','Monte um passeio'),armar],['🏠 '+T('Inicio','Home','Início'),inicio]]);}
+ catch(e){hablar(e.message||T('Uy, se me cortó la señal. Probá de nuevo o usá los botones, que andan igual.','Oops, connection problem. Try again or use the buttons.','Ops, problema de conexão. Tente de novo.'),[['🏠 '+T('Inicio','Home','Início'),inicio]]);}
+}
+$('#txt').addEventListener('keydown',e=>{if(e.key==='Enter')preguntar(e.target.value);});
+// micrófono
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null;
+$('#bMic').onclick=()=>{despertar();if(!SR){hablar(T('Tu navegador no me deja escucharte. Escribime abajo 👇','Your browser cannot use the mic. Type below 👇','Seu navegador não permite o microfone. Escreva abaixo 👇'),[]);return;}
+ if(rec){rec.stop();return;}try{speechSynthesis.cancel();}catch(e){}
+ rec=new SR();rec.lang=LANG==='en'?'en-US':LANG==='pt'?'pt-BR':'es-AR';rec.interimResults=false;$('#bMic').classList.add('on');
+ rec.onresult=e=>{const t=e.results[0][0].transcript;$('#txt').value=t;preguntar(t);};rec.onend=()=>{$('#bMic').classList.remove('on');rec=null;};rec.onerror=()=>{};rec.start();};
+// foto "¿qué es esto?"
+$('#bFoto').onclick=()=>{despertar();$('#fFoto').click();};
+$('#fFoto').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+ hablar('📷 '+T('Mirando la foto…','Looking at the photo…','Olhando a foto…'),[]);
+ try{const img=await new Promise((ok,ko)=>{const i=new Image();i.onload=()=>{const k=Math.min(1,1100/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.8));};i.onerror=ko;i.src=URL.createObjectURL(f);});
+  const r=await fetch('/api/guia?accion=foto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({img,lang:LANG,perfil:P})});const j=await r.json();if(!r.ok)throw new Error(j.error||'');
+  hablar(j.texto,[['📷 '+T('Otra foto','Another photo','Outra foto'),()=>$('#fFoto').click()],['🏠 '+T('Inicio','Home','Início'),inicio]]);}
+ catch(err){hablar(err.message||T('No pude ver la foto. Probá de nuevo.','I could not read the photo. Try again.','Não consegui ver a foto.'),[['🏠 '+T('Inicio','Home','Início'),inicio]]);}};
+// idioma y voz
+$('#lang').value=LANG;$('#lang').onchange=e=>{LANG=e.target.value;try{localStorage.setItem('guiaLang',LANG);}catch(er){}location.reload();};
+const pintaVoz=()=>{$('#bVoz').textContent=VOZ?'🔊':'🔇';};pintaVoz();
+$('#bVoz').onclick=()=>{VOZ=!VOZ;try{localStorage.setItem('guiaVoz',VOZ?'1':'0');}catch(e){}if(!VOZ)try{speechSynthesis.cancel();}catch(e){}pintaVoz();};
+$('#txt').placeholder=T('Preguntale a Flashy…','Ask Flashy…','Pergunte à Flashy…');document.documentElement.lang=LANG;
+// pantalla prendida durante el paseo (si el celular lo permite)
+let WL=null;async function despierta(){try{if('wakeLock' in navigator&&PASEO_ACT)WL=await navigator.wakeLock.request('screen');}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')despierta();});
+if(PASEO_ACT){seguir();verPaseo();despierta();}else inicio();
+</script></body></html>

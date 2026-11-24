@@ -94,6 +94,9 @@
     },
     "api/menu.js": {
       "maxDuration": 60
+    },
+    "api/guia.js": {
+      "maxDuration": 30
     }
   },
   "crons": [
@@ -126,6 +129,11 @@
     {
       "source": "/muestra-mesa",
       "destination": "/menu?m=demopublico&mesa=1",
+      "permanent": false
+    },
+    {
+      "source": "/guia",
+      "destination": "/guia.html",
       "permanent": false
     },
     {
