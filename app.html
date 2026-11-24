@@ -30,7 +30,9 @@
   const CFG = window.VITRINA_CFG || {};
   const path = location.pathname.replace(/\/+$/, '') || '/';
   const slugM = path.match(/^\/t\/([a-z0-9-]{3,40})$/);
-  const isPanel = path === '/panel';
+  const isPanel = path === '/panel' || path === '/shoprevista';
+  if(path === '/panel'){ try{ if(localStorage.getItem('v360-ir-rev') === '1'){ localStorage.removeItem('v360-ir-rev'); location.replace('/shoprevista' + location.search + location.hash); } }catch(e){} }
+  if(path === '/shoprevista'){ window.MODO_REV = true; document.title = 'ShopRevista'; }
   const SKEY = 'v360-sesion';
   const PLAN_LIM = {parquero: {vitrinas: 10, tiendas: 1, productos: 30, fotos: 5, videos: 10}, parquero_plus: {vitrinas: 20, tiendas: 1, productos: 30, fotos: 8, videos: 30}, emprendedora: {vitrinas: 10, tiendas: 1, productos: 30, fotos: 5, videos: 10}, comercio: {vitrinas: 20, tiendas: 1, productos: 30, fotos: 8, videos: 30}, pro: {vitrinas: 20, tiendas: 4, productos: 30, fotos: 8, videos: 60}};
   const limitsFor = row => { const now = Date.now(), pag = Date.parse(row.pagada_hasta || '') || 0, pru = Date.parse(row.prueba_hasta || '') || 0; return pag > now ? (PLAN_LIM[row.plan] || PLAN_LIM.emprendedora) : pru > now ? PLAN_LIM.pro : (PLAN_LIM[row.plan] || PLAN_LIM.emprendedora); };
@@ -155,6 +157,7 @@
       if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ m.className = 'msg err'; m.textContent = T('Revisá el mail, parece incompleto.', 'Check the email, it looks incomplete.', 'Confira o e-mail, parece incompleto.'); return; }
       b.disabled = true; m.className = 'msg'; m.textContent = T('Enviando…', 'Sending…', 'Enviando…');
       try{
+        try{ if(window.MODO_REV) localStorage.setItem('v360-ir-rev', '1'); else localStorage.removeItem('v360-ir-rev'); }catch(e){}
         await api('POST', '/auth/v1/otp?redirect_to=' + encodeURIComponent(location.origin + '/panel'), {body: {email, create_user: true}});
         m.textContent = T(`Listo. Te mandamos un mail a ${email}. Tocá el botón del mail, o escribí acá abajo el código que viene adentro. Si no llega en unos minutos, mirá en Spam.`, `Done. We sent an email to ${email}. Tap the button in it, or type the code below. If it doesn't arrive, check Spam.`, `Pronto. Enviamos um e-mail para ${email}. Toque no botão, ou digite o código abaixo. Se não chegar, veja o Spam.`);
         sentTo = email; o.querySelector('#v3codebox').style.display = 'grid'; b.disabled = false; b.textContent = T('Mandarme otro mail', 'Send another email', 'Enviar outro e-mail'); setTimeout(() => o.querySelector('#v3code').focus(), 50);
@@ -2269,6 +2272,17 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
 .sitem,.mini,.shop,.ordcard{animation:rise .45s cubic-bezier(.2,.8,.2,1) both}
 @media (prefers-reduced-motion:reduce){.sitem,.mini,.shop,.ordcard{animation:none}.btn{transition:none}}
 @media (prefers-color-scheme: dark) and (max-width: 1px){header h1,#brandName{background:linear-gradient(120deg,#fff 30%,color-mix(in srgb,var(--accent) 70%,#fff))}}
+body.modo-rev #homegrid, body.modo-rev .hometools .scope, body.modo-rev #ballBtn, body.modo-rev .homesize, body.modo-rev #editBtn, body.modo-rev #freeReset, body.modo-rev .qflyer, body.modo-rev #stage, body.modo-rev #viewTog, body.modo-rev #flyerView, body.modo-rev #holoBox, body.modo-rev #sectorBtn, body.modo-rev #guiaCartel, body.modo-rev #fixTools, body.modo-rev #hideCat, body.modo-rev #catStrip{display:none !important}
+.revbox{display:grid;gap:14px}
+.revbox h2{margin:0}
+.revbox .rvsec{display:grid;gap:8px}
+.revbox .rvgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.revbox .rvp{display:grid;gap:4px;padding:6px;border:1px solid var(--line);border-radius:12px;background:var(--surface);text-align:left;cursor:pointer;font:inherit;color:inherit}
+.revbox .rvp img{width:100%;aspect-ratio:1;object-fit:contain;border-radius:8px;background:#fff}
+.revbox .rvp b{font-size:13px;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.revbox .rvp span{font-size:13px;font-weight:800;color:var(--accent)}
+.revbox .rvchips{display:flex;gap:6px;flex-wrap:wrap}
+.revbox .rvchips button[aria-pressed="true"]{outline:3px solid var(--accent)}
 </style>
 
 <div class="clientbar" id="clientBar" hidden>
@@ -2637,6 +2651,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
   </section>
 
   <section id="homeView" aria-label="Todas las vitrinas">
+    <section class="panel revbox" id="rvBox" hidden aria-label="Tu revista"></section>
     <div class="hometools">
       <span class="scope" role="group" aria-label="Forma de mostrar las vitrinas">
         <button type="button" id="layoutGrid" aria-pressed="true">▦ Grilla</button>
@@ -3469,6 +3484,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
   }, true);
   function renderHome(){
     try{ aplicarLetra(); }catch(e){}
+    try{ renderRevBox(); }catch(e){}
     const cp = capProds(), full = isFinite(cp) ? cats.filter(c => products.filter(p => p.cat === c.id).length > cp) : [];
     const wn = $('waNote'); if(wn) wn.hidden = PUBLIC || clientMode || !!String(brand.wa || '').replace(/\D/g, '');
     const ln = $('limitNote');
@@ -4758,7 +4774,54 @@ ${JSON.stringify(datos)}`);
     $('mejAuto').onchange = e => { brand.autoMejorar = e.target.checked; if(!brand.autoMejorar) delete brand.autoMejorar; save(); };
     bar.querySelectorAll('[data-letra]').forEach(b => b.onclick = () => { if(b.dataset.letra) brand.font = b.dataset.letra; else delete brand.font; save(); aplicarLetra(); bar.querySelectorAll('[data-letra]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); });
   }
-  try{ aplicarLetra(); }catch(e){}
+
+  // ---------- ShopRevista: el panel simple, solo revista (sin vitrinas a la vista) ----------
+  const REV_FONDOS = [['blanco','⬜ Blanco'],['plateado','🩶 Plateado'],['dorado','🟨 Dorado'],['metal','⚙️ Metal'],['pastel','🌸 Pastel'],['kraft','📦 Kraft'],['oferta','🔴 Oferta'],['negro','⬛ Negro']];
+  const REV_FX = [['brillo','✨ Brillo'],['colores','🌈 Colores'],['navidad','🎄 Luces de Navidad']];
+  const REV_MUS = [['alegre','🎶 Alegre'],['tranquila','🌙 Tranquila'],['navidad','🔔 Navideña'],['no','🔇 Sin música']];
+  function revSlug(){ return (window.VITRINA_ME && window.VITRINA_ME.slug) || window.VITRINA_SLUG || ''; }
+  function revModo(){
+    if(PUBLIC || clientMode) return false;
+    if(window.MODO_REV){
+      document.body.classList.add('modo-rev');
+      if(brand.layout !== 'revista' || brand.app !== 'revista'){ brand.layout = 'revista'; brand.app = 'revista'; setTimeout(save, 0); }
+      return true;
+    }
+    if(brand.app === 'revista' && location.pathname.replace(/\/+$/, '') === '/panel'){ location.replace('/shoprevista'); return false; }
+    return false;
+  }
+  function renderRevBox(){
+    const box = $('rvBox'); if(!box) return;
+    if(!revModo()){ box.hidden = true; return; }
+    box.hidden = false;
+    if($('quickPanel') && !box.dataset.abierto){ box.dataset.abierto = '1'; $('quickPanel').hidden = false; }
+    if($('back')) $('back').textContent = '← Mi revista';
+    const sl = revSlug(), url = sl ? 'https://www.vitrina360app.com.ar/r/' + sl : '';
+    const chips = (lista, val, key) => `<div class="rvchips">${lista.map(([k, n]) => `<button type="button" class="btn" data-rv="${key}" data-val="${k}" aria-pressed="${val === k}">${n}</button>`).join('')}</div>`;
+    const reales = products.filter(p => !p.sample);
+    const secs = cats.map(c => ({c, ps: products.filter(p => p.cat === c.id)})).filter(x => x.ps.length);
+    box.innerHTML = `<div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <h2>📖 Tu revista <small class="note" style="font-weight:600">${reales.length} producto${reales.length === 1 ? '' : 's'}</small></h2>
+        ${url ? `<span class="row" style="gap:6px;flex-wrap:wrap"><a class="btn primary" href="${url}" target="_blank" rel="noopener">👀 Ver mi revista</a><button type="button" class="btn" id="rvCopy">🔗 Copiar link</button><a class="btn" href="https://wa.me/?text=${encodeURIComponent('Mirá nuestra revista de ofertas 👉 ' + url)}" target="_blank" rel="noopener">📲 Compartir</a></span>` : ''}
+      </div>
+      <p class="note" style="margin:0">Subí las fotos con la <b>Carga rápida</b> de abajo: la IA reconoce cada producto, le pone nombre y lo ordena en su sección. Cada sección es una parte de la revista, con su botón en la tapa.</p>
+      <details><summary style="cursor:pointer;font-weight:800">🎨 Cómo se ve tu revista</summary>
+        <div style="display:grid;gap:10px;margin-top:10px">
+          <div><strong>Fondo</strong>${chips(REV_FONDOS, brand.revBg || brand.flyerBg || 'blanco', 'revBg')}</div>
+          <div><strong>Destellos</strong>${chips(REV_FX, brand.revFx || 'brillo', 'revFx')}</div>
+          <div><strong>Música</strong>${chips(REV_MUS, brand.revMusica || 'alegre', 'revMusica')}</div>
+          <label for="rvBanda"><strong>Banda de ofertas de arriba</strong> <small>Si la dejás vacía, muestra solos tus productos destacados ⭐</small>
+            <input type="text" id="rvBanda" maxlength="160" value="${esc(brand.revBanda || '')}" placeholder="Ej: 🔥 Todo con 20% OFF este fin de semana"></label>
+          <p class="note" style="margin:0">La letra y el ✨ mejorar productos están en el botón <b>✨ Mejorar con IA</b>.</p>
+        </div></details>
+      ${secs.length ? secs.map(({c, ps}) => `<div class="rvsec"><strong>${esc(c.name)} <small class="note">${ps.length}</small></strong><div class="rvgrid">${ps.map(p => `<button type="button" class="rvp" data-rvp="${esc(p.id)}">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy">` : ''}<b>${esc(p.name || 'Sin nombre')}</b><span>${esc(p.price || 'Sin precio')}</span></button>`).join('')}</div></div>`).join('') : '<p class="note" style="margin:0">Todavía no hay productos. Empezá subiendo fotos 👇</p>'}`;
+    const det = box.querySelector('details'); if(box.dataset.det === '1') det.open = true; det.querySelector('summary').onclick = e => { e.preventDefault(); box.dataset.det = det.open ? '' : '1'; det.open = !det.open; };
+    box.querySelectorAll('[data-rv]').forEach(b => b.onclick = () => { brand[b.dataset.rv] = b.dataset.val; save(); renderRevBox(); });
+    const bi = $('rvBanda'); if(bi) bi.onchange = () => { const v = bi.value.trim(); if(v) brand.revBanda = v; else delete brand.revBanda; save(); };
+    const cp = $('rvCopy'); if(cp) cp.onclick = async () => { try{ await navigator.clipboard.writeText(url); cp.textContent = '✔ Copiado'; }catch(e){ prompt('Copiá el link:', url); } };
+    box.querySelectorAll('[data-rvp]').forEach(b => b.onclick = () => { const p = products.find(x => String(x.id) === b.dataset.rvp); if(!p) return; openCat(p.cat); setTimeout(() => { try{ startEdit(p); $('formPanel').scrollIntoView({behavior: 'smooth', block: 'start'}); }catch(e){} }, 120); });
+  }
+  try{ aplicarLetra(); renderRevBox(); }catch(e){}
   if($('mejBtn')) $('mejBtn').onclick = () => { const open = $('mejBar').hidden; $('mejBar').hidden = !open; $('mejBtn').setAttribute('aria-expanded', String(open)); if(open) renderMejBar(); };
   if($('mejUno')) $('mejUno').onclick = async () => {
     const m = $('mejUnoMsg'), b = $('mejUno');
