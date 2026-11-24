@@ -127,7 +127,8 @@ footer{text-align:center;color:#7a5470;padding:26px 0 40px;font-size:14px}
   <section class="plan" id="plan">
     <div style="font-size:34px">⚡</div>
     <h2 style="margin:0">Flashy, tu asistente de compras en el mundo</h2>
-    <p style="margin:6px 0 0;color:#5a4060">Estás en la versión de prueba gratis.</p>
+    <p style="margin:6px 0 0;color:#5a4060" id="planEst">Tienes <b>3 búsquedas gratis por día</b>. Con la suscripción, todas las que quieras por <b>US$ 4 por mes</b>.</p>
+    <p style="margin:10px 0"><button type="button" class="ir" id="bSus" style="border:0;border-radius:14px;padding:12px 18px;font:800 16px system-ui;background:#15803d;color:#fff;cursor:pointer">⚡ Suscribirme · US$ 4 por mes</button> <button type="button" id="bTengo" style="border:2px solid #bbf7d0;background:#fff;border-radius:14px;padding:10px 14px;font:700 14px system-ui;cursor:pointer">🔑 Ya tengo mi código</button></p>
     <ul>
       <li>🔎 Busca lo que quieras en todas las tiendas a la vez, en su idioma</li>
       <li>🏆 Te dice qué tienda te conviene desde tu país</li>
@@ -139,6 +140,30 @@ footer{text-align:center;color:#7a5470;padding:26px 0 40px;font-size:14px}
   </section>
 </main>
 <footer>ShopRevista Mundial · <a href="/provideo" target="_blank" rel="noopener">Pro Video JSRHG</a><br><small>🌉 Somos el puente: te ayudamos a encontrar. No somos parte de ninguna de estas tiendas, fábricas ni agencias, no vendemos ni cobramos productos y no hacemos trámites de importación. La compra y todo lo que sigue lo haces tú, directo con ellos.</small></footer>
+
+<div id="pago" hidden style="position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:60;display:flex;align-items:flex-end;justify-content:center">
+ <div style="background:#fff;width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px 18px 26px;box-shadow:0 -10px 40px rgba(0,0,0,.2)">
+  <div style="display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:19px">⚡ Suscripción ShopRevista Mundial</b><button type="button" id="pCerrar" aria-label="Cerrar" style="border:0;background:#f1f5f9;border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer">✕</button></div>
+  <p style="margin:6px 0 10px;color:#166534;font-weight:700">US$ 4 por mes · búsquedas ilimitadas, ideas de negocio y la ayuda de Flashy.</p>
+  <div style="padding:10px 12px;border:2px solid #bfdbfe;background:#eff6ff;border-radius:14px;color:#1e3a8a;font-size:14px">🌉 <b>Somos el puente:</b> la suscripción paga el buscador, el directorio y la ayuda de Flashy para <b>encontrar</b>. No incluye productos, envíos ni trámites: eso lo haces tú con la tienda o la fábrica.</div>
+  <div id="pPaso1">
+   <label style="display:block;margin:12px 0 4px;font-weight:700">Tu nombre de usuario</label>
+   <input id="pNom" maxlength="60" placeholder="Ej: roberto_mdq" style="width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:12px;font:16px system-ui">
+   <div style="margin:12px 0 6px;font-weight:700">Elige cómo pagar</div>
+   <div style="display:grid;gap:8px">
+    <button type="button" class="pm" data-m="mp">🇦🇷 <b>Mercado Pago</b> <small>Argentina y Latinoamérica · se cobra solo cada mes</small></button>
+    <button type="button" class="pm" data-m="paypal">🅿️ <b>PayPal</b> <small>todo el mundo, con tarjeta</small></button>
+    <button type="button" class="pm" data-m="astropay">💳 <b>AstroPay</b> <small>tarjeta y billetera virtual</small></button>
+    <button type="button" class="pm" data-m="binance">🪙 <b>Binance</b> <small>criptomonedas (USDT)</small></button>
+   </div>
+   <div id="pMail" hidden style="margin-top:10px"><label style="display:block;margin:0 0 4px;font-weight:700">Mail de tu cuenta de Mercado Pago</label><input id="pEmail" type="email" placeholder="tu@mail.com" style="width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:12px;font:16px system-ui"><button type="button" id="pIrMP" style="margin-top:8px;width:100%;border:0;border-radius:12px;padding:13px;background:#009ee3;color:#fff;font:800 16px system-ui;cursor:pointer">Ir a pagar con Mercado Pago</button></div>
+  </div>
+  <div id="pPaso2" hidden></div>
+  <div id="pMsg" style="margin-top:8px;color:#b91c1c;font-weight:700"></div>
+  <details style="margin-top:12px"><summary style="cursor:pointer;font-weight:700">🔑 Ya tengo mi código</summary><div style="display:flex;gap:6px;margin-top:8px"><input id="pCod" maxlength="8" placeholder="Tu código" style="flex:1;padding:12px;border:2px solid #e2e8f0;border-radius:12px;font:700 16px system-ui;text-transform:uppercase"><button type="button" id="pEntrar" style="border:0;border-radius:12px;padding:0 16px;background:#15803d;color:#fff;font:800 15px system-ui;cursor:pointer">Entrar</button></div></details>
+ </div>
+</div>
+<style>.pm{display:block;text-align:left;width:100%;border:2px solid #e2e8f0;background:#fff;border-radius:14px;padding:12px 14px;font:16px system-ui;cursor:pointer}.pm small{display:block;color:#64748b;font-size:13px}.pm:hover,.pm.sel{border-color:#15803d;background:#f0fdf4}#pago[hidden]{display:none!important}</style>
 <div id="flaFix" title="Flashy te ayuda"></div>
 <script>
 const $ = id => document.getElementById(id);
@@ -484,6 +509,61 @@ document.addEventListener('visibilitychange', () => {
   decir('¡Volviste! 😊 ¿Encontraste lo que buscabas?');
   seguir([['✅ Sí, gracias', () => decir('¡Qué bueno! 🎉 Cuando quieras buscar otra cosa, aquí estoy.')], ['🔁 Ver otras tiendas', () => $('res').scrollIntoView({behavior: 'smooth'})], ['🏭 Buscar fábricas', () => irModo('importa', ULT || $('q').value)], ['🔎 Otra cosa', otraCosa]]);
 });
+
+// ================= SUSCRIPCIÓN =================
+const WA = '5492235814437', GRATIS = 3, NOMBRE_M = {mp:'Mercado Pago', paypal:'PayPal', astropay:'AstroPay', binance:'Binance (USDT)'};
+let ACTIVO = false, COD = localStorage.getItem('mundo-cod') || '';
+const hoy = () => new Date().toISOString().slice(0, 10);
+function usos(){ try{ const u = JSON.parse(localStorage.getItem('mundo-uso') || '{}'); return u.d === hoy() ? u.n : 0; }catch(e){ return 0; } }
+function usar(){ localStorage.setItem('mundo-uso', JSON.stringify({d: hoy(), n: usos() + 1})); }
+function puede(){ if(ACTIVO) return true; if(usos() < GRATIS){ usar(); return true; } abrirPago(); decir(`Ya usaste tus <b>${GRATIS} búsquedas gratis</b> de hoy 😊 Con la suscripción de <b>US$ 4 por mes</b> buscas todo lo que quieras, en todas las tiendas y fábricas del mundo. Mañana tienes ${GRATIS} gratis otra vez.`); return false; }
+function planEst(r){ if(ACTIVO){ $('planEst').innerHTML = `✅ Suscripción activa${r && r.nombre ? ' de <b>' + esc(r.nombre) + '</b>' : ''}${r && r.hasta ? ' hasta el ' + new Date(r.hasta).toLocaleDateString() : ''}. ¡Busca todo lo que quieras!`; $('bSus').hidden = $('bTengo').hidden = true; } }
+async function verCod(c, avisar){
+  try{ const r = await fetch('/api/mundial?codigo=' + encodeURIComponent(c)); const j = await r.json();
+    if(!r.ok){ if(avisar) $('pMsg').textContent = j.error || 'No encontramos ese código.'; return; }
+    COD = c; localStorage.setItem('mundo-cod', c); ACTIVO = j.activo; planEst(j);
+    if(avisar){ if(j.activo){ $('pago').hidden = true; decir(`🎉 ¡Listo${j.nombre ? ', ' + esc(j.nombre) : ''}! Tu suscripción está activa. Ahora busca todo lo que quieras.`); } else $('pMsg').textContent = j.estado === 'vencida' ? 'Tu suscripción venció. Renuévala para seguir.' : 'Tu código todavía no está activo: en cuanto confirmemos el pago queda habilitado.'; }
+  }catch(e){ if(avisar) $('pMsg').textContent = 'Sin conexión. Prueba de nuevo.'; }
+}
+function abrirPago(){ $('pago').hidden = false; $('pPaso1').hidden = false; $('pPaso2').hidden = true; $('pMsg').textContent = ''; if(LANG !== 'es') traducir($('pago')); }
+$('bSus').onclick = abrirPago; $('bTengo').onclick = () => { abrirPago(); $('pago').querySelector('details').open = true; $('pCod').focus(); };
+$('pCerrar').onclick = () => { $('pago').hidden = true; };
+$('pago').addEventListener('click', e => { if(e.target.id === 'pago') $('pago').hidden = true; });
+$('pEntrar').onclick = () => { const c = $('pCod').value.trim().toUpperCase(); if(c.length === 8) verCod(c, true); else $('pMsg').textContent = 'El código tiene 8 letras y números.'; };
+async function pedir(metodo){
+  const nombre = $('pNom').value.trim(); if(!nombre){ $('pMsg').textContent = 'Primero escribe tu nombre de usuario.'; $('pNom').focus(); return; }
+  $('pMsg').textContent = '';
+  const body = {metodo, nombre}; if(metodo === 'mp') body.email = $('pEmail').value.trim();
+  try{
+    const r = await fetch('/api/mundial?accion=suscribir', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)}); const j = await r.json();
+    if(!r.ok){ $('pMsg').textContent = j.error || 'No se pudo. Prueba de nuevo.'; return; }
+    localStorage.setItem('mundo-cod', j.codigo); COD = j.codigo;
+    if(j.url){ location.href = j.url; return; }
+    const txt = `¡Hola! Quiero suscribirme a ShopRevista Mundial (US$ 4 por mes). Usuario: ${nombre}. Código: ${j.codigo}. Quiero pagar con ${NOMBRE_M[metodo]}.`;
+    $('pPaso1').hidden = true; $('pPaso2').hidden = false;
+    $('pPaso2').innerHTML = `<div style="margin-top:12px;padding:14px;border:2px solid #bbf7d0;background:#f0fdf4;border-radius:14px"><div>Tu código de acceso es:</div><div style="font:900 30px ui-monospace,monospace;letter-spacing:3px;color:#166534;margin:4px 0">${j.codigo}</div><div style="font-size:14px">Guárdalo: con este código entras desde cualquier celular o computadora.</div></div>
+      <ol style="padding-left:20px;line-height:1.5"><li>Toca el botón verde y mándanos el WhatsApp: te pasamos los datos para pagar con <b>${NOMBRE_M[metodo]}</b>.</li><li>Pagas US$ 4 (o US$ 40 por un año).</li><li>Apenas confirmamos el pago, tu código queda <b>habilitado</b> y ya puedes buscar todo lo que quieras.</li></ol>
+      <a href="https://wa.me/${WA}?text=${E(txt)}" target="_blank" rel="noopener" style="display:block;text-align:center;border-radius:14px;padding:14px;background:#25d366;color:#fff;font:800 17px system-ui;text-decoration:none">💬 Mandar WhatsApp para pagar</a>`;
+    if(LANG !== 'es') traducir($('pPaso2'));
+  }catch(e){ $('pMsg').textContent = 'Sin conexión. Prueba de nuevo.'; }
+}
+document.querySelectorAll('.pm').forEach(b => b.onclick = () => { document.querySelectorAll('.pm').forEach(x => x.classList.toggle('sel', x === b)); if(b.dataset.m === 'mp'){ $('pMail').hidden = false; $('pEmail').focus(); } else { $('pMail').hidden = true; pedir(b.dataset.m); } });
+$('pIrMP').onclick = () => pedir('mp');
+(() => { const u = new URLSearchParams(location.search), c = (u.get('codigo') || '').toUpperCase(); if(c.length === 8){ localStorage.setItem('mundo-cod', c); COD = c; if(u.get('pagado')) setTimeout(() => verCod(c, true), 1500); else verCod(c); } else if(COD) verCod(COD); })();
+// ---- panel de Roberto: /mundial?admin ----
+if(new URLSearchParams(location.search).has('admin')){
+  const k = localStorage.getItem('mundo-admin') || prompt('Clave de administrador');
+  (async function panel(){
+    const r = await fetch('/api/mundial?admin=' + encodeURIComponent(k)); const j = await r.json();
+    if(!r.ok){ localStorage.removeItem('mundo-admin'); alertar(j.error || 'Clave incorrecta'); return; }
+    localStorage.setItem('mundo-admin', k);
+    const d = document.createElement('section'); d.id = 'adm'; d.style.cssText = 'margin:14px;padding:14px;border:2px solid #fde68a;background:#fefce8;border-radius:16px';
+    d.innerHTML = `<h2 style="margin:0 0 8px">🔐 Suscripciones (${j.subs.length})</h2>` + j.subs.map(x => { const act = x.hasta && Date.parse(x.hasta) > Date.now(); return `<div style="padding:10px;border-bottom:1px solid #fde68a"><b>${esc(x.nombre || '—')}</b> · <code>${x.codigo}</code> · ${NOMBRE_M[x.metodo] || x.metodo}${x.email ? ' · ' + esc(x.email) : ''}<br><small>${act ? '✅ activa hasta ' + new Date(x.hasta).toLocaleDateString() : x.hasta ? '⛔ vencida' : '⏳ pendiente de pago'} · pedido el ${new Date(x.creado).toLocaleDateString()}</small>${x.metodo !== 'mp' ? `<div style="margin-top:6px"><button data-act="${x.codigo}" data-m="1">✅ Activar 1 mes</button> <button data-act="${x.codigo}" data-m="12">✅ Activar 1 año</button></div>` : ''}</div>`; }).join('');
+    document.querySelector('main').prepend(d);
+    d.onclick = async e => { const b = e.target.closest('[data-act]'); if(!b) return; b.disabled = true; const r2 = await fetch('/api/mundial?accion=activar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({admin: k, codigo: b.dataset.act, meses: +b.dataset.m})}); if(r2.ok){ d.remove(); panel(); } else b.disabled = false; };
+  })();
+}
+function alertar(t){ decir('🔐 ' + esc(t)); }
 // ---- buscar en todo el mundo ----
 async function ideas(q){
   decir('💡 Buscando ideas para tu negocio' + (q ? ` de <b>${esc(q)}</b>` : '') + '…');
@@ -498,7 +578,7 @@ async function ideas(q){
   $('globo').scrollIntoView({behavior: 'smooth', block: 'start'});
 }
 async function buscar(q){
-  q = String(q || '').trim(); if(MODO === 'ideas') return ideas(q); if(!q) return;
+  q = String(q || '').trim(); if(MODO !== 'ideas' && !q) return; if(!puede()) return; if(MODO === 'ideas') return ideas(q);
   $('q').value = q; decir(`⚡ Buscando <b>${esc(q)}</b> en ${T.length} tiendas del mundo…`);
   let k = {es: q, en: q};
   try{ const r = await fetch('/api/guia?accion=mundo', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({q, lang: LANG === 'es' ? 'neutro' : LANG})}); if(r.ok) k = Object.assign(k, await r.json()); }catch(e){}
