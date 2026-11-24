@@ -97,9 +97,9 @@ async function traducir(menu, prev, solo) {
 }
 
 // ---- Cuenta del local: 7 días de prueba, después abono mensual por Mercado Pago (o cobro a mano desde Mis pruebas) ----
-const PRECIO = () => parseInt(process.env.SHOPMENU_PRECIO, 10) || 18700;
+const PRECIO = () => parseInt(process.env.SHOPMENU_PRECIO, 10) || 28700;
 // Oferta del primer día: si se suscribe dentro de las 24 h de crear el menú, el primer mes sale PRECIO_PROMO; desde el 2.º mes pasa solo al precio normal.
-const PROMO = () => parseInt(process.env.SHOPMENU_PRECIO_PROMO, 10) || 14900;
+const PROMO = () => parseInt(process.env.SHOPMENU_PRECIO_PROMO, 10) || 18700;
 const promoVigente = f => !f.precio && !f.mpSus && f.creado && Date.now() - Date.parse(f.creado) < 864e5;
 const LIBRES = ['fdaf46084d']; // Café Demo
 async function cuenta(id, f) {
