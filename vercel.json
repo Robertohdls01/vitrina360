@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/r/:slug",
+      "destination": "/revista.html"
+    },
+    {
       "source": "/familia",
       "destination": "/familia.html"
     },

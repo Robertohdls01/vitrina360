@@ -100,6 +100,7 @@
             <p>${t ? T('Esta tienda todavía no tiene productos publicados. Volvé a intentar más tarde.', 'This store has no products yet. Try again later.', 'Esta loja ainda não tem produtos. Tente mais tarde.') : T('Revisá que el link esté bien escrito. Si está bien, puede que la tienda esté en pausa por ahora.', 'Check that the link is spelled right. If it is, the store may be paused for now.', 'Confira se o link está correto. Se estiver, a loja pode estar pausada.')}</p>`));
           return null;
         }
+        try{ const q = new URLSearchParams(location.search), st = t.data.stores[t.data.active || 0]; if(st && st.brand && st.brand.layout === 'revista' && !q.has('vitrina')){ location.replace('/r/' + slugM[1] + location.search); return null; } }catch(e){}
         if(t.nombre) document.title = t.nombre;
         window.VITRINA_LIMITS = limitsFor(t);
         // desde el Shopping se puede entrar directo a una de sus tiendas (?tienda=2)
@@ -2642,7 +2643,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;bor
         <button type="button" id="layoutRing" aria-pressed="false">◎ Círculo</button>
         <button type="button" id="layoutSlide" aria-pressed="false">⇆ Deslizar</button>
         <button type="button" id="layoutFree" aria-pressed="false">✋ Libre</button>
-        <button type="button" id="layoutFolleto" aria-pressed="false">📰 Folleto</button>
+        <button type="button" id="layoutFolleto" aria-pressed="false">📰 Folleto</button><button type="button" id="layoutRevista" aria-pressed="false">📖 Revista</button>
       </span>
       <button class="btn" type="button" id="ballBtn" hidden>🔮 Bola</button>
       <button class="btn" type="button" id="seasonBtn" aria-expanded="false" aria-controls="seasonBar">🎉 Temporada</button>
@@ -3514,7 +3515,7 @@ const priceNum = p => { let t = String(p||'').replace(/[^\d,.-]/g,''); const i =
     $('layoutSlide').setAttribute('aria-pressed', String(brand.layout === 'slide'));
     slideInit();
     $('layoutFree').setAttribute('aria-pressed', String(free));
-    $('layoutFolleto').setAttribute('aria-pressed', String(folleto));
+    $('layoutFolleto').setAttribute('aria-pressed', String(folleto)); if($('layoutRevista')) $('layoutRevista').setAttribute('aria-pressed', String(brand.layout === 'revista'));
     $('ballBtn').hidden = !(ring || free);
     $('homeSizeLbl').textContent = ['Muy chicas', 'Chicas', 'Normal', 'Grandes', 'Muy grandes'][(brand.homeSize | 0) + 2];
     $('homeSizeDn').disabled = (brand.homeSize | 0) <= -2; $('homeSizeUp').disabled = (brand.homeSize | 0) >= 2;
@@ -4300,6 +4301,7 @@ Respondé SOLO con JSON: {"name": "nombre corto del modelo, de 1 a 4 palabras, q
   $('layoutRing').onclick = () => { brand.layout = 'ring'; save(); renderHome(); };
   $('layoutFree').onclick = () => { brand.layout = 'free'; save(); renderHome(); };
   $('layoutFolleto').onclick = () => { brand.layout = 'folleto'; save(); renderHome(); };
+  if($('layoutRevista')) $('layoutRevista').onclick = () => { brand.layout = 'revista'; save(); renderHome(); const sl = (window.VITRINA_ME && window.VITRINA_ME.slug) || window.VITRINA_SLUG || ''; alert('📖 Listo: tus clientes van a ver tu tienda como una revista de ofertas que se hojea.' + (sl ? '\n\nLink: https://www.vitrina360app.com.ar/r/' + sl : '')); };
   $('qFlyer').addEventListener('change', e => { if(e.target.checked){ brand.flyerPer = +$('qFlyerPer').value; save(); } });
   $('qFlyerPer').addEventListener('change', e => { brand.flyerPer = +e.target.value; save(); renderHome(); if(currentCat) render(); });
   $('homeSizeDn').onclick = () => { brand.homeSize = Math.max(-2, (brand.homeSize | 0) - 1); save(); renderHome(); };
