@@ -4804,6 +4804,7 @@ ${JSON.stringify(datos)}`);
         <h2>📖 Tu revista <small class="note" style="font-weight:600">${reales.length} producto${reales.length === 1 ? '' : 's'}</small></h2>
         ${url ? `<span class="row" style="gap:6px;flex-wrap:wrap"><a class="btn primary" href="${url}" target="_blank" rel="noopener">👀 Ver mi revista</a><button type="button" class="btn" id="rvCopy">🔗 Copiar link</button><a class="btn" href="https://wa.me/?text=${encodeURIComponent('Mirá nuestra revista de ofertas 👉 ' + url)}" target="_blank" rel="noopener">📲 Compartir</a></span>` : ''}
       </div>
+      <p class="note" style="margin:0"><button type="button" class="linkbtn" id="rvAFlash">↗ Usar esta tienda en ShopFlash, con vitrinas</button></p>
       <p class="note" style="margin:0">Subí las fotos con la <b>Carga rápida</b> de abajo: la IA reconoce cada producto, le pone nombre y lo ordena en su sección. Cada sección es una parte de la revista, con su botón en la tapa.</p>
       <details><summary style="cursor:pointer;font-weight:800">🎨 Cómo se ve tu revista</summary>
         <div style="display:grid;gap:10px;margin-top:10px">
@@ -4818,6 +4819,7 @@ ${JSON.stringify(datos)}`);
     const det = box.querySelector('details'); if(box.dataset.det === '1') det.open = true; det.querySelector('summary').onclick = e => { e.preventDefault(); box.dataset.det = det.open ? '' : '1'; det.open = !det.open; };
     box.querySelectorAll('[data-rv]').forEach(b => b.onclick = () => { brand[b.dataset.rv] = b.dataset.val; save(); renderRevBox(); });
     const bi = $('rvBanda'); if(bi) bi.onchange = () => { const v = bi.value.trim(); if(v) brand.revBanda = v; else delete brand.revBanda; save(); };
+    const af = $('rvAFlash'); if(af) af.onclick = () => { if(!confirm('¿Pasar esta tienda a ShopFlash? Vas a ver las vitrinas en el panel. Tus clientes siguen viendo la revista hasta que elijas otra forma.')) return; delete brand.app; save(); af.textContent = 'Pasando…'; setTimeout(() => { location.href = '/panel'; }, 1200); };
     const cp = $('rvCopy'); if(cp) cp.onclick = async () => { try{ await navigator.clipboard.writeText(url); cp.textContent = '✔ Copiado'; }catch(e){ prompt('Copiá el link:', url); } };
     box.querySelectorAll('[data-rvp]').forEach(b => b.onclick = () => { const p = products.find(x => String(x.id) === b.dataset.rvp); if(!p) return; openCat(p.cat); setTimeout(() => { try{ startEdit(p); $('formPanel').scrollIntoView({behavior: 'smooth', block: 'start'}); }catch(e){} }, 120); });
   }
