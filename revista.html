@@ -36,6 +36,11 @@ button{font:inherit;cursor:pointer}
 #fla{position:fixed;right:10px;bottom:66px;width:64px;height:84px;z-index:20;cursor:pointer;animation:vive 2.2s ease-in-out infinite;filter:drop-shadow(0 6px 10px rgba(120,40,90,.3))}#fla svg{width:100%;height:100%}#fla.habla{animation:habla .22s ease-in-out infinite alternate}
 @keyframes vive{0%,100%{transform:translateY(0)}40%{transform:translateY(-7px)}}@keyframes habla{from{transform:scale(1)}to{transform:scale(1.07) translateY(-3px)}}
 #globo{position:fixed;right:80px;bottom:76px;max-width:min(300px,70vw);background:#fff;border:2px solid #ffb5e6;border-radius:16px 16px 4px 16px;padding:9px 12px;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.12);z-index:21;display:none}
+#globo b{font-weight:800}
+#fla.salta{animation:salta .7s ease-out 1}
+@keyframes salta{0%{transform:translateY(0) rotate(0)}25%{transform:translateY(-18px) rotate(-8deg)}50%{transform:translateY(0) rotate(6deg)}70%{transform:translateY(-7px) rotate(-3deg)}100%{transform:translateY(0) rotate(0)}}
+#fla.mira::after{content:'👋';position:absolute;left:-14px;top:4px;font-size:22px;animation:saluda .5s ease-in-out 4 alternate}
+@keyframes saluda{from{transform:rotate(-20deg)}to{transform:rotate(25deg)}}
 /* hojas emergentes */
 .velo{position:fixed;inset:0;background:rgba(20,6,26,.55);z-index:40;display:grid;place-items:end center}.panel{background:#fff;width:min(560px,100%);max-height:90dvh;overflow:auto;border-radius:20px 20px 0 0;padding:14px 14px calc(16px + env(safe-area-inset-bottom))}
 .panel h3{margin:0 0 6px;font-size:19px}.panel .x{float:right;border:0;background:#f3e8f0;border-radius:50%;width:34px;height:34px}
@@ -65,7 +70,7 @@ const precioN=p=>{let s=String(p||'').replace(/[^\d.,]/g,'');if(!s)return 0;if(/
 const fmt=n=>'$'+Math.round(n).toLocaleString('es-AR');
 // ---------- voz de Flashy ----------
 let voz=false;document.addEventListener('pointerdown',()=>{if(voz)return;voz=true;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}},{capture:true});
-let gT=null;function decir(t,ms){const g=$('#globo');g.textContent=t;g.style.display='block';clearTimeout(gT);gT=setTimeout(()=>g.style.display='none',ms||5200);
+let gT=null,gAcc=null;function decir(t,ms,acc){const g=$('#globo');g.textContent=t;gAcc=acc||null;g.style.cursor=acc?'pointer':'';if(acc){const b=document.createElement('b');b.textContent=' 👉 '+acc[0];b.style.cssText='display:block;margin-top:6px;color:#c8008f';g.appendChild(b);}$('#fla').classList.remove('salta');void $('#fla').offsetWidth;$('#fla').classList.add('salta');g.style.display='block';clearTimeout(gT);gT=setTimeout(()=>g.style.display='none',ms||5200);
  if(!voz||!('speechSynthesis' in window)||B.revMute)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(t).replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu,''));u.lang='es-AR';const vs=speechSynthesis.getVoices().filter(v=>/^es/i.test(v.lang));const v=vs.find(v=>/google|natural|online/i.test(v.name))||vs[0];if(v)u.voice=v;u.rate=1.12;u.pitch=1.12;u.onstart=()=>$('#fla').classList.add('habla');u.onend=u.onerror=()=>$('#fla').classList.remove('habla');speechSynthesis.speak(u);}catch(e){}}
 // ---------- cargar la tienda ----------
 async function cargar(){
@@ -192,7 +197,8 @@ function buscar(q){const n=norm(q);if(!n)return false;
  decir('Uy, eso no lo encontré en la revista 🤔 Probá con otra palabra o escribinos por WhatsApp.');return true;}
 $('#busca').addEventListener('keydown',e=>{if(e.key==='Enter'){buscar(e.target.value);e.target.blur();}});
 $('#fla').onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
- const v=velo(`<h3>⚡ ¿Qué buscás?</h3><input class="t" id="fQ" placeholder="Ej: mandame a las bebidas · ¿tenés yerba? · ofertas"><div class="acc"><button class="pri" id="fGo">Buscar</button>${SR?'<button class="sec" id="fMic">🎙️ Decímelo hablando</button>':''}<button class="sec" data-ir="0">📖 Ir a la tapa</button><button class="sec" id="fCarro">🛒 Ver mi pedido</button></div>`);
+ const v=velo(`<h3>⚡ ¿Qué buscás?</h3><input class="t" id="fQ" placeholder="Ej: mandame a las bebidas · ¿tenés yerba? · ofertas"><div class="acc"><button class="pri" id="fGo">Buscar</button>${SR?'<button class="sec" id="fMic">🎙️ Decímelo hablando</button>':''}<button class="sec" data-ir="0">📖 Ir a la tapa</button><button class="sec" id="fCarro">🛒 Ver mi pedido</button></div><div class="acc fmas" style="margin-top:8px"><button class="sec" data-fl="tour">📖 Mostrame la revista</button><button class="sec" data-fl="ofertas">🔥 Ofertas del día</button><button class="sec" data-fl="nuevo">🆕 Lo último que llegó</button><button class="sec" data-fl="pago">💳 ¿Cómo puedo pagar?</button>${B.addr?'<button class="sec" data-fl="llegar">📍 Cómo llegar</button>':''}</div>`);
+ v.querySelectorAll('[data-fl]').forEach(b=>b.onclick=()=>{cerrarVelo();flHacer(b.dataset.fl);});
  const go=()=>{const q=v.querySelector('#fQ').value;cerrarVelo();buscar(q);};v.querySelector('#fGo').onclick=go;v.querySelector('#fQ').addEventListener('keydown',e=>{if(e.key==='Enter')go();});v.querySelector('#fCarro').onclick=()=>{cerrarVelo();carro();};
  const m=v.querySelector('#fMic');if(m)m.onclick=()=>{const r=new SR();r.lang='es-AR';m.textContent='🎙️ Te escucho…';r.onresult=e=>{cerrarVelo();buscar(e.results[0][0].transcript);};r.onend=()=>{m.textContent='🎙️ Decímelo hablando';};r.start();};
  setTimeout(()=>v.querySelector('#fQ').focus(),100);};
@@ -212,5 +218,33 @@ function musInit(){if(musEst()==='no'||EDITAR)return;try{(window.__bcMus||(windo
  b.onclick=e=>{e.stopPropagation();if(musOn){musApagar();try{localStorage.setItem('rev-mus','0');}catch(_){}}else{musPrender();try{localStorage.setItem('rev-mus','1');}catch(_){}}};
  const primero=()=>{document.removeEventListener('pointerdown',primero,true);if(quiere&&!musOn)musPrender();};document.addEventListener('pointerdown',primero,true);
  document.addEventListener('visibilitychange',()=>{if(!ac)return;if(document.hidden)ac.suspend();else if(musOn)ac.resume();});}
+/* ---- Flashy: recorre la revista, ofertas, lo último, cómo pagar y consejos ---- */
+let tourOn=false,tourT=null,quieto=0;
+const precioTxt=p=>p.price?(' a '+p.price):'';
+function tourParar(msg){if(!tourOn)return;tourOn=false;clearTimeout(tourT);if(msg)decir(msg,3500);}
+function tourPaso(){if(!tourOn)return;const sig=cur+1;
+ if(sig>=HOJAS.length-1){tourOn=false;ir(HOJAS.length-1,1);decir('¡Esa fue toda la revista! Si algo te gustó, tocalo y lo agregás 🛒',6000);return;}
+ const h=HOJAS[sig];let t='';const e=h&&h.items?(h.items[Math.floor(Math.random()*h.items.length)]||h.items[0]):null;ir(sig,1,e&&e.id);
+ if(h&&h.tipo==='prods'){t=(h.pg===1?`Acá tenés ${h.tit}. `:`Más de ${h.tit}. `)+(e?`Mirá: ${e.name}${precioTxt(e)}.`:'');}
+ decir(t||'Seguimos…',4200,['Parar','parar']);tourT=setTimeout(tourPaso,5200);}
+function flHacer(q){
+ if(q==='parar'){tourParar('Listo, te dejo mirar tranquilo 😉');return;}
+ if(q==='tour'){tourOn=true;if(cur!==0)ir(0,-1);decir('¡Dale! Te muestro la revista hoja por hoja. Tocá la pantalla cuando quieras parar.',3800,['Parar','parar']);tourT=setTimeout(tourPaso,4200);return;}
+ if(q==='ofertas'){const of=P.filter(p=>p.featured);const lista=(of.length?of:P.filter(p=>p.price).sort((a,b)=>precioN(a.price)-precioN(b.price))).slice(0,3);
+  const i=HOJAS.findIndex(h=>h.sec==='ofertas');if(i>0)ir(i,1);else if(lista[0])irA(lista[0]);
+  decir(lista.length?(of.length?'🔥 Ofertas de hoy: ':'💸 Lo más barato de hoy: ')+lista.map(p=>p.name+precioTxt(p)).join(' · '):'Hoy no hay ofertas marcadas, pero mirá la revista 😉',8000);return;}
+ if(q==='nuevo'){const ult=P.slice(-3).reverse();if(!ult.length)return;irA(ult[0]);decir('🆕 Lo último que llegó: '+ult.map(p=>p.name+precioTxt(p)).join(' · '),8000);return;}
+ if(q==='pago'){mpOk().then(mp=>{const f=[];if(mp)f.push('con Mercado Pago ahora mismo (tarjeta, débito o saldo)');f.push('en la caja: te doy un número y pagás al retirar');if(B.wa)f.push('o por WhatsApp, coordinando con el negocio');decir('💳 Podés pagar '+f.join(', ')+'. Agregá lo que quieras y tocá el carrito 🛒',9000,itemsC().length?['Ver mi pedido','carro']:null);});return;}
+ if(q==='carro'){carro();return;}
+ if(q==='llegar'&&B.addr){open('https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(B.addr),'_blank','noopener');return;}
+}
+function irA(p){const i=HOJAS.findIndex(h=>h.items&&h.items.some(x=>x.id===p.id));if(i>0)ir(i,i>cur?1:-1,p.id);}
+function flConsejo(){if(tourOn||document.querySelector('.velo')||$('#globo').style.display==='block'||EDITAR)return;
+ const ops=[['¿Querés que te muestre la revista hoja por hoja?',['Sí, mostrame','tour']],['🔥 ¿Te cuento las ofertas de hoy?',['Contame','ofertas']],['🆕 ¿Querés ver lo último que llegó?',['Mostrame','nuevo']],['💳 ¿Querés saber cómo podés pagar?',['Contame','pago']]];
+ if(itemsC().length)ops.push(['🛒 Ya tenés cosas en tu pedido. ¿Lo terminamos?',['Ver mi pedido','carro']]);
+ const o=ops[Math.floor(Math.random()*ops.length)];$('#fla').classList.add('mira');setTimeout(()=>$('#fla').classList.remove('mira'),2200);decir(o[0],7000,o[1]);}
+$('#globo').addEventListener('click',e=>{e.stopPropagation();if(gAcc){const a=gAcc[1];$('#globo').style.display='none';flHacer(a);}});
+document.addEventListener('pointerdown',e=>{quieto=0;if(tourOn&&!e.target.closest('#globo'))tourParar('Listo, te dejo mirar tranquilo 😉');},true);
+setInterval(()=>{quieto+=5;if(quieto===15||(quieto>15&&quieto%35===0))flConsejo();},5000);
 cargar();
 </script></body></html>
