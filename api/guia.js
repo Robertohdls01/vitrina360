@@ -10,7 +10,7 @@ const BUCKET = 'pedidos';
 const base = () => String(process.env.SUPABASE_URL || '').replace(/\/+$/, '') + '/storage/v1';
 const head = extra => { const k = process.env.SUPABASE_SERVICE_KEY, h = Object.assign({ apikey: k }, extra || {}); if (String(k).startsWith('eyJ')) h.Authorization = 'Bearer ' + k; return h; };
 const t = (v, n) => String(v == null ? '' : v).slice(0, n);
-const IDI = { es: 'castellano rioplatense (Argentina), cálido y simple', en: 'English', pt: 'português do Brasil', fr: 'français', it: 'italiano', de: 'Deutsch', ru: 'русский', zh: '简体中文', ja: '日本語', ko: '한국어', hi: 'हिन्दी', ar: 'العربية', tr: 'Türkçe', id: 'Bahasa Indonesia', vi: 'Tiếng Việt', th: 'ภาษาไทย', pl: 'polski', uk: 'українська', nl: 'Nederlands', sw: 'Kiswahili', bn: 'বাংলা', ur: 'اردو', fa: 'فارسی', ha: 'Hausa', am: 'አማርኛ' };
+const IDI = { es: 'castellano rioplatense (Argentina), cálido y simple', neutro: 'español neutro internacional (sin voseo ni modismos locales), cálido y simple', en: 'English', pt: 'português do Brasil', fr: 'français', it: 'italiano', de: 'Deutsch', ru: 'русский', zh: '简体中文', ja: '日本語', ko: '한국어', hi: 'हिन्दी', ar: 'العربية', tr: 'Türkçe', id: 'Bahasa Indonesia', vi: 'Tiếng Việt', th: 'ภาษาไทย', pl: 'polski', uk: 'українська', nl: 'Nederlands', sw: 'Kiswahili', bn: 'বাংলা', ur: 'اردو', fa: 'فارسی', ha: 'Hausa', am: 'አማርኛ' };
 
 async function leer(path) { try { const r = await fetch(base() + '/object/' + BUCKET + '/' + path, { headers: head({ 'cache-control': 'no-cache' }) }); return r.ok ? await r.json() : null; } catch (e) { return null; } }
 async function guardar(path, obj) { try { await fetch(base() + '/object/' + BUCKET + '/' + path, { method: 'POST', headers: head({ 'Content-Type': 'application/json', 'x-upsert': 'true', 'cache-control': 'no-cache' }), body: JSON.stringify(obj) }); } catch (e) {} }
@@ -51,6 +51,17 @@ module.exports = async (req, res) => {
       let o = null; try { o = JSON.parse(out.slice(out.indexOf('{'), out.lastIndexOf('}') + 1)); } catch (e) {}
       if (!o) o = { es: q, en: q };
       Object.keys(o).forEach(k => { o[k] = t(o[k], 160); });
+      return res.status(200).json(o);
+    }
+    if (a === 'ideas') { // ShopRevista Mundial: ideas de productos para un negocio
+      const q = t(b.q, 120).trim(), pais = t(b.pais, 40) || 'cualquier país';
+      if (!(await cupo())) return res.status(429).json({ error: 'cupo' });
+      const out = await claude('Sos Flashy, asesora de comercio internacional de ShopRevista Mundial. Proponés productos novedosos y poco conocidos para vender, honestos y legales (nada de réplicas de marcas, armas, medicamentos ni productos prohibidos de importar). Devolvé SOLO un objeto JSON, sin comentarios.',
+        `La persona vive en: ${pais}. Rubro o interés: "${q || 'cualquiera'}".\nDevolvé {"intro":"…","ideas":[{"producto":"…","porque":"…","donde":"…","buscar":"…","consejo":"…"}]} con 5 ideas. "producto" = nombre corto; "porque" = por qué puede venderse bien en su país (máx. 110 caracteres); "donde" = país o región donde conviene conseguirlo; "buscar" = 2 a 4 palabras en inglés para buscarlo en directorios de proveedores; "consejo" = cómo venderlo o qué revisar antes de comprar (máx. 110 caracteres); "intro" = una frase cálida. Todo el texto (menos "buscar") escrito en ${IDI[lang]}, con palabras neutras que se entiendan en cualquier país. Aclarar en "intro" que son ideas para verificar, no garantías de ganancia.`, 1200);
+      let o = null; try { o = JSON.parse(out.slice(out.indexOf('{'), out.lastIndexOf('}') + 1)); } catch (e) {}
+      if (!o || !Array.isArray(o.ideas)) return res.status(502).json({ error: 'sin ideas' });
+      o.ideas = o.ideas.slice(0, 6).map(x => ({ producto: t(x.producto, 80), porque: t(x.porque, 160), donde: t(x.donde, 60), buscar: t(x.buscar, 60), consejo: t(x.consejo, 160) }));
+      o.intro = t(o.intro, 240);
       return res.status(200).json(o);
     }
     if (a === 'traducir') {
