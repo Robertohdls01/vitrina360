@@ -66,7 +66,8 @@ footer{text-align:center;color:#7a5470;padding:26px 0 40px;font-size:14px}
     <div>
       <div style="font-weight:900;color:#c8008f;letter-spacing:.5px;margin-bottom:4px">🌎 EL COMERCIO MUNDIAL EN TUS MANOS</div>
       <h1>Las mejores ofertas <span>del mundo</span>, en un solo lugar</h1>
-      <p>Amazon, AliExpress, Temu, eBay, Mercado Libre, Shein y muchas más. Decile a Flashy qué buscas y te lo busca en todas las tiendas a la vez, en su idioma, y te dice cuál te conviene desde Argentina.</p>
+      <p>Amazon, AliExpress, Temu, eBay, Mercado Libre, Shein y muchas más. Dile a Flashy qué buscas y te lo busca en todas las tiendas a la vez, en su idioma, y te dice cuál te conviene.</p>
+      <div class="puente" style="margin:10px 0 0;padding:12px 14px;border:2px solid #bfdbfe;background:#eff6ff;border-radius:16px;color:#1e3a8a;font-size:15px;line-height:1.45">🌉 <b>Somos el puente, nada más.</b> Te ayudamos a <b>encontrar</b> tu producto, tu tienda, tu proveedor o tu fábrica. La compra, el pago, el envío, la importación y la aduana los haces tú, directo con ellos. No vendemos, no cobramos productos y no hacemos trámites.</div>
     </div>
   </section>
 
@@ -128,14 +129,15 @@ footer{text-align:center;color:#7a5470;padding:26px 0 40px;font-size:14px}
     <p style="margin:6px 0 0;color:#5a4060">Estás en la versión de prueba gratis.</p>
     <ul>
       <li>🔎 Busca lo que quieras en todas las tiendas a la vez, en su idioma</li>
-      <li>🏆 Te dice qué tienda te conviene desde Argentina</li>
+      <li>🏆 Te dice qué tienda te conviene desde tu país</li>
       <li>🔥 Las mejores ofertas de cada semana, sin entrar a 20 páginas</li>
       <li>💬 Le hablas o le escribes, como a una amiga que sabe comprar</li>
     </ul>
     <p style="margin:0;font-weight:700">Ganas tiempo y no te pierdes las ofertas.</p>
+    <p style="margin:8px 0 0;font-size:14px;color:#1e3a8a">🌉 <b>Qué incluye la suscripción:</b> el buscador, el directorio y la ayuda de Flashy para encontrar. <b>No incluye</b> productos, envíos, permisos de importación ni trámites: eso lo haces tú con la tienda o la fábrica que elijas.</p>
   </section>
 </main>
-<footer>ShopRevista Mundial · <a href="/provideo" target="_blank" rel="noopener">Pro Video JSRHG</a><br><small>No somos parte de ninguna de estas tiendas: te llevamos a sus páginas oficiales.</small></footer>
+<footer>ShopRevista Mundial · <a href="/provideo" target="_blank" rel="noopener">Pro Video JSRHG</a><br><small>🌉 Somos el puente: te ayudamos a encontrar. No somos parte de ninguna de estas tiendas, fábricas ni agencias, no vendemos ni cobramos productos y no hacemos trámites de importación. La compra y todo lo que sigue lo haces tú, directo con ellos.</small></footer>
 <div id="flaFix" title="Flashy te ayuda"></div>
 <script>
 const $ = id => document.getElementById(id);
@@ -466,6 +468,7 @@ async function ideas(q){
   if(!o){ decir('😕 Ahora no pude pensar ideas. Prueba de nuevo en un ratito.'); return; }
   const lk = (u, n) => `<a href="${u}" target="_blank" rel="noopener">${n}</a>`;
   $('res').innerHTML = o.ideas.map(x => `<div class="tie" style="border-color:#bbf7d0"><div class="h"><span class="f">💡</span><b>${esc(x.producto)}</b></div><div class="r">${esc(x.porque)}</div><div class="r">📍 <b>${esc(x.donde)}</b></div><div class="r" style="color:#166534">👉 ${esc(x.consejo)}</div><div class="bts"><a class="pri" href="https://www.alibaba.com/trade/search?SearchText=${E(x.buscar)}" target="_blank" rel="noopener">🏭 Proveedores</a>${lk('https://www.dhgate.com/wholesale/search.do?searchkey=' + E(x.buscar), '📦 Pocas unidades')}${lk('https://www.google.com/search?q=' + E(x.buscar), '🔎 Ver más')}</div></div>`).join('');
+  $('res').insertAdjacentHTML('beforeend', `<div style="grid-column:1/-1">${document.querySelector('.puente').outerHTML}</div>`);
   decir(`💡 ${esc(o.intro)}`);
   $('globo').scrollIntoView({behavior: 'smooth', block: 'start'});
 }
@@ -477,7 +480,7 @@ async function buscar(q){
   if(MODO === 'importa'){
     const nq = q.toLowerCase(), rub = String(k.rubro || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const emp = EMP.filter(t => t.ru.includes(rub) || nq.split(/\s+/).some(w => w.length > 3 && t.r.toLowerCase().includes(w.replace(/s$/, '')))).slice(0, 8);
-    $('res').innerHTML = (emp.length ? `<div style="grid-column:1/-1;font-weight:800;color:#075985">🏭 Fabricantes conocidos para esto</div>` + emp.map(tarjetaE).join('') + `<div style="grid-column:1/-1;font-weight:800;color:#075985;margin-top:6px">🔎 Más fábricas en los directorios del mundo</div>` : '') + B2B.map(t => tarjetaB(t, true, k[t.l] || k.en || q)).join('') + `<div style="grid-column:1/-1;font-weight:800;color:#854d0e;margin-top:6px">🌎 Exportadores de Latinoamérica</div>` + LATAM.filter(t => t.ag).map(tarjetaL).join('');
+    $('res').innerHTML = `<div style="grid-column:1/-1">${document.querySelector('.puente').outerHTML}</div>` + (emp.length ? `<div style="grid-column:1/-1;font-weight:800;color:#075985">🏭 Fabricantes conocidos para esto</div>` + emp.map(tarjetaE).join('') + `<div style="grid-column:1/-1;font-weight:800;color:#075985;margin-top:6px">🔎 Más fábricas en los directorios del mundo</div>` : '') + B2B.map(t => tarjetaB(t, true, k[t.l] || k.en || q)).join('') + `<div style="grid-column:1/-1;font-weight:800;color:#854d0e;margin-top:6px">🌎 Exportadores de Latinoamérica</div>` + LATAM.filter(t => t.ag).map(tarjetaL).join('');
     const porPais = {}; emp.forEach(t => { (porPais[t.f] = porPais[t.f] || []).push(t.n); });
     const nom = {'🇨🇳':'China','🇹🇼':'Taiwán','🇰🇷':'Corea'};
     decir(emp.length ? `🏭 Para <b>${esc(q)}</b>: ${Object.entries(porPais).map(([f, L]) => `en ${nom[f] || f} tienes <b>${L.slice(0, 3).join(', ')}</b>`).join('; ')}. Entra a su <b>página oficial</b>: ahí está su WhatsApp o su contacto para distribuidores, y hablas directo con ellos. ¿Buscás una fábrica más especial? Abajo te armé la búsqueda en ${B2B.length} directorios de fábricas del mundo 👇 Y ojo: nunca pagues por fuera de la plataforma 🛡️`
@@ -496,7 +499,7 @@ $('flaFix').addEventListener('click', e => { if(e.target.closest('.fltam')) retu
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 if(SR){ $('bMic').hidden = false; $('bMic').onclick = () => { const r = new SR(); r.lang = 'es-AR'; decir('🎙️ Te escucho… dime qué buscas'); r.onresult = e => buscar(e.results[0][0].transcript); r.start(); }; }
 aplicarPais(); aplicarIdioma();
-setTimeout(() => decir('¡Hola! Soy <b>Flashy</b> 👋 Aquí tienes las mejores tiendas del mundo. Dime qué quieres comprar y lo busco en todas a la vez.'), 600);
+setTimeout(() => decir('¡Hola! Soy <b>Flashy</b> 👋 Aquí tienes las mejores tiendas del mundo. Dime qué quieres comprar y lo busco en todas a la vez. Yo soy el puente: te ayudo a encontrar, y la compra la haces tú directo con la tienda o la fábrica.'), 600);
 </script>
 </body>
 </html>
