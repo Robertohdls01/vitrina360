@@ -193,7 +193,7 @@ function buscar(q){const n=norm(q);if(!n)return false;
  const sc=p=>w.reduce((s,x)=>s+(norm(p.name).includes(x.replace(/s$/,''))?2:0)+((p.features||[]).some(f=>norm(f).includes(x))?1:0),0);
  const best=P.map(p=>[sc(p),p]).filter(a=>a[0]>0).sort((a,b)=>b[0]-a[0])[0];
  if(best&&(!(hc>0)||best[0]>=2)){const p=best[1],i=HOJAS.findIndex(h=>(h.items||[]).some(x=>x.id===p.id&&h.sec!=='ofertas'));const j=i>0?i:HOJAS.findIndex(h=>(h.items||[]).some(x=>x.id===p.id));ir(j,j>cur?1:-1,p.id);decir(`¡Sí! Te lo muestro: ${p.name}${p.price?', a '+p.price:''}.`);return true;}
- if(hc>0){ir(hc,hc>cur?1:-1);decir(`¡Ya voy! Acá tenés ${HOJAS[hc].tit}.`);return true;}
+ if(hc>0){secTour(hc);return true;}
  decir('Uy, eso no lo encontré en la revista 🤔 Probá con otra palabra o escribinos por WhatsApp.');return true;}
 $('#busca').addEventListener('keydown',e=>{if(e.key==='Enter'){buscar(e.target.value);e.target.blur();}});
 $('#fla').onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -246,5 +246,13 @@ function flConsejo(){if(tourOn||document.querySelector('.velo')||$('#globo').sty
 $('#globo').addEventListener('click',e=>{e.stopPropagation();if(gAcc){const a=gAcc[1];$('#globo').style.display='none';flHacer(a);}});
 document.addEventListener('pointerdown',e=>{quieto=0;if(tourOn&&!e.target.closest('#globo'))tourParar('Listo, te dejo mirar tranquilo 😉');},true);
 setInterval(()=>{quieto+=5;if(quieto===15||(quieto>15&&quieto%35===0))flConsejo();},5000);
+/* Flashy te muestra una sección producto por producto */
+function secTour(i){tourParar();const h=HOJAS[i];if(!h)return;tourOn=true;ir(i,i>cur?1:-1);
+ const its=(h.items||[]).slice().sort((a,b)=>(b.featured?1:0)-(a.featured?1:0)).slice(0,8);let k=0;
+ const marca=id=>{document.querySelectorAll('.pr.hl').forEach(e=>e.classList.remove('hl'));const e=document.querySelector(`.pr[data-p="${CSS.escape(id)}"]`);if(e){e.classList.add('hl');e.scrollIntoView({block:'nearest',behavior:'smooth'});}};
+ decir(`¡Ya voy! En ${h.tit} tenés ${h.de>1?'varias hojas de cosas':its.length+' cosas'}. Te las muestro 👇`,3000,['Parar','parar']);
+ const paso=()=>{if(!tourOn||cur!==i)return;if(k>=its.length){tourOn=false;document.querySelectorAll('.pr.hl').forEach(e=>e.classList.remove('hl'));decir(h.de>1?`Eso es lo primero de ${h.tit}. Pasá la hoja para ver más 👉 ¿Te gustó algo? Tocalo y lo agregás 🛒`:'¿Te gustó alguno? Tocalo y lo agregás al pedido 🛒',7000);return;}
+  const p=its[k++];marca(p.id);decir((p.featured?'🔥 Oferta: ':'')+p.name+(p.price?' a '+p.price:'')+(p.desc?'. '+p.desc:''),3400,['Parar','parar']);tourT=setTimeout(paso,3600);};
+ tourT=setTimeout(paso,3300);}
 cargar();
 </script></body></html>
