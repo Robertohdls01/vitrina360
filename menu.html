@@ -1344,13 +1344,17 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
       peds.forEach(p => { let s = 0; p.it.forEach(i => { const v = priceN(i.p) * i.q; s += v; const k = i.n; prod[k] = prod[k] || {n: k, q: 0, t: 0}; prod[k].q += i.q; prod[k].t += v; });
         p.tot = s; total += s; const h = new Date(p.t).getHours(); hora[h] = hora[h] || {n: 0, t: 0}; hora[h].n++; hora[h].t += s; dias[p.dia] = dias[p.dia] || {n: 0, t: 0}; dias[p.dia].n++; dias[p.dia].t += s; });
       items.filter(x => x.pg && !x.x).forEach(x => { pago[x.pg] = pago[x.pg] || {n: 0, t: 0}; pago[x.pg].n++; pago[x.pg].t += priceN(x.m); });
-      return {peds, anul, total, prod: Object.values(prod).sort((a, b) => b.t - a.t || b.q - a.q), pago, hora, dias};
+      const rub = {}; Object.values(prod).forEach(x => { const r = CIE_RUB[normN(x.n)] || 'Otros'; rub[r] = rub[r] || {n: r, q: 0, t: 0}; rub[r].q += x.q; rub[r].t += x.t; });
+      return {peds, anul, total, prod: Object.values(prod).sort((a, b) => b.t - a.t || b.q - a.q), pago, hora, dias, rub: Object.values(rub).sort((a, b) => b.t - a.t)};
     }
-    let CIE = null;
+    let CIE = null, CIE_RUB = {};
+    const normN = t => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+    async function cargaRubros(){ if(Object.keys(CIE_RUB).length) return; try{ const J = await api('/api/menu?id=' + encodeURIComponent(ID)); ((J.menu || {}).cats || []).forEach(c => (c.items || []).forEach(i => { if(i.n) CIE_RUB[normN(i.n)] = c.n || 'Otros'; })); }catch(e){} }
     async function cierre(v){
       v = v || diaHoy(); let d = $('#cieBox');
       if(!d){ d = document.createElement('div'); d.className = 'sheet'; d.id = 'cieBox'; d.style.zIndex = 90; document.body.appendChild(d); d.addEventListener('click', e => { if(e.target === d) d.remove(); }); }
       d.innerHTML = `<div style="max-width:760px;margin:0 auto"><p>⏳ Sumando las ventas…</p></div>`;
+      await cargaRubros();
       let j; try{ j = await api(`/api/menu?id=${ID}&clave=${encodeURIComponent(CLAVE)}&ventas=${v}`); }catch(e){ d.innerHTML = `<div style="max-width:760px;margin:0 auto"><p>😕 ${esc(e.message)}</p><button class="btn sec" type="button" onclick="this.closest('.sheet').remove()">Cerrar</button></div>`; return; }
       MON = j.moneda || MON; const C = calcCierre(j.items || []), mes = v.length === 7; CIE = {v, j, C};
       const hs = Object.entries(C.hora).sort((a, b) => b[1].t - a[1].t), fuerte = hs[0], top = C.prod[0];
@@ -1366,6 +1370,7 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
           <div style="font-weight:600">${C.peds.length} ${C.peds.length === 1 ? 'pedido' : 'pedidos'}${C.peds.length ? ` · promedio ${money(C.total / C.peds.length)} por pedido` : ''}${C.anul ? ` · ${C.anul} cancelado${C.anul > 1 ? 's' : ''} (no se suman)` : ''}</div>
           ${top ? `<div style="margin-top:4px">🏆 Lo que más vendiste: <b>${esc(top.n)}</b> (${top.q} · ${money(top.t)})${fuerte ? ` · ⏰ Horario más fuerte: <b>${fuerte[0]} a ${+fuerte[0] + 1} hs</b>` : ''}</div>` : ''}
         </div>
+        ${C.rub.length > 1 ? `<h3 style="margin:6px 0 0">🗂️ Por rubro de la carta</h3>${tabla(['Rubro', 'Cantidad', 'Total'], C.rub.map(r => fila(esc(r.n), r.q, money(r.t))).join('') + fila('TOTAL', C.rub.reduce((a, r) => a + r.q, 0), money(C.total), true))}` : ''}
         ${C.peds.length ? `<h3 style="margin:6px 0 0">🍽️ Por producto</h3>${tabla(['Producto', 'Cantidad', 'Total'], C.prod.map(p => fila(esc(p.n), p.q, money(p.t))).join('') + fila('TOTAL', C.prod.reduce((a, p) => a + p.q, 0), money(C.total), true))}` : `<p class="note">${mes ? 'Este mes' : 'Este día'} todavía no hay ventas anotadas. Se anotan solas con cada pedido que entra por ShopMenu.</p>`}
         ${pk.length ? `<h3 style="margin:6px 0 0">💳 Cómo cobraste</h3>${tabla(['Forma de pago', 'Mesas', 'Monto'], pk.sort((a, b) => C.pago[b].t - C.pago[a].t).map(k => fila(PAGOS[k] || k, C.pago[k].n, money(C.pago[k].t))).join('') + fila('TOTAL COBRADO', pk.reduce((a, k) => a + C.pago[k].n, 0), money(cobrado), true))}<p class="note" style="margin:2px 0">Según lo que avisaron las mesas al pagar (incluye las propinas).</p>` : ''}
         ${mes && Object.keys(C.dias).length ? `<h3 style="margin:6px 0 0">📅 Día por día</h3>${tabla(['Día', 'Pedidos', 'Total'], Object.entries(C.dias).sort().map(([k, x]) => fila(fechaTx(k), x.n, money(x.t))).join(''))}` : ''}
@@ -1384,12 +1389,15 @@ window.BILLETERAS = {uala: ['🟣', 'Ualá', 'ar'], modo: ['🟢', 'MODO', 'ar']
       w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Cierre de caja ${esc(fechaTx(v))}</title><style>body{font:14px system-ui,Arial;margin:16mm;color:#222}h1{margin:0 0 2px;font-size:20px}h2{font-size:15px;margin:16px 0 4px}table{width:100%;border-collapse:collapse}td,th{padding:4px 6px;border-bottom:1px solid #ddd;text-align:left}.r{text-align:right}.t td{font-weight:800;border-top:2px solid #222}.big{font-size:26px;font-weight:900;margin:6px 0}small{color:#666}</style></head><body>
         <h1>🧾 Cierre de caja · ${esc(j.nombre)}</h1><small>${mes ? 'Mes de ' : 'Día '}${esc(fechaTx(v))} · impreso el ${new Date().toLocaleString('es-AR')}</small>
         <div class="big">Total vendido: ${money(C.total)}</div><div>${C.peds.length} pedidos${C.anul ? ` · ${C.anul} cancelados (no se suman)` : ''}</div>
+        ${C.rub.length > 1 ? `<h2>Por rubro de la carta</h2><table><tr><th>Rubro</th><th class="r">Cantidad</th><th class="r">Total</th></tr>${C.rub.map(r => tr(esc(r.n), r.q, money(r.t))).join('')}${tr('TOTAL', C.rub.reduce((a, r) => a + r.q, 0), money(C.total), 1)}</table>` : ''}
         <h2>Por producto</h2><table><tr><th>Producto</th><th class="r">Cantidad</th><th class="r">Total</th></tr>${C.prod.map(p => tr(esc(p.n), p.q, money(p.t))).join('')}${tr('TOTAL', C.prod.reduce((a, p) => a + p.q, 0), money(C.total), 1)}</table>
         ${pk.length ? `<h2>Cómo cobraste <small>(avisado por las mesas, con propinas)</small></h2><table><tr><th>Forma de pago</th><th class="r">Mesas</th><th class="r">Monto</th></tr>${pk.map(k => tr(PAGOS[k] || k, C.pago[k].n, money(C.pago[k].t))).join('')}${tr('TOTAL COBRADO', pk.reduce((a, k) => a + C.pago[k].n, 0), money(pk.reduce((a, k) => a + C.pago[k].t, 0)), 1)}</table>` : ''}
         ${mes ? `<h2>Día por día</h2><table><tr><th>Día</th><th class="r">Pedidos</th><th class="r">Total</th></tr>${Object.entries(C.dias).sort().map(([k, x]) => tr(fechaTx(k), x.n, money(x.t))).join('')}</table>` : ''}
         <p style="margin-top:24px"><small>ShopMenu · Pro Video JSRHG</small></p><script>onload=()=>setTimeout(()=>print(),300)<\/script></body></html>`); w.document.close(); }
     function excelCierre(){ if(!CIE) return; const {v, j, C} = CIE, q = s => '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"', L = [];
-      L.push([q('Cierre de caja'), q(j.nombre), q(fechaTx(v))].join(';'), '', [q('Producto'), q('Cantidad'), q('Total')].join(';'));
+      L.push([q('Cierre de caja'), q(j.nombre), q(fechaTx(v))].join(';'), '');
+      if(C.rub.length > 1){ L.push([q('Rubro'), q('Cantidad'), q('Total')].join(';')); C.rub.forEach(r => L.push([q(r.n), r.q, Math.round(r.t)].join(';'))); L.push(''); }
+      L.push([q('Producto'), q('Cantidad'), q('Total')].join(';'));
       C.prod.forEach(p => L.push([q(p.n), p.q, Math.round(p.t * 100) / 100].join(';'))); L.push([q('TOTAL'), C.prod.reduce((a, p) => a + p.q, 0), Math.round(C.total * 100) / 100].join(';'), '');
       const pk = Object.keys(C.pago); if(pk.length){ L.push([q('Forma de pago'), q('Mesas'), q('Monto')].join(';')); pk.forEach(k => L.push([q((PAGOS[k] || k).replace(/^\S+\s/, '')), C.pago[k].n, Math.round(C.pago[k].t * 100) / 100].join(';'))); L.push(''); }
       L.push([q('Día'), q('Hora'), q('Pedido'), q('Mesa'), q('Producto'), q('Cantidad'), q('Precio'), q('Subtotal')].join(';'));
