@@ -1,0 +1,235 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tarot</title><meta name="theme-color" content="#07060d">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+:root{--ac:#d9b86c;--ac2:#f3e2b3;--bg:#07060d;--card:#111022;--line:rgba(217,184,108,.28);--tx:#ece6f6;--mut:#a79fbd}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--tx);font:18px/1.55 "Cormorant Garamond",Georgia,serif;min-height:100vh;overflow-x:hidden}
+#cielo{position:fixed;inset:0;z-index:0;pointer-events:none}
+.wrap{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:18px 16px 110px}
+h1,h2,h3,.cz{font-family:Cinzel,Georgia,serif;letter-spacing:.06em}
+.hero{text-align:center;padding:26px 0 10px;position:relative}
+.rueda{width:min(300px,78vw);height:auto;display:block;margin:0 auto;animation:gira 120s linear infinite;opacity:.9}
+@keyframes gira{to{transform:rotate(360deg)}}
+.perfil{width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid var(--ac);box-shadow:0 0 30px rgba(217,184,108,.35);position:absolute;left:50%;top:calc(26px + min(300px,78vw)/2);transform:translate(-50%,-50%)}
+.hero h1{font-size:clamp(30px,8vw,46px);color:var(--ac2);margin:18px 0 4px;text-shadow:0 0 24px rgba(217,184,108,.35)}
+.hero p{color:var(--mut);font-size:20px;font-style:italic;margin:0 0 14px}
+.redes{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.redes a,.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:rgba(217,184,108,.08);color:var(--ac2);border-radius:999px;padding:10px 16px;font:700 15px system-ui;text-decoration:none;cursor:pointer}
+.btn.pri{background:linear-gradient(135deg,#d9b86c,#b8913f);color:#1a1424;border:0}
+.blo{background:linear-gradient(180deg,rgba(26,22,48,.92),rgba(14,12,28,.92));border:1px solid var(--line);border-radius:22px;padding:20px 18px;margin:18px 0;box-shadow:0 10px 30px rgba(0,0,0,.4);position:relative}
+.blo h2{font-size:22px;color:var(--ac2);margin:0 0 10px;text-align:center}
+.blo h2::before,.blo h2::after{content:"✦";color:var(--ac);margin:0 10px;font-size:14px;vertical-align:middle}
+.txt{white-space:pre-wrap}
+.serv{display:grid;gap:12px}.serv .it{border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;gap:10px;align-items:center}
+.serv .it b{font-family:Cinzel;color:var(--ac2);font-size:17px}.serv .it .pr{font:800 17px system-ui;color:var(--ac);white-space:nowrap}.serv .it small{display:block;color:var(--mut);font-size:16px}
+.carta{width:170px;height:280px;margin:6px auto 12px;perspective:900px;cursor:pointer}
+.carta .in{position:relative;width:100%;height:100%;transition:transform .9s;transform-style:preserve-3d}.carta.vuelta .in{transform:rotateY(180deg)}
+.carta .cara{position:absolute;inset:0;border-radius:14px;backface-visibility:hidden;border:2px solid var(--ac);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px}
+.carta .dorso{background:radial-gradient(circle at 50% 50%,#2a2150,#0d0b1c);box-shadow:0 0 30px rgba(217,184,108,.25)}
+.carta .dorso span{font-size:60px;color:var(--ac)}
+.carta .frente{background:linear-gradient(180deg,#f6ecd2,#e8d6a6);color:#2a1d3a;transform:rotateY(180deg)}
+.carta .frente .num{font:700 18px Cinzel}.carta .frente .sim{font-size:64px;margin:6px 0}.carta .frente .nom{font:700 17px Cinzel}
+.signos{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.signos button{border:1px solid var(--line);background:rgba(255,255,255,.02);color:var(--tx);border-radius:14px;padding:10px 4px;cursor:pointer;font:15px system-ui}.signos button b{display:block;font-size:28px;color:var(--ac)}
+.signos button.on{background:rgba(217,184,108,.16)}
+#sigTxt{margin-top:12px;white-space:pre-wrap}
+.foto img{width:100%;border-radius:16px;display:block}.foto p{text-align:center;color:var(--mut);font-style:italic;margin:8px 0 0}
+.vid{position:relative;padding-top:56.25%;border-radius:16px;overflow:hidden}.vid iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.testi{display:grid;gap:10px}.testi div{border-left:3px solid var(--ac);padding:4px 12px;font-style:italic}.testi b{display:block;font-style:normal;color:var(--ac2);font:700 14px system-ui;margin-top:4px}
+footer{text-align:center;color:var(--mut);font:13px system-ui;margin-top:30px}footer a{color:var(--mut)}
+#musBtn{position:fixed;right:14px;bottom:14px;z-index:20;width:52px;height:52px;border-radius:50%;border:1px solid var(--line);background:#141127;color:var(--ac);font-size:22px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.5)}
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(4,3,10,.75);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.modal[hidden]{display:none}.modal .box{background:#12102a;border:1px solid var(--line);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px;font:16px/1.45 system-ui}
+.pago{border:1px solid var(--line);border-radius:14px;padding:12px;margin:8px 0}.pago b{color:var(--ac2)}.pago code{display:block;margin:6px 0;font:700 16px ui-monospace,monospace;color:#fff;word-break:break-all}
+.x{float:right;border:0;background:none;color:var(--mut);font-size:26px;cursor:pointer}
+/* editor */
+#edBar[hidden]{display:none}
+#edBar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#1b1736;border-top:1px solid var(--line);display:flex;gap:8px;padding:10px;justify-content:center;flex-wrap:wrap;font:14px system-ui}
+#ed .box{font:15px system-ui}
+#ed label{display:block;margin:10px 0 4px;color:var(--ac2);font-weight:700}
+#ed input,#ed textarea,#ed select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:#0b0a18;color:#fff;font:15px system-ui}
+#ed textarea{min-height:90px}
+.edb{border:1px solid var(--line);border-radius:14px;padding:10px;margin:10px 0;background:#0e0c20}
+.edb .tt{display:flex;gap:6px;align-items:center}.edb .tt b{flex:1;color:var(--ac2)}
+.mini{border:1px solid var(--line);background:#191533;color:#fff;border-radius:8px;padding:6px 9px;cursor:pointer;font:14px system-ui}
+.blo .edit{position:absolute;top:8px;right:8px}
+.hint{color:var(--mut);font-size:13px}
+</style></head><body>
+<canvas id="cielo"></canvas>
+<main class="wrap" id="pag"></main>
+<button type="button" id="musBtn" title="Música" aria-label="Música de fondo">🎵</button>
+
+<div class="modal" id="mPago" hidden><div class="box" id="pagoBox"></div></div>
+<div class="modal" id="ed" hidden><div class="box" id="edBox"></div></div>
+<div id="edBar" hidden><button type="button" class="btn pri" id="bEd">✏️ Editar mi página</button><button type="button" class="btn" id="bVer">👁️ Ver como cliente</button><span class="hint" id="edMsg" style="align-self:center"></span></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ID = (location.pathname.split('/')[2] || new URLSearchParams(location.search).get('p') || '').toLowerCase();
+const CLAVE = new URLSearchParams(location.search).get('editar') || '';
+let EDITOR = false, VISTA = false;
+
+// ================= cielo con estrellas =================
+(() => { const c = $('cielo'), x = c.getContext('2d'); let W, H, E = [];
+  function tam(){ W = c.width = innerWidth * devicePixelRatio; H = c.height = innerHeight * devicePixelRatio; E = Array.from({length: 160}, () => ({x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.4 * devicePixelRatio + .3, f: Math.random() * 6})); }
+  tam(); addEventListener('resize', tam);
+  const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  (function paso(t){ x.clearRect(0, 0, W, H); E.forEach(e => { const a = .35 + .65 * Math.abs(Math.sin(t / 1400 + e.f)); x.fillStyle = `rgba(243,226,179,${quieto ? .7 : a})`; x.beginPath(); x.arc(e.x, e.y, e.r, 0, 7); x.fill(); }); if(!quieto) requestAnimationFrame(paso); })(0);
+})();
+
+// ================= datos =================
+const SIG = [['♈','Aries','21/3 – 19/4'],['♉','Tauro','20/4 – 20/5'],['♊','Géminis','21/5 – 20/6'],['♋','Cáncer','21/6 – 22/7'],['♌','Leo','23/7 – 22/8'],['♍','Virgo','23/8 – 22/9'],['♎','Libra','23/9 – 22/10'],['♏','Escorpio','23/10 – 21/11'],['♐','Sagitario','22/11 – 21/12'],['♑','Capricornio','22/12 – 19/1'],['♒','Acuario','20/1 – 18/2'],['♓','Piscis','19/2 – 20/3']];
+const ARC = [['0','El Loco','🃏','Nuevos comienzos, libertad y confiar en el camino.'],['I','El Mago','✨','Tenés las herramientas: es momento de actuar.'],['II','La Sacerdotisa','🌙','Escuchá tu intuición, la respuesta está adentro.'],['III','La Emperatriz','🌸','Abundancia, creatividad y cuidado.'],['IV','El Emperador','👑','Orden, estructura y firmeza.'],['V','El Sumo Sacerdote','🔑','Tradición, consejo y aprendizaje.'],['VI','Los Enamorados','💞','Elecciones del corazón y uniones.'],['VII','El Carro','🏇','Avance, voluntad y victoria.'],['VIII','La Fuerza','🦁','Coraje sereno y paciencia.'],['IX','El Ermitaño','🏮','Mirada interior y búsqueda de sentido.'],['X','La Rueda de la Fortuna','🎡','Cambios y ciclos que giran a tu favor.'],['XI','La Justicia','⚖️','Equilibrio, verdad y decisiones justas.'],['XII','El Colgado','🙃','Mirar las cosas desde otro lugar.'],['XIII','La Muerte','🦋','Transformación: algo termina para que algo nazca.'],['XIV','La Templanza','🏺','Calma, armonía y medida justa.'],['XV','El Diablo','⛓️','Soltar ataduras y tentaciones.'],['XVI','La Torre','⚡','Un cambio repentino que libera.'],['XVII','La Estrella','⭐','Esperanza, sanación e inspiración.'],['XVIII','La Luna','🌕','Sueños, emociones y lo que aún no se ve.'],['XIX','El Sol','☀️','Alegría, éxito y vitalidad.'],['XX','El Juicio','📯','Despertar y segundas oportunidades.'],['XXI','El Mundo','🌍','Plenitud y ciclos que se completan.']];
+const PAGOS = {mp:'💙 Mercado Pago', tarjeta:'💳 Tarjeta de débito o crédito', paypal:'🅿️ PayPal', astropay:'💳 AstroPay', binance:'🪙 Binance (cripto)', transferencia:'🏦 Transferencia bancaria', otro:'💰 Otro'};
+const COLORES = {oro:['#d9b86c','#f3e2b3'], plata:['#c9cfdb','#eef1f7'], violeta:['#b9a3e3','#e6dcfa'], rosa:['#e3a3c3','#f7dceb'], turquesa:['#8fd3cf','#d9f3f1']};
+const NUEVA = () => ({nombre: 'Tarot y Astrología', frase: 'Lecturas de tarot, carta natal y energía para tu camino', foto: '', whatsapp: '', instagram: '', tiktok: '', color: 'oro', musica: 'mistica', pagos: [], notaPago: 'Después de pagar, mandame el comprobante por WhatsApp y coordinamos tu lectura.',
+  bloques: [{t: 'texto', titulo: 'Sobre mí', texto: 'Escribí acá quién sos, cómo trabajás y qué ofrecés.'}, {t: 'servicios', titulo: 'Lecturas', items: [{nombre: 'Tirada de 3 cartas', desc: 'Pasado, presente y futuro', precio: ''}, {nombre: 'Lectura completa', desc: 'Una hora, por videollamada', precio: ''}]}, {t: 'carta', titulo: 'Tu carta del día'}, {t: 'signos', titulo: 'Horóscopo de la semana', textos: {}}]});
+let D = NUEVA();
+
+// ================= dibujar la página =================
+const ytId = u => { const m = String(u).match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/); return m ? m[1] : ''; };
+function embed(u){ const y = ytId(u); if(y) return `https://www.youtube.com/embed/${y}`; const s = String(u).match(/open\.spotify\.com\/(track|album|playlist|episode|show)\/(\w+)/); if(s) return `https://open.spotify.com/embed/${s[1]}/${s[2]}`; return ''; }
+function rueda(){ let g = ''; for(let i = 0; i < 12; i++){ const a = (i * 30 - 75) * Math.PI / 180, x = 150 + 122 * Math.cos(a), y = 150 + 122 * Math.sin(a); g += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="22" fill="var(--ac)">${SIG[i][0]}&#xFE0E;</text>`; const b = (i * 30 - 90) * Math.PI / 180; g += `<line x1="${150 + 104 * Math.cos(b)}" y1="${150 + 104 * Math.sin(b)}" x2="${150 + 140 * Math.cos(b)}" y2="${150 + 140 * Math.sin(b)}" stroke="var(--ac)" stroke-opacity=".5"/>`; }
+  return `<svg class="rueda" viewBox="0 0 300 300" aria-hidden="true"><circle cx="150" cy="150" r="140" fill="none" stroke="var(--ac)" stroke-opacity=".6"/><circle cx="150" cy="150" r="104" fill="none" stroke="var(--ac)" stroke-opacity=".4"/><circle cx="150" cy="150" r="70" fill="none" stroke="var(--ac)" stroke-opacity=".25" stroke-dasharray="2 5"/>${g}</svg>`; }
+function bloque(b, i){
+  const ed = EDITOR && !VISTA ? `<button type="button" class="mini edit" data-edb="${i}">✏️</button>` : '';
+  const h = b.titulo ? `<h2>${esc(b.titulo)}</h2>` : '';
+  if(b.t === 'texto') return `<section class="blo">${ed}${h}<div class="txt">${esc(b.texto)}</div></section>`;
+  if(b.t === 'servicios') return `<section class="blo">${ed}${h}<div class="serv">${(b.items || []).map((s, k) => `<div class="it"><div style="flex:1"><b>${esc(s.nombre)}</b><small>${esc(s.desc)}</small></div>${s.precio ? `<span class="pr">${esc(s.precio)}</span>` : ''}<button type="button" class="btn pri" data-res="${i}:${k}">Reservar</button></div>`).join('')}</div></section>`;
+  if(b.t === 'carta') return `<section class="blo">${ed}${h}<div class="carta" id="carta"><div class="in"><div class="cara dorso"><span>✦</span><div class="cz" style="color:var(--ac2);font-size:13px;margin-top:8px">Tocá para dar vuelta</div></div><div class="cara frente" id="cartaF"></div></div></div><p style="text-align:center;margin:0" id="cartaTxt" class="hint">Concentrate en tu pregunta y tocá la carta.</p></section>`;
+  if(b.t === 'signos'){ const tx = b.textos || {}; return `<section class="blo">${ed}${h}<div class="signos">${SIG.map((s, k) => `<button type="button" data-sig="${i}:${k}"><b>${s[0]}&#xFE0E;</b>${s[1]}<br><small style="color:var(--mut)">${s[2]}</small></button>`).join('')}</div><div id="sigTxt-${i}" class="txt" style="margin-top:12px">${Object.keys(tx).length ? '<span class="hint">Elegí tu signo ✨</span>' : (EDITOR ? '<span class="hint">Tocá ✏️ para escribir el mensaje de cada signo.</span>' : '')}</div></section>`; }
+  if(b.t === 'foto') return b.img ? `<section class="blo foto">${ed}${h}<img src="${b.img}" alt="${esc(b.pie || b.titulo || 'Foto')}">${b.pie ? `<p>${esc(b.pie)}</p>` : ''}</section>` : (EDITOR ? `<section class="blo">${ed}<p class="hint">Foto sin cargar</p></section>` : '');
+  if(b.t === 'video' || b.t === 'musica'){ const u = embed(b.url); if(!u) return EDITOR ? `<section class="blo">${ed}${h}<p class="hint">Pegá un link de YouTube${b.t === 'musica' ? ' o Spotify' : ''}.</p></section>` : ''; const sp = u.includes('spotify'); return `<section class="blo">${ed}${h}${sp ? `<iframe src="${u}" style="width:100%;height:152px;border:0;border-radius:14px" allow="encrypted-media" loading="lazy"></iframe>` : `<div class="vid"><iframe src="${u}" allowfullscreen loading="lazy" allow="encrypted-media"></iframe></div>`}</section>`; }
+  if(b.t === 'testimonios') return `<section class="blo">${ed}${h}<div class="testi">${(b.items || []).map(s => `<div>“${esc(s.texto)}”<b>— ${esc(s.nombre)}</b></div>`).join('')}</div></section>`;
+  return '';
+}
+function pintar(){
+  const c = COLORES[D.color] || COLORES.oro; document.documentElement.style.setProperty('--ac', c[0]); document.documentElement.style.setProperty('--ac2', c[1]);
+  document.title = D.nombre || 'Tarot';
+  const wa = (D.whatsapp || '').replace(/\D/g, '');
+  $('pag').innerHTML = `<header class="hero">${rueda()}${D.foto ? `<img class="perfil" src="${D.foto}" alt="${esc(D.nombre)}">` : ''}<h1>${esc(D.nombre)}</h1><p>${esc(D.frase)}</p>
+    <div class="redes">${wa ? `<a href="https://wa.me/${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>` : ''}${D.instagram ? `<a href="https://instagram.com/${esc(D.instagram.replace(/^@/, ''))}" target="_blank" rel="noopener">📸 Instagram</a>` : ''}${D.tiktok ? `<a href="https://www.tiktok.com/@${esc(D.tiktok.replace(/^@/, ''))}" target="_blank" rel="noopener">🎵 TikTok</a>` : ''}${(D.pagos || []).length ? `<button type="button" class="btn" data-res="pago">💳 Cómo pagar</button>` : ''}</div></header>
+    ${(D.bloques || []).map(bloque).join('')}
+    <footer>✦ ${esc(D.nombre)} ✦<br><small>Página creada por <a href="/provideo">Pro Video JSRHG</a></small></footer>`;
+  $('musBtn').hidden = D.musica === 'no';
+}
+// carta del día: una por día y por persona
+document.addEventListener('click', e => {
+  const ca = e.target.closest('#carta'); if(ca && !ca.classList.contains('vuelta')){
+    const hoy = new Date().toISOString().slice(0, 10); let g = null; try{ g = JSON.parse(localStorage.getItem('tarot-carta') || 'null'); }catch(_){}
+    if(!g || g.d !== hoy){ g = {d: hoy, n: Math.floor(Math.random() * 22)}; localStorage.setItem('tarot-carta', JSON.stringify(g)); }
+    const a = ARC[g.n]; $('cartaF').innerHTML = `<div class="num">${a[0]}</div><div class="sim">${a[2]}</div><div class="nom">${a[1]}</div>`; ca.classList.add('vuelta');
+    setTimeout(() => { $('cartaTxt').className = ''; $('cartaTxt').innerHTML = `<b style="color:var(--ac2)">${a[1]}:</b> ${a[3]}<br><span class="hint">Tu carta de hoy. Mañana podés sacar otra.</span>`; }, 700);
+  }
+  const sg = e.target.closest('[data-sig]'); if(sg){ const [i, k] = sg.dataset.sig.split(':').map(Number), b = D.bloques[i], t = (b.textos || {})[k];
+    sg.parentElement.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === sg));
+    $('sigTxt-' + i).innerHTML = `<b style="color:var(--ac2)">${SIG[k][0]}&#xFE0E; ${SIG[k][1]}</b><br>${t ? esc(t) : '<span class="hint">Pronto el mensaje para este signo ✨</span>'}`; }
+  const r = e.target.closest('[data-res]'); if(r) abrirPago(r.dataset.res);
+  const eb = e.target.closest('[data-edb]'); if(eb) abrirEditor(+eb.dataset.edb);
+});
+
+// ================= cobros =================
+function abrirPago(ref){
+  let serv = null; if(ref !== 'pago'){ const [i, k] = ref.split(':').map(Number); serv = D.bloques[i].items[k]; }
+  const wa = (D.whatsapp || '').replace(/\D/g, ''), P = D.pagos || [];
+  const msg = `Hola! Quiero ${serv ? 'reservar "' + serv.nombre + '"' + (serv.precio ? ' (' + serv.precio + ')' : '') : 'una lectura'}. Te mando el comprobante del pago.`;
+  $('pagoBox').innerHTML = `<button type="button" class="x" onclick="this.closest('.modal').hidden=true" aria-label="Cerrar">×</button>
+    <h3 class="cz" style="color:var(--ac2);margin:0 0 6px">${serv ? esc(serv.nombre) : 'Cómo pagar'}</h3>${serv && serv.precio ? `<div style="font:800 22px system-ui;color:var(--ac)">${esc(serv.precio)}</div>` : ''}
+    ${P.length ? P.map((p, n) => { const url = /^https?:\/\//.test(p.dato); return `<div class="pago"><b>${PAGOS[p.tipo] || '💰'}</b>${p.titular ? ` · ${esc(p.titular)}` : ''}${url ? `<p><a class="btn pri" href="${esc(p.dato)}" target="_blank" rel="noopener">Pagar ahora</a></p>` : `<code>${esc(p.dato)}</code><button type="button" class="mini" data-copia="${n}">📋 Copiar</button>`}${p.nota ? `<div class="hint" style="margin-top:6px">${esc(p.nota)}</div>` : ''}</div>`; }).join('') : '<p class="hint">Todavía no hay formas de pago cargadas. Escribime por WhatsApp.</p>'}
+    ${D.notaPago ? `<p>${esc(D.notaPago)}</p>` : ''}
+    ${wa ? `<a class="btn pri" style="width:100%;justify-content:center" href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">💬 Mandar comprobante por WhatsApp</a>` : ''}`;
+  $('pagoBox').querySelectorAll('[data-copia]').forEach(b => b.onclick = () => { navigator.clipboard && navigator.clipboard.writeText(P[+b.dataset.copia].dato); b.textContent = '✅ Copiado'; });
+  $('mPago').hidden = false;
+}
+$('mPago').onclick = e => { if(e.target.id === 'mPago') $('mPago').hidden = true; };
+
+// ================= música de fondo mística (generada, sin derechos de autor) =================
+let AC = null, SON = false, nodos = [];
+function musica(on){
+  if(on){ AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume(); const m = AC.createGain(); m.gain.value = 0; m.connect(AC.destination); m.gain.linearRampToValueAtTime(.08, AC.currentTime + 3);
+    [110, 164.81, 220, 277.18, 329.63].forEach((f, i) => { const o = AC.createOscillator(), g = AC.createGain(), l = AC.createOscillator(), lg = AC.createGain(); o.type = i % 2 ? 'sine' : 'triangle'; o.frequency.value = f; g.gain.value = .2 / (i + 1); l.frequency.value = .05 + i * .03; lg.gain.value = .12 / (i + 1); l.connect(lg); lg.connect(g.gain); o.connect(g); g.connect(m); o.start(); l.start(); nodos.push(o, l); });
+    nodos.push({stop: () => { m.gain.linearRampToValueAtTime(0, AC.currentTime + 1); }}); }
+  else { nodos.forEach(n => { try{ n.stop(AC.currentTime + 1.1); }catch(e){ try{ n.stop(); }catch(_){} } }); nodos = []; }
+  SON = on; $('musBtn').textContent = on ? '🔇' : '🎵';
+}
+$('musBtn').onclick = () => musica(!SON);
+
+// ================= editor (solo con el link secreto) =================
+const TIPOS = {texto: '📝 Texto', servicios: '🔮 Lecturas y precios', carta: '🃏 Carta del día', signos: '♈ Horóscopo por signo', foto: '🖼️ Foto', video: '🎬 Video de YouTube', musica: '🎶 Música (YouTube o Spotify)', testimonios: '💬 Opiniones de clientes'};
+function achicar(file, max){ return new Promise(ok => { const im = new Image(); im.onload = () => { const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = im.width * k; c.height = im.height * k; c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', .82)); }; im.onerror = () => ok(''); im.src = URL.createObjectURL(file); }); }
+const campo = (lab, html) => `<label>${lab}</label>${html}`;
+const inp = (k, v, ph = '') => `<input data-k="${k}" value="${esc(v)}" placeholder="${esc(ph)}">`;
+const area = (k, v, ph = '') => `<textarea data-k="${k}" placeholder="${esc(ph)}">${esc(v)}</textarea>`;
+function formBloque(b, i){
+  let f = campo('Título', inp(`b.${i}.titulo`, b.titulo || ''));
+  if(b.t === 'texto') f += campo('Texto', area(`b.${i}.texto`, b.texto || ''));
+  if(b.t === 'servicios' || b.t === 'testimonios'){ const it = b.items || []; f += it.map((s, k) => b.t === 'servicios'
+      ? `<div class="edb">${inp(`b.${i}.items.${k}.nombre`, s.nombre, 'Nombre (ej: Tirada de 3 cartas)')}${inp(`b.${i}.items.${k}.desc`, s.desc, 'Descripción corta')}${inp(`b.${i}.items.${k}.precio`, s.precio, 'Precio (ej: $8.000 o US$10)')}<button type="button" class="mini" data-qit="${i}:${k}">🗑️ Quitar</button></div>`
+      : `<div class="edb">${inp(`b.${i}.items.${k}.nombre`, s.nombre, 'Nombre')}${area(`b.${i}.items.${k}.texto`, s.texto, 'Lo que dijo')}<button type="button" class="mini" data-qit="${i}:${k}">🗑️ Quitar</button></div>`).join('') + `<button type="button" class="mini" data-ait="${i}">➕ Agregar</button>`; }
+  if(b.t === 'signos') f += SIG.map((s, k) => campo(`${s[0]}&#xFE0E; ${s[1]}`, area(`b.${i}.textos.${k}`, (b.textos || {})[k] || '', 'Mensaje para ' + s[1]))).join('');
+  if(b.t === 'foto') f += `${b.img ? `<img src="${b.img}" style="width:100%;border-radius:10px;margin-top:8px">` : ''}<label class="mini" style="display:inline-block;margin-top:8px">📷 Elegir foto<input type="file" accept="image/*" data-foto="${i}" hidden></label>` + campo('Texto debajo', inp(`b.${i}.pie`, b.pie || ''));
+  if(b.t === 'video' || b.t === 'musica') f += campo('Link', inp(`b.${i}.url`, b.url || '', b.t === 'musica' ? 'https://open.spotify.com/... o https://youtube.com/...' : 'https://youtube.com/...'));
+  return f;
+}
+function abrirEditor(solo){
+  const P = D.pagos || [];
+  $('edBox').innerHTML = `<button type="button" class="x" id="edX" aria-label="Cerrar">×</button><h3 class="cz" style="color:var(--ac2);margin:0">✏️ Editar mi página</h3><p class="hint">Cambiá lo que quieras y tocá <b>Guardar</b> abajo. Este link es solo tuyo: no lo compartas.</p>
+    ${solo == null ? `<div class="edb"><b style="color:var(--ac2)">✨ Portada</b>
+      ${campo('Nombre', inp('nombre', D.nombre))}${campo('Frase', inp('frase', D.frase))}
+      <label>Foto de perfil</label>${D.foto ? `<img src="${D.foto}" style="width:80px;height:80px;border-radius:50%;object-fit:cover">` : ''} <label class="mini" style="display:inline-block">📷 Elegir<input type="file" accept="image/*" id="fPerfil" hidden></label>
+      ${campo('WhatsApp (con código de país, ej: 5492235551234)', inp('whatsapp', D.whatsapp))}${campo('Instagram (usuario)', inp('instagram', D.instagram))}${campo('TikTok (usuario)', inp('tiktok', D.tiktok))}
+      ${campo('Color', `<select data-k="color">${Object.keys(COLORES).map(c => `<option value="${c}"${c === D.color ? ' selected' : ''}>${{oro: '✨ Dorado', plata: '🌙 Plateado', violeta: '🔮 Violeta suave', rosa: '🌸 Rosa suave', turquesa: '💎 Turquesa'}[c]}</option>`).join('')}</select>`)}
+      ${campo('Música de fondo', `<select data-k="musica"><option value="mistica"${D.musica !== 'no' ? ' selected' : ''}>🎵 Música mística (el cliente la prende con el botón)</option><option value="no"${D.musica === 'no' ? ' selected' : ''}>🔇 Sin música</option></select>`)}</div>
+    <div class="edb"><b style="color:var(--ac2)">💳 Formas de cobro</b><p class="hint">Podés cargar varias cuentas (por ejemplo, dos de Mercado Pago). Si pegás un link de pago (Mercado Pago o PayPal), aparece un botón "Pagar ahora"; si ponés un alias, CBU o mail, aparece para copiar.</p>
+      ${P.map((p, n) => `<div class="edb"><select data-k="pagos.${n}.tipo">${Object.entries(PAGOS).map(([k, v]) => `<option value="${k}"${k === p.tipo ? ' selected' : ''}>${v}</option>`).join('')}</select>${inp(`pagos.${n}.titular`, p.titular, 'A nombre de (ej: Laura Gómez)')}${inp(`pagos.${n}.dato`, p.dato, 'Alias, CBU, mail o link de pago')}${inp(`pagos.${n}.nota`, p.nota, 'Aclaración (opcional)')}<button type="button" class="mini" data-qpago="${n}">🗑️ Quitar</button></div>`).join('')}
+      <button type="button" class="mini" id="aPago">➕ Agregar forma de cobro</button>${campo('Mensaje después de pagar', area('notaPago', D.notaPago))}</div>
+    <div class="edb"><b style="color:var(--ac2)">📚 Secciones de la página</b>
+      ${(D.bloques || []).map((b, i) => `<div class="edb"><div class="tt"><b>${TIPOS[b.t] || b.t}</b><button type="button" class="mini" data-mv="${i}:-1">↑</button><button type="button" class="mini" data-mv="${i}:1">↓</button><button type="button" class="mini" data-qb="${i}">🗑️</button></div>${formBloque(b, i)}</div>`).join('')}
+      <label>➕ Agregar sección</label><select id="nuevoB"><option value="">Elegí…</option>${Object.entries(TIPOS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></div>`
+    : `<div class="edb"><div class="tt"><b>${TIPOS[D.bloques[solo].t]}</b></div>${formBloque(D.bloques[solo], solo)}</div><button type="button" class="mini" id="edTodo">⚙️ Editar toda la página</button>`}
+    <p><button type="button" class="btn pri" id="edGuardar" style="width:100%;justify-content:center">💾 Guardar</button></p><p id="edEstado" class="hint"></p>`;
+  $('ed').hidden = false;
+  const box = $('edBox');
+  box.oninput = e => { const k = e.target.dataset.k; if(!k) return; setK(k, e.target.value); };
+  box.onchange = async e => {
+    if(e.target.id === 'fPerfil' && e.target.files[0]){ D.foto = await achicar(e.target.files[0], 420); abrirEditor(solo); }
+    if(e.target.dataset.foto != null && e.target.files[0]){ D.bloques[+e.target.dataset.foto].img = await achicar(e.target.files[0], 1100); abrirEditor(solo); }
+    if(e.target.id === 'nuevoB' && e.target.value){ const t = e.target.value; D.bloques.push(t === 'servicios' ? {t, titulo: 'Lecturas', items: [{nombre: '', desc: '', precio: ''}]} : t === 'testimonios' ? {t, titulo: 'Lo que dicen', items: [{nombre: '', texto: ''}]} : t === 'signos' ? {t, titulo: 'Horóscopo de la semana', textos: {}} : t === 'carta' ? {t, titulo: 'Tu carta del día'} : {t, titulo: ''}); abrirEditor(); }
+  };
+  box.onclick = e => { const b = e.target.closest('button'); if(!b) return; const d = b.dataset;
+    if(b.id === 'edX'){ $('ed').hidden = true; pintar(); }
+    if(b.id === 'edTodo') abrirEditor();
+    if(b.id === 'aPago'){ D.pagos = D.pagos || []; D.pagos.push({tipo: 'mp', titular: '', dato: '', nota: ''}); abrirEditor(); }
+    if(d.qpago){ D.pagos.splice(+d.qpago, 1); abrirEditor(); }
+    if(d.qb && confirm('¿Quitar esta sección?')){ D.bloques.splice(+d.qb, 1); abrirEditor(); }
+    if(d.mv){ const [i, s] = d.mv.split(':').map(Number), j = i + s; if(j >= 0 && j < D.bloques.length){ [D.bloques[i], D.bloques[j]] = [D.bloques[j], D.bloques[i]]; abrirEditor(); } }
+    if(d.ait){ const bl = D.bloques[+d.ait]; bl.items = bl.items || []; bl.items.push(bl.t === 'servicios' ? {nombre: '', desc: '', precio: ''} : {nombre: '', texto: ''}); abrirEditor(solo); }
+    if(d.qit){ const [i, k] = d.qit.split(':').map(Number); D.bloques[i].items.splice(k, 1); abrirEditor(solo); }
+    if(b.id === 'edGuardar') guardar();
+  };
+}
+function setK(path, v){ const p = path.split('.'); let o = D; if(p[0] === 'b'){ o = D.bloques; p.shift(); } for(let i = 0; i < p.length - 1; i++){ const k = p[i]; if(o[k] == null) o[k] = {}; o = o[k]; } o[p[p.length - 1]] = v; }
+async function guardar(){
+  $('edEstado').textContent = 'Guardando…';
+  try{ const r = await fetch('/api/tarot?accion=guardar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: ID, clave: CLAVE, data: D})}); const j = await r.json().catch(() => ({}));
+    if(r.ok){ $('edEstado').textContent = '✅ ¡Guardado! Ya lo ven tus clientes.'; $('edMsg').textContent = '✅ Guardado'; setTimeout(() => { $('ed').hidden = true; pintar(); }, 700); }
+    else $('edEstado').textContent = '😕 ' + (j.error || 'No se pudo guardar.'); }
+  catch(e){ $('edEstado').textContent = '😕 Sin conexión. Probá de nuevo.'; }
+}
+$('bEd').onclick = () => abrirEditor();
+$('bVer').onclick = () => { VISTA = !VISTA; $('bVer').textContent = VISTA ? '✏️ Volver a editar' : '👁️ Ver como cliente'; pintar(); };
+
+// ================= arranque =================
+(async () => {
+  if(!/^[a-z0-9-]{3,40}$/.test(ID)){ pintar(); return; }
+  try{ const r = await fetch('/api/tarot?id=' + encodeURIComponent(ID) + (CLAVE ? '&clave=' + encodeURIComponent(CLAVE) : '')); const j = await r.json();
+    if(r.ok){ D = Object.assign(NUEVA(), j.data); EDITOR = !!j.editor; }
+    else if(r.status === 404 && CLAVE.length >= 12){ EDITOR = true; $('edMsg').textContent = 'Página nueva: editala y tocá Guardar'; }
+  }catch(e){}
+  $('edBar').hidden = !EDITOR; pintar();
+})();
+</script>
+</body></html>

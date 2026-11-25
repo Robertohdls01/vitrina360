@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/tarot/:id",
+      "destination": "/tarot.html"
+    },
+    {
       "source": "/diario",
       "destination": "/diario.html"
     },
