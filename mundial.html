@@ -750,6 +750,23 @@ const T = [
  {p:'ru', n:'Ozon', s:'g', f:'🇷🇺', r:'El gran marketplace de Rusia (en ruso)', env:'mir', l:'ru', b:q=>'https://www.ozon.ru/search/?text='+E(q), o:'https://www.ozon.ru/'},
  {p:'ru', n:'Wildberries', s:'g', f:'🇷🇺', r:'La tienda online más grande de Rusia (en ruso)', env:'mir', l:'ru', b:q=>'https://www.wildberries.ru/catalog/0/search.aspx?search='+E(q), o:'https://www.wildberries.ru/'},
 ];
+// rubro de cada tienda (para no mostrar una perfumería cuando buscas una bicicleta)
+const SIN_T = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+const RUB = {
+ general: /segunda mano|subasta|agente|compras regionales|envia desde|mercado libre|tiendas oficiales|mayorista|amazon|gigante|shopping|tienda principal|tienda online|tiendas online|clasificados|departamental|casi todo|por mayor|comparador|gran cadena|ofertas|el mercado libre|precios bajos|de todo|marketplace|todo tipo|hipermercado|supermercado|super |grandes almacenes|gran tienda|departamentos|vendedores|miles de|todo para|bazar|multitienda|compras online|mas grande del pais|principal tienda|retail/,
+ tecnologia: /electro|xiaomi|tecnolog|celular|computa|gaming|videojuego|informatic|gadget|camara|audio|smartphone/,
+ hogar: /muji|hogar|casa|mueble|deco|cocina|jardin|ferreter|herramient|construc|bricolaje|iluminac|colchon/,
+ belleza: /drogueria|cuidado personal|belleza|cosmet|maquillaje|perfum|skincare|piel|k-beauty/,
+ moda: /moda|ropa|zapat|calzado|vestido|indumentaria|accesorios|joya|bolso|lujo|fashion|lenceria/,
+ deporte: /deport|bicicl|ciclis|outdoor|camping|fitness|running|pesca|montan|aventura|gimnasio|surf|\bski/,
+ chicos: /chicos|ninos|bebe|juguet|infantil|escolar/,
+ mascotas: /mascota|perro|gato|\bpet/,
+ salud: /salud|farmac|vitamina|suplement|optica/,
+ auto: /\bauto|repuesto|neumatic|\bmoto|vehicul|carro/,
+ regalos: /regalo|hecho a mano|manualidad|\barte\b|anime|figuras|instrumentos|musica/,
+ libros: /libro|papeler|libreria/
+};
+T.forEach(t => { const x = SIN_T(t.r + ' ' + t.n); t.c = Object.keys(RUB).filter(k => RUB[k].test(x)); });
 // ---- fábricas y proveedores para importar (directorios de empresas exportadoras) ----
 const B2B = [
  {n:'Alibaba', f:'🇨🇳', r:'El directorio de fábricas más grande del mundo. Busca el sello "Verified" y paga con Trade Assurance', l:'en', b:q=>'https://www.alibaba.com/trade/search?SearchText='+E(q), o:'https://www.alibaba.com/'},
@@ -1135,14 +1152,21 @@ async function buscar(q){
   }
   const TAMO = {g: 0, m: 1, c: 2}, reg = GEO[PAIS] ? GEO[PAIS][2] : '';
   const pts = t => (ccDe(t.f) === PAIS ? 0 : 10) + ORDEN[t.env] * 3 + (t.p === reg ? 0 : 2) + TAMO[t.s];
-  const L = T.slice().sort((a, b) => pts(a) - pts(b));
+  // solo tiendas que venden ese rubro: las especialistas primero, después las que venden de todo
+  const rub = SIN_T(k.rubro || ''), pal = SIN_T(q).split(/\s+/).filter(w => w.length > 3).map(w => w.replace(/(es|s)$/, ''));
+  const nombra = t => pal.some(w => SIN_T(t.r).includes(w));
+  const espe = t => (RUB[rub] && t.c.includes(rub)) || nombra(t);
+  const sirve = t => espe(t) || t.c.includes('general');
+  const pr = t => pts(t) - (espe(t) ? 6 : 0);
+  const L = T.filter(sirve).sort((a, b) => pr(a) - pr(b)), OTRAS = T.filter(t => !sirve(t));
   const tar = t => tarjeta(t, true, k[t.l] || k.en || q);
-  $('res').innerHTML = L.slice(0, 40).map(tar).join('') + (L.length > 40 ? `<button type="button" class="vmas" id="resMas">➕ Ver las ${L.length} tiendas del mundo</button>` : '');
+  const mas = () => L.length > 40 ? `<button type="button" class="vmas" id="resMas">➕ Ver las ${L.length} tiendas que venden esto</button>` : '';
+  $('res').innerHTML = L.slice(0, 40).map(tar).join('') + mas();
   if($('resMas')) $('resMas').onclick = () => { $('resMas').remove(); $('res').insertAdjacentHTML('beforeend', L.slice(40).map(tar).join('')); traducir($('res')); };
   mapaMarcar([...new Set(L.slice(0, 40).map(t => ccDe(t.f)))], 'mundo');
   const si = L.filter(t => t.env === 'si').slice(0, 3).map(t => t.n).join(', ');
   ULT = q;
-  decir(`¡Listo! Te armé la búsqueda de <b>${esc(q)}</b> en ${T.length} tiendas de ${new Set(T.map(t => t.f)).size} países, cada una en su idioma. ${PAIS === 'AR' ? `Para que te llegue a tu casa, empieza por <b>${si}</b>.` : 'Fíjate en cada tienda si envía a tu país.'} Toca <b>🔎 Ver</b> en cada tienda y compara precios 👇${k.consejo ? '<br>💡 ' + esc(k.consejo) : ''}${PAIS === 'AR' ? '<br><small>Recuerda: hasta US$ 400 por envío no pagas derechos de importación.</small>' : ''}`);
+  decir(`¡Listo! Te armé la búsqueda de <b>${esc(q)}</b> en las <b>${L.length} tiendas</b> de ${new Set(L.map(t => t.f)).size} países que venden esto, cada una en su idioma. ${PAIS === 'AR' ? `Para que te llegue a tu casa, empieza por <b>${si}</b>.` : 'Fíjate en cada tienda si envía a tu país.'} Toca <b>🔎 Ver</b> en cada tienda y compara precios 👇${k.consejo ? '<br>💡 ' + esc(k.consejo) : ''}${PAIS === 'AR' ? '<br><small>Recuerda: hasta US$ 400 por envío no pagas derechos de importación.</small>' : ''}`);
   seguir([['🏭 Ver fábricas de esto', () => irModo('importa', q)], ['💡 Ideas de negocio con esto', () => irModo('ideas', q)], ['🛡️ ¿Cómo compro seguro?', () => ayuda('compra')], ['🔎 Buscar otra cosa', otraCosa]]);
   $('globo').scrollIntoView({behavior: 'smooth', block: 'start'}); traducir($('res'));
 }
