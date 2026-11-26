@@ -21,6 +21,8 @@ const okCod = c => /^[A-Z0-9]{8}$/.test(String(c || ''));
 const nuevoCod = () => Array.from(crypto.randomBytes(8), b => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b % 32]).join('');
 const esAdmin = k => { const a = String(process.env.MUNDIAL_ADMIN || ''); return a.length >= 12 && String(k || '') === a; };
 const METODOS = ['mp', 'paypal', 'astropay', 'binance'];
+// ShopGuía: pases por días para turistas (pago único). Precios en pesos (Mercado Pago) y en dólares (resto del mundo).
+const PASES = () => { try { const j = JSON.parse(process.env.GUIA_PASES || ''); if (j && j['3']) return j; } catch (e) {} return { 3: { ars: 3000, usd: 3 }, 7: { ars: 5000, usd: 5 }, 30: { ars: 9000, usd: 9 } }; };
 
 async function estado(cod) {
   const f = await leer(DIR + cod + '.json'); if (!f) return null;
@@ -33,8 +35,17 @@ async function estado(cod) {
       await guardar(DIR + cod + '.json', f);
     } catch (e) { console.error('mundial mp', e.status || '', e.message); }
   }
+  if (f.producto === 'guia' && f.metodo === 'mp' && !f.hasta && process.env.MP_ACCESS_TOKEN && (!f.mpCheck || ahora - Date.parse(f.mpCheck) > 60e3)) {
+    try {
+      const L = await mp('GET', '/v1/payments/search?external_reference=' + encodeURIComponent('guia:' + cod) + '&sort=date_created&criteria=desc');
+      const ok = ((L && L.results) || []).find(p => p.status === 'approved');
+      f.mpCheck = new Date().toISOString();
+      if (ok) { f.hasta = new Date((Date.parse(ok.date_approved || '') || ahora) + (Number(f.dias) || 3) * 864e5).toISOString(); f.mpPago = ok.id; }
+      await guardar(DIR + cod + '.json', f);
+    } catch (e) { console.error('guia mp', e.status || '', e.message); }
+  }
   const activo = !!f.hasta && Date.parse(f.hasta) > ahora;
-  return { f, r: { activo, hasta: f.hasta || null, metodo: f.metodo, estado: activo ? 'activa' : (f.hasta ? 'vencida' : 'pendiente') } };
+  return { f, r: { activo, hasta: f.hasta || null, metodo: f.metodo, producto: f.producto || 'mundial', dias: f.dias || null, estado: activo ? 'activa' : (f.hasta ? 'vencida' : 'pendiente') } };
 }
 
 module.exports = async (req, res) => {
@@ -45,8 +56,9 @@ module.exports = async (req, res) => {
       if (!esAdmin(q.admin)) return res.status(403).json({ error: 'Clave incorrecta.' });
       const L = (await listar()).filter(x => /\.json$/.test(x.name)).slice(0, 300);
       const subs = (await Promise.all(L.map(x => leer(DIR + x.name)))).filter(Boolean);
-      return res.status(200).json({ subs: subs.map(f => ({ codigo: f.codigo, nombre: f.nombre || '', metodo: f.metodo, email: f.email || '', creado: f.creado, hasta: f.hasta || null, mpEstado: f.mpEstado || '' })) });
+      return res.status(200).json({ subs: subs.map(f => ({ producto: f.producto || 'mundial', dias: f.dias || null, codigo: f.codigo, nombre: f.nombre || '', metodo: f.metodo, email: f.email || '', creado: f.creado, hasta: f.hasta || null, mpEstado: f.mpEstado || '' })) });
     }
+    if (req.method === 'GET' && q.pases) return res.status(200).json({ pases: PASES() });
     if (req.method === 'GET') {
       const cod = String(q.codigo || '').toUpperCase(); if (!okCod(cod)) return res.status(400).json({ error: 'Código inválido.' });
       const e = await estado(cod); if (!e) return res.status(404).json({ error: 'No encontramos ese código.' });
@@ -58,7 +70,19 @@ module.exports = async (req, res) => {
       const metodo = METODOS.includes(b.metodo) ? b.metodo : null; if (!metodo) return res.status(400).json({ error: 'Elige una forma de pago.' });
       const email = String(b.email || '').trim().toLowerCase().slice(0, 120), nombre = String(b.nombre || '').trim().slice(0, 60);
       if (!nombre) return res.status(400).json({ error: 'Escribe tu nombre de usuario.' });
+      const guia = b.producto === 'guia', dias = guia ? (PASES()[String(b.dias)] ? Number(b.dias) : 0) : 0;
+      if (guia && !dias) return res.status(400).json({ error: 'Elige un pase.' });
       const codigo = nuevoCod(), f = { codigo, metodo, email, nombre, creado: new Date().toISOString() };
+      if (guia) { f.producto = 'guia'; f.dias = dias; }
+      if (guia && metodo === 'mp') {
+        if (!process.env.MP_ACCESS_TOKEN) return res.status(503).json({ error: 'Mercado Pago todavía no está configurado.' });
+        const origin = 'https://' + (req.headers['x-forwarded-host'] || req.headers.host), vuelta = origin + '/guia?pagado=1&codigo=' + codigo;
+        try {
+          const pref = await mp('POST', '/checkout/preferences', { items: [{ title: `ShopGuía · pase de ${dias} días`, quantity: 1, unit_price: PASES()[dias].ars, currency_id: 'ARS' }], external_reference: 'guia:' + codigo, back_urls: { success: vuelta, pending: vuelta, failure: origin + '/guia' }, auto_return: 'approved' });
+          await guardar(DIR + codigo + '.json', f);
+          return res.status(200).json({ codigo, url: pref.init_point });
+        } catch (e) { console.error('guia pase', e.status || '', e.message); return res.status(502).json({ error: 'No se pudo conectar con Mercado Pago. Prueba en un rato.' }); }
+      }
       if (metodo === 'mp') {
         if (!process.env.MP_ACCESS_TOKEN) return res.status(503).json({ error: 'Mercado Pago todavía no está configurado.' });
         if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return res.status(400).json({ error: 'Escribe el mail de tu cuenta de Mercado Pago.' });
@@ -80,8 +104,8 @@ module.exports = async (req, res) => {
       if (!esAdmin(b.admin)) return res.status(403).json({ error: 'Clave incorrecta.' });
       const cod = String(b.codigo || '').toUpperCase(); if (!okCod(cod)) return res.status(400).json({ error: 'Código inválido.' });
       const f = await leer(DIR + cod + '.json'); if (!f) return res.status(404).json({ error: 'No encontramos ese código.' });
-      const meses = Math.max(1, Math.min(24, Number(b.meses) || 1)), desde = Math.max(Date.now(), Date.parse(f.hasta || 0) || 0);
-      f.hasta = new Date(desde + meses * 30.5 * 864e5).toISOString(); f.activadoPor = 'admin'; f.activado = new Date().toISOString();
+      const meses = Math.max(1, Math.min(24, Number(b.meses) || 1)), dias = Math.max(0, Math.min(400, Number(b.dias) || 0)), desde = Math.max(Date.now(), Date.parse(f.hasta || 0) || 0);
+      f.hasta = new Date(desde + (dias ? dias * 864e5 : meses * 30.5 * 864e5)).toISOString(); f.activadoPor = 'admin'; f.activado = new Date().toISOString();
       await guardar(DIR + cod + '.json', f);
       return res.status(200).json({ ok: true, hasta: f.hasta });
     }

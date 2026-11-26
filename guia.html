@@ -137,7 +137,7 @@ function inicio(){
 }
 // --- armar paseo: preguntas cortas ---
 let A={};
-function armar(){A={};preg1();}
+function armar(){if(!pase())return;A={};preg1();}
 function preg1(){hablar(T('¿Con quién venís?','Who are you traveling with?','Com quem você está?'),[['🙋 '+T('Solo/a','Alone','Sozinho'),()=>{A.con='solo';preg2();}],['💑 '+T('En pareja','As a couple','Em casal'),()=>{A.con='pareja';preg2();}],['👨‍👩‍👧 '+T('Con chicos','With kids','Com crianças'),()=>{A.con='chicos';preg2();}],['👵 '+T('Con personas mayores','With older people','Com idosos'),()=>{A.con='mayores';preg2();}],['🎉 '+T('Con amigos','With friends','Com amigos'),()=>{A.con='amigos';preg2();}]]);main.innerHTML='';}
 function preg2(quieto){A.gan=A.gan||[];const G=[['playa','🏖️ '+T('Playa','Beach','Praia')],['historia','🏛️ '+T('Historia y cultura','History & culture','História e cultura')],['naturaleza','🌲 '+T('Naturaleza','Nature','Natureza')],['comer','🍽️ '+T('Comer rico','Good food','Comer bem')],['diversion','🎡 '+T('Divertirnos','Have fun','Diversão')],['foto','📸 '+T('Lugares para fotos','Photo spots','Lugares para fotos')],['lluvia','☔ '+T('Está lloviendo','It is raining','Está chovendo')]];
  (quieto?(m,o)=>opciones(o):hablar)(T('¿Qué tienen ganas de hacer? Podés elegir varias y después tocá "Listo".','What do you feel like doing? Pick a few, then tap "Done".','O que vocês querem fazer? Escolha várias e toque "Pronto".'),G.map(([k,tx])=>[(A.gan.includes(k)?'✅ ':'')+tx,()=>{A.gan=A.gan.includes(k)?A.gan.filter(x=>x!==k):A.gan.concat(k);preg2(true);}]).concat([['✔️ '+T('Listo','Done','Pronto'),preg3,true]]));}
@@ -154,7 +154,7 @@ function proponer(){
 let PASEO_ACT=null,PASO=0,avisado={};
 try{const g=JSON.parse(localStorage.getItem('guiaPaseo')||'null');if(g){PASEO_ACT=PASEOS.find(x=>x.id===g.id)||null;PASO=g.paso||0;}}catch(e){}
 const guardaPaseo=()=>{try{localStorage.setItem('guiaPaseo',JSON.stringify(PASEO_ACT?{id:PASEO_ACT.id,paso:PASO}:null));}catch(e){}};
-function empezar(id){PASEO_ACT=PASEOS.find(x=>x.id===id);PASO=0;avisado={};guardaPaseo();seguir();gps(()=>verPaseo());}
+function empezar(id){if(!pase())return;PASEO_ACT=PASEOS.find(x=>x.id===id);PASO=0;avisado={};guardaPaseo();seguir();gps(()=>verPaseo());}
 async function verPaseo(){
  if(!PASEO_ACT)return inicio();const x=PASEO_ACT;
  if(PASO>=x.p.length){hablar(T(`¡Terminamos el paseo! 🎉 Espero que lo hayas disfrutado. Para comer te recomiendo ${x.comer}.`,`Tour finished! 🎉 Hope you enjoyed it. To eat, try ${x.comer}.`,`Terminamos o passeio! 🎉 Para comer, recomendo ${x.comer}.`),[['🏠 '+T('Inicio','Home','Início'),()=>{PASEO_ACT=null;guardaPaseo();inicio();},true],['🍽️ '+T('¿Dónde como?','Where can I eat?','Onde eu como?'),comer]]);main.innerHTML='';return;}
@@ -172,7 +172,7 @@ const opcPaseo=()=>[['➡️ '+T('Siguiente parada','Next stop','Próxima parada
 function siguiente(){PASO++;guardaPaseo();verPaseo();}
 function revisarCerca(){if(!PASEO_ACT||!POS)return;const id=PASEO_ACT.p[PASO];if(!id||avisado[id])return;if(dist(POS,L[id].ll)<90){avisado[id]=1;tx(id).then(t=>hablar(T(`¡Llegamos a ${L[id].n}! `,`We are at ${L[id].n}! `,`Chegamos em ${L[id].n}! `)+t,opcPaseo()));if(navigator.vibrate)navigator.vibrate(200);}}
 // --- cerca ---
-function cerca(){
+function cerca(){if(!pase())return;
  hablar(T('Dejame ver dónde estás… 📍','Let me see where you are… 📍','Deixa eu ver onde você está… 📍'),[]);
  gps(p=>{
   if(!p){hablar(T('No pude ver tu ubicación. Fijate que el GPS esté prendido y que le diste permiso a la página.','I could not get your location. Check that GPS is on and the page has permission.','Não consegui ver sua localização. Verifique o GPS e a permissão.'),[['🔁 '+T('Probar de nuevo','Try again','Tentar de novo'),cerca,true],['🏠 '+T('Inicio','Home','Início'),inicio]]);return;}
@@ -185,14 +185,14 @@ function cerca(){
  });
 }
 // --- comer ---
-function comer(){
+function comer(){if(!pase())return;
  const q=c=>'https://www.google.com/maps/search/'+encodeURIComponent(c)+(POS?'/@'+POS[0]+','+POS[1]+',16z':'');
  hablar(T('¿Qué tenés ganas de comer? Te abro Google Maps con los lugares abiertos más cerca.','What do you feel like eating? I will open Google Maps with the closest open places.','O que você quer comer? Vou abrir o Google Maps com os lugares mais perto.'),[['🏠 '+T('Inicio','Home','Início'),inicio]]);
  const C=[['☕','café y medialunas','Café'],['🐟','pescados y mariscos','Peixe'],['🍕','pizzería','Pizza'],['🥩','parrilla','Churrascaria'],['🍦','heladería','Sorvete'],['🌱','comida vegetariana sin TACC','Vegetariano']];
  main.innerHTML=`<div class="card"><h3>🍽️ ${T('Dónde comer cerca','Where to eat nearby','Onde comer perto')}</h3><div class="row">${C.map(([e,es])=>`<a class="btn" target="_blank" rel="noopener" href="${q(es+' cerca')}">${e} ${esc(es)}</a>`).join('')}</div><p class="muted">💡 ${T('Probá algo típico: rabas en el Puerto, alfajores marplatenses y churros en la costa.','Try something local: fried squid (rabas) at the harbor, local alfajores and churros.','Prove algo típico: lulas fritas (rabas) no porto, alfajores e churros.')}</p>${P.dieta?`<p class="muted">⚠️ ${T('Recordá avisar al mozo','Remember to tell the waiter','Lembre de avisar o garçom')}: ${esc(P.dieta)}</p>`:''}</div>`;
 }
 // --- cuida ---
-function cuida(){
+function cuida(){if(!pase())return;
  hablar(T('Te dejo lo importante para que la pases bien y seguro 🛡️','Here is what matters to stay safe 🛡️','Aqui está o importante para você ficar seguro 🛡️'),[['🏠 '+T('Inicio','Home','Início'),inicio]]);
  const it=[
   ['☀️',T('Sol','Sun','Sol'),T('Entre las 11 y las 16 el sol pega fuerte. Protector, gorra y mucha agua, sobre todo los chicos y las personas mayores.','From 11am to 4pm the sun is strong. Sunscreen, hat and plenty of water.','Das 11h às 16h o sol é forte. Protetor, boné e muita água.')],
@@ -212,7 +212,7 @@ function perfil(){
 }
 // --- preguntas libres ---
 let HIST=[];
-async function preguntar(q){
+async function preguntar(q){if(!pase())return;
  q=String(q||'').trim();if(!q)return;$('#txt').value='';
  hablar('🤔 '+T('Dejame pensar…','Let me think…','Deixa eu pensar…'),[]);
  const cercanos=POS?Object.keys(L).map(id=>[dist(POS,L[id].ll),L[id].n]).sort((a,b)=>a[0]-b[0]).slice(0,5).map(a=>a[1]+' ('+fmtD(a[0])+')'):[];
@@ -229,7 +229,7 @@ $('#bMic').onclick=()=>{despertar();if(!SR){hablar(T('Tu navegador no me deja es
  rec.onresult=e=>{const t=e.results[0][0].transcript;$('#txt').value=t;preguntar(t);};rec.onend=()=>{$('#bMic').classList.remove('on');rec=null;};rec.onerror=()=>{};rec.start();};
 // foto "¿qué es esto?"
 $('#bFoto').onclick=()=>{despertar();$('#fFoto').click();};
-$('#fFoto').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+$('#fFoto').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;if(!pase())return;
  hablar('📷 '+T('Mirando la foto…','Looking at the photo…','Olhando a foto…'),[]);
  try{const img=await new Promise((ok,ko)=>{const i=new Image();i.onload=()=>{const k=Math.min(1,1100/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.8));};i.onerror=ko;i.src=URL.createObjectURL(f);});
   const r=await fetch('/api/guia?accion=foto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({img,lang:LANG,perfil:P})});const j=await r.json();if(!r.ok)throw new Error(j.error||'');
@@ -243,5 +243,50 @@ $('#txt').placeholder=T('Preguntale a Flashy…','Ask Flashy…','Pergunte à Fl
 // pantalla prendida durante el paseo (si el celular lo permite)
 let WL=null;async function despierta(){try{if('wakeLock' in navigator&&PASEO_ACT)WL=await navigator.wakeLock.request('screen');}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')despierta();});
+
+// ================= PASES DE SHOPGUÍA (2 horas gratis y después pase por días) =================
+const GRATIS_H=2,WAPV='5492235814437',NOMM={mp:'Mercado Pago',paypal:'PayPal',astropay:'AstroPay',binance:'Binance (USDT)'};
+let G_ACT=false,G_HASTA=null,G_COD=localStorage.getItem('guia-cod')||'',PASES={3:{ars:3000,usd:3},7:{ars:5000,usd:5},30:{ars:9000,usd:9}};
+fetch('/api/mundial?pases=1').then(r=>r.json()).then(j=>{if(j.pases)PASES=j.pases;}).catch(()=>{});
+const gInicio=()=>{let t=+localStorage.getItem('guia-inicio');if(!t){t=Date.now();localStorage.setItem('guia-inicio',t);}return t;};
+let G_CHK=false;function pase(){if(G_ACT||(G_COD&&!G_CHK))return true;if(Date.now()-gInicio()<GRATIS_H*3600e3)return true;abrirPase();return false;}
+async function gVer(c,avisar){try{const r=await fetch('/api/mundial?codigo='+encodeURIComponent(c));const j=await r.json();if(!r.ok){G_CHK=true;if(avisar)$('#gMsg').textContent=j.error||T('No encontramos ese código.','Code not found.','Código não encontrado.');return;}
+ G_COD=c;localStorage.setItem('guia-cod',c);G_ACT=j.activo;G_CHK=true;G_HASTA=j.hasta;
+ if(avisar){if(j.activo){$('#gPase').hidden=true;hablar(T(`🎉 ¡Listo! Tu pase está activo hasta el ${new Date(j.hasta).toLocaleDateString()}. ¿Qué hacemos?`,`🎉 Done! Your pass is active until ${new Date(j.hasta).toLocaleDateString()}. What shall we do?`,`🎉 Pronto! Seu passe está ativo até ${new Date(j.hasta).toLocaleDateString()}. O que vamos fazer?`),[['🏠 '+T('Inicio','Home','Início'),inicio,true]]);}
+ else $('#gMsg').textContent=j.estado==='vencida'?T('Tu pase venció. Saca otro para seguir.','Your pass expired.','Seu passe venceu.'):T('Tu código todavía no está activo: en cuanto confirmemos el pago queda habilitado.','Your code is not active yet: it will be enabled once we confirm the payment.','Seu código ainda não está ativo.');}
+}catch(e){if(avisar)$('#gMsg').textContent=T('Sin conexión. Probá de nuevo.','No connection.','Sem conexão.');}}
+let G_DIAS=7;
+function abrirPase(){
+ const pz=d=>`$${Number(PASES[d].ars).toLocaleString('es-AR')} · US$${PASES[d].usd}`;
+ $('#gBox').innerHTML=`<button class="gx" id="gX" aria-label="Cerrar">×</button><h3 style="margin:0 0 6px">🎫 ${T('Seguí paseando con Flashy','Keep exploring with Flashy','Continue passeando com a Flashy')}</h3>
+ <p class="muted" style="margin:0 0 10px">${T(`Ya usaste tus ${GRATIS_H} horas gratis. Elegí un pase y Flashy te sigue guiando.`,`Your ${GRATIS_H} free hours are over. Choose a pass and Flashy keeps guiding you.`,`Suas ${GRATIS_H} horas grátis acabaram. Escolha um passe.`)}</p>
+ <div class="gpl">${Object.keys(PASES).map(d=>`<button class="gp${+d===G_DIAS?' sel':''}" data-d="${d}"><b>${d} ${T('días','days','dias')}</b><span>${pz(d)}</span></button>`).join('')}</div>
+ <label class="gl">${T('Tu nombre','Your name','Seu nome')}</label><input id="gNom" maxlength="60" placeholder="${T('Ej: Laura','E.g.: Laura','Ex: Laura')}">
+ <div class="gl">${T('¿Cómo pagás?','How do you pay?','Como você paga?')}</div>
+ <div class="gms"><button class="gm" data-m="mp">🇦🇷 Mercado Pago <small>${T('al instante','instant','na hora')}</small></button><button class="gm" data-m="paypal">🅿️ PayPal</button><button class="gm" data-m="astropay">💳 AstroPay</button><button class="gm" data-m="binance">🪙 Binance</button></div>
+ <div id="gMail" hidden><label class="gl">${T('Mail de tu cuenta de Mercado Pago','Your Mercado Pago email','Seu e-mail do Mercado Pago')}</label><input id="gEmail" type="email" placeholder="tu@mail.com"><button class="btn pri" id="gIrMP" style="width:100%;margin-top:8px">${T('Ir a pagar con Mercado Pago','Pay with Mercado Pago','Pagar com Mercado Pago')}</button></div>
+ <div id="gPaso2"></div><div id="gMsg" style="color:#b91c1c;font-weight:700;margin-top:6px"></div>
+ <details style="margin-top:10px"><summary>🔑 ${T('Ya tengo mi código','I have a code','Já tenho meu código')}</summary><div style="display:flex;gap:6px;margin-top:6px"><input id="gCod" maxlength="8" style="text-transform:uppercase" placeholder="ABCD2345"><button class="btn pri" id="gEntrar">${T('Entrar','Enter','Entrar')}</button></div></details>`;
+ $('#gPase').hidden=false;
+ $('#gX').onclick=()=>{$('#gPase').hidden=true;};
+ $('#gBox').querySelectorAll('.gp').forEach(b=>b.onclick=()=>{G_DIAS=+b.dataset.d;$('#gBox').querySelectorAll('.gp').forEach(x=>x.classList.toggle('sel',x===b));});
+ $('#gBox').querySelectorAll('.gm').forEach(b=>b.onclick=()=>{$('#gBox').querySelectorAll('.gm').forEach(x=>x.classList.toggle('sel',x===b));if(b.dataset.m==='mp'){$('#gMail').hidden=false;}else{$('#gMail').hidden=true;gPedir(b.dataset.m);}});
+ $('#gIrMP').onclick=()=>gPedir('mp');
+ $('#gEntrar').onclick=()=>{const c=$('#gCod').value.trim().toUpperCase();if(c.length===8)gVer(c,true);};
+}
+async function gPedir(metodo){
+ const nombre=$('#gNom').value.trim();if(!nombre){$('#gMsg').textContent=T('Escribí tu nombre.','Write your name.','Escreva seu nome.');$('#gNom').focus();return;}
+ $('#gMsg').textContent='';const body={producto:'guia',dias:G_DIAS,metodo,nombre};if(metodo==='mp')body.email=$('#gEmail').value.trim();
+ try{const r=await fetch('/api/mundial?accion=suscribir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json();
+  if(!r.ok){$('#gMsg').textContent=j.error||'Error';return;}
+  localStorage.setItem('guia-cod',j.codigo);G_COD=j.codigo;if(j.url){location.href=j.url;return;}
+  const txt=`¡Hola! Quiero el pase de ${G_DIAS} días de ShopGuía (US$${PASES[G_DIAS].usd}). Nombre: ${nombre}. Código: ${j.codigo}. Quiero pagar con ${NOMM[metodo]}.`;
+  $('#gPaso2').innerHTML=`<div style="margin-top:10px;padding:12px;border:2px solid #bbf7d0;background:#f0fdf4;border-radius:14px;color:#14532d">${T('Tu código es','Your code is','Seu código é')}: <b style="font:900 24px ui-monospace,monospace;letter-spacing:2px">${j.codigo}</b><br><small>${T('Mandanos el WhatsApp: te pasamos los datos para pagar y, apenas confirmamos, tu pase queda activo.','Send us the WhatsApp: we send you the payment details and activate your pass once confirmed.','Mande o WhatsApp: enviamos os dados para pagar e ativamos seu passe.')}</small></div><a class="btn pri" style="display:block;text-align:center;margin-top:8px;background:#25d366" href="https://wa.me/${WAPV}?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">💬 ${T('Mandar WhatsApp para pagar','Send WhatsApp to pay','Enviar WhatsApp para pagar')}</a>`;
+ }catch(e){$('#gMsg').textContent=T('Sin conexión.','No connection.','Sem conexão.');}
+}
+(()=>{const u=new URLSearchParams(location.search),c=(u.get('codigo')||'').toUpperCase();if(c.length===8){localStorage.setItem('guia-cod',c);G_COD=c;setTimeout(()=>gVer(c,!!u.get('pagado')),u.get('pagado')?1500:0);}else if(G_COD)gVer(G_COD);})();
 if(PASEO_ACT){seguir();verPaseo();despierta();}else inicio();
-</script></body></html>
+</script>
+<div id="gPase" hidden><div id="gBox"></div></div>
+<style>#gPase{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:80;display:flex;align-items:flex-end;justify-content:center}#gPase[hidden]{display:none}#gBox{background:#fff;color:#1f2937;width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px;font:16px/1.4 system-ui}#gBox input{width:100%;padding:11px;border:2px solid #e2e8f0;border-radius:12px;font:16px system-ui;box-sizing:border-box}.gx{float:right;border:0;background:#f1f5f9;border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer}.gpl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.gp,.gm{border:2px solid #e2e8f0;background:#fff;border-radius:14px;padding:10px 6px;cursor:pointer;font:15px system-ui}.gp b{display:block;font-size:17px}.gp span{font-size:12px;color:#475569}.gp.sel,.gm.sel{border-color:#0ea5e9;background:#f0f9ff}.gms{display:grid;grid-template-columns:1fr 1fr;gap:8px}.gm small{display:block;color:#64748b;font-size:12px}.gl{display:block;font-weight:700;margin:12px 0 4px}</style>
+</body></html>
