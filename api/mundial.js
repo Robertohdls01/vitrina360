@@ -22,7 +22,7 @@ const nuevoCod = () => Array.from(crypto.randomBytes(8), b => 'ABCDEFGHJKLMNPQRS
 const esAdmin = k => { const a = String(process.env.MUNDIAL_ADMIN || ''); return a.length >= 12 && String(k || '') === a; };
 const METODOS = ['mp', 'paypal', 'astropay', 'binance'];
 // Dónde pagar a mano (se muestra después de pedir el código). AstroPay (Astrotag) y Binance se agregan cuando estén.
-const DATOS_PAGO = { paypal: 'robertohdls01@gmail.com' };
+const DATOS_PAGO = { paypal: 'robertohdls01@gmail.com', binance: 'https://app.binance.com/uni-qr/SmWw4LdS' };
 // ShopGuía: pases por días para turistas (pago único). Precios en pesos (Mercado Pago) y en dólares (resto del mundo).
 const PASES = () => { try { const j = JSON.parse(process.env.GUIA_PASES || ''); if (j && j['3']) return j; } catch (e) {} return { 3: { ars: 3000, usd: 3 }, 7: { ars: 5000, usd: 5 }, 30: { ars: 9000, usd: 9 } }; };
 
