@@ -21,6 +21,8 @@ const okCod = c => /^[A-Z0-9]{8}$/.test(String(c || ''));
 const nuevoCod = () => Array.from(crypto.randomBytes(8), b => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b % 32]).join('');
 const esAdmin = k => { const a = String(process.env.MUNDIAL_ADMIN || ''); return a.length >= 12 && String(k || '') === a; };
 const METODOS = ['mp', 'paypal', 'astropay', 'binance'];
+// Dónde pagar a mano (se muestra después de pedir el código). AstroPay (Astrotag) y Binance se agregan cuando estén.
+const DATOS_PAGO = { paypal: 'robertohdls01@gmail.com' };
 // ShopGuía: pases por días para turistas (pago único). Precios en pesos (Mercado Pago) y en dólares (resto del mundo).
 const PASES = () => { try { const j = JSON.parse(process.env.GUIA_PASES || ''); if (j && j['3']) return j; } catch (e) {} return { 3: { ars: 3000, usd: 3 }, 7: { ars: 5000, usd: 5 }, 30: { ars: 9000, usd: 9 } }; };
 
@@ -58,7 +60,7 @@ module.exports = async (req, res) => {
       const subs = (await Promise.all(L.map(x => leer(DIR + x.name)))).filter(Boolean);
       return res.status(200).json({ subs: subs.map(f => ({ producto: f.producto || 'mundial', dias: f.dias || null, codigo: f.codigo, nombre: f.nombre || '', metodo: f.metodo, email: f.email || '', creado: f.creado, hasta: f.hasta || null, mpEstado: f.mpEstado || '' })) });
     }
-    if (req.method === 'GET' && q.pases) return res.status(200).json({ pases: PASES() });
+    if (req.method === 'GET' && q.pases) return res.status(200).json({ pases: PASES(), datos: DATOS_PAGO });
     if (req.method === 'GET') {
       const cod = String(q.codigo || '').toUpperCase(); if (!okCod(cod)) return res.status(400).json({ error: 'Código inválido.' });
       const e = await estado(cod); if (!e) return res.status(404).json({ error: 'No encontramos ese código.' });

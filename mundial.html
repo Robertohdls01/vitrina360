@@ -1046,7 +1046,8 @@ document.addEventListener('visibilitychange', () => {
 
 // ================= SUSCRIPCIÓN =================
 const WA = '5492235814437', GRATIS = 3, NOMBRE_M = {mp:'Mercado Pago', paypal:'PayPal', astropay:'AstroPay', binance:'Binance (USDT)'};
-let ACTIVO = false, COD = localStorage.getItem('mundo-cod') || '';
+let ACTIVO = false, COD = localStorage.getItem('mundo-cod') || '', DPAGO = {};
+fetch('/api/mundial?pases=1').then(r => r.json()).then(j => { DPAGO = j.datos || {}; }).catch(() => {});
 const hoy = () => new Date().toISOString().slice(0, 10);
 function usos(){ try{ const u = JSON.parse(localStorage.getItem('mundo-uso') || '{}'); return u.d === hoy() ? u.n : 0; }catch(e){ return 0; } }
 function usar(){ localStorage.setItem('mundo-uso', JSON.stringify({d: hoy(), n: usos() + 1})); }
@@ -1076,8 +1077,10 @@ async function pedir(metodo){
     const txt = `¡Hola! Quiero suscribirme a ShopRevista Mundial (US$ 4 por mes). Usuario: ${nombre}. Código: ${j.codigo}. Quiero pagar con ${NOMBRE_M[metodo]}.`;
     $('pPaso1').hidden = true; $('pPaso2').hidden = false;
     $('pPaso2').innerHTML = `<div style="margin-top:12px;padding:14px;border:2px solid #bbf7d0;background:#f0fdf4;border-radius:14px"><div>Tu código de acceso es:</div><div style="font:900 30px ui-monospace,monospace;letter-spacing:3px;color:#166534;margin:4px 0">${j.codigo}</div><div style="font-size:14px">Guárdalo: con este código entras desde cualquier celular o computadora.</div></div>
-      <ol style="padding-left:20px;line-height:1.5"><li>Toca el botón verde y mándanos el WhatsApp: te pasamos los datos para pagar con <b>${NOMBRE_M[metodo]}</b>.</li><li>Pagas US$ 4 (o US$ 40 por un año).</li><li>Apenas confirmamos el pago, tu código queda <b>habilitado</b> y ya puedes buscar todo lo que quieras.</li></ol>
-      <a href="https://wa.me/${WA}?text=${E(txt)}" target="_blank" rel="noopener" style="display:block;text-align:center;border-radius:14px;padding:14px;background:#25d366;color:#fff;font:800 17px system-ui;text-decoration:none">💬 Mandar WhatsApp para pagar</a>`;
+      ${DPAGO[metodo] ? `<div style="margin-top:10px;padding:12px;border:2px solid #dbeafe;border-radius:14px">Paga <b>US$ 4</b> (o US$ 40 por un año) por <b>${NOMBRE_M[metodo]}</b> a:<div style="font:800 17px ui-monospace,monospace;margin:6px 0;word-break:break-all">${esc(DPAGO[metodo])}</div><button type="button" id="pCopia" style="border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:6px 10px;cursor:pointer">📋 Copiar</button> <small>Pro Video JSRHG</small></div>` : ''}
+      <ol style="padding-left:20px;line-height:1.5">${DPAGO[metodo] ? '<li>Haz el pago a esos datos.</li><li>Toca el botón verde y mándanos el comprobante por WhatsApp.</li>' : `<li>Toca el botón verde y mándanos el WhatsApp: te pasamos los datos para pagar con <b>${NOMBRE_M[metodo]}</b>.</li><li>Pagas US$ 4 (o US$ 40 por un año).</li>`}<li>Apenas confirmamos el pago, tu código queda <b>habilitado</b> y ya puedes buscar todo lo que quieras.</li></ol>
+      <a href="https://wa.me/${WA}?text=${E(txt)}" target="_blank" rel="noopener" style="display:block;text-align:center;border-radius:14px;padding:14px;background:#25d366;color:#fff;font:800 17px system-ui;text-decoration:none">💬 ${DPAGO[metodo] ? 'Mandar comprobante por WhatsApp' : 'Mandar WhatsApp para pagar'}</a>`;
+    if($('pCopia')) $('pCopia').onclick = () => { navigator.clipboard && navigator.clipboard.writeText(DPAGO[metodo]); $('pCopia').textContent = '✅ Copiado'; };
     if(LANG !== 'es') traducir($('pPaso2'));
   }catch(e){ $('pMsg').textContent = 'Sin conexión. Prueba de nuevo.'; }
 }
