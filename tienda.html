@@ -28,7 +28,7 @@ body{background:var(--fondo);background-size:cover;background-attachment:fixed;b
 .prod b{font-size:15px;line-height:1.25}.prod .pr{color:var(--ac2);font-weight:700;font-size:17px}
 .prod .ago{position:absolute;top:10px;left:10px;background:#fff;color:#b04a6a;border-radius:999px;padding:3px 10px;font:700 12px Quicksand,system-ui}
 .vacio{text-align:center;color:var(--mut);padding:30px 10px;background:var(--card);border-radius:20px;border:1px dashed var(--line)}
-.app{display:inline-flex;align-items:center;gap:6px;margin-top:12px;border:1px solid var(--line);background:var(--fondo);color:var(--ac2);border-radius:999px;padding:10px 18px;font:700 15px Quicksand,system-ui;cursor:pointer}.app[hidden]{display:none}
+.app{display:flex;align-items:center;justify-content:center;gap:8px;margin:14px auto 0;border:0;background:var(--ac2);color:#fff;border-radius:999px;padding:13px 22px;font:700 17px Quicksand,system-ui;cursor:pointer;box-shadow:0 6px 18px rgba(123,98,176,.3);animation:late 2.4s ease-in-out infinite}@keyframes late{50%{transform:scale(1.05)}}.app[hidden]{display:none}
 .pagos{background:var(--card);border-radius:22px;border:1px solid var(--line);padding:16px;margin-top:18px;text-align:center}
 .pagos h2{font:700 20px "Playfair Display",Georgia,serif;color:var(--ac2);margin:0 0 10px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.chips span{background:var(--fondo);border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-weight:600;font-size:14px}
@@ -113,6 +113,7 @@ footer{text-align:center;color:var(--mut);font-size:13px;margin-top:28px}
   <button class="btn" id="bFondo">🎨 Fondo</button>
   <button class="btn" id="bPagos">💳 Pagos</button>
   <button class="btn" id="bNuevo">➕ Producto <small id="nProd"></small></button>
+  <button class="btn" id="bApp2">📲 App</button>
   <button class="btn pri" id="bGuardar">💾 Guardar</button>
 </div>
 <div class="modal" id="ed" hidden><div class="box ed" id="edBox"></div></div>
@@ -222,7 +223,7 @@ const instalada = () => (window.matchMedia && matchMedia('(display-mode: standal
 const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); BIP = e; });
 window.addEventListener('appinstalled', () => { BIP = null; $('bApp').hidden = true; aviso('✅ ¡Listo! Ya la tenés en tu celular'); });
-$('bApp').onclick = async () => {
+const abrirApp = async () => {
   if(BIP){ BIP.prompt(); try{ await BIP.userChoice; }catch(e){} BIP = null; return; }
   const n = esc(D.nombre || 'la tienda');
   $('verBox').innerHTML = `<button class="x" onclick="cerrar('ver')">×</button><h2>📲 Guardá ${n} en tu celular</h2>` + (esIOS()
@@ -230,6 +231,7 @@ $('bApp').onclick = async () => {
     : `<p>1. Tocá los <b>tres puntitos ⋮</b> arriba a la derecha.<br>2. Elegí <b>“Instalar app”</b> o <b>“Agregar a pantalla principal”</b>.<br>3. Confirmá.</p><p>Te queda el logo en la pantalla, como una app 💜</p>`);
   $('ver').hidden = false;
 };
+$('bApp').onclick = () => abrirApp(); $('bApp2').onclick = () => abrirApp();
 function prepararApp(){
   const l = document.createElement('link'); l.rel = 'manifest'; l.href = '/api/tienda?manifest=' + encodeURIComponent(ID) + (EDITOR && CLAVE ? '&k=' + encodeURIComponent(CLAVE) : ''); document.head.appendChild(l);
   if(D.logo) $('appleIco').href = D.logo;
