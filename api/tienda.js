@@ -27,6 +27,21 @@ module.exports = async (req, res) => {
       res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
       return res.status(200).send(Buffer.from(await r.arrayBuffer()));
     }
+    if (req.method === 'GET' && (q.manifest || q.icono)) {
+      const id = String(q.manifest || q.icono); if (!okId(id)) return res.status(400).json({ error: 'Página inválida.' });
+      const f = await leer(DIR + id + '.json'), d = (f && f.data) || {}, nom = String(d.nombre || 'Mi tienda');
+      if (q.icono) {
+        const ini = nom.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase().replace(/[<>&"]/g, '') || 'T';
+        res.setHeader('Content-Type', 'image/svg+xml'); res.setHeader('Cache-Control', 'public, max-age=3600');
+        return res.status(200).send(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#efe6fb"/><circle cx="256" cy="256" r="190" fill="#fff" stroke="#a58bd6" stroke-width="16"/><text x="256" y="${ini.length > 1 ? 300 : 310}" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="${ini.length > 1 ? 150 : 190}" fill="#7b62b0">${ini}</text></svg>`);
+      }
+      const k = String(q.k || ''), dueño = k.length >= 12 && f && f.h === hash(k), start = '/tienda/' + id + (dueño ? '?editar=' + encodeURIComponent(k) : '');
+      const icons = [];
+      if (/^\/api\/tienda\?f=/.test(String(d.logo || ''))) icons.push({ src: d.logo, sizes: '400x400', type: 'image/jpeg', purpose: 'any' });
+      icons.push({ src: '/api/tienda?icono=' + id, sizes: 'any', type: 'image/svg+xml', purpose: 'any' }, { src: '/icons/tienda-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: '/icons/tienda-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' }, { src: '/icons/tienda-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' });
+      res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8'); res.setHeader('Cache-Control', dueño ? 'private, no-store' : 'public, max-age=600');
+      return res.status(200).send(JSON.stringify({ name: nom + (dueño ? ' (editar)' : ''), short_name: nom.slice(0, 14), id: start, start_url: start, scope: '/tienda/' + id, display: 'standalone', orientation: 'portrait', background_color: '#f4eefc', theme_color: '#efe6fb', lang: 'es', icons }));
+    }
     res.setHeader('Cache-Control', 'no-store');
     if (req.method === 'GET') {
       if (!okId(q.id)) return res.status(400).json({ error: 'Página inválida.' });

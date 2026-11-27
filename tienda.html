@@ -1,5 +1,5 @@
 <!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mi tienda</title><meta name="theme-color" content="#efe6fb">
+<title>Mi tienda</title><link rel="apple-touch-icon" id="appleIco" href="/icons/tienda-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#efe6fb">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <style>
 :root{--fondo:#f4eefc;--ac:#a58bd6;--ac2:#7b62b0;--card:#ffffff;--tx:#3d3550;--mut:#8a82a0;--line:#e6dcf6}
@@ -28,6 +28,7 @@ body{background:var(--fondo);background-size:cover;background-attachment:fixed;b
 .prod b{font-size:15px;line-height:1.25}.prod .pr{color:var(--ac2);font-weight:700;font-size:17px}
 .prod .ago{position:absolute;top:10px;left:10px;background:#fff;color:#b04a6a;border-radius:999px;padding:3px 10px;font:700 12px Quicksand,system-ui}
 .vacio{text-align:center;color:var(--mut);padding:30px 10px;background:var(--card);border-radius:20px;border:1px dashed var(--line)}
+.app{display:inline-flex;align-items:center;gap:6px;margin-top:12px;border:1px solid var(--line);background:var(--fondo);color:var(--ac2);border-radius:999px;padding:10px 18px;font:700 15px Quicksand,system-ui;cursor:pointer}.app[hidden]{display:none}
 .pagos{background:var(--card);border-radius:22px;border:1px solid var(--line);padding:16px;margin-top:18px;text-align:center}
 .pagos h2{font:700 20px "Playfair Display",Georgia,serif;color:var(--ac2);margin:0 0 10px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.chips span{background:var(--fondo);border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-weight:600;font-size:14px}
@@ -93,6 +94,7 @@ footer{text-align:center;color:var(--mut);font-size:13px;margin-top:28px}
     <p id="vDes"></p>
     <a class="wa" id="vWa" target="_blank" rel="noopener" hidden><svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.4-.2z"/></svg>Escribime por WhatsApp</a>
     <div class="redes" id="vRedes"></div>
+    <button type="button" class="app" id="bApp">📲 Descargar la app</button>
   </div>
   <div class="vista"><button type="button" data-v="rev" class="on">📖 Revista</button><button type="button" data-v="grid">🔲 Ver todos</button></div>
   <div id="revista"><div id="libro"></div><div class="nav"><button type="button" id="bAnt" aria-label="Anterior">◀</button><span id="pag"></span><button type="button" id="bSig" aria-label="Siguiente">▶</button></div></div>
@@ -214,6 +216,28 @@ function verProd(i){
 function cerrar(id){ $(id).hidden = true; }
 ['ver', 'ed'].forEach(id => $(id).addEventListener('click', e => { if(e.target.id === id) cerrar(id); }));
 
+// ---------- descargar como app ----------
+let BIP = null;
+const instalada = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); BIP = e; });
+window.addEventListener('appinstalled', () => { BIP = null; $('bApp').hidden = true; aviso('✅ ¡Listo! Ya la tenés en tu celular'); });
+$('bApp').onclick = async () => {
+  if(BIP){ BIP.prompt(); try{ await BIP.userChoice; }catch(e){} BIP = null; return; }
+  const n = esc(D.nombre || 'la tienda');
+  $('verBox').innerHTML = `<button class="x" onclick="cerrar('ver')">×</button><h2>📲 Guardá ${n} en tu celular</h2>` + (esIOS()
+    ? `<p>En iPhone:</p><p>1. Tocá el botón <b>Compartir</b> ⬆️ (abajo, en Safari).<br>2. Elegí <b>“Agregar a inicio”</b>.<br>3. Tocá <b>Agregar</b>.</p><p>Te queda el logo en la pantalla, como una app 💜</p>`
+    : `<p>1. Tocá los <b>tres puntitos ⋮</b> arriba a la derecha.<br>2. Elegí <b>“Instalar app”</b> o <b>“Agregar a pantalla principal”</b>.<br>3. Confirmá.</p><p>Te queda el logo en la pantalla, como una app 💜</p>`);
+  $('ver').hidden = false;
+};
+function prepararApp(){
+  const l = document.createElement('link'); l.rel = 'manifest'; l.href = '/api/tienda?manifest=' + encodeURIComponent(ID) + (EDITOR && CLAVE ? '&k=' + encodeURIComponent(CLAVE) : ''); document.head.appendChild(l);
+  if(D.logo) $('appleIco').href = D.logo;
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  $('bApp').hidden = instalada();
+  if(EDITOR && CLAVE) $('bApp').textContent = '📲 Descargar mi app (para editar)';
+}
+
 // ---------- fotos ----------
 function achicar(file, max){
   return new Promise((ok, mal) => { const fr = new FileReader(); fr.onload = () => { const im = new Image(); im.onload = () => { const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', .78)); }; im.onerror = mal; im.src = fr.result; }; fr.onerror = mal; fr.readAsDataURL(file); });
@@ -311,7 +335,7 @@ window.addEventListener('beforeunload', e => { if(EDITOR && CAMBIOS){ e.preventD
     else if(r.status === 404 && CLAVE.length >= 12){ EDITOR = true; }
   }catch(e){}
   if(EDITOR){ VISTA = 'grid'; $('edBar').hidden = false; document.querySelector('.wrap').style.paddingBottom = '130px'; }
-  pintar(); vista(VISTA);
+  pintar(); vista(VISTA); prepararApp();
   if(EDITOR && !D.wa) setTimeout(() => { aviso('¡Hola! Empezá por ✏️ Mis datos'); }, 600);
 })();
 </script>
