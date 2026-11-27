@@ -38,7 +38,7 @@ module.exports = async (req, res) => {
       const k = String(q.k || ''), dueño = k.length >= 12 && f && f.h === hash(k), start = '/tienda/' + id + (dueño ? '?editar=' + encodeURIComponent(k) : '');
       const icons = [];
       if (/^\/api\/tienda\?f=/.test(String(d.logo || ''))) icons.push({ src: d.logo, sizes: '400x400', type: 'image/jpeg', purpose: 'any' });
-      icons.push({ src: '/api/tienda?icono=' + id, sizes: 'any', type: 'image/svg+xml', purpose: 'any' }, { src: '/icons/tienda-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: '/icons/tienda-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' }, { src: '/icons/tienda-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' });
+      icons.push({ src: '/icons/tienda-192.png?v=2', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: '/icons/tienda-512.png?v=2', sizes: '512x512', type: 'image/png', purpose: 'any' }, { src: '/icons/tienda-512-mask.png?v=2', sizes: '512x512', type: 'image/png', purpose: 'maskable' });
       res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8'); res.setHeader('Cache-Control', dueño ? 'private, no-store' : 'public, max-age=600');
       return res.status(200).send(JSON.stringify({ name: nom + (dueño ? ' (editar)' : ''), short_name: String(d.appNom || 'Mi tienda online').slice(0, 20), id: start, start_url: start, scope: '/tienda/' + id, display: 'standalone', orientation: 'portrait', background_color: '#f4eefc', theme_color: '#efe6fb', lang: 'es', icons }));
     }
