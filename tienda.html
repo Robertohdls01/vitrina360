@@ -223,7 +223,15 @@ const instalada = () => (window.matchMedia && matchMedia('(display-mode: standal
 const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); BIP = e; });
 window.addEventListener('appinstalled', () => { BIP = null; $('bApp').hidden = true; aviso('✅ ¡Listo! Ya la tenés en tu celular'); });
+const enApp = () => /WhatsApp|FBAN|FBAV|Instagram|Line\/|TikTok|; wv\)/i.test(navigator.userAgent);
+const aChrome = () => 'intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;package=com.android.chrome;end';
 const abrirApp = async () => {
+  if(enApp()){
+    $('verBox').innerHTML = `<button class="x" onclick="cerrar('ver')">×</button><h2>📲 Primero abrila en tu navegador</h2>` + (esIOS()
+      ? `<p>Estás viendo la página <b>adentro de WhatsApp</b> (o de otra app), y desde ahí no se puede descargar.</p><p>1. Tocá los <b>tres puntitos</b> o el botón <b>Compartir</b>.<br>2. Elegí <b>“Abrir en Safari”</b>.<br>3. Ahí tocá de nuevo <b>📲 Descargar la app</b>.</p>`
+      : `<p>Estás viendo la página <b>adentro de WhatsApp</b> (o de otra app), y desde ahí no se puede descargar.</p><a class="wa" style="width:100%;justify-content:center;background:var(--ac2)" href="${aChrome()}">🌐 Abrir en Chrome</a><p class="hint">Si no se abre, tocá los tres puntitos ⋮ y elegí “Abrir en Chrome”. Ahí tocá de nuevo <b>📲 Descargar la app</b>.</p>`);
+    $('ver').hidden = false; return;
+  }
   if(BIP){ BIP.prompt(); try{ await BIP.userChoice; }catch(e){} BIP = null; return; }
   const n = esc(D.nombre || 'la tienda');
   $('verBox').innerHTML = `<button class="x" onclick="cerrar('ver')">×</button><h2>📲 Guardá ${n} en tu celular</h2>` + (esIOS()
