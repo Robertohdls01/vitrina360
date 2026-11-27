@@ -1,0 +1,229 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mi tienda</title><meta name="theme-color" content="#efe6fb">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--fondo:#f4eefc;--ac:#a58bd6;--ac2:#7b62b0;--card:#ffffff;--tx:#3d3550;--mut:#8a82a0;--line:#e6dcf6}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--fondo);background-size:cover;background-attachment:fixed;background-position:center;color:var(--tx);font:16px/1.5 Quicksand,system-ui,sans-serif;min-height:100vh}
+.wrap{max-width:860px;margin:0 auto;padding:18px 14px 110px}
+.hero{background:var(--card);border-radius:26px;padding:26px 18px 20px;text-align:center;box-shadow:0 8px 30px rgba(123,98,176,.12);border:1px solid var(--line)}
+.logo{width:116px;height:116px;border-radius:50%;object-fit:cover;border:4px solid var(--fondo);box-shadow:0 0 0 3px var(--ac);background:var(--fondo);display:block;margin:0 auto 10px}
+.logo[hidden]{display:none}
+.prod .sinf{width:100%;aspect-ratio:1/1;background:var(--fondo);display:flex;align-items:center;justify-content:center;font-size:42px;opacity:.6}
+.hero h1{font:700 clamp(28px,7vw,40px)/1.15 "Playfair Display",Georgia,serif;margin:6px 0 6px;color:var(--ac2)}
+.hero p{margin:0 auto 14px;color:var(--mut);max-width:560px;white-space:pre-wrap}
+.wa{display:inline-flex;align-items:center;gap:8px;background:#25d366;color:#fff;border-radius:999px;padding:13px 22px;font:700 17px Quicksand,system-ui;text-decoration:none;box-shadow:0 6px 18px rgba(37,211,102,.3)}
+.redes{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:14px}
+.redes a{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--fondo);border:1px solid var(--line);text-decoration:none;color:var(--ac2)}
+.redes svg{width:22px;height:22px;fill:currentColor}
+.barra{display:flex;gap:8px;margin:18px 0 10px;flex-wrap:wrap;align-items:center}
+.barra input{flex:1;min-width:180px;padding:12px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;font:15px Quicksand,system-ui;color:var(--tx)}
+.cats{display:flex;gap:6px;flex-wrap:wrap}
+.cats button{border:1px solid var(--line);background:#fff;color:var(--ac2);border-radius:999px;padding:8px 14px;font:600 14px Quicksand,system-ui;cursor:pointer}
+.cats button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.prod{background:var(--card);border-radius:20px;overflow:hidden;border:1px solid var(--line);box-shadow:0 4px 16px rgba(123,98,176,.08);display:flex;flex-direction:column;cursor:pointer;position:relative}
+.prod img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:var(--fondo)}
+.prod .in{padding:10px 12px 12px;display:flex;flex-direction:column;gap:3px;flex:1}
+.prod b{font-size:15px;line-height:1.25}.prod .pr{color:var(--ac2);font-weight:700;font-size:17px}
+.prod .ago{position:absolute;top:10px;left:10px;background:#fff;color:#b04a6a;border-radius:999px;padding:3px 10px;font:700 12px Quicksand,system-ui}
+.vacio{text-align:center;color:var(--mut);padding:30px 10px;background:var(--card);border-radius:20px;border:1px dashed var(--line)}
+footer{text-align:center;color:var(--mut);font-size:13px;margin-top:28px}
+/* ver producto */
+.modal{position:fixed;inset:0;background:rgba(61,53,80,.45);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.modal[hidden]{display:none}
+.box{background:#fff;width:100%;max-width:560px;max-height:94vh;overflow:auto;border-radius:24px 24px 0 0;padding:16px}
+.x{float:right;border:0;background:var(--fondo);color:var(--ac2);width:38px;height:38px;border-radius:50%;font-size:22px;cursor:pointer}
+.fotos{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;margin:8px 0}
+.fotos img{width:100%;flex:0 0 100%;aspect-ratio:1/1;object-fit:cover;border-radius:16px;scroll-snap-align:center}
+.vp h2{font:700 24px "Playfair Display",Georgia,serif;margin:6px 0;color:var(--ac2)}
+.vp .pr{font-size:22px;font-weight:700;color:var(--ac2)}.vp p{white-space:pre-wrap}
+/* editor */
+#edBar[hidden]{display:none}
+#edBar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:1px solid var(--line);display:flex;gap:8px;padding:10px;justify-content:center;flex-wrap:wrap;box-shadow:0 -6px 20px rgba(123,98,176,.12)}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ac2);border-radius:999px;padding:11px 16px;font:700 15px Quicksand,system-ui;cursor:pointer}
+.btn.pri{background:var(--ac);color:#fff;border-color:var(--ac)}
+.ed label{display:block;margin:12px 0 4px;font-weight:700;color:var(--ac2)}
+.ed input,.ed textarea,.ed select{width:100%;padding:11px;border-radius:12px;border:1px solid var(--line);background:#fcfaff;color:var(--tx);font:15px Quicksand,system-ui}
+.ed textarea{min-height:80px}
+.hint{color:var(--mut);font-size:13px}
+.colores{display:flex;gap:8px;flex-wrap:wrap}
+.colores button{width:44px;height:44px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer}
+.colores button.on{box-shadow:0 0 0 3px var(--ac2)}
+.red{display:flex;gap:6px;margin:6px 0}.red select{flex:0 0 120px}
+.mini{border:1px solid var(--line);background:#fff;color:var(--ac2);border-radius:10px;padding:8px 10px;cursor:pointer;font:600 14px Quicksand,system-ui}
+.thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.thumbs div{position:relative}.thumbs img{width:70px;height:70px;object-fit:cover;border-radius:10px}
+.thumbs button{position:absolute;top:-6px;right:-6px;border:0;background:#b04a6a;color:#fff;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:13px}
+.prod .edq{position:absolute;top:8px;right:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font:700 12px Quicksand,system-ui;color:var(--ac2)}
+#aviso{position:fixed;left:50%;top:14px;transform:translateX(-50%);background:var(--ac2);color:#fff;padding:10px 18px;border-radius:999px;z-index:60;font-weight:700;display:none}
+</style></head><body>
+<div class="wrap">
+  <div class="hero">
+    <img class="logo" id="vLogo" alt="" hidden>
+    <h1 id="vNom">Mi tienda</h1>
+    <p id="vDes"></p>
+    <a class="wa" id="vWa" target="_blank" rel="noopener" hidden><svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.4-.2z"/></svg>Escribime por WhatsApp</a>
+    <div class="redes" id="vRedes"></div>
+  </div>
+  <div class="barra"><input id="busca" placeholder="🔎 Buscar producto…"><div class="cats" id="cats"></div></div>
+  <div class="grid" id="grid"></div>
+  <footer id="pie"></footer>
+</div>
+
+<div class="modal" id="ver" hidden><div class="box vp" id="verBox"></div></div>
+
+<div id="edBar" hidden>
+  <button class="btn" id="bDatos">✏️ Mis datos</button>
+  <button class="btn" id="bFondo">🎨 Fondo</button>
+  <button class="btn" id="bNuevo">➕ Producto</button>
+  <button class="btn pri" id="bGuardar">💾 Guardar</button>
+</div>
+<div class="modal" id="ed" hidden><div class="box ed" id="edBox"></div></div>
+<div id="aviso"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ID = (location.pathname.split('/').filter(Boolean)[1] || new URLSearchParams(location.search).get('id') || '').toLowerCase();
+const CLAVE = new URLSearchParams(location.search).get('editar') || '';
+let EDITOR = false, CAMBIOS = false, CAT = '';
+const FONDOS = [
+  ['Lila pastel', '#f4eefc', '#a58bd6', '#7b62b0'], ['Blanco', '#ffffff', '#b9a3e3', '#7b62b0'], ['Lila', '#e9defa', '#9b7fd0', '#6d55a3'],
+  ['Rosa pastel', '#fceef4', '#e4a3c1', '#b0628a'], ['Celeste', '#eaf4fc', '#8fbbe3', '#4f7fae'], ['Menta', '#eaf8f2', '#86cbb0', '#3f8c71'],
+  ['Crema', '#fbf6ec', '#d8b98a', '#9a7748'], ['Durazno', '#fdf0e8', '#eeb08f', '#b06e4c']
+];
+const REDES = {
+  instagram: ['Instagram', 'M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4zM17.3 5.5a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM12 2c-2.7 0-3 0-4.1.1C4.3 2.2 2.2 4.3 2.1 7.9 2 9 2 9.3 2 12s0 3 .1 4.1c.1 3.6 2.2 5.7 5.8 5.8 1.1.1 1.4.1 4.1.1s3 0 4.1-.1c3.6-.1 5.7-2.2 5.8-5.8.1-1.1.1-1.4.1-4.1s0-3-.1-4.1C21.8 4.3 19.7 2.2 16.1 2.1 15 2 14.7 2 12 2zm0 1.8c2.7 0 3 0 4 .1 2.6.1 3.9 1.4 4 4 .1 1 .1 1.3.1 4s0 3-.1 4c-.1 2.6-1.4 3.9-4 4-1 .1-1.3.1-4 .1s-3 0-4-.1c-2.6-.1-3.9-1.4-4-4-.1-1-.1-1.3-.1-4s0-3 .1-4c.1-2.6 1.4-3.9 4-4 1-.1 1.3-.1 4-.1z'],
+  facebook: ['Facebook', 'M14 8V6.2c0-.8.2-1.2 1.4-1.2H17V2h-2.6C11.3 2 10.3 3.5 10.3 6v2H8v3h2.3v11H14V11h2.6L17 8z'],
+  tiktok: ['TikTok', 'M16.6 2h-3.2v13.2a2.9 2.9 0 1 1-2-2.8V9.1a6.2 6.2 0 1 0 5.2 6.1V8.6a7.6 7.6 0 0 0 4.4 1.4V6.8a4.4 4.4 0 0 1-4.4-4.8z'],
+  youtube: ['YouTube', 'M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.7 15V9l5.8 3z'],
+  x: ['X (Twitter)', 'M17.8 3h3.1l-6.8 7.7 8 10.3h-6.3l-4.9-6.4L5.3 21H2.2l7.3-8.3L1.9 3h6.4l4.4 5.8zm-1.1 16.2h1.7L7.4 4.7H5.6z'],
+  pinterest: ['Pinterest', 'M12 2a10 10 0 0 0-3.6 19.3c-.1-.8-.2-2 0-2.9l1.3-5.4s-.3-.7-.3-1.6c0-1.5.9-2.6 2-2.6.9 0 1.4.7 1.4 1.5 0 .9-.6 2.3-.9 3.6-.3 1.1.5 2 1.6 2 1.9 0 3.4-2 3.4-5 0-2.6-1.9-4.4-4.5-4.4a4.7 4.7 0 0 0-4.9 4.7c0 .9.4 1.9.8 2.5.1.1.1.2.1.3l-.3 1.2c0 .2-.2.2-.4.1-1.4-.7-2.2-2.6-2.2-4.2 0-3.5 2.5-6.6 7.2-6.6 3.8 0 6.7 2.7 6.7 6.3 0 3.8-2.4 6.8-5.7 6.8-1.1 0-2.2-.6-2.5-1.3l-.7 2.6c-.2 1-.9 2.2-1.4 2.9A10 10 0 1 0 12 2z'],
+  telegram: ['Telegram', 'M21.9 4.6 18.7 19.7c-.2 1-.9 1.3-1.8.8l-4.8-3.6-2.3 2.2c-.3.3-.5.5-1 .5l.3-4.9 9-8.1c.4-.3-.1-.5-.6-.2L6.4 13.4l-4.8-1.5c-1-.3-1-1 .2-1.5L20.6 3.2c.9-.3 1.6.2 1.3 1.4z'],
+  mercadolibre: ['Mercado Libre', 'M12 5C6 5 1.5 8.4 1.5 12.5S6 20 12 20s10.5-3.4 10.5-7.5S18 5 12 5zm0 1.6c4.3 0 7.9 2.1 8.7 4.9-1.6-.5-3.4-1.6-5.1-2.6-.8-.5-1.6-.4-2.3.1l-2.1 1.5c-.5.3-1.1.1-1.2-.4-.1-.3 0-.6.3-.8l2.2-1.6C11.9 7 10 6.9 8 8l-4.6 2.6c1.2-2.3 4.6-4 8.6-4zm0 11.8c-4.3 0-7.9-2.1-8.7-5l3.1 2.3c.5.4 1.2.3 1.6-.2.4.4 1 .4 1.5.1.4.4 1 .5 1.5.2.5.4 1.2.4 1.6 0l1.3-1 3.6 2.1c-1.3.9-2.8 1.5-3.5 1.5z'],
+  web: ['Página web', 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm6.9 6h-3a15.7 15.7 0 0 0-1.4-3.6A8 8 0 0 1 18.9 8zM12 4c.8 1.2 1.5 2.5 1.9 4h-3.8c.4-1.4 1.1-2.8 1.9-4zM4.3 14a8.2 8.2 0 0 1 0-4h3.4a16 16 0 0 0 0 4zm.8 2h3a15.7 15.7 0 0 0 1.4 3.6A8 8 0 0 1 5.1 16zm3-8h-3a8 8 0 0 1 4.4-3.6C8.9 5.6 8.4 6.8 8.1 8zM12 20c-.8-1.2-1.5-2.5-1.9-4h3.8c-.4 1.4-1.1 2.8-1.9 4zm2.3-6H9.7a14.6 14.6 0 0 1 0-4h4.6a14.6 14.6 0 0 1 0 4zm.2 5.6c.6-1.1 1.1-2.3 1.4-3.6h3a8 8 0 0 1-4.4 3.6zm1.8-5.6a16 16 0 0 0 0-4h3.4a8.2 8.2 0 0 1 0 4z']
+};
+let D = {nombre: 'Mi tienda', desc: 'Productos lindos, hechos con amor 💜\nEscribime por WhatsApp para consultar o encargar.', logo: '', wa: '', waTxt: 'Hola! Vi tu página y quería consultar', fondo: 0, fondoImg: '', redes: [], prods: []};
+
+function aviso(t){ const a = $('aviso'); a.textContent = t; a.style.display = 'block'; clearTimeout(aviso.t); aviso.t = setTimeout(() => a.style.display = 'none', 2600); }
+function waLink(txt){ const n = String(D.wa || '').replace(/\D/g, ''); return n ? 'https://wa.me/' + n + '?text=' + encodeURIComponent(txt) : ''; }
+function aplicarFondo(){
+  const f = FONDOS[D.fondo] || FONDOS[0], r = document.documentElement.style;
+  r.setProperty('--fondo', f[1]); r.setProperty('--ac', f[2]); r.setProperty('--ac2', f[3]);
+  document.body.style.backgroundImage = D.fondoImg ? `linear-gradient(rgba(255,255,255,.35),rgba(255,255,255,.35)),url(${D.fondoImg})` : '';
+  document.querySelector('meta[name=theme-color]').content = f[1];
+}
+function pintar(){
+  aplicarFondo(); document.title = D.nombre || 'Mi tienda';
+  $('vNom').textContent = D.nombre || 'Mi tienda'; $('vDes').textContent = D.desc || '';
+  $('vLogo').hidden = !D.logo; if(D.logo) $('vLogo').src = D.logo;
+  const w = waLink(D.waTxt || 'Hola!'); $('vWa').hidden = !w; if(w) $('vWa').href = w;
+  $('vRedes').innerHTML = (D.redes || []).filter(r => r.url && REDES[r.tipo]).map(r => { let u = r.url.trim(); if(!/^https?:\/\//i.test(u)) u = 'https://' + u; return `<a href="${esc(u)}" target="_blank" rel="noopener" title="${REDES[r.tipo][0]}" aria-label="${REDES[r.tipo][0]}"><svg viewBox="0 0 24 24"><path d="${REDES[r.tipo][1]}"/></svg></a>`; }).join('');
+  const cats = [...new Set((D.prods || []).map(p => (p.cat || '').trim()).filter(Boolean))];
+  if(CAT && !cats.includes(CAT)) CAT = '';
+  $('cats').innerHTML = cats.length > 1 ? ['', ...cats].map(c => `<button type="button" data-cat="${esc(c)}" class="${c === CAT ? 'on' : ''}">${c ? esc(c) : 'Todo'}</button>`).join('') : '';
+  const q = $('busca').value.trim().toLowerCase();
+  const L = (D.prods || []).map((p, i) => [p, i]).filter(([p]) => (!CAT || (p.cat || '').trim() === CAT) && (!q || (p.nom + ' ' + (p.desc || '') + ' ' + (p.cat || '')).toLowerCase().includes(q)));
+  $('grid').innerHTML = L.length ? L.map(([p, i]) => `<div class="prod" data-i="${i}">${p.fotos && p.fotos[0] ? `<img src="${p.fotos[0]}" alt="${esc(p.nom)}" loading="lazy">` : '<div class="sinf">🛍️</div>'}${p.agotado ? '<span class="ago">Sin stock</span>' : ''}${EDITOR ? '<span class="edq">✏️ Editar</span>' : ''}<div class="in"><b>${esc(p.nom)}</b>${p.precio ? `<span class="pr">${esc(p.precio)}</span>` : ''}</div></div>`).join('')
+    : `<div class="vacio" style="grid-column:1/-1">${(D.prods || []).length ? 'No encontré productos con eso.' : EDITOR ? 'Todavía no hay productos. Tocá <b>➕ Producto</b> abajo para subir el primero 📸' : 'Muy pronto vas a ver los productos acá 💜'}</div>`;
+  $('pie').innerHTML = `© ${new Date().getFullYear()} ${esc(D.nombre || '')}<br><small>Página hecha por Pro Video JSRHG</small>`;
+}
+$('busca').oninput = pintar;
+$('cats').onclick = e => { const b = e.target.closest('[data-cat]'); if(!b) return; CAT = b.dataset.cat; pintar(); };
+$('grid').onclick = e => { const c = e.target.closest('.prod'); if(!c) return; const i = +c.dataset.i; EDITOR ? editarProd(i) : verProd(i); };
+function verProd(i){
+  const p = D.prods[i], w = waLink(`Hola! Me interesa: ${p.nom}${p.precio ? ' (' + p.precio + ')' : ''}`);
+  $('verBox').innerHTML = `<button class="x" onclick="cerrar('ver')">×</button><div style="clear:both"></div><div class="fotos">${(p.fotos || []).map(f => `<img src="${f}" alt="">`).join('')}</div>${(p.fotos || []).length > 1 ? '<div class="hint" style="text-align:center">👉 Deslizá para ver más fotos</div>' : ''}<h2>${esc(p.nom)}</h2>${p.precio ? `<div class="pr">${esc(p.precio)}</div>` : ''}${p.agotado ? '<p style="color:#b04a6a;font-weight:700">Sin stock por ahora — consultame si llega.</p>' : ''}<p>${esc(p.desc || '')}</p>${w ? `<a class="wa" style="width:100%;justify-content:center" href="${w}" target="_blank" rel="noopener">💬 Lo quiero / Consultar</a>` : ''}`;
+  $('ver').hidden = false;
+}
+function cerrar(id){ $(id).hidden = true; }
+['ver', 'ed'].forEach(id => $(id).addEventListener('click', e => { if(e.target.id === id) cerrar(id); }));
+
+// ---------- fotos ----------
+function achicar(file, max){
+  return new Promise((ok, mal) => { const fr = new FileReader(); fr.onload = () => { const im = new Image(); im.onload = () => { const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', .78)); }; im.onerror = mal; im.src = fr.result; }; fr.onerror = mal; fr.readAsDataURL(file); });
+}
+function pedirFoto(max, multi){ return new Promise(ok => { const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*'; i.multiple = !!multi; i.onchange = async () => { const r = []; for(const f of [...i.files].slice(0, 6)) r.push(await achicar(f, max)); ok(r); }; i.click(); }); }
+
+// ---------- editor ----------
+function marcar(){ CAMBIOS = true; $('bGuardar').textContent = '💾 Guardar cambios'; }
+function datos(){
+  const rs = D.redes.slice(); while(rs.length < 6) rs.push({tipo: ['instagram', 'facebook', 'tiktok', 'youtube', 'x', 'web'][rs.length], url: ''});
+  $('edBox').innerHTML = `<button class="x" onclick="cerrar('ed')">×</button><h2 style="margin:4px 0">✏️ Mis datos</h2>
+  <label>Nombre de la tienda</label><input id="eNom" value="${esc(D.nombre)}" maxlength="60">
+  <label>Texto de presentación</label><textarea id="eDes" maxlength="500">${esc(D.desc)}</textarea>
+  <label>Logo o foto de perfil</label><div style="display:flex;gap:8px;align-items:center">${D.logo ? `<img src="${D.logo}" style="width:60px;height:60px;border-radius:50%;object-fit:cover">` : ''}<button class="mini" id="eLogo">📷 ${D.logo ? 'Cambiar' : 'Subir'} foto</button>${D.logo ? '<button class="mini" id="eLogoX">Quitar</button>' : ''}</div>
+  <label>WhatsApp (con código de país y área, sin 0 ni 15)</label><input id="eWa" inputmode="tel" placeholder="Ej: 5492235551234" value="${esc(D.wa)}">
+  <div class="hint">Argentina: 549 + código de área + número. Ej. Mar del Plata: 549223…</div>
+  <label>Mensaje que te llega cuando te escriben</label><input id="eWaT" value="${esc(D.waTxt)}" maxlength="120">
+  <label>Redes sociales (hasta 6)</label>${rs.slice(0, 6).map((r, i) => `<div class="red"><select data-rt="${i}">${Object.entries(REDES).map(([k, v]) => `<option value="${k}"${k === r.tipo ? ' selected' : ''}>${v[0]}</option>`).join('')}</select><input data-ru="${i}" placeholder="Link (ej. instagram.com/mitienda)" value="${esc(r.url)}"></div>`).join('')}
+  <div style="margin-top:14px;display:flex;gap:8px"><button class="btn pri" id="eOk" style="flex:1">Listo</button></div>`;
+  $('ed').hidden = false;
+  $('eLogo').onclick = async () => { const f = await pedirFoto(400); if(f[0]){ guardarDatos(); D.logo = f[0]; marcar(); datos(); pintar(); } };
+  if($('eLogoX')) $('eLogoX').onclick = () => { guardarDatos(); D.logo = ''; marcar(); datos(); pintar(); };
+  $('eOk').onclick = () => { guardarDatos(); cerrar('ed'); pintar(); aviso('Acordate de tocar 💾 Guardar'); };
+}
+function guardarDatos(){
+  D.nombre = $('eNom').value.trim() || 'Mi tienda'; D.desc = $('eDes').value; D.wa = $('eWa').value.replace(/\D/g, ''); D.waTxt = $('eWaT').value.trim() || 'Hola!';
+  D.redes = [0, 1, 2, 3, 4, 5].map(i => ({tipo: document.querySelector(`[data-rt="${i}"]`).value, url: document.querySelector(`[data-ru="${i}"]`).value.trim()})).filter(r => r.url);
+  marcar();
+}
+function fondo(){
+  $('edBox').innerHTML = `<button class="x" onclick="cerrar('ed')">×</button><h2 style="margin:4px 0">🎨 Fondo y colores</h2>
+  <label>Elegí un color</label><div class="colores">${FONDOS.map((f, i) => `<button type="button" data-f="${i}" title="${f[0]}" class="${i === D.fondo ? 'on' : ''}" style="background:linear-gradient(135deg,${f[1]} 50%,${f[2]} 50%)"></button>`).join('')}</div>
+  <div class="hint" style="margin-top:6px">${FONDOS[D.fondo][0]}</div>
+  <label>O poné una foto de fondo</label><div style="display:flex;gap:8px"><button class="mini" id="fImg">📷 ${D.fondoImg ? 'Cambiar' : 'Subir'} foto de fondo</button>${D.fondoImg ? '<button class="mini" id="fX">Quitar foto</button>' : ''}</div>
+  <div class="hint">La foto se ve suave, para que se lean bien los productos.</div>
+  <div style="margin-top:14px"><button class="btn pri" style="width:100%" onclick="cerrar('ed')">Listo</button></div>`;
+  $('ed').hidden = false;
+  $('edBox').querySelectorAll('[data-f]').forEach(b => b.onclick = () => { D.fondo = +b.dataset.f; marcar(); pintar(); fondo(); });
+  $('fImg').onclick = async () => { const f = await pedirFoto(1400); if(f[0]){ D.fondoImg = f[0]; marcar(); pintar(); fondo(); } };
+  if($('fX')) $('fX').onclick = () => { D.fondoImg = ''; marcar(); pintar(); fondo(); };
+}
+function editarProd(i){
+  const nuevo = i == null, p = nuevo ? {nom: '', precio: '', desc: '', cat: '', fotos: [], agotado: false} : JSON.parse(JSON.stringify(D.prods[i]));
+  const cats = [...new Set(D.prods.map(x => (x.cat || '').trim()).filter(Boolean))];
+  const dib = () => {
+    $('edBox').innerHTML = `<button class="x" onclick="cerrar('ed')">×</button><h2 style="margin:4px 0">${nuevo ? '➕ Nuevo producto' : '✏️ Editar producto'}</h2>
+    <label>Fotos (hasta 6)</label><div class="thumbs">${p.fotos.map((f, k) => `<div><img src="${f}"><button data-fx="${k}">×</button></div>`).join('')}</div>${p.fotos.length < 6 ? '<button class="mini" id="pF" style="margin-top:6px">📷 Agregar fotos</button>' : ''}
+    <label>Nombre</label><input id="pN" value="${esc(p.nom)}" maxlength="80" placeholder="Ej: Vela aromática de lavanda">
+    <label>Precio</label><input id="pP" value="${esc(p.precio)}" maxlength="30" placeholder="Ej: $ 8.500">
+    <label>Descripción</label><textarea id="pD" maxlength="800" placeholder="Medidas, colores, materiales…">${esc(p.desc)}</textarea>
+    <label>Categoría (opcional)</label><input id="pC" value="${esc(p.cat)}" list="lcats" maxlength="30" placeholder="Ej: Velas"><datalist id="lcats">${cats.map(c => `<option value="${esc(c)}">`).join('')}</datalist>
+    <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="pA" style="width:auto"${p.agotado ? ' checked' : ''}> Sin stock</label>
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" id="pOk" style="flex:1">Listo</button>${nuevo ? '' : '<button class="btn" id="pArr">⬆️ Subir</button><button class="btn" id="pDel" style="color:#b04a6a">🗑️ Borrar</button>'}</div>`;
+    const lee = () => { p.nom = $('pN').value.trim(); p.precio = $('pP').value.trim(); p.desc = $('pD').value; p.cat = $('pC').value.trim(); p.agotado = $('pA').checked; };
+    $('edBox').querySelectorAll('[data-fx]').forEach(b => b.onclick = () => { lee(); p.fotos.splice(+b.dataset.fx, 1); dib(); });
+    if($('pF')) $('pF').onclick = async () => { lee(); aviso('Preparando fotos…'); const f = await pedirFoto(900, true); p.fotos = p.fotos.concat(f).slice(0, 6); dib(); };
+    $('pOk').onclick = () => { lee(); if(!p.nom){ aviso('Poné el nombre del producto'); return; } if(nuevo) D.prods.unshift(p); else D.prods[i] = p; marcar(); cerrar('ed'); pintar(); aviso('Acordate de tocar 💾 Guardar'); };
+    if($('pDel')) $('pDel').onclick = () => { if(!confirm('¿Borrar este producto?')) return; D.prods.splice(i, 1); marcar(); cerrar('ed'); pintar(); };
+    if($('pArr')) $('pArr').onclick = () => { lee(); D.prods[i] = p; if(i > 0){ D.prods.splice(i - 1, 0, D.prods.splice(i, 1)[0]); } marcar(); cerrar('ed'); pintar(); };
+  };
+  dib(); $('ed').hidden = false;
+}
+async function guardar(){
+  $('bGuardar').disabled = true; $('bGuardar').textContent = '⏳ Guardando…';
+  try{
+    const r = await fetch('/api/tienda?accion=guardar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: ID, clave: CLAVE, data: D})});
+    const j = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(j.error || 'No se pudo guardar');
+    CAMBIOS = false; $('bGuardar').textContent = '✅ Guardado'; aviso('¡Listo! Ya se ve en tu página 💜');
+  }catch(e){ $('bGuardar').textContent = '💾 Guardar'; aviso('😕 ' + e.message); }
+  $('bGuardar').disabled = false;
+}
+$('bDatos').onclick = datos; $('bFondo').onclick = fondo; $('bNuevo').onclick = () => editarProd(null); $('bGuardar').onclick = guardar;
+window.addEventListener('beforeunload', e => { if(EDITOR && CAMBIOS){ e.preventDefault(); e.returnValue = ''; } });
+
+(async () => {
+  if(!/^[a-z0-9-]{3,40}$/.test(ID)){ $('grid').innerHTML = '<div class="vacio" style="grid-column:1/-1">Página no encontrada.</div>'; return; }
+  try{
+    const r = await fetch('/api/tienda?id=' + encodeURIComponent(ID) + (CLAVE ? '&clave=' + encodeURIComponent(CLAVE) : ''));
+    if(r.ok){ const j = await r.json(); D = Object.assign(D, j.data || {}); EDITOR = !!j.editor; }
+    else if(r.status === 404 && CLAVE.length >= 12){ EDITOR = true; }
+  }catch(e){}
+  if(EDITOR){ $('edBar').hidden = false; document.querySelector('.wrap').style.paddingBottom = '130px'; }
+  pintar();
+  if(EDITOR && !D.wa) setTimeout(() => { aviso('¡Hola! Empezá por ✏️ Mis datos'); }, 600);
+})();
+</script>
+</body></html>

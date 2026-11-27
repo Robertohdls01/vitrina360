@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/tienda/:id",
+      "destination": "/tienda.html"
+    },
+    {
       "source": "/tarot/:id",
       "destination": "/tarot.html"
     },
