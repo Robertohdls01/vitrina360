@@ -1,5 +1,5 @@
 <!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mi tienda</title><link rel="apple-touch-icon" id="appleIco" href="/icons/tienda-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#efe6fb">
+<title>Mi tienda</title><link rel="apple-touch-icon" id="appleIco" href="/icons/tienda-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" id="appTit" content="Mi tienda online"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#efe6fb">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <style>
 :root{--fondo:#f4eefc;--ac:#a58bd6;--ac2:#7b62b0;--card:#ffffff;--tx:#3d3550;--mut:#8a82a0;--line:#e6dcf6}
@@ -243,6 +243,7 @@ $('bApp').onclick = () => abrirApp(); $('bApp2').onclick = () => abrirApp();
 function prepararApp(){
   const l = document.createElement('link'); l.rel = 'manifest'; l.href = '/api/tienda?manifest=' + encodeURIComponent(ID) + (EDITOR && CLAVE ? '&k=' + encodeURIComponent(CLAVE) : ''); document.head.appendChild(l);
   if(D.logo) $('appleIco').href = D.logo;
+  $('appTit').content = D.appNom || 'Mi tienda online';
   if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
   $('bApp').hidden = instalada();
   if(EDITOR && CLAVE) $('bApp').textContent = '📲 Descargar mi app (para editar)';
@@ -266,6 +267,8 @@ function datos(){
   <label>Nombre de la tienda</label><input id="eNom" value="${esc(D.nombre)}" maxlength="60">
   <label>Texto de presentación</label><textarea id="eDes" maxlength="500">${esc(D.desc)}</textarea>
   <label>Logo o foto de perfil</label><div style="display:flex;gap:8px;align-items:center">${D.logo ? `<img src="${D.logo}" style="width:60px;height:60px;border-radius:50%;object-fit:cover">` : ''}<button class="mini" id="eLogo">📷 ${D.logo ? 'Cambiar' : 'Subir'} foto</button>${D.logo ? '<button class="mini" id="eLogoX">Quitar</button>' : ''}</div>
+  <label>Nombre debajo del ícono de la app</label><input id="eApp" value="${esc(D.appNom || 'Mi tienda online')}" maxlength="20">
+  <div class="hint">Es lo que se lee abajo del logo cuando la descargan en el celular.</div>
   <label>WhatsApp (con código de país y área, sin 0 ni 15)</label><input id="eWa" inputmode="tel" placeholder="Ej: 5492235551234" value="${esc(D.wa)}">
   <div class="hint">Argentina: 549 + código de área + número. Ej. Mar del Plata: 549223…</div>
   <label>Mensaje que te llega cuando te escriben</label><input id="eWaT" value="${esc(D.waTxt)}" maxlength="120">
@@ -277,7 +280,7 @@ function datos(){
   $('eOk').onclick = () => { guardarDatos(); cerrar('ed'); pintar(); aviso('Acordate de tocar 💾 Guardar'); };
 }
 function guardarDatos(){
-  D.nombre = $('eNom').value.trim() || 'Mi tienda'; D.desc = $('eDes').value; D.wa = $('eWa').value.replace(/\D/g, ''); D.waTxt = $('eWaT').value.trim() || 'Hola!';
+  D.nombre = $('eNom').value.trim() || 'Mi tienda'; D.desc = $('eDes').value; D.wa = $('eWa').value.replace(/\D/g, ''); D.waTxt = $('eWaT').value.trim() || 'Hola!'; D.appNom = $('eApp').value.trim() || 'Mi tienda online';
   D.redes = [0, 1, 2, 3, 4, 5].map(i => ({tipo: document.querySelector(`[data-rt="${i}"]`).value, url: document.querySelector(`[data-ru="${i}"]`).value.trim()})).filter(r => r.url);
   marcar();
 }
