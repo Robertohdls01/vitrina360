@@ -137,6 +137,14 @@ footer{text-align:center;color:#7a5470;padding:26px 0 40px;font-size:14px}
     <div id="dvInfo" style="font-size:13px;color:#64748b;margin-top:4px"></div>
   </section>
 
+  <section id="dolarAR" hidden style="margin:18px 0;padding:16px;border:2px solid #dbe7ff;background:#f7faff;border-radius:20px">
+    <h2 style="margin:0 0 6px;color:#1e3a8a">🇦🇷 ¿Dónde me conviene cambiar? <small style="color:#64748b">el dólar hoy en Argentina</small></h2>
+    <p style="margin:0 0 10px;color:#334155">Todos los tipos de dólar en un solo lugar, y cuántos pesos necesitás para comprar dólares en cada uno.</p>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><span style="font-weight:800;color:#1e3a8a">Quiero comprar US$</span><input id="dlMonto" type="number" inputmode="decimal" min="0" value="100" aria-label="Dólares a comprar" style="width:120px;padding:10px;border:2px solid #dbe7ff;border-radius:12px;font:800 18px system-ui"></div>
+    <div id="dlLista">Cargando…</div>
+    <p style="font-size:12.5px;color:#64748b;margin:10px 0 0">ℹ️ Cotizaciones de referencia (fuente: DolarApi.com). Cada banco tiene su propio precio del dólar oficial: confirmalo en tu homebanking antes de operar. Flashy te informa, <b>no te recomienda inversiones</b>.</p>
+  </section>
+
   <section id="aduana" style="margin:18px 0;padding:16px;border:2px solid #dbeafe;background:#f8fbff;border-radius:20px">
     <h2 style="margin:0 0 6px;color:#1e3a8a">🛃 Trámites de aduana e importación <small style="color:#64748b">según tu país</small></h2>
     <p style="margin:0 0 10px;color:#334155">Flashy te orienta: qué organismo controla, qué pasos se suelen seguir, qué preguntar y con quién hablar. <b>🌉 Somos el puente:</b> te guiamos, pero los trámites los haces tú con la aduana o con un despachante de aduana.</p>
@@ -918,6 +926,7 @@ function aplicarIdioma(){
 function aplicarPais(){
   const ar = PAIS === 'AR', lat = LATAMP.includes(PAIS);
   $('infoAR').hidden = !ar; $('infoOtro').hidden = ar;
+  $('dolarAR').hidden = !ar; if(ar) cargarDolar();
   ENV.si[1] = ar ? '✅ Envía a Argentina' : '🌍 Envío internacional (consulta a tu país)';
   ENV.cas[1] = ar ? '📦 Con casillero en Miami' : '📦 Con reenvío desde Estados Unidos';
   // a los de afuera de Latinoamérica les mostramos primero lo nuestro
@@ -988,6 +997,35 @@ async function cargarTasas(){
 $('dvMonto').oninput = convertir; $('dvDe').onchange = convertir; $('dvA').onchange = convertir;
 $('dvCambia').onclick = () => { const a = $('dvDe').value; $('dvDe').value = $('dvA').value; $('dvA').value = a; convertir(); };
 cargarTasas();
+// ================= DÓLAR EN ARGENTINA =================
+var DLX = {
+  oficial: ['🏦', 'Lo que te cobra el banco para comprar dólares por homebanking o en la sucursal.'],
+  tarjeta: ['💳', 'El que se aplica cuando pagás en dólares con tarjeta (compras en el exterior, plataformas). Incluye impuestos y percepciones.'],
+  bolsa: ['📈', 'Dólar MEP: se compra en forma legal comprando y vendiendo bonos, desde el homebanking o una cuenta en un broker.'],
+  contadoconliqui: ['🌐', 'Contado con liquidación: parecido al MEP, pero los dólares quedan en una cuenta del exterior. Lo usan más empresas.'],
+  mayorista: ['🏛️', 'El precio entre bancos y grandes empresas. Es una referencia: una persona no compra a este precio.'],
+  cripto: ['🪙', 'El dólar en criptomonedas estables (como USDT) en plataformas cripto. Tiene sus riesgos: informate bien antes.'],
+  blue: ['⚠️', 'El mercado informal ("arbolitos" y cuevas). No es legal y hay riesgo de billetes falsos o estafas.']
+};
+var DOLAR = null;
+async function cargarDolar(){
+  if(DOLAR){ pintarDolar(); return; }
+  try{ const r = await fetch('/api/mundial?dolar=1'); const j = await r.json(); if(!r.ok || !j.dolares) throw 0; DOLAR = j.dolares; pintarDolar(); }
+  catch(e){ $('dlLista').innerHTML = '<p style="color:#64748b">😕 No pude traer el dólar ahora. Probá en un rato.</p>'; }
+}
+function pintarDolar(){
+  if(!DOLAR) return; const m = parseFloat($('dlMonto').value) || 0;
+  const pes = v => v == null ? '—' : new Intl.NumberFormat('es-AR', {style: 'currency', currency: 'ARS', maximumFractionDigits: 0}).format(v);
+  const L = DOLAR.filter(d => DLX[d.casa]).sort((a, b) => (a.casa === 'blue') - (b.casa === 'blue') || (a.venta || 1e12) - (b.venta || 1e12));
+  const legales = L.filter(d => d.casa !== 'blue' && d.casa !== 'mayorista' && d.venta), mejor = legales[0];
+  $('dlLista').innerHTML = (mejor && m ? `<div style="background:#eef6ff;border-radius:14px;padding:10px 12px;margin-bottom:10px;color:#1e3a8a">⚡ <b>Flashy:</b> hoy, entre las opciones legales para una persona, el precio más bajo para comprar US$${m} es el <b>${esc(mejor.nombre)}</b>: ${pes(mejor.venta * m)}. Fijate los requisitos de cada uno antes de elegir.</div>` : '') +
+    L.map(d => `<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px dashed #dbe7ff">
+      <div style="font-size:26px">${DLX[d.casa][0]}</div>
+      <div style="flex:1;min-width:0"><b style="color:#1e3a8a">Dólar ${esc(d.nombre)}</b>${d.casa === 'blue' ? ' <small style="color:#b45309">(informal)</small>' : ''}<div style="font-size:13px;color:#475569">${DLX[d.casa][1]}</div>
+      <div style="font-size:13px;color:#64748b;margin-top:2px">Compra ${pes(d.compra)} · Venta ${pes(d.venta)}${d.fecha ? ' · ' + new Date(d.fecha).toLocaleString('es-AR', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'}) : ''}</div></div>
+      <div style="text-align:right;white-space:nowrap"><div style="font:900 17px system-ui;color:#166534">${d.venta && m ? pes(d.venta * m) : '—'}</div><div style="font-size:11.5px;color:#64748b">por US$${m || 0}</div></div></div>`).join('');
+}
+$('dlMonto').oninput = pintarDolar;
 // ================= MINI MAPA =================
 const RVIS = {mundo:[0,8,360,142,'🌎 El mundo'], us:[40,20,110,60,'🇺🇸 Norteamérica'], la:[60,70,100,95,'🌎 Latinoamérica'], eu:[160,20,60,40,'🇪🇺 Europa'], ru:[190,10,140,60,'🇷🇺 Rusia y Asia Central'], cn:[255,25,70,45,'🇨🇳 China'], kr:[290,40,30,20,'🇰🇷 Corea'], jp:[295,35,35,25,'🇯🇵 Japón'], as:[225,30,110,80,'🌏 Asia'], me:[200,40,60,40,'🕌 Medio Oriente'], oc:[260,85,110,60,'🇦🇺 Oceanía'], af:[150,45,90,90,'🌍 África']};
 const px = (la, lo) => [lo + 180, 90 - la];

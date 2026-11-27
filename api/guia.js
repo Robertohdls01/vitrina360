@@ -2,6 +2,7 @@
 // Los lugares y paseos de cada ciudad están cargados en la página (andan sin internet); la IA solo se usa para:
 //   POST ?accion=preguntar {q, lang, ciudad, cerca:[nombres], hist:[{role,content}], perfil}  → {texto}
 //   POST ?accion=foto      {img (dataURL jpeg), lang, perfil}                                   → {texto}   "¿Qué es esto?" (plato o carta)
+//   POST ?accion=aeropuerto {aero, sent:'llega'|'sale', intl, dest, modo, lang, perfil}       → {intro, pasos:[{t,d}], consejos, ojo}
 //   POST ?accion=traducir  {lang, textos:[...]}                                                  → {textos}
 // Tope global por día (GUIA_IA_DIA, 2500 por defecto) para que el costo no se dispare.
 const { cuerpo } = require('./_comun');
@@ -82,6 +83,19 @@ module.exports = async (req, res) => {
       if (!o || !Array.isArray(o.pasos)) return res.status(502).json({ error: 'sin guía' });
       const L = (x, n) => (Array.isArray(x) ? x : []).slice(0, n).map(y => t(y, 220));
       return res.status(200).json({ organismo: t(o.organismo, 200), pasos: L(o.pasos, 7), impuestos: L(o.impuestos, 6), preguntar: L(o.preguntar, 5), ojo: L(o.ojo, 4), profesional: t(o.profesional, 200) });
+    }
+    if (a === 'aeropuerto') { // ShopGuía: Flashy te acompaña en los aeropuertos de Argentina, paso a paso
+      const aero = t(b.aero, 120) || 'un aeropuerto de Argentina', sent = b.sent === 'sale' ? 'sale' : 'llega', intl = !!b.intl, dest = t(b.dest, 160).trim(), modo = t(b.modo, 40) || 'el más conveniente';
+      if (!(await cupo())) return res.status(429).json({ error: 'cupo' });
+      const pedido = sent === 'llega'
+        ? `La persona acaba de aterrizar en ${aero} en un vuelo ${intl ? 'INTERNACIONAL (pasa por Migraciones y Aduana)' : 'de cabotaje (nacional)'}. Tiene que ir a: "${dest || 'el centro de la ciudad'}". Quiere moverse en: ${modo}.\nArmá los pasos desde que baja del avión hasta que está arriba del transporte (${intl ? 'migraciones, retirar valijas, aduana, ' : 'retirar valijas, '}salir al hall, dónde se toma ese transporte y cómo pagarlo) y el viaje hasta su destino.`
+        : `La persona tiene que tomar un vuelo ${intl ? 'INTERNACIONAL' : 'de cabotaje (nacional)'} desde ${aero}. Sale desde: "${dest || 'el centro de la ciudad'}". Quiere llegar al aeropuerto en: ${modo}.\nArmá los pasos desde que sale hacia el aeropuerto hasta que está sentada en la puerta de embarque (con cuánta anticipación llegar, check-in, despacho de valijas, control de seguridad${intl ? ', Migraciones' : ''}, puerta).`;
+      const out = await claude(`Sos Flashy, la guía de viaje de ShopGuía (Pro Video JSRHG). Acompañás a viajeros en los aeropuertos de Argentina con pasos cortos y claros, en ${IDI[lang]}. Sos prudente: no inventás precios exactos, números de línea de colectivo, horarios ni nombres de empresas si no estás seguro; en ese caso decís "preguntá en el mostrador de informes" o "mirá los carteles". Siempre recomendás usar los taxis/remises de los mostradores oficiales dentro del aeropuerto y no aceptar ofrecimientos de personas en el hall. ${perfilTx(b.perfil)} Devolvé SOLO un objeto JSON, sin comentarios.`,
+        pedido + `\nDevolvé {"intro":"…","pasos":[{"t":"…","d":"…"}],"consejos":["…"],"ojo":"…"}. "intro" = una frase cálida (máx. 140 caracteres). "pasos" = 5 a 8 pasos; "t" = título corto con verbo (máx. 40 caracteres); "d" = qué hacer y dónde (máx. 220 caracteres). "consejos" = 2 a 4 consejos útiles (plata, chip o wifi, valijas, tiempos). "ojo" = un aviso de seguridad o de "confirmá en el aeropuerto" (máx. 160 caracteres).`, 1200);
+      let o = null; try { o = JSON.parse(out.slice(out.indexOf('{'), out.lastIndexOf('}') + 1)); } catch (e) {}
+      if (process.env.MOCK_IA && !o) o = { intro: 'Te acompaño paso a paso.', pasos: [{ t: 'Retirá tus valijas', d: 'Seguí los carteles de Equipaje.' }, { t: 'Salí al hall', d: 'Buscá el mostrador de taxis oficiales.' }], consejos: ['Tené efectivo a mano.'], ojo: 'Confirmá en informes.' };
+      if (!o || !Array.isArray(o.pasos)) return res.status(502).json({ error: 'sin guía' });
+      return res.status(200).json({ intro: t(o.intro, 200), pasos: o.pasos.slice(0, 9).map(x => ({ t: t(x && x.t, 60), d: t(x && x.d, 260) })).filter(x => x.t), consejos: (Array.isArray(o.consejos) ? o.consejos : []).slice(0, 5).map(x => t(x, 220)), ojo: t(o.ojo, 200) });
     }
     if (a === 'traducir') { // con memoria compartida por idioma: lo que ya se tradujo una vez sale al instante para todos
       const L = (Array.isArray(b.textos) ? b.textos : []).slice(0, 40).map(x => t(x, 700));

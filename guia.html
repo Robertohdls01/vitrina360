@@ -129,6 +129,7 @@ function inicio(){
   ['📍 '+T('¿Dónde estoy? ¿Qué hay cerca?','Where am I? What is nearby?','Onde estou? O que tem perto?'),cerca],
   ['🍽️ '+T('¿Dónde como?','Where can I eat?','Onde eu como?'),comer],
   ['📷 '+T('¿Qué es esto? (plato o carta)','What is this? (dish or menu)','O que é isto? (prato ou cardápio)'),()=>$('#fFoto').click()],
+  ['✈️ '+T('Flashy en el aeropuerto','Flashy at the airport','Flashy no aeroporto'),aeropuerto],
   ['🛡️ '+T('Flashy te cuida','Flashy keeps you safe','Flashy cuida de você'),cuida],
   ['🧳 '+T('Mis datos de viaje','My travel info','Meus dados de viagem'),perfil],
  ]);
@@ -191,6 +192,80 @@ function comer(){if(!pase())return;
  const C=[['☕','café y medialunas','Café'],['🐟','pescados y mariscos','Peixe'],['🍕','pizzería','Pizza'],['🥩','parrilla','Churrascaria'],['🍦','heladería','Sorvete'],['🌱','comida vegetariana sin TACC','Vegetariano']];
  main.innerHTML=`<div class="card"><h3>🍽️ ${T('Dónde comer cerca','Where to eat nearby','Onde comer perto')}</h3><div class="row">${C.map(([e,es])=>`<a class="btn" target="_blank" rel="noopener" href="${q(es+' cerca')}">${e} ${esc(es)}</a>`).join('')}</div><p class="muted">💡 ${T('Probá algo típico: rabas en el Puerto, alfajores marplatenses y churros en la costa.','Try something local: fried squid (rabas) at the harbor, local alfajores and churros.','Prove algo típico: lulas fritas (rabas) no porto, alfajores e churros.')}</p>${P.dieta?`<p class="muted">⚠️ ${T('Recordá avisar al mozo','Remember to tell the waiter','Lembre de avisar o garçom')}: ${esc(P.dieta)}</p>`:''}</div>`;
 }
+// --- aeropuertos de Argentina: Flashy te acompaña desde que bajás del avión hasta el micro o el taxi ---
+const AEROS=[
+ ['EZE','Aeropuerto Internacional de Ezeiza (Ministro Pistarini)','Buenos Aires',-34.8222,-58.5358],['AEP','Aeroparque Jorge Newbery','Buenos Aires',-34.5592,-58.4156],
+ ['MDQ','Aeropuerto Astor Piazzolla','Mar del Plata',-37.9342,-57.5733],['COR','Aeropuerto Ing. Ambrosio Taravella','Córdoba',-31.3236,-64.2080],
+ ['MDZ','Aeropuerto El Plumerillo','Mendoza',-32.8317,-68.7929],['BRC','Aeropuerto de San Carlos de Bariloche','Bariloche',-41.1512,-71.1578],
+ ['IGR','Aeropuerto de Puerto Iguazú','Puerto Iguazú',-25.7373,-54.4734],['USH','Aeropuerto Malvinas Argentinas','Ushuaia',-54.8433,-68.2958],
+ ['FTE','Aeropuerto de El Calafate','El Calafate',-50.2803,-72.0531],['SLA','Aeropuerto Martín Miguel de Güemes','Salta',-24.8560,-65.4862],
+ ['TUC','Aeropuerto Benjamín Matienzo','San Miguel de Tucumán',-26.8409,-65.1049],['JUJ','Aeropuerto Horacio Guzmán','San Salvador de Jujuy',-24.3928,-65.0978],
+ ['ROS','Aeropuerto Islas Malvinas','Rosario',-32.9036,-60.7850],['NQN','Aeropuerto Presidente Perón','Neuquén',-38.9490,-68.1557],
+ ['CPC','Aeropuerto Chapelco','San Martín de los Andes',-40.0754,-71.1373],['REL','Aeropuerto Almirante Zar','Trelew',-43.2105,-65.2703],
+ ['PMY','Aeropuerto El Tehuelche','Puerto Madryn',-42.7592,-65.1027],['CRD','Aeropuerto General Mosconi','Comodoro Rivadavia',-45.7853,-67.4655],
+ ['RGL','Aeropuerto Piloto Civil Norberto Fernández','Río Gallegos',-51.6089,-69.3126],['RGA','Aeropuerto de Río Grande','Río Grande',-53.7777,-67.7494],
+ ['BHI','Aeropuerto Comandante Espora','Bahía Blanca',-38.7250,-62.1693],['SFN','Aeropuerto de Sauce Viejo','Santa Fe',-31.7117,-60.8117],
+ ['PRA','Aeropuerto General Urquiza','Paraná',-31.7948,-60.4804],['PSS','Aeropuerto Libertador San Martín','Posadas',-27.3858,-55.9707],
+ ['CNQ','Aeropuerto Doctor Fernando Piragine Niveyro','Corrientes',-27.4455,-58.7619],['RES','Aeropuerto de Resistencia','Resistencia',-27.4500,-59.0561],
+ ['SDE','Aeropuerto Madre de Ciudades','Santiago del Estero',-27.7656,-64.3100],['CTC','Aeropuerto Coronel Felipe Varela','Catamarca',-28.5956,-65.7514],
+ ['IRJ','Aeropuerto Capitán Vicente Almandos Almonacid','La Rioja',-29.3816,-66.7958],['UAQ','Aeropuerto Domingo Faustino Sarmiento','San Juan',-31.5715,-68.4182],
+ ['LUQ','Aeropuerto Brigadier Mayor César Ojeda','San Luis',-33.2732,-66.3564],['AFA','Aeropuerto Santiago Germanó','San Rafael',-34.5883,-68.4039],
+ ['RCU','Aeropuerto Las Higueras','Río Cuarto',-33.0851,-64.2613],['RSA','Aeropuerto de Santa Rosa','Santa Rosa',-36.5883,-64.2757],
+ ['VDM','Aeropuerto Gobernador Castello','Viedma',-40.8692,-63.0004],['EQS','Aeropuerto de Esquel','Esquel',-42.9080,-71.1395],
+];
+let AE=null,AV={},AGUIA=null,APASO=0;
+const aNom=a=>a[0]+' · '+a[1]+' ('+a[2]+')';
+function aeropuerto(){if(!pase())return;AV={};AGUIA=null;
+ hablar(T('✈️ ¡Te acompaño en el aeropuerto! Dejame ver en cuál estás…','✈️ I will walk you through the airport! Let me see which one you are at…','✈️ Eu te acompanho no aeroporto! Deixa eu ver em qual você está…'),[]);
+ gps(p=>{const L2=p?AEROS.map(a=>[dist(p,[a[3],a[4]]),a]).sort((x,y)=>x[0]-y[0]):[];
+  if(L2.length&&L2[0][0]<12000){AE=L2[0][1];aSentido();return;}
+  aElegir(L2.slice(0,3).map(x=>x[1]));});
+}
+function aElegir(cerca){
+ hablar(T('¿En qué aeropuerto estás (o vas a estar)?','Which airport are you at (or going to)?','Em qual aeroporto você está (ou vai estar)?'),[['🏠 '+T('Inicio','Home','Início'),inicio]]);
+ const op=AEROS.slice().sort((a,b)=>a[2].localeCompare(b[2])).map(a=>`<option value="${a[0]}">${esc(a[2]+' — '+a[0]+' · '+a[1])}</option>`).join('');
+ main.innerHTML=`<div class="card"><h3>✈️ ${T('Aeropuertos de Argentina','Airports in Argentina','Aeroportos da Argentina')}</h3>${cerca.length?`<p class="muted">${T('Los más cerca tuyo:','Closest to you:','Os mais próximos:')}</p><div class="row">${cerca.map(a=>`<button class="btn pri" data-a="${a[0]}">${esc(a[2])} (${a[0]})</button>`).join('')}</div>`:''}<p class="muted" style="margin-top:10px">${T('O elegilo de la lista:','Or pick it from the list:','Ou escolha na lista:')}</p><select id="aSel" style="width:100%;padding:10px;border:2px solid #ffb5e6;border-radius:12px;font-size:15px">${op}</select><div class="row"><button class="btn pri" id="aOk">${T('Elegir','Choose','Escolher')}</button></div></div>`;
+ main.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{AE=AEROS.find(a=>a[0]===b.dataset.a);aSentido();});
+ $('#aSel').value='EZE';$('#aOk').onclick=()=>{AE=AEROS.find(a=>a[0]===$('#aSel').value);aSentido();};
+}
+function aSentido(){main.innerHTML='';
+ hablar(T(`Estás en ${AE[1]}, ${AE[2]}. ¿Llegaste o te vas?`,`You are at ${AE[1]}, ${AE[2]}. Arriving or departing?`,`Você está no ${AE[1]}, ${AE[2]}. Chegando ou partindo?`),[
+  ['🛬 '+T('Llegué, quiero salir del aeropuerto','I just landed','Acabei de chegar'),()=>{AV.sent='llega';aTipo();},true],
+  ['🛫 '+T('Me voy, tengo que tomar un vuelo','I have a flight to catch','Vou pegar um voo'),()=>{AV.sent='sale';aTipo();}],
+  ['🔁 '+T('Es otro aeropuerto','Different airport','Outro aeroporto'),()=>aElegir([])],['🏠 '+T('Inicio','Home','Início'),inicio]]);
+}
+function aTipo(){hablar(T('¿El vuelo es nacional o internacional?','Is it a domestic or international flight?','O voo é nacional ou internacional?'),[
+ ['🇦🇷 '+T('Nacional (dentro de Argentina)','Domestic','Nacional'),()=>{AV.intl=false;aDest();}],['🌎 '+T('Internacional','International','Internacional'),()=>{AV.intl=true;aDest();}]]);}
+function aDest(){
+ hablar(AV.sent==='llega'?T('¿A dónde tenés que ir? Escribí el hotel, la dirección o el barrio.','Where are you heading? Type your hotel, address or area.','Para onde você vai? Escreva o hotel, endereço ou bairro.'):T('¿Desde dónde salís hacia el aeropuerto? Escribí el hotel, la dirección o el barrio.','Where are you leaving from? Type your hotel, address or area.','De onde você sai? Escreva o hotel, endereço ou bairro.'),[]);
+ main.innerHTML=`<div class="card"><h3>📍 ${AV.sent==='llega'?T('Mi destino','My destination','Meu destino'):T('Salgo desde','Leaving from','Saio de')}</h3><input id="aDest" placeholder="${T('Ej: Hotel Hermitage, o Av. Colón 1500','e.g. Hotel name or street','Ex: nome do hotel ou rua')}" style="width:100%;padding:11px;border:2px solid #ffb5e6;border-radius:12px;font-size:15px"><div class="row"><button class="btn pri" id="aDok">${T('Seguir','Next','Continuar')}</button><button class="btn" id="aDno">${T('Al centro / no sé','City center / not sure','Centro / não sei')}</button></div></div>`;
+ const ok=v=>{AV.dest=String(v||'').trim();aModo();};$('#aDok').onclick=()=>ok($('#aDest').value);$('#aDno').onclick=()=>ok('');$('#aDest').addEventListener('keydown',e=>{if(e.key==='Enter')ok(e.target.value);});
+}
+function aModo(){main.innerHTML='';
+ const M=[['🚌',T('Micro o colectivo (más barato)','Bus (cheapest)','Ônibus (mais barato)'),'micro o colectivo'],['🚕',T('Taxi o remís oficial','Official taxi','Táxi oficial'),'taxi o remís oficial del aeropuerto'],['📱',T('App de viajes (Uber, Cabify, DiDi)','Ride app','App de transporte'),'una app de viajes (Uber, Cabify o DiDi)'],['🚐',T('Traslado o combi','Shuttle','Transfer'),'traslado o combi'],['🚗',T('Auto alquilado o propio','Rental or own car','Carro alugado ou próprio'),'auto']];
+ hablar(T('¿Cómo te querés mover?','How do you want to get there?','Como você quer ir?'),M.map(([e,tx,v])=>[e+' '+tx,()=>{AV.modo=v;aPedir();}]));
+}
+async function aPedir(){
+ hablar('🤔 '+T('Te armo el paso a paso…','Building your step-by-step…','Montando seu passo a passo…'),[]);main.innerHTML='';
+ try{const r=await fetch('/api/guia?accion=aeropuerto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({aero:aNom(AE),sent:AV.sent,intl:AV.intl,dest:AV.dest,modo:AV.modo,lang:LANG,perfil:P})});const j=await r.json();if(!r.ok)throw new Error(j.error==='cupo'?T('Hoy Flashy está con mucha gente. Probá en un rato.','Flashy is very busy today. Try again soon.','A Flashy está muito ocupada hoje.'):'');
+  AGUIA=j;APASO=0;aVer(true);}
+ catch(e){hablar(e.message||T('Uy, se me cortó la señal. Probá de nuevo.','Oops, connection problem. Try again.','Ops, problema de conexão.'),[['🔁 '+T('Probar de nuevo','Try again','Tentar de novo'),aPedir,true],['🏠 '+T('Inicio','Home','Início'),inicio]]);}
+}
+function aMapa(){const a=AE[1]+', '+AE[2]+', Argentina',d=(AV.dest||AE[2])+', '+AE[2]+', Argentina',tm=/micro|colectivo/.test(AV.modo)?'transit':'driving';
+ return 'https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(AV.sent==='llega'?a:d)+'&destination='+encodeURIComponent(AV.sent==='llega'?d:a)+'&travelmode='+tm;}
+function aVer(primera){const g=AGUIA,p=g.pasos[APASO];
+ main.innerHTML=`<div class="card"><h3>✈️ ${esc(AE[2]+' ('+AE[0]+')')} · ${AV.sent==='llega'?'🛬':'🛫'}</h3>${g.pasos.map((x,i)=>`<div class="paso ${i<APASO?'hecho':i===APASO?'act':''}"><b class="n">${i<APASO?'✓':i+1}</b><div><b>${esc(x.t)}</b>${i===APASO?`<div style="font-size:14.5px;margin-top:2px">${esc(x.d)}</div>`:''}</div></div>`).join('')}
+  <div class="row"><a class="btn pri" href="${aMapa()}" target="_blank" rel="noopener">🧭 ${T('Ver el recorrido en el mapa','See route on map','Ver rota no mapa')}</a></div></div>
+  ${g.consejos.length?`<div class="card"><h3>💡 ${T('Consejos de Flashy','Flashy tips','Dicas da Flashy')}</h3>${g.consejos.map(c=>`<p>• ${esc(c)}</p>`).join('')}</div>`:''}
+  <div class="card"><h3>🛡️ ${T('Ojo','Heads up','Atenção')}</h3><p>${esc(g.ojo||T('Usá los taxis y remises de los mostradores oficiales y no aceptes ofrecimientos de personas en el hall.','Use the official taxi desks and ignore offers from people in the hall.','Use os balcões oficiais de táxi.'))}</p><p class="muted">${T('Flashy te orienta, pero confirmá siempre en los carteles y en el mostrador de informes del aeropuerto.','Flashy guides you, but always check the signs and the airport info desk.','Confirme sempre nas placas e no balcão de informações.')}</p></div>`;
+ const fin=APASO>=g.pasos.length-1;
+ hablar((primera&&g.intro?g.intro+' ':'')+T(`Paso ${APASO+1}: `,`Step ${APASO+1}: `,`Passo ${APASO+1}: `)+p.t+'. '+p.d+(fin?' '+T('¿Querés que te siga ayudando?','Want me to keep helping?','Quer que eu continue ajudando?'):''),[
+  fin?['🎉 '+T('¡Listo, ya estoy!','Done, I made it!','Pronto, cheguei!'),()=>hablar(T('¡Buen viaje! 🎉 ¿Querés que te siga ayudando? Te puedo armar un paseo o decirte dónde comer.','Have a great trip! 🎉 Want me to keep helping?','Boa viagem! 🎉 Quer que eu continue ajudando?'),[['🗺️ '+T('Armame un paseo','Plan a tour','Monte um passeio'),armar],['🍽️ '+T('¿Dónde como?','Where can I eat?','Onde eu como?'),comer],['🏠 '+T('Inicio','Home','Início'),inicio]]),true]
+     :['✅ '+T('Hecho, siguiente paso','Done, next step','Feito, próximo passo'),()=>{APASO++;aVer();},true],
+  ...(APASO>0?[['⬅️ '+T('Paso anterior','Previous step','Passo anterior'),()=>{APASO--;aVer();}]]:[]),
+  ['❓ '+T('Tengo una duda','I have a question','Tenho uma dúvida'),()=>{$('#txt').focus();hablar(T('Escribime o hablame abajo 👇 y te ayudo.','Type or talk below 👇','Escreva ou fale abaixo 👇'),[['↩️ '+T('Volver a los pasos','Back to steps','Voltar aos passos'),()=>aVer()]]);}],
+  ['🏠 '+T('Inicio','Home','Início'),()=>{AGUIA=null;inicio();}]]);
+}
 // --- cuida ---
 function cuida(){if(!pase())return;
  hablar(T('Te dejo lo importante para que la pases bien y seguro 🛡️','Here is what matters to stay safe 🛡️','Aqui está o importante para você ficar seguro 🛡️'),[['🏠 '+T('Inicio','Home','Início'),inicio]]);
@@ -216,8 +291,8 @@ async function preguntar(q){if(!pase())return;
  q=String(q||'').trim();if(!q)return;$('#txt').value='';
  hablar('🤔 '+T('Dejame pensar…','Let me think…','Deixa eu pensar…'),[]);
  const cercanos=POS?Object.keys(L).map(id=>[dist(POS,L[id].ll),L[id].n]).sort((a,b)=>a[0]-b[0]).slice(0,5).map(a=>a[1]+' ('+fmtD(a[0])+')'):[];
- try{const r=await fetch('/api/guia?accion=preguntar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q,lang:LANG,ciudad:CIUDAD,cerca:cercanos,hist:HIST,perfil:P})});const j=await r.json();if(!r.ok)throw new Error(j.error||'');
-  HIST=HIST.concat([{role:'user',content:q},{role:'assistant',content:j.texto}]).slice(-6);hablar(j.texto,PASEO_ACT?opcPaseo():[['🗺️ '+T('Armame un paseo','Plan a tour','Monte um passeio'),armar],['🏠 '+T('Inicio','Home','Início'),inicio]]);}
+ try{const r=await fetch('/api/guia?accion=preguntar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:(AGUIA&&AE?'(Estoy en '+aNom(AE)+(AV.sent==='llega'?', recién llegué':', me voy en un vuelo')+(AV.dest?', destino/origen: '+AV.dest:'')+') ':'')+q,lang:LANG,ciudad:AGUIA&&AE?AE[2]:CIUDAD,cerca:AGUIA?[]:cercanos,hist:HIST,perfil:P})});const j=await r.json();if(!r.ok)throw new Error(j.error||'');
+  HIST=HIST.concat([{role:'user',content:q},{role:'assistant',content:j.texto}]).slice(-6);hablar(j.texto,AGUIA?[['↩️ '+T('Volver a los pasos','Back to steps','Voltar aos passos'),()=>aVer(),true],['🏠 '+T('Inicio','Home','Início'),inicio]]:PASEO_ACT?opcPaseo():[['🗺️ '+T('Armame un paseo','Plan a tour','Monte um passeio'),armar],['🏠 '+T('Inicio','Home','Início'),inicio]]);}
  catch(e){hablar(e.message||T('Uy, se me cortó la señal. Probá de nuevo o usá los botones, que andan igual.','Oops, connection problem. Try again or use the buttons.','Ops, problema de conexão. Tente de novo.'),[['🏠 '+T('Inicio','Home','Início'),inicio]]);}
 }
 $('#txt').addEventListener('keydown',e=>{if(e.key==='Enter')preguntar(e.target.value);});

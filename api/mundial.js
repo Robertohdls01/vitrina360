@@ -60,6 +60,15 @@ module.exports = async (req, res) => {
       const subs = (await Promise.all(L.map(x => leer(DIR + x.name)))).filter(Boolean);
       return res.status(200).json({ subs: subs.map(f => ({ producto: f.producto || 'mundial', dias: f.dias || null, codigo: f.codigo, nombre: f.nombre || '', metodo: f.metodo, email: f.email || '', creado: f.creado, hasta: f.hasta || null, mpEstado: f.mpEstado || '' })) });
     }
+    if (req.method === 'GET' && q.dolar) { // cotizaciones del dólar en Argentina (fuente pública: DolarApi.com)
+      try {
+        const r = await fetch('https://dolarapi.com/v1/dolares', { headers: { accept: 'application/json' } });
+        if (!r.ok) throw new Error('fuente ' + r.status);
+        const L = (await r.json()).filter(x => x && x.casa).map(x => ({ casa: String(x.casa), nombre: String(x.nombre || x.casa), compra: Number(x.compra) || null, venta: Number(x.venta) || null, fecha: x.fechaActualizacion || null }));
+        res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=1800');
+        return res.status(200).json({ dolares: L, fuente: 'DolarApi.com' });
+      } catch (e) { return res.status(502).json({ error: 'No pude traer el dólar ahora.' }); }
+    }
     if (req.method === 'GET' && q.pases) return res.status(200).json({ pases: PASES(), datos: DATOS_PAGO });
     if (req.method === 'GET') {
       const cod = String(q.codigo || '').toUpperCase(); if (!okCod(cod)) return res.status(400).json({ error: 'Código inválido.' });
